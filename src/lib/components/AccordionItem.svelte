@@ -12,6 +12,10 @@
 
 	let open = $state(isOpen);
 
+	$effect(() => {
+		open = isOpen;
+	});
+
 	function toggle() {
 		open = !open;
 	}
@@ -20,7 +24,7 @@
 <div class="border-b">
 	<button
 		class={cn(
-			'flex w-full p-4 text-left transition-colors cursor-pointer',
+			'flex w-full p-4 text-left transition-colors cursor-pointer ',
 			className,
 			!className && 'hover:bg-[#F2F0EF]',
 			!className && open && 'bg-[#F2F0EF]'

@@ -27,6 +27,20 @@ export function reveal(node: HTMLElement, options: RevealOptions = {}) {
 	const axisValue = axis === 'x' ? 'translateX' : 'translateY';
 	const startPos = axis === 'x' ? -distance : distance;
 
+	// Check if element is already in viewport
+	const rect = node.getBoundingClientRect();
+	const windowHeight = window.innerHeight;
+	const isInViewport = rect.top < windowHeight && rect.bottom > 0;
+
+	// If already in viewport, don't animate
+	if (isInViewport) {
+		node.style.transform = `${axisValue}(0px)`;
+		node.style.opacity = '1';
+		return {
+			destroy() {}
+		};
+	}
+
 	// Set initial state
 	node.style.transform = `${axisValue}(${startPos}px)`;
 	node.style.opacity = '0';

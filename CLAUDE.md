@@ -113,12 +113,24 @@ The project includes utility types in `src/lib/utils.ts`:
    - Use TypeScript interfaces for data structures
    - Separate configuration from implementation
 
+6. **Text Formatting**
+   - Use `MarkdownLink` component for formatting text with links and bold text
+   - Supports markdown-style links: `[text](url)`
+   - Supports bold text: `**text**`
+   - NEVER use `{@html}` for inserting links - use `MarkdownLink` instead
+   - For multi-paragraph text, split by `\n\n` and wrap each paragraph:
+     ```svelte
+     {#each text.split('\n\n') as paragraph}
+       <p><MarkdownLink text={paragraph} /></p>
+     {/each}
+     ```
+
 ### Component Creation Checklist
 - [ ] Component has single responsibility
 - [ ] Props are properly typed (use `Snippet` for snippets)
 - [ ] Uses `cn()` for conditional classes
 - [ ] No hardcoded data (moved to separate files)
 - [ ] Accessibility: proper ARIA, keyboard support, semantic HTML
-- [ ] No `{@html}` without sanitization (split into safe elements instead)
+- [ ] No `{@html}` - use `MarkdownLink` component for text with links/formatting
 - [ ] Responsive design implemented
 - [ ] Loading states handled

@@ -1,0 +1,265 @@
+import {
+	pgTable,
+	uniqueIndex,
+	bigserial,
+	timestamp,
+	boolean,
+	text,
+	foreignKey,
+	varchar,
+	bigint,
+	numeric,
+	index,
+	doublePrecision,
+	integer,
+	jsonb
+} from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
+
+export const source = pgTable(
+	'Source',
+	{
+		id: bigserial({ mode: 'bigint' }).primaryKey().notNull(),
+		createdAt: timestamp({ precision: 3, withTimezone: true, mode: 'string' })
+			.default(sql`CURRENT_TIMESTAMP`)
+			.notNull(),
+		updatedAt: timestamp({ precision: 3, withTimezone: true, mode: 'string' }).notNull(),
+		disabled: boolean().default(false).notNull(),
+		name: text().notNull()
+	},
+	(table) => [
+		uniqueIndex('Source_name_key').using('btree', table.name.asc().nullsLast().op('text_ops'))
+	]
+);
+
+export const client = pgTable(
+	'Client',
+	{
+		id: text().primaryKey().notNull(),
+		createdAt: timestamp({ precision: 3, withTimezone: true, mode: 'string' })
+			.default(sql`CURRENT_TIMESTAMP`)
+			.notNull(),
+		updatedAt: timestamp({ precision: 3, withTimezone: true, mode: 'string' }).notNull(),
+		disabled: boolean().default(false).notNull(),
+		name: text().notNull(),
+		description: varchar(),
+		nick: text(),
+		// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+		sourceId: bigint({ mode: 'number' }).notNull(),
+		invocation: text(),
+		gender: text()
+	},
+	(table) => [
+		uniqueIndex('Client_name_key').using('btree', table.name.asc().nullsLast().op('text_ops')),
+		uniqueIndex('Client_nick_key').using('btree', table.nick.asc().nullsLast().op('text_ops')),
+		foreignKey({
+			columns: [table.sourceId],
+			foreignColumns: [source.id],
+			name: 'Client_sourceId_fkey'
+		})
+			.onUpdate('cascade')
+			.onDelete('restrict')
+	]
+);
+
+export const activity = pgTable(
+	'Activity',
+	{
+		id: text().primaryKey().notNull(),
+		createdAt: timestamp({ precision: 3, withTimezone: true, mode: 'string' })
+			.default(sql`CURRENT_TIMESTAMP`)
+			.notNull(),
+		updatedAt: timestamp({ precision: 3, withTimezone: true, mode: 'string' }).notNull(),
+		disabled: boolean().default(false).notNull(),
+		scheduledDate: timestamp({ precision: 3, withTimezone: true, mode: 'string' }).notNull(),
+		scheduledDay: timestamp({ precision: 3, withTimezone: true, mode: 'string' }).notNull(),
+		description: text(),
+		rejectReason: text(),
+		status: text().notNull(),
+		income: numeric({ precision: 65, scale: 30 }),
+		clientId: text().notNull()
+	},
+	(table) => [
+		foreignKey({
+			columns: [table.clientId],
+			foreignColumns: [client.id],
+			name: 'Activity_clientId_fkey'
+		})
+			.onUpdate('cascade')
+			.onDelete('restrict')
+	]
+);
+
+export const contact = pgTable(
+	'Contact',
+	{
+		id: bigserial({ mode: 'bigint' }).primaryKey().notNull(),
+		createdAt: timestamp({ precision: 3, withTimezone: true, mode: 'string' })
+			.default(sql`CURRENT_TIMESTAMP`)
+			.notNull(),
+		updatedAt: timestamp({ precision: 3, withTimezone: true, mode: 'string' }).notNull(),
+		disabled: boolean().default(false).notNull(),
+		value: text().notNull(),
+		description: text(),
+		clientId: text().notNull(),
+		// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+		contactTypeId: bigint({ mode: 'number' }).notNull()
+	},
+	(table) => [
+		uniqueIndex('Contact_contactTypeId_value_key').using(
+			'btree',
+			table.contactTypeId.asc().nullsLast().op('int8_ops'),
+			table.value.asc().nullsLast().op('int8_ops')
+		),
+		index('Contact_value_idx').using('btree', table.value.asc().nullsLast().op('text_ops')),
+		foreignKey({
+			columns: [table.clientId],
+			foreignColumns: [client.id],
+			name: 'Contact_clientId_fkey'
+		})
+			.onUpdate('cascade')
+			.onDelete('restrict'),
+		foreignKey({
+			columns: [table.contactTypeId],
+			foreignColumns: [contactType.id],
+			name: 'Contact_contactTypeId_fkey'
+		})
+			.onUpdate('cascade')
+			.onDelete('restrict')
+	]
+);
+
+export const contactType = pgTable(
+	'ContactType',
+	{
+		id: bigserial({ mode: 'bigint' }).primaryKey().notNull(),
+		createdAt: timestamp({ precision: 3, withTimezone: true, mode: 'string' })
+			.default(sql`CURRENT_TIMESTAMP`)
+			.notNull(),
+		updatedAt: timestamp({ precision: 3, withTimezone: true, mode: 'string' }).notNull(),
+		disabled: boolean().default(false).notNull(),
+		name: text().notNull()
+	},
+	(table) => [
+		uniqueIndex('ContactType_name_key').using('btree', table.name.asc().nullsLast().op('text_ops'))
+	]
+);
+
+export const currentState = pgTable(
+	'CurrentState',
+	{
+		id: text().primaryKey().notNull(),
+		createdAt: timestamp({ precision: 3, withTimezone: true, mode: 'string' })
+			.default(sql`CURRENT_TIMESTAMP`)
+			.notNull(),
+		updatedAt: timestamp({ precision: 3, withTimezone: true, mode: 'string' }).notNull(),
+		disabled: boolean().default(false).notNull(),
+		editable: boolean().default(true).notNull(),
+		individual: doublePrecision().notNull(),
+		family: doublePrecision().notNull(),
+		social: doublePrecision().notNull(),
+		generally: doublePrecision().notNull(),
+		clientId: text().notNull(),
+		smallId: text().notNull(),
+		datetime: timestamp({ precision: 3, mode: 'string' }).notNull()
+	},
+	(table) => [
+		index('CurrentState_smallId_idx').using(
+			'btree',
+			table.smallId.asc().nullsLast().op('text_ops')
+		),
+		uniqueIndex('CurrentState_smallId_key').using(
+			'btree',
+			table.smallId.asc().nullsLast().op('text_ops')
+		),
+		foreignKey({
+			columns: [table.clientId],
+			foreignColumns: [client.id],
+			name: 'CurrentState_clientId_fkey'
+		})
+			.onUpdate('cascade')
+			.onDelete('restrict')
+	]
+);
+
+export const feedback = pgTable(
+	'Feedback',
+	{
+		id: text().primaryKey().notNull(),
+		createdAt: timestamp({ precision: 3, withTimezone: true, mode: 'string' })
+			.default(sql`CURRENT_TIMESTAMP`)
+			.notNull(),
+		updatedAt: timestamp({ precision: 3, withTimezone: true, mode: 'string' }).notNull(),
+		disabled: boolean().default(false).notNull(),
+		editable: boolean().default(true).notNull(),
+		attitude: doublePrecision().notNull(),
+		goals: doublePrecision().notNull(),
+		method: doublePrecision().notNull(),
+		generally: doublePrecision().notNull(),
+		clientId: text().notNull(),
+		smallId: text().notNull(),
+		datetime: timestamp({ precision: 3, mode: 'string' }).notNull()
+	},
+	(table) => [
+		index('Feedback_smallId_idx').using('btree', table.smallId.asc().nullsLast().op('text_ops')),
+		uniqueIndex('Feedback_smallId_key').using(
+			'btree',
+			table.smallId.asc().nullsLast().op('text_ops')
+		),
+		foreignKey({
+			columns: [table.clientId],
+			foreignColumns: [client.id],
+			name: 'Feedback_clientId_fkey'
+		})
+			.onUpdate('cascade')
+			.onDelete('restrict')
+	]
+);
+
+export const account = pgTable(
+	'Account',
+	{
+		id: text().primaryKey().notNull(),
+		username: text().notNull(),
+		password: text().notNull(),
+		disabled: boolean().default(false).notNull()
+	},
+	(table) => [
+		uniqueIndex('Account_username_key').using(
+			'btree',
+			table.username.asc().nullsLast().op('text_ops')
+		)
+	]
+);
+
+export const prismaMigrations = pgTable('_prisma_migrations', {
+	id: varchar({ length: 36 }).primaryKey().notNull(),
+	checksum: varchar({ length: 64 }).notNull(),
+	finishedAt: timestamp('finished_at', { withTimezone: true, mode: 'string' }),
+	migrationName: varchar('migration_name', { length: 255 }).notNull(),
+	logs: text(),
+	rolledBackAt: timestamp('rolled_back_at', { withTimezone: true, mode: 'string' }),
+	startedAt: timestamp('started_at', { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+	appliedStepsCount: integer('applied_steps_count').default(0).notNull()
+});
+
+export const article = pgTable(
+	'Article',
+	{
+		id: text().primaryKey().notNull(),
+		title: text().notNull(),
+		description: text(),
+		content: jsonb().notNull(),
+		createdAt: timestamp({ precision: 3, mode: 'string' })
+			.default(sql`CURRENT_TIMESTAMP`)
+			.notNull(),
+		updatedAt: timestamp({ precision: 3, mode: 'string' }).notNull(),
+		imageUrl: text(),
+		viewCount: integer().default(0).notNull(),
+		uri: text().notNull(),
+		descriptionMeta: text()
+	},
+	(table) => [
+		uniqueIndex('Article_uri_key').using('btree', table.uri.asc().nullsLast().op('text_ops'))
+	]
+);

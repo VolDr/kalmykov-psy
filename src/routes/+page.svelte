@@ -1,16 +1,17 @@
 <script lang="ts">
-	import MainGrid from '$lib/components/MainGrid.svelte';
+	import BookButton from '$lib/components/BookButton.svelte';
+	import MainGrid from '$lib/components/layout/MainGrid.svelte';
 </script>
 
 <svelte:head>
-	<title>Психолог Андрей Калмыков | Онлайн-консультации для digital и IT-специалистов</title>
+	<title>Психолог Андрей Калмыков | Онлайн-консультации для выгорающих</title>
 	<meta
 		name="description"
 		content="Психолог с опытом работы в IT. Помогаю техническим специалистам справиться с выгоранием, тревогой и найти баланс между работой и личной жизнью. Онлайн-консультации."
 	/>
 	<meta
 		property="og:title"
-		content="Психолог Андрей Калмыков | Онлайн-консультации для digital и IT-специалистов"
+		content="Психолог Андрей Калмыков | Онлайн-консультации для выгорающих"
 	/>
 	<meta
 		property="og:description"
@@ -21,7 +22,7 @@
 	<meta name="twitter:card" content="summary_large_image" />
 	<meta
 		name="twitter:title"
-		content="Психолог Андрей Калмыков | Онлайн-консультации для digital и IT-специалистов"
+		content="Психолог Андрей Калмыков | Онлайн-консультации для выгорающих"
 	/>
 	<meta
 		name="twitter:description"

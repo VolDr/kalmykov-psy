@@ -20,7 +20,7 @@
 	{onclick}
 	class={cn(
 		'absolute invisible md:visible top-1/2 -translate-y-1/2 z-20',
-		'p-2 text-black font-light tracking-wide',
+		'p-2 text-[#191919] font-light tracking-wide',
 		'border border-solid rounded-[10px] border-black',
 		'bg-white bg-opacity-90',
 		'transition-all duration-200 ease-out',

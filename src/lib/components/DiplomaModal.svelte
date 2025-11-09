@@ -136,7 +136,7 @@
 				<!-- Close button -->
 				<button
 					onclick={close}
-					class="absolute -top-10 right-0 p-2 text-white hover:text-[#cfc1a3] transition-colors z-10"
+					class="absolute -top-10 right-0 p-2 text-white hover:text-[#cfc1a3] transition-colors z-10 cursor-pointer"
 					aria-label="Закрыть"
 				>
 					<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -158,7 +158,7 @@
 								e.stopPropagation();
 								goToPrevious();
 							}}
-							class="cursor-pointer hidden md:flex p-2 rounded-lg border border-black bg-white/90 hover:bg-[#cfc1a3] hover:border-[#cfc1a3] hover:text-white transition-all"
+							class="cursor-pointer hidden md:flex p-2 rounded-lg border border-[#cfc1a3] bg-white/90 hover:bg-[#cfc1a3] hover:text-white transition-all"
 							aria-label="Предыдущий диплом"
 						>
 							<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -222,7 +222,7 @@
 								e.stopPropagation();
 								goToNext();
 							}}
-							class="cursor-pointer hidden md:flex p-2 rounded-lg border border-black bg-white/90 hover:bg-[#cfc1a3] hover:border-[#cfc1a3] hover:text-white transition-all"
+							class="cursor-pointer hidden md:flex p-2 rounded-lg border border-[#cfc1a3] bg-white/90 hover:bg-[#cfc1a3] hover:text-white transition-all"
 							aria-label="Следующий диплом"
 						>
 							<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

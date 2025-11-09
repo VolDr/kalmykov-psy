@@ -18,11 +18,11 @@
 	} = $props();
 
 	const baseClasses =
-		'text-center font-light tracking-wide py-[10px] px-[30px] border border-solid rounded-[10px] inline-block transition-all duration-500 ease-out active:transform active:scale-95';
+		'text-center font-light tracking-wide py-[10px] px-[30px] border border-solid rounded-[10px] inline-block transition-all duration-200 ease-out active:transform active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-default';
 
 	const variantClasses = {
 		primary:
-			'text-black border-black bg-opacity-0 hover:bg-[#cfc1a3] hover:border-[#cfc1a3] hover:text-white hover:shadow-md hover:-translate-y-0.5',
+			'text-black border-black bg-opacity-0 hover:bg-[#cfc1a3] hover:border-[#cfc1a3] hover:text-white hover:shadow-md ',
 		secondary: 'text-white border-white bg-opacity-0 hover:bg-white hover:text-black'
 	};
 </script>
