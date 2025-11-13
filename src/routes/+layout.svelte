@@ -14,6 +14,8 @@
 	let { progress, action } = createProgress();
 
 	let isAdminRoute = $derived(data.pathname?.startsWith('/admin'));
+	let isSurveys = $derived(data.pathname == '/surveys');
+	let isArticles = $derived(data.pathname == '/articles');
 	let isLoginRoute = $derived(data.pathname === '/login');
 	// Only hide header/footer for special code pages (like /ABC123), not regular pages
 	let isCodeRoute = $derived(
@@ -75,7 +77,7 @@
 	<Header initialMenuColor="white" />
 	<Affix />
 {/if}
-{#if !isAdminRoute && !isCodeRoute && !isLoginRoute}
+{#if !isAdminRoute && !isCodeRoute && !isLoginRoute && !isSurveys && !isArticles }
 	<ProgressBar progress={$progress} />
 {/if}
 <Toaster position="top-right" />
