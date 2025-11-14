@@ -1,8 +1,11 @@
+<script lang="ts">
+	import HeroBackground from '$lib/components/HeroBackground.svelte';
+</script>
 
-<section
-	data-hero
-	class="relative text-gray-100 overflow-hidden bg-cover bg-center bg-[url('/header.webp')] lg:bg-[url('/upscalemedia-transformed.webp')] min-h-[30vh]"
->
+<section data-hero class="relative text-gray-100 overflow-hidden min-h-[30vh]">
+	<HeroBackground />
+
+	<!-- Gradient overlay -->
 	<div
 		class="absolute w-full h-full z-0 bg-gradient-to-b from-black/25 from-0% via-black/65 via-40% to-black/65"
 	></div>

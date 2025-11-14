@@ -29,7 +29,7 @@
 			loading="lazy"
 			{src}
 			srcset={srcSmall ? `${srcSmall} 640w, ${src} 1200w` : undefined}
-			sizes={srcSmall ? '(max-width: 768px) 100vw, 50vw' : undefined}
+			sizes={srcSmall ? "(max-width: 1023px) 285px, 1200px" : undefined}
 			{alt}
 			class="select-none pointer-events-none rounded-xl my-0 relative z-10 object-cover {imgPositionClasses} {imgClass}"
 		/>

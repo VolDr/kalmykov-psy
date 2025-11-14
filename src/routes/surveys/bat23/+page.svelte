@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Survey from '$lib/components/survey/Survey.svelte';
+	import HeroBackground from '$lib/components/HeroBackground.svelte';
 	import { bat23Config } from '../../../configs/bat23Config';
 
 	const url = 'https://kalmykov.pro/surveys/bat23';
@@ -34,8 +35,9 @@
 
 <section
 	data-hero
-	class="relative min-h-[30vh] overflow-hidden bg-[url('/header.webp')] bg-cover bg-center text-gray-100 lg:bg-[url('/upscalemedia-transformed.webp')]"
+	class="relative min-h-[30vh] overflow-hidden text-gray-100"
 >
+	<HeroBackground />
 	<div
 		class="absolute z-0 h-full w-full bg-gradient-to-b from-black/25 from-0% via-black/65 via-40% to-black/65"
 	></div>

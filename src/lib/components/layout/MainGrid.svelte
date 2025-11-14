@@ -57,8 +57,11 @@
 			<div class="min-h-[50px] flex flex-col flex-nowrap gap-4 lg:gap-8 items-center justify-start">
 				<Reveal>
 					<div
-						class="container mx-auto flex flex-col flex-nowrap gap-2 lg:gap-4 items-center justify-start"
+						class="container mx-auto flex flex-col flex-nowrap gap-2 lg:gap-4 items-start justify-start"
 					>
+				    	<p>
+							Я Андрей — практикующий психолог.
+						</p>
 						<p>
 							Имея за плечами годы работы в IT-сфере, я хорошо понимаю проблемы тех, кто балансирует
 							между профессиональным ростом и личным благополучием.
