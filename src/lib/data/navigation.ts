@@ -10,7 +10,8 @@ export const navigationLinks: NavigationLink[] = [
 	{ link: 'https://t.me/kalmykov_psy/60', label: 'Тест на уровень выгорания', external: true },
 	{ link: '/articles', label: 'Статьи' },
 	{ link: '/surveys', label: 'Опросники' },
-	{ link: '/sos', label: 'Экстренная помощь' }
+	{ link: '/sos', label: 'Экстренная помощь' },
+		{ link: '/for-doctors', label: 'Врачам' }
 ];
 
 export interface SocialLink {

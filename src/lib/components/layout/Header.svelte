@@ -97,7 +97,7 @@
 		'bg-[#F2F0EF]': menuColor === 'black'
 	})}>
 	<div
-		class="max-w-[720px] md:max-w-[960px] lg:max-w-[1200px] mx-auto h-12 flex items-center">
+		class="max-w-full mx-auto h-12 flex items-center">
 		<nav aria-label="Основная навигация">
 			<ul class="flex items-center list-none p-0 m-0">
 				{#each navigationLinks as link}

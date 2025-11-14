@@ -125,11 +125,11 @@
 		<div
 			class="relative z-10 mx-auto mt-[10vh] mb-4 min-h-[100px] max-w-[960px] pt-[63px] lg:hidden"
 		>
-			<h1 class="self-end font-circe text-3xl">Психологическая поддержка и психотерапия</h1>
+			<h1 class="self-end font-circe text-3xl">Эффективное взаимодействие психолога с врачом</h1>
 		</div>
 		<div class="relative z-10 -mt-2 mb-5 flex flex-col gap-2 lg:hidden">
 			<p class="col-start-1 col-end-6 row-start-5 row-end-7 text-left">
-				Поддержка ваших пациентов на всех этапах лечения
+				Психологическая поддержка и психотерапия ваших пациентов на всех этапах лечения
 			</p>
 		</div>
 	</div>
@@ -148,7 +148,7 @@
 			class="lg:text-md col-start-1 col-end-12 row-start-9 row-end-11 flex flex-col gap-4 text-base"
 		>
 			<p class="mx-auto text-center lg:mx-0 lg:text-left">
-				Поддержка ваших пациентов на всех этапах лечения
+		Психологическая поддержка и психотерапия ваших пациентов на всех этапах лечения
 			</p>
 		</div>
 	</div>
