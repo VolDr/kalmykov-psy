@@ -12,7 +12,8 @@
 - ✅ Arrow magnets (snap to anchors)
 - ✅ Text labels (standalone + inside shapes)
 - ✅ **Shape Transformation (resize + rotate)** with Konva Transformer
-- ✅ Comprehensive test suite (240 tests)
+- ✅ **Tool Modes** (select, rect, ellipse, arrow, text, pan) with Toolbar UI
+- ✅ Comprehensive test suite (253 tests)
 - ✅ **Full Multiplayer Implementation:**
   - WebSocket server with room management (`server/websocket.ts`)
   - Operation broadcasting (addShapes, updateShapes, deleteShapes)
@@ -173,19 +174,27 @@ interface Presence {
 - `src/lib/canvas/ui/Canvas.svelte`
 - `src/lib/canvas/model/history.test.ts`
 
-### 1.2 Tool Modes (drawing new shapes)
+### 1.2 Tool Modes (drawing new shapes) ✅
 **Why**: Currently can only modify existing shapes, not create new ones via canvas.
-- [ ] Create `src/lib/canvas/stores/tool.ts` with modes: select, rect, ellipse, arrow, text, pan
-- [ ] Create `src/lib/canvas/ui/Toolbar.svelte` component
-- [ ] Hotkeys for tool switching: V (select), R (rect), E (ellipse), A (arrow), T (text), H (pan)
-- [ ] Implement drawing logic per tool:
+- [x] Create tool store with modes: select, rect, ellipse, arrow, text, pan
+- [x] Create `src/lib/canvas/ui/Toolbar.svelte` component
+- [x] Hotkeys for tool switching: V (select), R (rect), E (ellipse), A (arrow), T (text), H (pan)
+- [x] Implement drawing logic per tool:
   - rect/ellipse: mousedown → drag → mouseup creates shape
-  - arrow: click start → click end with magnet snapping
-  - text: click → inline editing
-- [ ] Update Canvas.svelte to use tool store
+  - arrow: drag creates arrow from start to end
+  - text: drag creates text placeholder
+  - pan: click and drag to pan
+- [x] Update Canvas.svelte to use tool store
+- [x] Live preview while drawing (dashed outline)
+- [x] Auto-switch back to select tool after drawing
+- [x] Tests for tool store (13 new tests)
 
-**Files to create:**
-- `src/lib/canvas/stores/tool.ts`
+**Files modified:**
+- `src/lib/canvas/stores.ts` (added tool store)
+- `src/lib/canvas/ui/Canvas.svelte`
+- `src/lib/canvas/stores.test.ts`
+
+**Files created:**
 - `src/lib/canvas/ui/Toolbar.svelte`
 
 ### 1.3 Box Selection
