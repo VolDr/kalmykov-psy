@@ -34,11 +34,13 @@ npm run lint
 ## Code Architecture
 
 ### SvelteKit Structure
+
 - Routes in `src/routes/` follow SvelteKit file-based routing conventions
 - `+layout.svelte` handles global layout and imports `app.css`
 - `+page.svelte` files define page components
 
 ### Component System
+
 - Using shadcn-svelte component library configured in `components.json`
 - UI components go in `src/lib/components/ui/`
 - Path aliases configured:
@@ -49,19 +51,69 @@ npm run lint
   - `$lib/utils` → utilities
 
 ### Styling
+
 - Tailwind CSS 4 with `@tailwindcss/vite` plugin
 - Global styles in `src/app.css`
 - Tailwind plugins: `@tailwindcss/forms`, `@tailwindcss/typography`, `tw-animate-css`
 - Helper utility `cn()` in `src/lib/utils.ts` for conditional class merging (clsx + tailwind-merge)
 
 ### TypeScript
+
 - Strict mode enabled
 - Path aliases handled by SvelteKit configuration
 - Extended config from `.svelte-kit/tsconfig.json`
 
+### Canvas Module (Excalidraw Clone)
+
+Located in `src/lib/canvas/`, this module provides a whiteboard/diagramming canvas framework.
+
+**Structure:**
+- `model/shapes.ts` - Primitive types (rect, ellipse, arrow, text, group), Camera, SceneData
+- `model/history.ts` - Undo/redo store with action tracking (add, update, delete, group, ungroup)
+- `engine/magnets.ts` - Arrow snapping to shape anchors (top, bottom, left, right)
+- `stores.ts` - Global stores: shapesHistory, selection, camera
+- `ui/Canvas.svelte` - Main canvas component using svelte-konva
+- `index.ts` - Barrel file for exports
+
+**Key Features:**
+- Infinite canvas with pan (Shift+Alt+drag or middle-click) and zoom (mouse wheel)
+- Hotkeys using `KeyboardEvent.code` (works for RU/EN layouts):
+  - `Ctrl/Cmd + Z` - Undo
+  - `Ctrl/Cmd + Shift + Z` - Redo
+  - `Delete/Backspace` - Remove selected
+  - `Ctrl/Cmd + D` - Duplicate selected
+- Shape operations: select (click), multi-select (Ctrl+click), drag to move
+- Arrow magnets: automatic snapping to nearest shape anchor
+- Rough.js hooks: prepared for hand-drawn styling integration via `roughOptions`
+
+**Server API:**
+- `src/routes/api/scenes/[id]/+server.ts` - GET/PUT/DELETE for scene persistence
+- `src/lib/server/db.server.ts` - PostgreSQL connection using pg pool
+- `drizzle/0001_scenes_table.sql` - Migration for scenes table (id uuid, data jsonb, updated_at)
+
+**Demo Page:**
+- Available at `/canvas` route
+- Toolbar for adding shapes, undo/redo, save functionality
+- Instructions panel with controls documentation
+
+**Testing:**
+- `model/history.test.ts` - 20 tests for undo/redo logic
+- `engine/magnets.test.ts` - 22 tests for bounds and anchor calculations
+- `stores.test.ts` - 20 tests for selection and camera stores
+
+**Usage:**
+```svelte
+<script>
+  import { Canvas, shapesHistory, camera } from '$lib/canvas';
+</script>
+
+<Canvas />
+```
+
 ## Code Style
 
 ### Prettier Configuration
+
 - Uses tabs for indentation
 - Single quotes
 - No trailing commas
@@ -69,6 +121,7 @@ npm run lint
 - Automatically formats Tailwind classes via `prettier-plugin-tailwindcss`
 
 ### ESLint Configuration
+
 - TypeScript ESLint recommended rules
 - Svelte plugin with recommended rules
 - `no-undef` disabled (TypeScript handles this)
@@ -77,6 +130,7 @@ npm run lint
 ## Type Utilities
 
 The project includes utility types in `src/lib/utils.ts`:
+
 - `WithoutChild<T>` - Remove child prop from type
 - `WithoutChildren<T>` - Remove children prop from type
 - `WithoutChildrenOrChild<T>` - Remove both child/children props
@@ -86,6 +140,7 @@ The project includes utility types in `src/lib/utils.ts`:
 ## Best Practices
 
 ### Component Architecture
+
 1. **Separation of Concerns**
    - Extract data into separate files (`src/lib/data/`)
    - Keep components focused on presentation
@@ -121,11 +176,12 @@ The project includes utility types in `src/lib/utils.ts`:
    - For multi-paragraph text, split by `\n\n` and wrap each paragraph:
      ```svelte
      {#each text.split('\n\n') as paragraph}
-       <p><MarkdownLink text={paragraph} /></p>
+     	<p><MarkdownLink text={paragraph} /></p>
      {/each}
      ```
 
 ### Component Creation Checklist
+
 - [ ] Component has single responsibility
 - [ ] Props are properly typed (use `Snippet` for snippets)
 - [ ] Uses `cn()` for conditional classes

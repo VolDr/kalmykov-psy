@@ -19,7 +19,7 @@ import { sql } from 'drizzle-orm';
 export const source = pgTable(
 	'Source',
 	{
-		id: bigserial({ mode: 'bigint' }).primaryKey().notNull(),
+		id: bigserial({ mode: 'number' }).primaryKey().notNull(),
 		createdAt: timestamp({ precision: 3, withTimezone: true, mode: 'string' })
 			.default(sql`CURRENT_TIMESTAMP`)
 			.notNull(),
@@ -93,7 +93,7 @@ export const activity = pgTable(
 export const contact = pgTable(
 	'Contact',
 	{
-		id: bigserial({ mode: 'bigint' }).primaryKey().notNull(),
+		id: bigserial({ mode: 'number' }).primaryKey().notNull(),
 		createdAt: timestamp({ precision: 3, withTimezone: true, mode: 'string' })
 			.default(sql`CURRENT_TIMESTAMP`)
 			.notNull(),
@@ -132,7 +132,7 @@ export const contact = pgTable(
 export const contactType = pgTable(
 	'ContactType',
 	{
-		id: bigserial({ mode: 'bigint' }).primaryKey().notNull(),
+		id: bigserial({ mode: 'number' }).primaryKey().notNull(),
 		createdAt: timestamp({ precision: 3, withTimezone: true, mode: 'string' })
 			.default(sql`CURRENT_TIMESTAMP`)
 			.notNull(),
