@@ -424,3 +424,52 @@ export const surveyResult = pgTable(
 			.onDelete('set null')
 	]
 );
+
+export const pageContent = pgTable(
+	'PageContent',
+	{
+		id: text().primaryKey().notNull(),
+		pageSlug: text().notNull(),
+		sectionKey: text().notNull(),
+		content: jsonb().notNull(),
+		sortOrder: integer().default(0).notNull(),
+		isActive: boolean().default(true).notNull(),
+		createdAt: timestamp({ precision: 3, mode: 'string' })
+			.default(sql`CURRENT_TIMESTAMP`)
+			.notNull(),
+		updatedAt: timestamp({ precision: 3, mode: 'string' }).notNull()
+	},
+	(table) => [
+		uniqueIndex('PageContent_pageSlug_sectionKey_key').using(
+			'btree',
+			table.pageSlug.asc().nullsLast().op('text_ops'),
+			table.sectionKey.asc().nullsLast().op('text_ops')
+		),
+		index('PageContent_pageSlug_idx').using(
+			'btree',
+			table.pageSlug.asc().nullsLast().op('text_ops')
+		),
+		index('PageContent_isActive_idx').using(
+			'btree',
+			table.isActive.asc().nullsLast().op('bool_ops')
+		),
+		index('PageContent_sortOrder_idx').using(
+			'btree',
+			table.sortOrder.asc().nullsLast().op('int4_ops')
+		)
+	]
+);
+
+export const siteSettings = pgTable(
+	'SiteSettings',
+	{
+		id: text().primaryKey().notNull(),
+		key: text().notNull(),
+		value: jsonb().notNull(),
+		description: text(),
+		updatedAt: timestamp({ precision: 3, mode: 'string' }).notNull()
+	},
+	(table) => [
+		uniqueIndex('SiteSettings_key_key').using('btree', table.key.asc().nullsLast().op('text_ops'))
+	]
+);
