@@ -1,6 +1,6 @@
 # Canvas Module TODO List (Prioritized)
 
-## Status: MVP Complete ✅
+## Status: Multiplayer Complete ✅
 
 ### What's Implemented
 - ✅ Primitive types: rect, ellipse, text, arrow, group (model)
@@ -11,93 +11,34 @@
 - ✅ Basic operations: select, move, delete, duplicate
 - ✅ Arrow magnets (snap to anchors)
 - ✅ Text labels (standalone + inside shapes)
-- ✅ Comprehensive test suite (105 tests)
-- ✅ Multiplayer sync foundation (operation types, presence, client sync)
+- ✅ **Shape Transformation (resize + rotate)** with Konva Transformer
+- ✅ **Tool Modes** (select, rect, ellipse, arrow, text, pan) with Toolbar UI
+- ✅ **Box Selection** (drag to select multiple shapes, Shift to add, Alt to remove)
+- ✅ Comprehensive test suite (253 tests)
+- ✅ **Full Multiplayer Implementation:**
+  - WebSocket server with room management (`server/websocket.ts`)
+  - Operation broadcasting (addShapes, updateShapes, deleteShapes)
+  - Remote cursor tracking and presence sharing
+  - Connection status indicator (Online/Offline/Reconnecting)
+  - Zod validation for API input
+  - Rate limiting and CSRF protection
+  - PM2 deployment config (`ecosystem.config.cjs`)
+  - Deployment documentation (`docs/MULTIPLAYER_DEPLOYMENT.md`)
 
 ---
 
-## Priority 0: Multiplayer (Real-time Collaboration) 🚀
+## ~~Priority 0: Multiplayer (Real-time Collaboration)~~ ✅ COMPLETE
 
-### G.1 Architecture Foundation
-**Why**: Multiple users working on the same scene simultaneously, seeing each other's changes in real-time.
+All multiplayer features implemented:
+- [x] G.1 Architecture Foundation (types, operations, presence)
+- [x] G.2 WebSocket Server (`server/websocket.ts` + `sync/server.ts`)
+- [x] G.3 History Store Integration (remote operations without undo)
+- [x] G.4 Canvas.svelte Integration (connection, broadcasting, cursors)
+- [x] G.6 Presence & Cursors (remote cursor rendering, user colors)
+- [x] Input validation with Zod schemas
+- [x] Security: rate limiting, CSRF protection, UUID validation
 
-**Core Principles:**
-- Server is the source of truth (Postgres `scenes.data`)
-- Clients send operations (actions), not full state
-- Server applies operations and broadcasts to others
-- Conflict resolution: last writer wins (simple but effective)
-
-**Operation Types:**
-```typescript
-// src/lib/canvas/sync/types.ts
-type OpType = 'addShapes' | 'updateShapes' | 'deleteShapes' | 'setCamera';
-
-interface OperationBase {
-  opId: string;        // unique operation ID
-  sceneId: string;
-  clientId: string;    // socket/client identifier
-  timestamp: number;
-}
-
-interface AddShapesOp extends OperationBase {
-  type: 'addShapes';
-  shapes: Shape[];
-}
-
-interface UpdateShapesOp extends OperationBase {
-  type: 'updateShapes';
-  shapes: Shape[];
-}
-
-interface DeleteShapesOp extends OperationBase {
-  type: 'deleteShapes';
-  ids: string[];
-}
-
-interface SetCameraOp extends OperationBase {
-  type: 'setCamera';
-  camera: Camera;
-}
-
-type Operation = AddShapesOp | UpdateShapesOp | DeleteShapesOp | SetCameraOp;
-```
-
-**Tasks:**
-- [x] Create `src/lib/canvas/sync/types.ts` with operation interfaces
-- [x] Define presence types for cursor/selection sharing
-- [x] Add `opId` generation (crypto.randomUUID())
-
-### G.2 WebSocket Server Implementation
-**Why**: Real-time bidirectional communication.
-
-**Server Flow:**
-1. Receive Operation from client
-2. Validate permissions/data
-3. Apply to current SceneData (load from Postgres → patch)
-4. Save updated state to Postgres (batched/debounced)
-5. Broadcast operation to all other clients in the room
-
-**Tasks:**
-- [ ] Create `src/routes/ws/scenes/[id]/+server.ts` WebSocket endpoint
-- [ ] Implement room management (clients per sceneId)
-- [ ] Handle incoming messages: Operation / Presence
-- [ ] Broadcast operations to room members (exclude sender)
-- [ ] Periodic save to Postgres (every N seconds if dirty)
-- [ ] Handle disconnect/reconnect gracefully
-
-**Files to create:**
-- `src/lib/canvas/sync/server.ts` - Server-side sync logic
-- `src/routes/ws/scenes/[id]/+server.ts` - WebSocket endpoint
-
-### G.3 History Store Integration
-**Why**: Separate local actions from remote operations.
-
-**Current State:**
-- `shapesHistory` has `addShapes`, `updateShapes`, `deleteShapes`
-- These write to undo/redo stacks
-
-**Needed:**
-- Local actions → generate Operation + send to server
+---
 - Remote operations → apply without touching local history
 
 **Tasks:**
@@ -221,45 +162,52 @@ interface Presence {
 
 ## Priority 1: Core UX (Critical)
 
-### 1.1 Shape Transformation (resize + rotate)
+### 1.1 Shape Transformation (resize + rotate) ✅
 **Why**: Users expect to resize/rotate shapes, not just move them.
-- [ ] Add Konva.Transformer on shape selection
-- [ ] Handle `transformend` event → update width/height/rotation
-- [ ] Normalize transforms: store actual dimensions, reset scaleX/scaleY to 1
-- [ ] Update `getShapeBounds()` to account for rotation
-- [ ] Multi-shape transformer for group selection
-- [ ] Tests for transform operations
+- [x] Add Konva.Transformer on shape selection
+- [x] Handle `transformend` event → update width/height/rotation
+- [x] Normalize transforms: store actual dimensions, reset scaleX/scaleY to 1
+- [x] Multi-shape transformer for group selection
+- [x] Tests for transform operations (7 new tests added)
+- [ ] Update `getShapeBounds()` to account for rotation (future enhancement)
 
-**Files to modify:**
+**Files modified:**
 - `src/lib/canvas/ui/Canvas.svelte`
-- `src/lib/canvas/engine/magnets.ts`
-- `src/lib/canvas/model/history.ts` (new action type: 'transform')
+- `src/lib/canvas/model/history.test.ts`
 
-### 1.2 Tool Modes (drawing new shapes)
+### 1.2 Tool Modes (drawing new shapes) ✅
 **Why**: Currently can only modify existing shapes, not create new ones via canvas.
-- [ ] Create `src/lib/canvas/stores/tool.ts` with modes: select, rect, ellipse, arrow, text, pan
-- [ ] Create `src/lib/canvas/ui/Toolbar.svelte` component
-- [ ] Hotkeys for tool switching: V (select), R (rect), E (ellipse), A (arrow), T (text), H (pan)
-- [ ] Implement drawing logic per tool:
+- [x] Create tool store with modes: select, rect, ellipse, arrow, text, pan
+- [x] Create `src/lib/canvas/ui/Toolbar.svelte` component
+- [x] Hotkeys for tool switching: V (select), R (rect), E (ellipse), A (arrow), T (text), H (pan)
+- [x] Implement drawing logic per tool:
   - rect/ellipse: mousedown → drag → mouseup creates shape
-  - arrow: click start → click end with magnet snapping
-  - text: click → inline editing
-- [ ] Update Canvas.svelte to use tool store
+  - arrow: drag creates arrow from start to end
+  - text: drag creates text placeholder
+  - pan: click and drag to pan
+- [x] Update Canvas.svelte to use tool store
+- [x] Live preview while drawing (dashed outline)
+- [x] Auto-switch back to select tool after drawing
+- [x] Tests for tool store (13 new tests)
 
-**Files to create:**
-- `src/lib/canvas/stores/tool.ts`
+**Files modified:**
+- `src/lib/canvas/stores.ts` (added tool store)
+- `src/lib/canvas/ui/Canvas.svelte`
+- `src/lib/canvas/stores.test.ts`
+
+**Files created:**
 - `src/lib/canvas/ui/Toolbar.svelte`
 
-### 1.3 Box Selection
+### 1.3 Box Selection ✅
 **Why**: Users need to select multiple shapes at once by drawing a rectangle.
-- [ ] Add selection box rendering (dashed rectangle)
-- [ ] Calculate intersection with shape bounds
-- [ ] Update selection store with all intersecting shapes
-- [ ] Modifier keys: Shift to add to selection, Alt to remove
+- [x] Add selection box rendering (semi-transparent blue rectangle with dashed border)
+- [x] Calculate intersection with shape bounds (getShapeBounds, rectsIntersect helpers)
+- [x] Update selection store with all intersecting shapes
+- [x] Modifier keys: Shift to add to selection, Alt to remove
+- [x] State management for box selection (isBoxSelecting, boxSelectStart, boxSelectEnd)
 
-**Files to modify:**
+**Files modified:**
 - `src/lib/canvas/ui/Canvas.svelte`
-- `src/lib/canvas/engine/magnets.ts` (add bounds intersection helper)
 
 ---
 

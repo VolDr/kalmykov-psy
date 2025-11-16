@@ -445,4 +445,119 @@ describe('createHistoryStore', () => {
 			expect(state.shapes[0].id).toBe('local-1');
 		});
 	});
+
+	describe('shape transformation (resize + rotate)', () => {
+		it('should update shape dimensions (resize)', () => {
+			const rect = createTestRect('1', 50, 50);
+			store.addShapes([rect]);
+
+			const resized = { ...rect, width: 200, height: 100 };
+			store.updateShapes([resized]);
+
+			const state = get(store);
+			const shape = state.shapes[0] as RectShape;
+			expect(shape.width).toBe(200);
+			expect(shape.height).toBe(100);
+			expect(state.undoStack[1].type).toBe('update');
+		});
+
+		it('should update shape rotation', () => {
+			const rect = createTestRect('1', 50, 50);
+			store.addShapes([rect]);
+
+			const rotated = { ...rect, rotation: 45 };
+			store.updateShapes([rotated]);
+
+			const state = get(store);
+			expect(state.shapes[0].rotation).toBe(45);
+		});
+
+		it('should update multiple transformation properties at once', () => {
+			const rect = createTestRect('1', 0, 0);
+			store.addShapes([rect]);
+
+			const transformed = {
+				...rect,
+				x: 100,
+				y: 100,
+				width: 150,
+				height: 75,
+				rotation: 30
+			};
+			store.updateShapes([transformed]);
+
+			const state = get(store);
+			const shape = state.shapes[0] as RectShape;
+			expect(shape.x).toBe(100);
+			expect(shape.y).toBe(100);
+			expect(shape.width).toBe(150);
+			expect(shape.height).toBe(75);
+			expect(shape.rotation).toBe(30);
+		});
+
+		it('should undo transformation correctly', () => {
+			const rect = createTestRect('1', 0, 0);
+			store.addShapes([rect]);
+
+			const transformed = { ...rect, width: 200, height: 100, rotation: 45 };
+			store.updateShapes([transformed]);
+
+			store.undo();
+
+			const state = get(store);
+			const shape = state.shapes[0] as RectShape;
+			expect(shape.width).toBe(100);
+			expect(shape.height).toBe(50);
+			expect(shape.rotation).toBe(0);
+		});
+
+		it('should redo transformation correctly', () => {
+			const rect = createTestRect('1', 0, 0);
+			store.addShapes([rect]);
+
+			const transformed = { ...rect, width: 200, rotation: 90 };
+			store.updateShapes([transformed]);
+			store.undo();
+			store.redo();
+
+			const state = get(store);
+			const shape = state.shapes[0] as RectShape;
+			expect(shape.width).toBe(200);
+			expect(shape.rotation).toBe(90);
+		});
+
+		it('should transform multiple shapes at once', () => {
+			const rect1 = createTestRect('1', 0, 0);
+			const rect2 = createTestRect('2', 100, 100);
+			store.addShapes([rect1, rect2]);
+
+			const transformed = [
+				{ ...rect1, width: 200, rotation: 15 },
+				{ ...rect2, width: 200, rotation: 15 }
+			];
+			store.updateShapes(transformed);
+
+			const state = get(store);
+			const shape1 = state.shapes[0] as RectShape;
+			const shape2 = state.shapes[1] as RectShape;
+			expect(shape1.width).toBe(200);
+			expect(shape1.rotation).toBe(15);
+			expect(shape2.width).toBe(200);
+			expect(shape2.rotation).toBe(15);
+		});
+
+		it('should handle remote transformation updates', () => {
+			const rect = createTestRect('1', 0, 0);
+			store.setAllShapes([rect]);
+
+			const remoteTransformed = { ...rect, width: 300, rotation: 60 };
+			store.applyRemoteUpdate([remoteTransformed]);
+
+			const state = get(store);
+			const shape = state.shapes[0] as RectShape;
+			expect(shape.width).toBe(300);
+			expect(shape.rotation).toBe(60);
+			expect(state.undoStack).toHaveLength(0); // Remote ops don't add to undo
+		});
+	});
 });

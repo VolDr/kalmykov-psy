@@ -6,7 +6,10 @@ import {
 	camera,
 	setSelection,
 	toggleSelection,
-	clearSelection
+	clearSelection,
+	currentTool,
+	setTool,
+	getToolCursor
 } from './stores';
 
 describe('canvas stores', () => {
@@ -189,6 +192,84 @@ describe('canvas stores', () => {
 			expect(typeof shapesHistory.undo).toBe('function');
 			expect(typeof shapesHistory.redo).toBe('function');
 			expect(typeof shapesHistory.setAllShapes).toBe('function');
+		});
+	});
+
+	describe('currentTool store', () => {
+		beforeEach(() => {
+			setTool('select');
+		});
+
+		it('should initialize with select tool', () => {
+			const tool = get(currentTool);
+			expect(tool).toBe('select');
+		});
+
+		describe('setTool', () => {
+			it('should set tool to rect', () => {
+				setTool('rect');
+				const tool = get(currentTool);
+				expect(tool).toBe('rect');
+			});
+
+			it('should set tool to ellipse', () => {
+				setTool('ellipse');
+				const tool = get(currentTool);
+				expect(tool).toBe('ellipse');
+			});
+
+			it('should set tool to arrow', () => {
+				setTool('arrow');
+				const tool = get(currentTool);
+				expect(tool).toBe('arrow');
+			});
+
+			it('should set tool to text', () => {
+				setTool('text');
+				const tool = get(currentTool);
+				expect(tool).toBe('text');
+			});
+
+			it('should set tool to pan', () => {
+				setTool('pan');
+				const tool = get(currentTool);
+				expect(tool).toBe('pan');
+			});
+
+			it('should switch between tools', () => {
+				setTool('rect');
+				expect(get(currentTool)).toBe('rect');
+				setTool('ellipse');
+				expect(get(currentTool)).toBe('ellipse');
+				setTool('select');
+				expect(get(currentTool)).toBe('select');
+			});
+		});
+
+		describe('getToolCursor', () => {
+			it('should return default cursor for select tool', () => {
+				expect(getToolCursor('select')).toBe('default');
+			});
+
+			it('should return crosshair cursor for rect tool', () => {
+				expect(getToolCursor('rect')).toBe('crosshair');
+			});
+
+			it('should return crosshair cursor for ellipse tool', () => {
+				expect(getToolCursor('ellipse')).toBe('crosshair');
+			});
+
+			it('should return crosshair cursor for arrow tool', () => {
+				expect(getToolCursor('arrow')).toBe('crosshair');
+			});
+
+			it('should return crosshair cursor for text tool', () => {
+				expect(getToolCursor('text')).toBe('crosshair');
+			});
+
+			it('should return grab cursor for pan tool', () => {
+				expect(getToolCursor('pan')).toBe('grab');
+			});
 		});
 	});
 });
