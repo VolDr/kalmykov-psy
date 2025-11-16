@@ -15,6 +15,209 @@
 
 ---
 
+## Priority 0: Multiplayer (Real-time Collaboration) 🚀
+
+### G.1 Architecture Foundation
+**Why**: Multiple users working on the same scene simultaneously, seeing each other's changes in real-time.
+
+**Core Principles:**
+- Server is the source of truth (Postgres `scenes.data`)
+- Clients send operations (actions), not full state
+- Server applies operations and broadcasts to others
+- Conflict resolution: last writer wins (simple but effective)
+
+**Operation Types:**
+```typescript
+// src/lib/canvas/sync/types.ts
+type OpType = 'addShapes' | 'updateShapes' | 'deleteShapes' | 'setCamera';
+
+interface OperationBase {
+  opId: string;        // unique operation ID
+  sceneId: string;
+  clientId: string;    // socket/client identifier
+  timestamp: number;
+}
+
+interface AddShapesOp extends OperationBase {
+  type: 'addShapes';
+  shapes: Shape[];
+}
+
+interface UpdateShapesOp extends OperationBase {
+  type: 'updateShapes';
+  shapes: Shape[];
+}
+
+interface DeleteShapesOp extends OperationBase {
+  type: 'deleteShapes';
+  ids: string[];
+}
+
+interface SetCameraOp extends OperationBase {
+  type: 'setCamera';
+  camera: Camera;
+}
+
+type Operation = AddShapesOp | UpdateShapesOp | DeleteShapesOp | SetCameraOp;
+```
+
+**Tasks:**
+- [ ] Create `src/lib/canvas/sync/types.ts` with operation interfaces
+- [ ] Define presence types for cursor/selection sharing
+- [ ] Add `opId` generation (crypto.randomUUID())
+
+### G.2 WebSocket Server Implementation
+**Why**: Real-time bidirectional communication.
+
+**Server Flow:**
+1. Receive Operation from client
+2. Validate permissions/data
+3. Apply to current SceneData (load from Postgres → patch)
+4. Save updated state to Postgres (batched/debounced)
+5. Broadcast operation to all other clients in the room
+
+**Tasks:**
+- [ ] Create `src/routes/ws/scenes/[id]/+server.ts` WebSocket endpoint
+- [ ] Implement room management (clients per sceneId)
+- [ ] Handle incoming messages: Operation / Presence
+- [ ] Broadcast operations to room members (exclude sender)
+- [ ] Periodic save to Postgres (every N seconds if dirty)
+- [ ] Handle disconnect/reconnect gracefully
+
+**Files to create:**
+- `src/lib/canvas/sync/server.ts` - Server-side sync logic
+- `src/routes/ws/scenes/[id]/+server.ts` - WebSocket endpoint
+
+### G.3 History Store Integration
+**Why**: Separate local actions from remote operations.
+
+**Current State:**
+- `shapesHistory` has `addShapes`, `updateShapes`, `deleteShapes`
+- These write to undo/redo stacks
+
+**Needed:**
+- Local actions → generate Operation + send to server
+- Remote operations → apply without touching local history
+
+**Tasks:**
+- [ ] Add `applyRemoteAdd(shapes)` to history store (no undo entry)
+- [ ] Add `applyRemoteUpdate(shapes)` (no undo entry)
+- [ ] Add `applyRemoteDelete(ids)` (no undo entry)
+- [ ] Modify existing methods to return Operation for sending
+- [ ] Tests for remote vs local operations
+
+**Example adapter:**
+```typescript
+// src/lib/canvas/sync/client.ts
+import { shapesHistory, camera } from '../stores';
+import type { Operation } from './types';
+
+export function applyRemoteOperation(op: Operation) {
+  switch (op.type) {
+    case 'addShapes':
+      shapesHistory.applyRemoteAdd(op.shapes);
+      break;
+    case 'updateShapes':
+      shapesHistory.applyRemoteUpdate(op.shapes);
+      break;
+    case 'deleteShapes':
+      shapesHistory.applyRemoteDelete(op.ids);
+      break;
+    case 'setCamera':
+      camera.set(op.camera);
+      break;
+  }
+}
+```
+
+**Files to modify:**
+- `src/lib/canvas/model/history.ts`
+- `src/lib/canvas/stores.ts`
+
+**Files to create:**
+- `src/lib/canvas/sync/client.ts`
+
+### G.4 Canvas.svelte WebSocket Integration
+**Why**: Connect UI actions to sync layer.
+
+**Tasks:**
+- [ ] Create WebSocket connection on component mount
+- [ ] Wrap local operations to send Operations to server
+- [ ] Listen for incoming Operations and apply via `applyRemoteOperation()`
+- [ ] Handle connection state (connecting, connected, disconnected)
+- [ ] Reconnect logic with exponential backoff
+- [ ] Show connection status indicator
+
+**Files to modify:**
+- `src/lib/canvas/ui/Canvas.svelte`
+- `src/routes/canvas/+page.svelte`
+
+### G.5 Undo/Redo in Multiplayer
+**Why**: Each client should only undo their own actions.
+
+**Approach:**
+- Client tracks own operations in local history
+- Undo generates "reverse operation" and sends to server
+- Server doesn't know about undo, just applies another operation
+
+**Tasks:**
+- [ ] Track local operation history (separate from shapes history)
+- [ ] Generate inverse operations for undo
+- [ ] Redo replays the original operation
+
+### G.6 Presence & Cursors
+**Why**: See where other users are and what they're doing.
+
+**Ephemeral State (not in Postgres):**
+```typescript
+interface Presence {
+  clientId: string;
+  userId?: string;
+  sceneId: string;
+  cursor?: { x: number; y: number };
+  selectedIds?: string[];
+  color?: string; // unique color per user
+  name?: string;
+}
+```
+
+**Tasks:**
+- [ ] Create presence store `src/lib/canvas/stores/presence.ts`
+- [ ] Send cursor position on mousemove (throttled)
+- [ ] Send selection changes
+- [ ] Render remote cursors with user colors/names
+- [ ] Show remote selections (colored outlines)
+- [ ] Remove stale presence on disconnect
+
+**Files to create:**
+- `src/lib/canvas/stores/presence.ts`
+- `src/lib/canvas/ui/RemoteCursor.svelte`
+- `src/lib/canvas/ui/RemoteSelection.svelte`
+
+### G.7 Conflict Resolution Strategy
+**Why**: Handle concurrent edits gracefully.
+
+**Minimal Approach (Last Writer Wins):**
+- Operations applied sequentially on server
+- `updateShapes` sends full shape state → latest wins
+- No complex CRDT/OT needed for basic use cases
+
+**Tasks:**
+- [ ] Implement server-side operation ordering
+- [ ] Handle edge cases: delete shape that another user is editing
+- [ ] Graceful degradation on conflicts
+
+### G.8 Testing Multiplayer
+**Why**: Ensure sync logic works correctly.
+
+**Tasks:**
+- [ ] Unit tests for operation application
+- [ ] Test remote vs local operation separation
+- [ ] Test presence updates
+- [ ] Integration tests with mock WebSocket
+
+---
+
 ## Priority 1: Core UX (Critical)
 
 ### 1.1 Shape Transformation (resize + rotate)
@@ -205,6 +408,15 @@ function renderRoughRect(rect: RectShape): HTMLCanvasElement {
 
 ## Implementation Order (Recommended)
 
+### Path A: Multiplayer-First (Recommended for collaborative use cases)
+1. **Weeks 1-2**: Multiplayer Foundation (G.1, G.2, G.3)
+2. **Week 3**: Canvas WebSocket Integration (G.4)
+3. **Week 4**: Presence & Cursors (G.6)
+4. **Weeks 5-6**: Core UX (1.1, 1.2, 1.3)
+5. **Week 7**: Improved Arrows (2.1)
+6. **Week 8**: Polish (4.1, 4.2)
+
+### Path B: Single-User-First (Standard approach)
 1. **Week 1**: Shape Transformation (1.1)
 2. **Week 2**: Tool Modes + Toolbar (1.2)
 3. **Week 3**: Box Selection (1.3) + Inline Text Editing (4.1)
@@ -212,7 +424,7 @@ function renderRoughRect(rect: RectShape): HTMLCanvasElement {
 5. **Week 5**: Rough.js Integration (5.1)
 6. **Week 6**: Group Operations (3.1, 3.2)
 7. **Week 7**: Polish (4.2, 4.3, 4.4)
-8. **Week 8**: Advanced Features (6.x)
+8. **Weeks 8-10**: Multiplayer (G.1-G.8)
 
 ---
 
