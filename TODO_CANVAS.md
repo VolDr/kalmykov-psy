@@ -11,7 +11,8 @@
 - ✅ Basic operations: select, move, delete, duplicate
 - ✅ Arrow magnets (snap to anchors)
 - ✅ Text labels (standalone + inside shapes)
-- ✅ Comprehensive test suite (62 tests)
+- ✅ Comprehensive test suite (105 tests)
+- ✅ Multiplayer sync foundation (operation types, presence, client sync)
 
 ---
 
@@ -62,9 +63,9 @@ type Operation = AddShapesOp | UpdateShapesOp | DeleteShapesOp | SetCameraOp;
 ```
 
 **Tasks:**
-- [ ] Create `src/lib/canvas/sync/types.ts` with operation interfaces
-- [ ] Define presence types for cursor/selection sharing
-- [ ] Add `opId` generation (crypto.randomUUID())
+- [x] Create `src/lib/canvas/sync/types.ts` with operation interfaces
+- [x] Define presence types for cursor/selection sharing
+- [x] Add `opId` generation (crypto.randomUUID())
 
 ### G.2 WebSocket Server Implementation
 **Why**: Real-time bidirectional communication.
@@ -100,11 +101,11 @@ type Operation = AddShapesOp | UpdateShapesOp | DeleteShapesOp | SetCameraOp;
 - Remote operations → apply without touching local history
 
 **Tasks:**
-- [ ] Add `applyRemoteAdd(shapes)` to history store (no undo entry)
-- [ ] Add `applyRemoteUpdate(shapes)` (no undo entry)
-- [ ] Add `applyRemoteDelete(ids)` (no undo entry)
+- [x] Add `applyRemoteAdd(shapes)` to history store (no undo entry)
+- [x] Add `applyRemoteUpdate(shapes)` (no undo entry)
+- [x] Add `applyRemoteDelete(ids)` (no undo entry)
 - [ ] Modify existing methods to return Operation for sending
-- [ ] Tests for remote vs local operations
+- [x] Tests for remote vs local operations
 
 **Example adapter:**
 ```typescript
@@ -131,11 +132,11 @@ export function applyRemoteOperation(op: Operation) {
 ```
 
 **Files to modify:**
-- `src/lib/canvas/model/history.ts`
+- `src/lib/canvas/model/history.ts` ✅
 - `src/lib/canvas/stores.ts`
 
 **Files to create:**
-- `src/lib/canvas/sync/client.ts`
+- `src/lib/canvas/sync/client.ts` ✅
 
 ### G.4 Canvas.svelte WebSocket Integration
 **Why**: Connect UI actions to sync layer.

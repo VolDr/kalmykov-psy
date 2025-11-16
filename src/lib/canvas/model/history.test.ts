@@ -252,4 +252,197 @@ describe('createHistoryStore', () => {
 			expect(state.shapes).toHaveLength(3);
 		});
 	});
+
+	describe('applyRemoteAdd', () => {
+		it('should add shapes without history entry', () => {
+			const rect = createTestRect('1');
+			store.applyRemoteAdd([rect]);
+
+			const state = get(store);
+			expect(state.shapes).toHaveLength(1);
+			expect(state.shapes[0].id).toBe('1');
+			expect(state.undoStack).toHaveLength(0);
+			expect(state.redoStack).toHaveLength(0);
+		});
+
+		it('should preserve existing history', () => {
+			store.addShapes([createTestRect('1')]); // Creates history entry
+
+			const state1 = get(store);
+			expect(state1.undoStack).toHaveLength(1);
+
+			store.applyRemoteAdd([createTestRect('2')]); // No history entry
+
+			const state2 = get(store);
+			expect(state2.shapes).toHaveLength(2);
+			expect(state2.undoStack).toHaveLength(1); // Still only 1 entry
+		});
+
+		it('should add multiple shapes', () => {
+			store.applyRemoteAdd([createTestRect('1'), createTestRect('2'), createTestRect('3')]);
+
+			const state = get(store);
+			expect(state.shapes).toHaveLength(3);
+			expect(state.undoStack).toHaveLength(0);
+		});
+
+		it('should preserve redo stack', () => {
+			store.addShapes([createTestRect('1')]);
+			store.undo();
+
+			const state1 = get(store);
+			expect(state1.redoStack).toHaveLength(1);
+
+			store.applyRemoteAdd([createTestRect('2')]);
+
+			const state2 = get(store);
+			expect(state2.shapes).toHaveLength(1);
+			expect(state2.redoStack).toHaveLength(1);
+		});
+	});
+
+	describe('applyRemoteUpdate', () => {
+		it('should update shapes without history entry', () => {
+			const rect = createTestRect('1', 0, 0);
+			store.setAllShapes([rect]);
+
+			store.applyRemoteUpdate([{ ...rect, x: 100, y: 200 }]);
+
+			const state = get(store);
+			expect(state.shapes[0].x).toBe(100);
+			expect(state.shapes[0].y).toBe(200);
+			expect(state.undoStack).toHaveLength(0);
+		});
+
+		it('should preserve existing history', () => {
+			const rect = createTestRect('1', 0, 0);
+			store.addShapes([rect]); // History entry
+
+			store.applyRemoteUpdate([{ ...rect, x: 50 }]); // No history entry
+
+			const state = get(store);
+			expect(state.shapes[0].x).toBe(50);
+			expect(state.undoStack).toHaveLength(1);
+		});
+
+		it('should update multiple shapes', () => {
+			const rect1 = createTestRect('1', 0, 0);
+			const rect2 = createTestRect('2', 10, 10);
+			store.setAllShapes([rect1, rect2]);
+
+			store.applyRemoteUpdate([
+				{ ...rect1, x: 100 },
+				{ ...rect2, y: 200 }
+			]);
+
+			const state = get(store);
+			expect(state.shapes[0].x).toBe(100);
+			expect(state.shapes[1].y).toBe(200);
+		});
+
+		it('should ignore non-existent shapes', () => {
+			const rect = createTestRect('1', 0, 0);
+			store.setAllShapes([rect]);
+
+			store.applyRemoteUpdate([createTestRect('non-existent', 999, 999)]);
+
+			const state = get(store);
+			expect(state.shapes).toHaveLength(1);
+			expect(state.shapes[0].id).toBe('1');
+			expect(state.shapes[0].x).toBe(0);
+		});
+	});
+
+	describe('applyRemoteDelete', () => {
+		it('should delete shapes without history entry', () => {
+			store.setAllShapes([createTestRect('1'), createTestRect('2')]);
+
+			store.applyRemoteDelete(['1']);
+
+			const state = get(store);
+			expect(state.shapes).toHaveLength(1);
+			expect(state.shapes[0].id).toBe('2');
+			expect(state.undoStack).toHaveLength(0);
+		});
+
+		it('should preserve existing history', () => {
+			store.addShapes([createTestRect('1'), createTestRect('2')]);
+
+			store.applyRemoteDelete(['2']);
+
+			const state = get(store);
+			expect(state.shapes).toHaveLength(1);
+			expect(state.undoStack).toHaveLength(1);
+		});
+
+		it('should delete multiple shapes', () => {
+			store.setAllShapes([createTestRect('1'), createTestRect('2'), createTestRect('3')]);
+
+			store.applyRemoteDelete(['1', '3']);
+
+			const state = get(store);
+			expect(state.shapes).toHaveLength(1);
+			expect(state.shapes[0].id).toBe('2');
+		});
+
+		it('should ignore non-existent IDs', () => {
+			store.setAllShapes([createTestRect('1')]);
+
+			store.applyRemoteDelete(['non-existent']);
+
+			const state = get(store);
+			expect(state.shapes).toHaveLength(1);
+		});
+
+		it('should preserve redo stack', () => {
+			store.addShapes([createTestRect('1'), createTestRect('2')]);
+			store.undo();
+
+			store.applyRemoteDelete(['2']);
+
+			const state = get(store);
+			expect(state.redoStack).toHaveLength(1);
+		});
+	});
+
+	describe('remote operations isolation', () => {
+		it('should not affect local undo after remote add', () => {
+			store.addShapes([createTestRect('local-1')]);
+			store.applyRemoteAdd([createTestRect('remote-1')]);
+
+			store.undo(); // Should only undo local add
+
+			const state = get(store);
+			expect(state.shapes).toHaveLength(1);
+			expect(state.shapes[0].id).toBe('remote-1');
+		});
+
+		it('should not affect local undo after remote update', () => {
+			const rect = createTestRect('1', 0, 0);
+			store.addShapes([rect]);
+			store.updateShapes([{ ...rect, x: 50 }]);
+			store.applyRemoteUpdate([{ ...rect, x: 100 }]);
+
+			store.undo(); // Should undo local update to x=50, but remote set x=100
+
+			const state = get(store);
+			// After undo, we revert x back to 0 (from local update), but the shape was remotely set to x=100
+			// Since we're reverting based on before state of local operation, x becomes 0
+			expect(state.shapes[0].x).toBe(0);
+		});
+
+		it('should not affect local undo after remote delete', () => {
+			store.addShapes([createTestRect('local-1')]);
+			store.addShapes([createTestRect('local-2')]);
+			store.applyRemoteDelete(['local-2']);
+
+			store.undo(); // Should only undo second local add
+
+			const state = get(store);
+			// After undo, we try to remove local-2, but it's already gone
+			// The operation still removes it from the 'after' list
+			expect(state.shapes).toHaveLength(1);
+			expect(state.shapes[0].id).toBe('local-1');
+		});
+	});
 });
