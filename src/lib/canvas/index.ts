@@ -20,6 +20,9 @@ export * from './grouping';
 // Properties and styling
 export * from './properties';
 
+// Text editing
+export * from './text-editing';
+
 // Sync (Multiplayer)
 export * from './sync/types';
 export * from './sync/client';
