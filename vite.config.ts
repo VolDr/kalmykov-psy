@@ -13,12 +13,16 @@ export default defineConfig({
 			provider: 'v8',
 			reporter: ['text', 'json', 'html'],
 			reportsDirectory: './coverage',
-			include: ['src/lib/**/*.{ts,svelte}'],
+			include: ['src/lib/**/*.ts'],
 			exclude: [
-				'src/lib/components/ui/**',
+				'src/lib/components/**',
 				'src/lib/server/**',
+				'src/lib/data/**',
+				'src/lib/types/**',
 				'**/index.ts',
-				'**/*.d.ts'
+				'**/*.d.ts',
+				'**/*.test.ts',
+				'**/*.spec.ts'
 			]
 		}
 	}
