@@ -161,6 +161,33 @@ export function createHistoryStore(maxHistory = 50) {
 		});
 	}
 
+	// Remote operation methods - apply changes without touching undo/redo history
+	// These are used for multiplayer sync when receiving operations from other clients
+
+	function applyRemoteAdd(newShapes: Shape[]) {
+		update((state) => ({
+			...state,
+			shapes: [...state.shapes, ...newShapes]
+		}));
+	}
+
+	function applyRemoteUpdate(updatedShapes: Shape[]) {
+		update((state) => ({
+			...state,
+			shapes: state.shapes.map((s) => {
+				const found = updatedShapes.find((u) => u.id === s.id);
+				return found ?? s;
+			})
+		}));
+	}
+
+	function applyRemoteDelete(ids: string[]) {
+		update((state) => ({
+			...state,
+			shapes: state.shapes.filter((s) => !ids.includes(s.id))
+		}));
+	}
+
 	return {
 		subscribe,
 		setAllShapes,
@@ -168,7 +195,10 @@ export function createHistoryStore(maxHistory = 50) {
 		updateShapes,
 		deleteShapes,
 		undo,
-		redo
+		redo,
+		applyRemoteAdd,
+		applyRemoteUpdate,
+		applyRemoteDelete
 	};
 }
 
