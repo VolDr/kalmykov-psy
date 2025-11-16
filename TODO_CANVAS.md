@@ -11,7 +11,8 @@
 - ✅ Basic operations: select, move, delete, duplicate
 - ✅ Arrow magnets (snap to anchors)
 - ✅ Text labels (standalone + inside shapes)
-- ✅ Comprehensive test suite (233 tests)
+- ✅ **Shape Transformation (resize + rotate)** with Konva Transformer
+- ✅ Comprehensive test suite (240 tests)
 - ✅ **Full Multiplayer Implementation:**
   - WebSocket server with room management (`server/websocket.ts`)
   - Operation broadcasting (addShapes, updateShapes, deleteShapes)
@@ -159,19 +160,18 @@ interface Presence {
 
 ## Priority 1: Core UX (Critical)
 
-### 1.1 Shape Transformation (resize + rotate)
+### 1.1 Shape Transformation (resize + rotate) ✅
 **Why**: Users expect to resize/rotate shapes, not just move them.
-- [ ] Add Konva.Transformer on shape selection
-- [ ] Handle `transformend` event → update width/height/rotation
-- [ ] Normalize transforms: store actual dimensions, reset scaleX/scaleY to 1
-- [ ] Update `getShapeBounds()` to account for rotation
-- [ ] Multi-shape transformer for group selection
-- [ ] Tests for transform operations
+- [x] Add Konva.Transformer on shape selection
+- [x] Handle `transformend` event → update width/height/rotation
+- [x] Normalize transforms: store actual dimensions, reset scaleX/scaleY to 1
+- [x] Multi-shape transformer for group selection
+- [x] Tests for transform operations (7 new tests added)
+- [ ] Update `getShapeBounds()` to account for rotation (future enhancement)
 
-**Files to modify:**
+**Files modified:**
 - `src/lib/canvas/ui/Canvas.svelte`
-- `src/lib/canvas/engine/magnets.ts`
-- `src/lib/canvas/model/history.ts` (new action type: 'transform')
+- `src/lib/canvas/model/history.test.ts`
 
 ### 1.2 Tool Modes (drawing new shapes)
 **Why**: Currently can only modify existing shapes, not create new ones via canvas.
