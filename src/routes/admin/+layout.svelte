@@ -20,6 +20,9 @@
 			<a href="/admin/articles" class="text-sm font-medium text-gray-700 hover:text-gray-900">
 				Статьи
 			</a>
+			<a href="/admin/surveys" class="text-sm font-medium text-gray-700 hover:text-gray-900">
+				Опросники
+			</a>
 		</nav>
 		<Button onclick={handleLogout} variant="outline">Выйти</Button>
 	</header>
@@ -35,6 +38,12 @@
 						class="block rounded-lg px-3 py-2 text-sm hover:bg-gray-100"
 					>
 						Статьи
+					</a>
+					<a
+						href="/admin/surveys"
+						class="block rounded-lg px-3 py-2 text-sm hover:bg-gray-100"
+					>
+						Опросники
 					</a>
 				</nav>
 			</div>
