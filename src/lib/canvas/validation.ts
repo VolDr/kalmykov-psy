@@ -1,0 +1,100 @@
+// src/lib/canvas/validation.ts
+import { z } from 'zod';
+
+// Base shape schema
+const baseShapeSchema = z.object({
+	id: z.string().uuid(),
+	type: z.enum(['rect', 'ellipse', 'arrow', 'text', 'group']),
+	x: z.number(),
+	y: z.number(),
+	rotation: z.number(),
+	scaleX: z.number().positive(),
+	scaleY: z.number().positive(),
+	stroke: z.string(),
+	strokeWidth: z.number().nonnegative(),
+	fill: z.string().nullable().optional(),
+	roughOptions: z.record(z.unknown()).optional()
+});
+
+// Rect shape schema
+const rectShapeSchema = baseShapeSchema.extend({
+	type: z.literal('rect'),
+	width: z.number().positive(),
+	height: z.number().positive(),
+	text: z.string().optional()
+});
+
+// Ellipse shape schema
+const ellipseShapeSchema = baseShapeSchema.extend({
+	type: z.literal('ellipse'),
+	rx: z.number().positive(),
+	ry: z.number().positive(),
+	text: z.string().optional()
+});
+
+// Text shape schema
+const textShapeSchema = baseShapeSchema.extend({
+	type: z.literal('text'),
+	text: z.string(),
+	fontSize: z.number().positive(),
+	fontFamily: z.string(),
+	align: z.enum(['left', 'center', 'right']),
+	width: z.number().positive().optional(),
+	height: z.number().positive().optional()
+});
+
+// Arrow endpoint schema
+const arrowEndpointSchema = z.object({
+	shapeId: z.string().uuid(),
+	anchor: z.enum(['top', 'bottom', 'left', 'right'])
+});
+
+// Arrow shape schema
+const arrowShapeSchema = baseShapeSchema.extend({
+	type: z.literal('arrow'),
+	points: z.array(z.tuple([z.number(), z.number()])).min(2),
+	from: arrowEndpointSchema.optional(),
+	to: arrowEndpointSchema.optional()
+});
+
+// Group shape schema
+const groupShapeSchema = baseShapeSchema.extend({
+	type: z.literal('group'),
+	children: z.array(z.string().uuid())
+});
+
+// Union of all shapes
+export const shapeSchema = z.discriminatedUnion('type', [
+	rectShapeSchema,
+	ellipseShapeSchema,
+	textShapeSchema,
+	arrowShapeSchema,
+	groupShapeSchema
+]);
+
+// Camera schema
+export const cameraSchema = z.object({
+	x: z.number(),
+	y: z.number(),
+	scale: z.number().positive()
+});
+
+// Scene data schema
+export const sceneDataSchema = z.object({
+	id: z.string().uuid(),
+	shapes: z.array(shapeSchema).max(10000), // Limit to prevent abuse
+	camera: cameraSchema
+});
+
+// Validate scene data - returns result or throws
+export function validateSceneData(data: unknown) {
+	return sceneDataSchema.parse(data);
+}
+
+// Safe validation - returns result with success/error
+export function safeValidateSceneData(data: unknown) {
+	return sceneDataSchema.safeParse(data);
+}
+
+export type ValidatedSceneData = z.infer<typeof sceneDataSchema>;
+export type ValidatedShape = z.infer<typeof shapeSchema>;

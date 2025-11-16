@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
-	import { Stage, Layer, Rect, Ellipse, Text as KonvaText, Line } from 'svelte-konva';
+	import { Stage, Layer, Rect, Ellipse, Text as KonvaText, Line, Arrow, Group } from 'svelte-konva';
+	import type { Stage as KonvaStage, Layer as KonvaLayer } from 'konva/lib/index-types';
 
 	import {
 		shapesHistory,
@@ -15,15 +16,27 @@
 		RectShape,
 		EllipseShape,
 		TextShape,
-		ArrowShape
+		ArrowShape,
+		GroupShape
 	} from '../model/shapes';
 
-	let stageRef: any = $state(null);
-	let layerRef: any = $state(null);
+	let stageRef: KonvaStage | null = $state(null);
+	let layerRef: KonvaLayer | null = $state(null);
 
 	let shapes: Shape[] = $state([]);
 	let selectedIds: Set<string> = $state(new Set());
 	let cam = $state({ x: 0, y: 0, scale: 1 });
+
+	// Responsive canvas dimensions
+	let stageWidth = $state(typeof window !== 'undefined' ? window.innerWidth : 800);
+	let stageHeight = $state(typeof window !== 'undefined' ? window.innerHeight : 600);
+
+	function updateDimensions() {
+		if (typeof window !== 'undefined') {
+			stageWidth = window.innerWidth;
+			stageHeight = window.innerHeight;
+		}
+	}
 
 	const unsubscribeShapes = shapesHistory.subscribe((state) => {
 		shapes = state.shapes;
@@ -41,6 +54,7 @@
 		unsubscribeCam();
 		if (typeof window !== 'undefined') {
 			window.removeEventListener('keydown', handleKeyDown);
+			window.removeEventListener('resize', updateDimensions);
 		}
 	});
 
@@ -199,6 +213,7 @@
 	onMount(() => {
 		if (typeof window !== 'undefined') {
 			window.addEventListener('keydown', handleKeyDown);
+			window.addEventListener('resize', updateDimensions);
 		}
 	});
 
@@ -246,15 +261,15 @@
 <div class="h-full w-full">
 	<Stage
 		config={{
-			width: typeof window !== 'undefined' ? window.innerWidth : 800,
-			height: typeof window !== 'undefined' ? window.innerHeight : 600
+			width: stageWidth,
+			height: stageHeight
 		}}
 		on:wheel={handleWheel}
 		on:mousedown={handleMouseDown}
 		on:mousemove={handleMouseMove}
 		on:mouseup={handleMouseUp}
 		on:click={handleStageClick}
-		on:load={(e) => (stageRef = e.detail)}
+		on:load={(e) => (stageRef = e.detail as KonvaStage)}
 	>
 		<Layer
 			config={{
@@ -263,7 +278,7 @@
 				scaleX: cam.scale,
 				scaleY: cam.scale
 			}}
-			on:load={(e) => (layerRef = e.detail)}
+			on:load={(e) => (layerRef = e.detail as KonvaLayer)}
 		>
 			{#each shapes as shape (shape.id)}
 				{#if shape.type === 'rect'}
@@ -357,21 +372,61 @@
 					/>
 				{:else if shape.type === 'arrow'}
 					{@const a = shape as ArrowShape}
-					<Line
+					<Arrow
 						config={{
 							...renderArrow(a),
 							x: a.x,
 							y: a.y,
 							stroke: a.stroke,
 							strokeWidth: a.strokeWidth,
+							fill: a.stroke,
 							lineCap: 'round',
 							lineJoin: 'round',
+							pointerLength: 10,
+							pointerWidth: 10,
 							draggable: true,
 							opacity: isSelected(a.id) ? 0.8 : 1
 						}}
 						on:click={(e) => onShapeClick(a.id, e)}
 						on:dragend={(e) => onArrowDragEnd(a, e)}
 					/>
+				{:else if shape.type === 'group'}
+					{@const g = shape as GroupShape}
+					<Group
+						config={{
+							x: g.x,
+							y: g.y,
+							rotation: g.rotation,
+							scaleX: g.scaleX,
+							scaleY: g.scaleY,
+							draggable: true,
+							opacity: isSelected(g.id) ? 0.8 : 1
+						}}
+						on:click={(e) => onShapeClick(g.id, e)}
+						on:dragend={(e) => onShapeDragEnd(g, e)}
+					>
+						<!-- Group children are rendered by looking up child shapes -->
+						{#each g.children as childId}
+							{@const child = shapes.find((s) => s.id === childId)}
+							{#if child?.type === 'rect'}
+								{@const rect = child as RectShape}
+								<Rect
+									config={{
+										x: rect.x - g.x,
+										y: rect.y - g.y,
+										width: rect.width,
+										height: rect.height,
+										offsetX: rect.width / 2,
+										offsetY: rect.height / 2,
+										stroke: rect.stroke,
+										strokeWidth: rect.strokeWidth,
+										fill: rect.fill ?? undefined,
+										rotation: rect.rotation
+									}}
+								/>
+							{/if}
+						{/each}
+					</Group>
 				{/if}
 			{/each}
 		</Layer>

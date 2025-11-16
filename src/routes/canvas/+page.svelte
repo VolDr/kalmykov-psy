@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { get } from 'svelte/store';
 	import Canvas from '$lib/canvas/ui/Canvas.svelte';
 	import { shapesHistory, camera } from '$lib/canvas/stores';
 	import type { SceneData, RectShape, EllipseShape, ArrowShape, TextShape } from '$lib/canvas/model/shapes';
@@ -103,17 +104,12 @@
 		loadError = null;
 
 		try {
-			let shapesSnapshot: any[] = [];
-			const unsub1 = shapesHistory.subscribe((s) => (shapesSnapshot = s.shapes));
-			unsub1();
-
-			let cameraSnapshot = { x: 0, y: 0, scale: 1 };
-			const unsub2 = camera.subscribe((c) => (cameraSnapshot = c));
-			unsub2();
+			const shapesState = get(shapesHistory);
+			const cameraSnapshot = get(camera);
 
 			const scene: SceneData = {
 				id: sceneId,
-				shapes: shapesSnapshot,
+				shapes: shapesState.shapes,
 				camera: cameraSnapshot
 			};
 
