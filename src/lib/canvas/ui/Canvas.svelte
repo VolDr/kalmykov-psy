@@ -21,7 +21,11 @@
 		selection,
 		camera,
 		toggleSelection,
-		clearSelection
+		clearSelection,
+		currentTool,
+		setTool,
+		getToolCursor,
+		type ToolMode
 	} from '../stores';
 	import { attachArrowEndToNearestShape } from '../engine/magnets';
 	import type {
@@ -45,6 +49,7 @@
 		createDeleteShapesOp,
 		type Presence
 	} from '../sync/types';
+	import Toolbar from './Toolbar.svelte';
 
 	// Props for multiplayer mode
 	interface Props {
@@ -73,6 +78,14 @@
 	let shapes: Shape[] = $state([]);
 	let selectedIds: Set<string> = $state(new Set());
 	let cam = $state({ x: 0, y: 0, scale: 1 });
+
+	// Tool state
+	let tool: ToolMode = $state('select');
+
+	// Drawing state
+	let isDrawing = $state(false);
+	let drawingStart = $state({ x: 0, y: 0 });
+	let previewShape: Shape | null = $state(null);
 
 	// Multiplayer state
 	let syncClient: SyncClient | null = $state(null);
@@ -122,6 +135,12 @@
 	const unsubscribeCam = camera.subscribe((c) => {
 		cam = c;
 	});
+	const unsubscribeTool = currentTool.subscribe((t) => {
+		tool = t;
+		// Clear drawing state when tool changes
+		isDrawing = false;
+		previewShape = null;
+	});
 
 	// Update transformer nodes when selection changes
 	$effect(() => {
@@ -144,6 +163,7 @@
 		unsubscribeShapes();
 		unsubscribeSel();
 		unsubscribeCam();
+		unsubscribeTool();
 		if (syncClient) {
 			syncClient.destroy();
 		}
@@ -226,6 +246,14 @@
 		if (evt.button === 1 || (evt.button === 0 && evt.shiftKey && evt.altKey)) {
 			isPanning = true;
 			lastPos = { x: evt.clientX, y: evt.clientY };
+		} else if (evt.button === 0 && tool !== 'select' && tool !== 'pan') {
+			// Start drawing for shape tools
+			const world = screenToWorld(evt.offsetX, evt.offsetY);
+			handleDrawingStart(world.x, world.y);
+		} else if (evt.button === 0 && tool === 'pan') {
+			// Pan mode - start panning
+			isPanning = true;
+			lastPos = { x: evt.clientX, y: evt.clientY };
 		}
 	}
 
@@ -233,12 +261,15 @@
 		const evt = e.evt as MouseEvent;
 
 		// Update local cursor position for presence (in world coordinates)
+		const world = screenToWorld(evt.offsetX, evt.offsetY);
 		if (stageRef && multiplayer && syncClient) {
-			const stage = stageRef.getStage ? stageRef.getStage() : stageRef;
-			const worldX = (evt.offsetX - stage.x()) / cam.scale;
-			const worldY = (evt.offsetY - stage.y()) / cam.scale;
-			localCursor = { x: worldX, y: worldY };
+			localCursor = { x: world.x, y: world.y };
 			syncClient.sendPresence({ cursor: localCursor });
+		}
+
+		// Handle drawing preview
+		if (isDrawing) {
+			handleDrawingMove(world.x, world.y);
 		}
 
 		if (!isPanning) return;
@@ -248,8 +279,15 @@
 		camera.set({ ...cam, x: cam.x + dx, y: cam.y + dy });
 	}
 
-	function handleMouseUp() {
+	function handleMouseUp(e: any) {
+		const evt = e.evt as MouseEvent;
 		isPanning = false;
+
+		// Finish drawing
+		if (isDrawing) {
+			const world = screenToWorld(evt.offsetX, evt.offsetY);
+			handleDrawingEnd(world.x, world.y);
+		}
 	}
 
 	function handleStageClick(e: any) {
@@ -465,6 +503,30 @@
 
 			return;
 		}
+
+		// Tool switching hotkeys (only when no modifiers pressed)
+		if (!e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey) {
+			switch (e.code) {
+				case 'KeyV':
+					setTool('select');
+					break;
+				case 'KeyR':
+					setTool('rect');
+					break;
+				case 'KeyE':
+					setTool('ellipse');
+					break;
+				case 'KeyA':
+					setTool('arrow');
+					break;
+				case 'KeyT':
+					setTool('text');
+					break;
+				case 'KeyH':
+					setTool('pan');
+					break;
+			}
+		}
 	}
 
 	onMount(() => {
@@ -509,6 +571,137 @@
 			flat.push(px, py);
 		}
 		return { points: flat };
+	}
+
+	// Helper to convert screen coordinates to world coordinates
+	function screenToWorld(screenX: number, screenY: number) {
+		const stage = stageRef?.getStage ? stageRef.getStage() : stageRef;
+		if (!stage) return { x: screenX, y: screenY };
+		return {
+			x: (screenX - stage.x()) / cam.scale,
+			y: (screenY - stage.y()) / cam.scale
+		};
+	}
+
+	// Create a new shape based on drawing bounds
+	function createShapeFromBounds(
+		toolType: ToolMode,
+		startX: number,
+		startY: number,
+		endX: number,
+		endY: number
+	): Shape | null {
+		const minX = Math.min(startX, endX);
+		const minY = Math.min(startY, endY);
+		const width = Math.abs(endX - startX);
+		const height = Math.abs(endY - startY);
+
+		if (width < 5 && height < 5) return null; // Too small
+
+		const baseShape = {
+			id: crypto.randomUUID(),
+			rotation: 0,
+			scaleX: 1,
+			scaleY: 1,
+			stroke: '#000000',
+			strokeWidth: 2
+		};
+
+		switch (toolType) {
+			case 'rect':
+				return {
+					...baseShape,
+					type: 'rect',
+					x: minX + width / 2,
+					y: minY + height / 2,
+					width,
+					height
+				} as RectShape;
+
+			case 'ellipse':
+				return {
+					...baseShape,
+					type: 'ellipse',
+					x: minX + width / 2,
+					y: minY + height / 2,
+					rx: width / 2,
+					ry: height / 2
+				} as EllipseShape;
+
+			case 'arrow':
+				return {
+					...baseShape,
+					type: 'arrow',
+					x: startX,
+					y: startY,
+					points: [
+						[0, 0],
+						[endX - startX, endY - startY]
+					]
+				} as ArrowShape;
+
+			case 'text':
+				return {
+					...baseShape,
+					type: 'text',
+					x: minX + width / 2,
+					y: minY + height / 2,
+					text: 'Text',
+					fontSize: 16,
+					fontFamily: 'Arial',
+					align: 'center',
+					width,
+					height
+				} as TextShape;
+
+			default:
+				return null;
+		}
+	}
+
+	// Handle drawing start
+	function handleDrawingStart(worldX: number, worldY: number) {
+		if (tool === 'select' || tool === 'pan') return;
+
+		isDrawing = true;
+		drawingStart = { x: worldX, y: worldY };
+
+		// Create preview shape
+		previewShape = createShapeFromBounds(tool, worldX, worldY, worldX, worldY);
+	}
+
+	// Handle drawing move
+	function handleDrawingMove(worldX: number, worldY: number) {
+		if (!isDrawing || tool === 'select' || tool === 'pan') return;
+
+		// Update preview shape
+		previewShape = createShapeFromBounds(tool, drawingStart.x, drawingStart.y, worldX, worldY);
+	}
+
+	// Handle drawing end
+	function handleDrawingEnd(worldX: number, worldY: number) {
+		if (!isDrawing || tool === 'select' || tool === 'pan') return;
+
+		isDrawing = false;
+
+		const newShape = createShapeFromBounds(tool, drawingStart.x, drawingStart.y, worldX, worldY);
+		if (newShape) {
+			shapesHistory.addShapes([newShape]);
+
+			// Broadcast to other clients
+			if (syncClient && multiplayer) {
+				const op = createAddShapesOp(sceneId, clientId, [newShape]);
+				syncClient.sendOperation(op);
+			}
+
+			// Select the new shape
+			selection.set({ ids: new Set([newShape.id]) });
+		}
+
+		previewShape = null;
+
+		// Switch back to select tool after drawing
+		setTool('select');
 	}
 
 	// ROUGH.JS HOOK:
@@ -556,7 +749,10 @@
 	}
 </script>
 
-<div class="relative h-full w-full">
+<div class="relative h-full w-full" style="cursor: {getToolCursor(tool)}">
+	<!-- Toolbar -->
+	<Toolbar />
+
 	<!-- Connection status indicator -->
 	{#if multiplayer}
 		<div class="absolute top-4 right-4 z-50 flex items-center gap-2 rounded-lg bg-white/90 px-3 py-2 shadow-md">
@@ -691,9 +887,9 @@
 				{:else if shape.type === 'arrow'}
 					{@const a = shape as ArrowShape}
 					<Arrow
+						points={renderArrow(a).points}
 						config={{
 							id: a.id,
-							...renderArrow(a),
 							x: a.x,
 							y: a.y,
 							stroke: a.stroke,
@@ -753,7 +949,10 @@
 			<!-- Transformer for selected shapes -->
 			<Transformer
 				config={{
-					boundBoxFunc: (oldBox, newBox) => {
+					boundBoxFunc: (
+						oldBox: { x: number; y: number; width: number; height: number; rotation: number },
+						newBox: { x: number; y: number; width: number; height: number; rotation: number }
+					) => {
 						// Limit minimum size
 						if (newBox.width < 10 || newBox.height < 10) {
 							return oldBox;
@@ -776,6 +975,71 @@
 				on:load={(e) => (transformerRef = e.detail as KonvaTransformer)}
 				on:transformend={onTransformEnd}
 			/>
+
+			<!-- Preview shape while drawing -->
+			{#if previewShape && isDrawing}
+				{#if previewShape.type === 'rect'}
+					{@const rect = previewShape as RectShape}
+					<Rect
+						config={{
+							...renderRect(rect),
+							offsetX: rect.width / 2,
+							offsetY: rect.height / 2,
+							stroke: rect.stroke,
+							strokeWidth: rect.strokeWidth,
+							opacity: 0.5,
+							dash: [10, 5],
+							listening: false
+						}}
+					/>
+				{:else if previewShape.type === 'ellipse'}
+					{@const el = previewShape as EllipseShape}
+					<Ellipse
+						radiusX={el.rx}
+						radiusY={el.ry}
+						config={{
+							x: el.x,
+							y: el.y,
+							offsetX: el.rx,
+							offsetY: el.ry,
+							stroke: el.stroke,
+							strokeWidth: el.strokeWidth,
+							opacity: 0.5,
+							dash: [10, 5],
+							listening: false
+						}}
+					/>
+				{:else if previewShape.type === 'arrow'}
+					{@const a = previewShape as ArrowShape}
+					<Arrow
+						points={renderArrow(a).points}
+						config={{
+							x: a.x,
+							y: a.y,
+							stroke: a.stroke,
+							strokeWidth: a.strokeWidth,
+							fill: a.stroke,
+							opacity: 0.5,
+							dash: [10, 5],
+							listening: false
+						}}
+					/>
+				{:else if previewShape.type === 'text'}
+					{@const t = previewShape as TextShape}
+					<KonvaText
+						config={{
+							x: t.x,
+							y: t.y,
+							offsetX: (t.width ?? 50) / 2,
+							offsetY: (t.height ?? 20) / 2,
+							text: t.text,
+							fontSize: t.fontSize,
+							opacity: 0.5,
+							listening: false
+						}}
+					/>
+				{/if}
+			{/if}
 
 			<!-- Remote cursors -->
 			{#if multiplayer}

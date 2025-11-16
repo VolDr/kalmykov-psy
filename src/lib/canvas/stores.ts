@@ -15,6 +15,32 @@ export const camera = writable<Camera>({
 	scale: 1
 });
 
+// Tool modes for canvas operations
+export type ToolMode = 'select' | 'rect' | 'ellipse' | 'arrow' | 'text' | 'pan';
+
+export const currentTool = writable<ToolMode>('select');
+
+export function setTool(tool: ToolMode) {
+	currentTool.set(tool);
+}
+
+export function getToolCursor(tool: ToolMode): string {
+	switch (tool) {
+		case 'select':
+			return 'default';
+		case 'rect':
+		case 'ellipse':
+		case 'text':
+			return 'crosshair';
+		case 'arrow':
+			return 'crosshair';
+		case 'pan':
+			return 'grab';
+		default:
+			return 'default';
+	}
+}
+
 export function setSelection(ids: string[]) {
 	selection.set({ ids: new Set(ids) });
 }
