@@ -11,8 +11,9 @@
 - ✅ Basic operations: select, move, delete, duplicate
 - ✅ Arrow magnets (snap to anchors)
 - ✅ Text labels (standalone + inside shapes)
-- ✅ Comprehensive test suite (105 tests)
+- ✅ Comprehensive test suite (219 tests)
 - ✅ Multiplayer sync foundation (operation types, presence, client sync)
+- ✅ WebSocket server implementation (SyncServer, SceneManager)
 
 ---
 
@@ -78,16 +79,22 @@ type Operation = AddShapesOp | UpdateShapesOp | DeleteShapesOp | SetCameraOp;
 5. Broadcast operation to all other clients in the room
 
 **Tasks:**
-- [ ] Create `src/routes/ws/scenes/[id]/+server.ts` WebSocket endpoint
-- [ ] Implement room management (clients per sceneId)
-- [ ] Handle incoming messages: Operation / Presence
-- [ ] Broadcast operations to room members (exclude sender)
-- [ ] Periodic save to Postgres (every N seconds if dirty)
-- [ ] Handle disconnect/reconnect gracefully
+- [x] Create `src/lib/canvas/sync/server.ts` - SyncServer class with room management
+- [x] Implement room management (clients per sceneId)
+- [x] Handle incoming messages: Operation / Presence
+- [x] Broadcast operations to room members (exclude sender)
+- [x] Periodic save to Postgres (every N seconds if dirty)
+- [x] Handle disconnect/reconnect gracefully
+- [x] Create `src/lib/canvas/sync/scene-manager.ts` - Apply operations to Postgres
+- [x] Create `src/lib/canvas/sync/ws-server.ts` - Standalone WebSocket server entry point
+- [x] Add npm scripts: `ws:dev`, `ws:start`
+- [x] Tests for SceneManager (17 tests)
 
-**Files to create:**
-- `src/lib/canvas/sync/server.ts` - Server-side sync logic
-- `src/routes/ws/scenes/[id]/+server.ts` - WebSocket endpoint
+**Files created:**
+- `src/lib/canvas/sync/server.ts` - Server-side sync logic (SyncServer class)
+- `src/lib/canvas/sync/scene-manager.ts` - Scene data management and operation application
+- `src/lib/canvas/sync/ws-server.ts` - Standalone WebSocket server (port 3001)
+- `src/lib/canvas/sync/scene-manager.test.ts` - Unit tests for SceneManager
 
 ### G.3 History Store Integration
 **Why**: Separate local actions from remote operations.
