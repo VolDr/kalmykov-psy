@@ -9,3 +9,7 @@ export { default as TextBlockSection } from './TextBlockSection.svelte';
 export { default as ListCard } from './ListCard.svelte';
 export { default as IconCard } from './IconCard.svelte';
 export { default as ContactCard } from './ContactCard.svelte';
+
+// Rendering
+export { default as BlockRenderer } from './BlockRenderer.svelte';
+export { default as PageRenderer } from './PageRenderer.svelte';
