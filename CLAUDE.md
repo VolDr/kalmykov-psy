@@ -34,11 +34,13 @@ npm run lint
 ## Code Architecture
 
 ### SvelteKit Structure
+
 - Routes in `src/routes/` follow SvelteKit file-based routing conventions
 - `+layout.svelte` handles global layout and imports `app.css`
 - `+page.svelte` files define page components
 
 ### Component System
+
 - Using shadcn-svelte component library configured in `components.json`
 - UI components go in `src/lib/components/ui/`
 - Path aliases configured:
@@ -49,12 +51,14 @@ npm run lint
   - `$lib/utils` → utilities
 
 ### Styling
+
 - Tailwind CSS 4 with `@tailwindcss/vite` plugin
 - Global styles in `src/app.css`
 - Tailwind plugins: `@tailwindcss/forms`, `@tailwindcss/typography`, `tw-animate-css`
 - Helper utility `cn()` in `src/lib/utils.ts` for conditional class merging (clsx + tailwind-merge)
 
 ### TypeScript
+
 - Strict mode enabled
 - Path aliases handled by SvelteKit configuration
 - Extended config from `.svelte-kit/tsconfig.json`
@@ -62,6 +66,7 @@ npm run lint
 ## Code Style
 
 ### Prettier Configuration
+
 - Uses tabs for indentation
 - Single quotes
 - No trailing commas
@@ -69,6 +74,7 @@ npm run lint
 - Automatically formats Tailwind classes via `prettier-plugin-tailwindcss`
 
 ### ESLint Configuration
+
 - TypeScript ESLint recommended rules
 - Svelte plugin with recommended rules
 - `no-undef` disabled (TypeScript handles this)
@@ -77,6 +83,7 @@ npm run lint
 ## Type Utilities
 
 The project includes utility types in `src/lib/utils.ts`:
+
 - `WithoutChild<T>` - Remove child prop from type
 - `WithoutChildren<T>` - Remove children prop from type
 - `WithoutChildrenOrChild<T>` - Remove both child/children props
@@ -86,6 +93,7 @@ The project includes utility types in `src/lib/utils.ts`:
 ## Best Practices
 
 ### Component Architecture
+
 1. **Separation of Concerns**
    - Extract data into separate files (`src/lib/data/`)
    - Keep components focused on presentation
@@ -121,11 +129,12 @@ The project includes utility types in `src/lib/utils.ts`:
    - For multi-paragraph text, split by `\n\n` and wrap each paragraph:
      ```svelte
      {#each text.split('\n\n') as paragraph}
-       <p><MarkdownLink text={paragraph} /></p>
+     	<p><MarkdownLink text={paragraph} /></p>
      {/each}
      ```
 
 ### Component Creation Checklist
+
 - [ ] Component has single responsibility
 - [ ] Props are properly typed (use `Snippet` for snippets)
 - [ ] Uses `cn()` for conditional classes
