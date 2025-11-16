@@ -9,9 +9,12 @@
 		Line,
 		Arrow,
 		Group,
-		Circle
+		Circle,
+		Transformer
 	} from 'svelte-konva';
 	import type { Stage as KonvaStage, Layer as KonvaLayer } from 'konva/lib/index-types';
+	import type { Transformer as KonvaTransformer } from 'konva/lib/shapes/Transformer';
+	import type { Node as KonvaNode } from 'konva/lib/Node';
 
 	import {
 		shapesHistory,
@@ -62,6 +65,10 @@
 
 	let stageRef: KonvaStage | null = $state(null);
 	let layerRef: KonvaLayer | null = $state(null);
+	let transformerRef: KonvaTransformer | null = $state(null);
+
+	// Map to store shape node references for transformer
+	let shapeRefs: Map<string, KonvaNode> = $state(new Map());
 
 	let shapes: Shape[] = $state([]);
 	let selectedIds: Set<string> = $state(new Set());
@@ -114,6 +121,22 @@
 	});
 	const unsubscribeCam = camera.subscribe((c) => {
 		cam = c;
+	});
+
+	// Update transformer nodes when selection changes
+	$effect(() => {
+		if (!transformerRef) return;
+
+		const nodes: KonvaNode[] = [];
+		for (const id of selectedIds) {
+			const node = shapeRefs.get(id);
+			if (node) {
+				nodes.push(node);
+			}
+		}
+
+		transformerRef.nodes(nodes);
+		transformerRef.getLayer()?.batchDraw();
 	});
 
 	// Cleanup on destroy
@@ -249,6 +272,93 @@
 		e.cancelBubble = true;
 	}
 
+	// Handle shape transformation (resize/rotate)
+	function onTransformEnd() {
+		if (!transformerRef) return;
+
+		const nodes = transformerRef.nodes();
+		const updatedShapes: Shape[] = [];
+
+		for (const node of nodes) {
+			const shapeId = node.id();
+			const shape = shapes.find((s) => s.id === shapeId);
+			if (!shape) continue;
+
+			// Get the new transformation values
+			const scaleX = node.scaleX();
+			const scaleY = node.scaleY();
+			const rotation = node.rotation();
+			const x = node.x();
+			const y = node.y();
+
+			let updated: Shape;
+
+			if (shape.type === 'rect') {
+				const rect = shape as RectShape;
+				// Apply scale to actual dimensions and reset scale
+				updated = {
+					...rect,
+					x,
+					y,
+					width: rect.width * scaleX,
+					height: rect.height * scaleY,
+					rotation,
+					scaleX: 1,
+					scaleY: 1
+				};
+				// Reset node scale after applying to dimensions
+				node.scaleX(1);
+				node.scaleY(1);
+			} else if (shape.type === 'ellipse') {
+				const ellipse = shape as EllipseShape;
+				updated = {
+					...ellipse,
+					x,
+					y,
+					rx: ellipse.rx * scaleX,
+					ry: ellipse.ry * scaleY,
+					rotation,
+					scaleX: 1,
+					scaleY: 1
+				};
+				node.scaleX(1);
+				node.scaleY(1);
+			} else if (shape.type === 'text') {
+				const text = shape as TextShape;
+				updated = {
+					...text,
+					x,
+					y,
+					rotation,
+					scaleX,
+					scaleY
+				};
+			} else {
+				// For other shapes, just update position and rotation
+				updated = {
+					...shape,
+					x,
+					y,
+					rotation,
+					scaleX,
+					scaleY
+				};
+			}
+
+			updatedShapes.push(updated);
+		}
+
+		if (updatedShapes.length > 0) {
+			shapesHistory.updateShapes(updatedShapes);
+
+			// Broadcast to other clients
+			if (syncClient && multiplayer) {
+				const op = createUpdateShapesOp(sceneId, clientId, updatedShapes);
+				syncClient.sendOperation(op);
+			}
+		}
+	}
+
 	function onShapeDragEnd(shape: Shape, e: any) {
 		const node = e.target;
 		const pos = node.position();
@@ -364,6 +474,15 @@
 		}
 	});
 
+	// Register shape node reference for transformer
+	function registerShapeRef(shapeId: string, node: KonvaNode | null) {
+		if (node) {
+			shapeRefs.set(shapeId, node);
+		} else {
+			shapeRefs.delete(shapeId);
+		}
+	}
+
 	// Render helpers
 	function renderRect(rect: RectShape) {
 		return {
@@ -478,6 +597,7 @@
 					{@const rect = shape as RectShape}
 					<Rect
 						config={{
+							id: rect.id,
 							...renderRect(rect),
 							offsetX: rect.width / 2,
 							offsetY: rect.height / 2,
@@ -490,6 +610,7 @@
 						}}
 						on:click={(e) => onShapeClick(rect.id, e)}
 						on:dragend={(e) => onShapeDragEnd(rect, e)}
+						on:load={(e) => registerShapeRef(rect.id, e.detail as KonvaNode)}
 					/>
 					{#if rect.text}
 						<KonvaText
@@ -514,6 +635,7 @@
 						radiusX={el.rx}
 						radiusY={el.ry}
 						config={{
+							id: el.id,
 							x: el.x,
 							y: el.y,
 							offsetX: el.rx,
@@ -527,6 +649,7 @@
 						}}
 						on:click={(e) => onShapeClick(el.id, e)}
 						on:dragend={(e) => onShapeDragEnd(el, e)}
+						on:load={(e) => registerShapeRef(el.id, e.detail as KonvaNode)}
 					/>
 					{#if el.text}
 						<KonvaText
@@ -549,6 +672,7 @@
 					{@const t = shape as TextShape}
 					<KonvaText
 						config={{
+							id: t.id,
 							x: t.x,
 							y: t.y,
 							offsetX: (t.width ?? t.text.length * t.fontSize * 0.6) / 2,
@@ -562,11 +686,13 @@
 						}}
 						on:click={(e) => onShapeClick(t.id, e)}
 						on:dragend={(e) => onShapeDragEnd(t, e)}
+						on:load={(e) => registerShapeRef(t.id, e.detail as KonvaNode)}
 					/>
 				{:else if shape.type === 'arrow'}
 					{@const a = shape as ArrowShape}
 					<Arrow
 						config={{
+							id: a.id,
 							...renderArrow(a),
 							x: a.x,
 							y: a.y,
@@ -582,6 +708,7 @@
 						}}
 						on:click={(e) => onShapeClick(a.id, e)}
 						on:dragend={(e) => onArrowDragEnd(a, e)}
+						on:load={(e) => registerShapeRef(a.id, e.detail as KonvaNode)}
 					/>
 				{:else if shape.type === 'group'}
 					{@const g = shape as GroupShape}
@@ -622,6 +749,33 @@
 					</Group>
 				{/if}
 			{/each}
+
+			<!-- Transformer for selected shapes -->
+			<Transformer
+				config={{
+					boundBoxFunc: (oldBox, newBox) => {
+						// Limit minimum size
+						if (newBox.width < 10 || newBox.height < 10) {
+							return oldBox;
+						}
+						return newBox;
+					},
+					enabledAnchors: [
+						'top-left',
+						'top-center',
+						'top-right',
+						'middle-right',
+						'bottom-right',
+						'bottom-center',
+						'bottom-left',
+						'middle-left'
+					],
+					rotateEnabled: true,
+					keepRatio: false
+				}}
+				on:load={(e) => (transformerRef = e.detail as KonvaTransformer)}
+				on:transformend={onTransformEnd}
+			/>
 
 			<!-- Remote cursors -->
 			{#if multiplayer}
