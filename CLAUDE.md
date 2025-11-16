@@ -63,6 +63,53 @@ npm run lint
 - Path aliases handled by SvelteKit configuration
 - Extended config from `.svelte-kit/tsconfig.json`
 
+### Canvas Module (Excalidraw Clone)
+
+Located in `src/lib/canvas/`, this module provides a whiteboard/diagramming canvas framework.
+
+**Structure:**
+- `model/shapes.ts` - Primitive types (rect, ellipse, arrow, text, group), Camera, SceneData
+- `model/history.ts` - Undo/redo store with action tracking (add, update, delete, group, ungroup)
+- `engine/magnets.ts` - Arrow snapping to shape anchors (top, bottom, left, right)
+- `stores.ts` - Global stores: shapesHistory, selection, camera
+- `ui/Canvas.svelte` - Main canvas component using svelte-konva
+- `index.ts` - Barrel file for exports
+
+**Key Features:**
+- Infinite canvas with pan (Shift+Alt+drag or middle-click) and zoom (mouse wheel)
+- Hotkeys using `KeyboardEvent.code` (works for RU/EN layouts):
+  - `Ctrl/Cmd + Z` - Undo
+  - `Ctrl/Cmd + Shift + Z` - Redo
+  - `Delete/Backspace` - Remove selected
+  - `Ctrl/Cmd + D` - Duplicate selected
+- Shape operations: select (click), multi-select (Ctrl+click), drag to move
+- Arrow magnets: automatic snapping to nearest shape anchor
+- Rough.js hooks: prepared for hand-drawn styling integration via `roughOptions`
+
+**Server API:**
+- `src/routes/api/scenes/[id]/+server.ts` - GET/PUT/DELETE for scene persistence
+- `src/lib/server/db.server.ts` - PostgreSQL connection using pg pool
+- `drizzle/0001_scenes_table.sql` - Migration for scenes table (id uuid, data jsonb, updated_at)
+
+**Demo Page:**
+- Available at `/canvas` route
+- Toolbar for adding shapes, undo/redo, save functionality
+- Instructions panel with controls documentation
+
+**Testing:**
+- `model/history.test.ts` - 20 tests for undo/redo logic
+- `engine/magnets.test.ts` - 22 tests for bounds and anchor calculations
+- `stores.test.ts` - 20 tests for selection and camera stores
+
+**Usage:**
+```svelte
+<script>
+  import { Canvas, shapesHistory, camera } from '$lib/canvas';
+</script>
+
+<Canvas />
+```
+
 ## Code Style
 
 ### Prettier Configuration
