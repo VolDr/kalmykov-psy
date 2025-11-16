@@ -23,6 +23,9 @@ export * from './properties';
 // Text editing
 export * from './text-editing';
 
+// Layers management
+export * from './layers';
+
 // Sync (Multiplayer)
 export * from './sync/types';
 export * from './sync/client';
