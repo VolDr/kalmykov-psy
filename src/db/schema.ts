@@ -12,7 +12,8 @@ import {
 	index,
 	doublePrecision,
 	integer,
-	jsonb
+	jsonb,
+	uuid
 } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
 
@@ -262,4 +263,17 @@ export const article = pgTable(
 	(table) => [
 		uniqueIndex('Article_uri_key').using('btree', table.uri.asc().nullsLast().op('text_ops'))
 	]
+);
+
+// Canvas scenes for Excalidraw-like whiteboard
+export const scenes = pgTable(
+	'scenes',
+	{
+		id: uuid().primaryKey().notNull(),
+		data: jsonb().notNull(),
+		updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'string' })
+			.default(sql`now()`)
+			.notNull()
+	},
+	(table) => [index('idx_scenes_updated_at').using('btree', table.updatedAt.desc())]
 );

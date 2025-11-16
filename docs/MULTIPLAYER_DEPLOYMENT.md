@@ -74,9 +74,40 @@ sudo nginx -t && sudo systemctl reload nginx
 
 ## Database Migration
 
-No new migrations required. Canvas scenes are stored in existing `scenes` table.
+Canvas scenes table is defined in `src/db/schema.ts`:
 
-Verify table exists:
+```typescript
+export const scenes = pgTable('scenes', {
+  id: uuid().primaryKey().notNull(),
+  data: jsonb().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true })
+    .default(sql`now()`)
+    .notNull()
+});
+```
+
+### Drizzle Migration Workflow
+
+1. **Generate migration** (if schema changed):
+```bash
+npx drizzle-kit generate
+```
+
+2. **Apply migration**:
+```bash
+# Preview changes
+npx drizzle-kit push --dry-run
+
+# Apply to database
+npx drizzle-kit push
+```
+
+Or if using migration files:
+```bash
+npx drizzle-kit migrate
+```
+
+3. **Verify table**:
 ```sql
 SELECT EXISTS (
    SELECT FROM information_schema.tables
@@ -84,14 +115,18 @@ SELECT EXISTS (
 );
 ```
 
-If not, run:
+### Manual SQL (if needed)
+
+If migration doesn't work, apply directly:
 ```sql
 -- From drizzle/0001_scenes_table.sql
-CREATE TABLE scenes (
-  id UUID PRIMARY KEY,
-  data JSONB NOT NULL,
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+CREATE TABLE IF NOT EXISTS scenes (
+  id uuid PRIMARY KEY,
+  data jsonb NOT NULL,
+  updated_at timestamptz NOT NULL DEFAULT now()
 );
+
+CREATE INDEX IF NOT EXISTS idx_scenes_updated_at ON scenes (updated_at DESC);
 ```
 
 ## Running Services
