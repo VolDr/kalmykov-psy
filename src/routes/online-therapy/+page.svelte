@@ -1,87 +1,82 @@
 <script lang="ts">
+	import type { PageData } from './$types';
 	import { cn } from '$lib/utils';
-	import { onlineTherapyBlocks } from '$lib/data/online-therapy';
 	import MarkdownLink from '$lib/components/MarkdownLink.svelte';
 	import HeroBackground from '$lib/components/HeroBackground.svelte';
+
+	let { data }: { data: PageData } = $props();
+	const { content } = data;
 </script>
 
 <svelte:head>
-	<title>Процесс консультирования | Андрей Калмыков</title>
-	<meta
-		name="description"
-		content="Условия и принципы работы с психологом. Правила сотрудничества для комфортного взаимодействия."
-	/>
-	<meta property="og:title" content="Процесс консультирования | Андрей Калмыков" />
-	<meta
-		property="og:description"
-		content="Условия и принципы работы с психологом. Правила сотрудничества для комфортного взаимодействия."
-	/>
+	<title>{content.seo.title}</title>
+	<meta name="description" content={content.seo.description} />
+	<meta property="og:title" content={content.seo.title} />
+	<meta property="og:description" content={content.seo.description} />
 	<meta property="og:type" content="website" />
-	<meta property="og:image" content="/header.webp" />
+	<meta property="og:image" content={content.seo.ogImage || '/header.webp'} />
 	<meta name="twitter:card" content="summary_large_image" />
-	<meta name="twitter:title" content="Процесс консультирования | Андрей Калмыков" />
-	<meta
-		name="twitter:description"
-		content="Условия и принципы работы с психологом. Правила сотрудничества для комфортного взаимодействия."
-	/>
-	<meta name="twitter:image" content="/header.webp" />
+	<meta name="twitter:title" content={content.seo.title} />
+	<meta name="twitter:description" content={content.seo.description} />
+	<meta name="twitter:image" content={content.seo.ogImage || '/header.webp'} />
 </svelte:head>
 
-<section
-	data-hero
-	class="relative text-gray-100 overflow-hidden bg-cover bg-center min-h-[30vh]"
->
+<section data-hero class="relative min-h-[30vh] overflow-hidden bg-cover bg-center text-gray-100">
 	<HeroBackground />
 	<div
-		class="absolute w-full h-full z-0 bg-gradient-to-b from-black/25 from-0% via-black/65 via-40% to-black/65"
+		class="absolute z-0 h-full w-full bg-gradient-to-b from-black/25 from-0% via-black/65 via-40% to-black/65"
 	></div>
 	<!-- Mobile layout -->
-	<div class="container mx-auto mt-10 max-w-[720px] lg:max-w-[960px] px-5 lg:px-0">
-		<div class="pt-[63px] lg:hidden z-10 relative min-h-[100px] mb-4 mt-[10vh] max-w-[960px] mx-auto">
-			<h1 class="text-3xl font-circe self-end">Как мы будем работать</h1>
+	<div class="container mx-auto mt-10 max-w-[720px] px-5 lg:max-w-[960px] lg:px-0">
+		<div
+			class="relative z-10 mx-auto mt-[10vh] mb-4 min-h-[100px] max-w-[960px] pt-[63px] lg:hidden"
+		>
+			<h1 class="self-end font-circe text-3xl">{content.hero.title}</h1>
 		</div>
-		<div class="lg:hidden z-10 relative -mt-2 mb-5 flex flex-col gap-2">
-			<p class="row-start-5 row-end-7 col-start-1 col-end-6 text-left">
-				Психотерапия — это регулярные встречи, во время которых мы работаем с вашими мыслями,
-				чувствами и поведением для достижения желаемых изменений.
+		<div class="relative z-10 -mt-2 mb-5 flex flex-col gap-2 lg:hidden">
+			<p class="col-start-1 col-end-6 row-start-5 row-end-7 text-left">
+				{content.hero.subtitle}
 			</p>
-			<p class="row-start-5 row-end-7 col-start-1 col-end-6 text-left">
-				Если какие-то пункты вызывают у вас вопросы, вы можете обсудить их со мной.
-			</p>
+			{#if content.hero.subtitleSecondary}
+				<p class="col-start-1 col-end-6 row-start-5 row-end-7 text-left">
+					{content.hero.subtitleSecondary}
+				</p>
+			{/if}
 		</div>
 	</div>
 
 	<!-- Desktop layout -->
 	<div
-		class="hidden lg:grid grid-cols-12 grid-rows-12 gap-4 max-w-[720px] lg:max-w-[960px] gap-x-0 mx-auto z-10 pt-14 relative aspect-[1.51]"
+		class="relative z-10 mx-auto hidden aspect-[1.51] max-w-[720px] grid-cols-12 grid-rows-12 gap-4 gap-x-0 pt-14 lg:grid lg:max-w-[960px]"
 	>
 		<!-- Title text -->
 		<div class="col-start-1 col-end-12 row-start-5 row-end-12">
-			<h1 class="text-3xl lg:text-5xl leading-tight font-circe">Как мы будем работать</h1>
+			<h1 class="font-circe text-3xl leading-tight lg:text-5xl">{content.hero.title}</h1>
 		</div>
 
 		<!-- Description text -->
 		<div
-			class="col-start-1 col-end-12 text-base lg:text-md row-start-8 row-end-11 flex flex-col gap-4  leading-relaxed"
+			class="lg:text-md col-start-1 col-end-12 row-start-8 row-end-11 flex flex-col gap-4 text-base leading-relaxed"
 		>
-			<p class="mx-auto lg:mx-0 text-center lg:text-left">
-				Психотерапия — это регулярные встречи, во время которых мы работаем с вашими мыслями,
-				чувствами и поведением для достижения желаемых изменений.
+			<p class="mx-auto text-center lg:mx-0 lg:text-left">
+				{content.hero.subtitle}
 			</p>
-			<p class="mx-auto lg:mx-0 text-center lg:text-left">
-				Если какие-то пункты вызывают у вас вопросы, вы можете обсудить их со мной.
-			</p>
+			{#if content.hero.subtitleSecondary}
+				<p class="mx-auto text-center lg:mx-0 lg:text-left">
+					{content.hero.subtitleSecondary}
+				</p>
+			{/if}
 		</div>
 	</div>
 </section>
 
-<div class="container mx-auto mt-10 max-w-[720px] lg:max-w-[960px] px-5 lg:px-0">
+<div class="container mx-auto mt-10 max-w-[720px] px-5 lg:max-w-[960px] lg:px-0">
 	<div class="grid grid-cols-1 gap-10 leading-relaxed">
-		{#each onlineTherapyBlocks as block}
+		{#each content.blocks as block}
 			<div class="col-span-full">
-				<section class="flex flex-col gap-2 items-start">
+				<section class="flex flex-col items-start gap-2">
 					<div class="subtitle">{block.title.toLowerCase()}</div>
-					<div class="flex flex-col gap-1 items-start">
+					<div class="flex flex-col items-start gap-1">
 						{#each block.data as item}
 							<p>
 								<MarkdownLink text={item} />
@@ -102,7 +97,7 @@
 				'hover:bg-[#cfc1a3] hover:border-[#cfc1a3] hover:text-white hover:shadow-md hover:-translate-y-0.5',
 				'active:transform active:scale-95'
 			)}
-			href="https://t.me/m/hSP1SM5sYjcy"
+			href={content.bookingLink || 'https://t.me/m/hSP1SM5sYjcy'}
 			target="_blank"
 			rel="noopener noreferrer"
 		>

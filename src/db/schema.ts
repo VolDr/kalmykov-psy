@@ -244,6 +244,32 @@ export const prismaMigrations = pgTable('_prisma_migrations', {
 	appliedStepsCount: integer('applied_steps_count').default(0).notNull()
 });
 
+export const articleCategory = pgTable(
+	'ArticleCategory',
+	{
+		id: text().primaryKey().notNull(),
+		name: text().notNull(),
+		slug: text().notNull(),
+		description: text(),
+		sortOrder: integer().default(0).notNull(),
+		disabled: boolean().default(false).notNull(),
+		createdAt: timestamp({ precision: 3, mode: 'string' })
+			.default(sql`CURRENT_TIMESTAMP`)
+			.notNull(),
+		updatedAt: timestamp({ precision: 3, mode: 'string' }).notNull()
+	},
+	(table) => [
+		uniqueIndex('ArticleCategory_slug_key').using(
+			'btree',
+			table.slug.asc().nullsLast().op('text_ops')
+		),
+		index('ArticleCategory_sortOrder_idx').using(
+			'btree',
+			table.sortOrder.asc().nullsLast().op('int4_ops')
+		)
+	]
+);
+
 export const article = pgTable(
 	'Article',
 	{
@@ -258,10 +284,194 @@ export const article = pgTable(
 		imageUrl: text(),
 		viewCount: integer().default(0).notNull(),
 		uri: text().notNull(),
-		descriptionMeta: text()
+		descriptionMeta: text(),
+		categoryId: text()
 	},
 	(table) => [
-		uniqueIndex('Article_uri_key').using('btree', table.uri.asc().nullsLast().op('text_ops'))
+		uniqueIndex('Article_uri_key').using('btree', table.uri.asc().nullsLast().op('text_ops')),
+		index('Article_categoryId_idx').using(
+			'btree',
+			table.categoryId.asc().nullsLast().op('text_ops')
+		),
+		foreignKey({
+			columns: [table.categoryId],
+			foreignColumns: [articleCategory.id],
+			name: 'Article_categoryId_fkey'
+		})
+			.onUpdate('cascade')
+			.onDelete('set null')
+	]
+);
+
+export const surveyCategory = pgTable(
+	'SurveyCategory',
+	{
+		id: text().primaryKey().notNull(),
+		name: text().notNull(),
+		slug: text().notNull(),
+		description: text(),
+		sortOrder: integer().default(0).notNull(),
+		disabled: boolean().default(false).notNull(),
+		createdAt: timestamp({ precision: 3, mode: 'string' })
+			.default(sql`CURRENT_TIMESTAMP`)
+			.notNull(),
+		updatedAt: timestamp({ precision: 3, mode: 'string' }).notNull()
+	},
+	(table) => [
+		uniqueIndex('SurveyCategory_slug_key').using(
+			'btree',
+			table.slug.asc().nullsLast().op('text_ops')
+		),
+		index('SurveyCategory_sortOrder_idx').using(
+			'btree',
+			table.sortOrder.asc().nullsLast().op('int4_ops')
+		)
+	]
+);
+
+export const survey = pgTable(
+	'Survey',
+	{
+		id: text().primaryKey().notNull(),
+		title: text().notNull(),
+		slug: text().notNull(),
+		description: text(),
+		categoryId: text(),
+		config: jsonb().notNull(),
+		isPublished: boolean().default(false).notNull(),
+		sortOrder: integer().default(0).notNull(),
+		disabled: boolean().default(false).notNull(),
+		createdAt: timestamp({ precision: 3, mode: 'string' })
+			.default(sql`CURRENT_TIMESTAMP`)
+			.notNull(),
+		updatedAt: timestamp({ precision: 3, mode: 'string' }).notNull()
+	},
+	(table) => [
+		uniqueIndex('Survey_slug_key').using('btree', table.slug.asc().nullsLast().op('text_ops')),
+		index('Survey_categoryId_idx').using(
+			'btree',
+			table.categoryId.asc().nullsLast().op('text_ops')
+		),
+		index('Survey_isPublished_idx').using(
+			'btree',
+			table.isPublished.asc().nullsLast().op('bool_ops')
+		),
+		index('Survey_sortOrder_idx').using(
+			'btree',
+			table.sortOrder.asc().nullsLast().op('int4_ops')
+		),
+		foreignKey({
+			columns: [table.categoryId],
+			foreignColumns: [surveyCategory.id],
+			name: 'Survey_categoryId_fkey'
+		})
+			.onUpdate('cascade')
+			.onDelete('set null')
+	]
+);
+
+export const surveyResult = pgTable(
+	'SurveyResult',
+	{
+		id: text().primaryKey().notNull(),
+		surveyId: text().notNull(),
+		clientId: text(),
+		sessionId: text(),
+		answers: jsonb().notNull(),
+		totalScore: doublePrecision().notNull(),
+		maxScore: doublePrecision().notNull(),
+		interpretation: text(),
+		interpretationSeverity: text(),
+		interpretationColor: text(),
+		subscaleResults: jsonb(),
+		warnings: jsonb(),
+		completedAt: timestamp({ precision: 3, mode: 'string' }).notNull(),
+		disabled: boolean().default(false).notNull(),
+		createdAt: timestamp({ precision: 3, mode: 'string' })
+			.default(sql`CURRENT_TIMESTAMP`)
+			.notNull(),
+		updatedAt: timestamp({ precision: 3, mode: 'string' }).notNull()
+	},
+	(table) => [
+		index('SurveyResult_surveyId_idx').using(
+			'btree',
+			table.surveyId.asc().nullsLast().op('text_ops')
+		),
+		index('SurveyResult_clientId_idx').using(
+			'btree',
+			table.clientId.asc().nullsLast().op('text_ops')
+		),
+		index('SurveyResult_completedAt_idx').using(
+			'btree',
+			table.completedAt.desc().nullsLast().op('timestamp_ops')
+		),
+		index('SurveyResult_sessionId_idx').using(
+			'btree',
+			table.sessionId.asc().nullsLast().op('text_ops')
+		),
+		foreignKey({
+			columns: [table.surveyId],
+			foreignColumns: [survey.id],
+			name: 'SurveyResult_surveyId_fkey'
+		})
+			.onUpdate('cascade')
+			.onDelete('restrict'),
+		foreignKey({
+			columns: [table.clientId],
+			foreignColumns: [client.id],
+			name: 'SurveyResult_clientId_fkey'
+		})
+			.onUpdate('cascade')
+			.onDelete('set null')
+	]
+);
+
+export const pageContent = pgTable(
+	'PageContent',
+	{
+		id: text().primaryKey().notNull(),
+		pageSlug: text().notNull(),
+		sectionKey: text().notNull(),
+		content: jsonb().notNull(),
+		sortOrder: integer().default(0).notNull(),
+		isActive: boolean().default(true).notNull(),
+		createdAt: timestamp({ precision: 3, mode: 'string' })
+			.default(sql`CURRENT_TIMESTAMP`)
+			.notNull(),
+		updatedAt: timestamp({ precision: 3, mode: 'string' }).notNull()
+	},
+	(table) => [
+		uniqueIndex('PageContent_pageSlug_sectionKey_key').using(
+			'btree',
+			table.pageSlug.asc().nullsLast().op('text_ops'),
+			table.sectionKey.asc().nullsLast().op('text_ops')
+		),
+		index('PageContent_pageSlug_idx').using(
+			'btree',
+			table.pageSlug.asc().nullsLast().op('text_ops')
+		),
+		index('PageContent_isActive_idx').using(
+			'btree',
+			table.isActive.asc().nullsLast().op('bool_ops')
+		),
+		index('PageContent_sortOrder_idx').using(
+			'btree',
+			table.sortOrder.asc().nullsLast().op('int4_ops')
+		)
+	]
+);
+
+export const siteSettings = pgTable(
+	'SiteSettings',
+	{
+		id: text().primaryKey().notNull(),
+		key: text().notNull(),
+		value: jsonb().notNull(),
+		description: text(),
+		updatedAt: timestamp({ precision: 3, mode: 'string' }).notNull()
+	},
+	(table) => [
+		uniqueIndex('SiteSettings_key_key').using('btree', table.key.asc().nullsLast().op('text_ops'))
 	]
 );
 
