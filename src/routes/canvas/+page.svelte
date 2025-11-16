@@ -1,14 +1,37 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
+	import { get } from 'svelte/store';
 	import Canvas from '$lib/canvas/ui/Canvas.svelte';
 	import { shapesHistory, camera } from '$lib/canvas/stores';
 	import type { SceneData, RectShape, EllipseShape, ArrowShape, TextShape } from '$lib/canvas/model/shapes';
+	import {
+		createSyncClient,
+		createSyncedHistoryStore,
+		type SyncClient,
+		type ConnectionStatus
+	} from '$lib/canvas/sync/client';
+	import { generateClientId, type Presence } from '$lib/canvas/sync/types';
 
 	const sceneId = 'demo-scene-001';
+	const clientId = generateClientId();
 
 	let isSaving = $state(false);
 	let isLoading = $state(true);
 	let loadError = $state<string | null>(null);
+
+	// WebSocket sync state
+	let syncClient: SyncClient | null = $state(null);
+	let connectionStatus: ConnectionStatus = $state('disconnected');
+	let remoteUsers: Presence[] = $state([]);
+	let syncedHistory: ReturnType<typeof createSyncedHistoryStore> | null = $state(null);
+
+	// Determine WebSocket URL
+	function getWebSocketUrl(): string {
+		const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+		const host = window.location.hostname;
+		const port = 3001; // WebSocket server port
+		return `${protocol}//${host}:${port}/ws/scenes/${sceneId}`;
+	}
 
 	onMount(async () => {
 		try {
@@ -16,7 +39,9 @@
 			if (res.ok) {
 				const scene = (await res.json()) as SceneData;
 				shapesHistory.setAllShapes(scene.shapes);
-				camera.set(scene.camera);
+				if (scene.camera) {
+					camera.set(scene.camera);
+				}
 			} else if (res.status === 404) {
 				// No saved scene - create demo shapes
 				createDemoShapes();
@@ -27,6 +52,51 @@
 		} finally {
 			isLoading = false;
 		}
+
+		// Initialize WebSocket connection
+		initializeSync();
+	});
+
+	function initializeSync() {
+		const wsUrl = getWebSocketUrl();
+
+		syncClient = createSyncClient({
+			url: wsUrl,
+			sceneId,
+			clientId,
+			historyStore: shapesHistory,
+			cameraStore: camera,
+			userName: `User ${clientId.slice(0, 4)}`,
+			reconnectAttempts: 5,
+			reconnectDelay: 1000
+		});
+
+		// Create synced history wrapper
+		syncedHistory = createSyncedHistoryStore(shapesHistory, syncClient, sceneId, clientId);
+
+		// Subscribe to connection status
+		const unsubStatus = syncClient.status.subscribe((status) => {
+			connectionStatus = status;
+		});
+
+		// Subscribe to remote presences
+		const unsubPresence = syncClient.remotePresences.subscribe((presences) => {
+			remoteUsers = Array.from(presences.values());
+		});
+
+		// Connect to WebSocket server
+		syncClient.connect();
+
+		// Clean up on destroy
+		onDestroy(() => {
+			unsubStatus();
+			unsubPresence();
+			syncClient?.destroy();
+		});
+	}
+
+	onDestroy(() => {
+		syncClient?.destroy();
 	});
 
 	function createDemoShapes() {
@@ -148,7 +218,12 @@
 			strokeWidth: 2,
 			fill: '#d0ebff'
 		};
-		shapesHistory.addShapes([rect]);
+		// Use synced history if available (broadcasts to other clients)
+		if (syncedHistory) {
+			syncedHistory.addShapes([rect]);
+		} else {
+			shapesHistory.addShapes([rect]);
+		}
 	}
 
 	function addEllipse() {
@@ -166,7 +241,12 @@
 			strokeWidth: 2,
 			fill: '#d8f5a2'
 		};
-		shapesHistory.addShapes([ellipse]);
+		// Use synced history if available (broadcasts to other clients)
+		if (syncedHistory) {
+			syncedHistory.addShapes([ellipse]);
+		} else {
+			shapesHistory.addShapes([ellipse]);
+		}
 	}
 
 	function handleUndo() {
@@ -175,6 +255,35 @@
 
 	function handleRedo() {
 		shapesHistory.redo();
+	}
+
+	function getStatusColor(status: ConnectionStatus): string {
+		switch (status) {
+			case 'connected':
+				return 'bg-green-500';
+			case 'connecting':
+			case 'reconnecting':
+				return 'bg-yellow-500';
+			case 'disconnected':
+				return 'bg-red-500';
+			default:
+				return 'bg-gray-500';
+		}
+	}
+
+	function getStatusText(status: ConnectionStatus): string {
+		switch (status) {
+			case 'connected':
+				return 'Connected';
+			case 'connecting':
+				return 'Connecting...';
+			case 'reconnecting':
+				return 'Reconnecting...';
+			case 'disconnected':
+				return 'Disconnected';
+			default:
+				return 'Unknown';
+		}
 	}
 </script>
 
