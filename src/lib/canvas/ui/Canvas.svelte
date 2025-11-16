@@ -1,6 +1,17 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
-	import { Stage, Layer, Rect, Ellipse, Text as KonvaText, Line } from 'svelte-konva';
+	import {
+		Stage,
+		Layer,
+		Rect,
+		Ellipse,
+		Text as KonvaText,
+		Line,
+		Arrow,
+		Group,
+		Circle
+	} from 'svelte-konva';
+	import type { Stage as KonvaStage, Layer as KonvaLayer } from 'konva/lib/index-types';
 
 	import {
 		shapesHistory,
@@ -15,32 +26,146 @@
 		RectShape,
 		EllipseShape,
 		TextShape,
-		ArrowShape
+		ArrowShape,
+		GroupShape
 	} from '../model/shapes';
+	import {
+		createSyncClient,
+		createSyncedHistoryStore,
+		type SyncClient,
+		type ConnectionStatus
+	} from '../sync/client';
+	import {
+		generateClientId,
+		createAddShapesOp,
+		createUpdateShapesOp,
+		createDeleteShapesOp,
+		type Presence
+	} from '../sync/types';
 
-	let stageRef: any = $state(null);
-	let layerRef: any = $state(null);
+	// Props for multiplayer mode
+	interface Props {
+		multiplayer?: boolean;
+		wsUrl?: string;
+		sceneId?: string;
+		userId?: string;
+		userName?: string;
+	}
+
+	let {
+		multiplayer = false,
+		wsUrl = '',
+		sceneId = '',
+		userId = undefined,
+		userName = undefined
+	}: Props = $props();
+
+	let stageRef: KonvaStage | null = $state(null);
+	let layerRef: KonvaLayer | null = $state(null);
 
 	let shapes: Shape[] = $state([]);
 	let selectedIds: Set<string> = $state(new Set());
 	let cam = $state({ x: 0, y: 0, scale: 1 });
+
+	// Multiplayer state
+	let syncClient: SyncClient | null = $state(null);
+	let clientId = $state('');
+	let connectionStatus: ConnectionStatus = $state('disconnected');
+	let remotePresences: Map<string, Presence> = $state(new Map());
+	let localCursor = $state({ x: 0, y: 0 });
+
+	// Color palette for remote users
+	const userColors = [
+		'#FF6B6B',
+		'#4ECDC4',
+		'#45B7D1',
+		'#96CEB4',
+		'#FFEAA7',
+		'#DDA0DD',
+		'#98D8C8',
+		'#F7DC6F'
+	];
+
+	function getUserColor(cId: string): string {
+		const hash = cId.split('').reduce((a, b) => ((a << 5) - a + b.charCodeAt(0)) | 0, 0);
+		return userColors[Math.abs(hash) % userColors.length];
+	}
+
+	// Responsive canvas dimensions
+	let stageWidth = $state(typeof window !== 'undefined' ? window.innerWidth : 800);
+	let stageHeight = $state(typeof window !== 'undefined' ? window.innerHeight : 600);
+
+	function updateDimensions() {
+		if (typeof window !== 'undefined') {
+			stageWidth = window.innerWidth;
+			stageHeight = window.innerHeight;
+		}
+	}
 
 	const unsubscribeShapes = shapesHistory.subscribe((state) => {
 		shapes = state.shapes;
 	});
 	const unsubscribeSel = selection.subscribe((s) => {
 		selectedIds = s.ids;
+		// Broadcast selection change to other clients
+		if (syncClient && multiplayer) {
+			syncClient.sendPresence({ selectedIds: Array.from(s.ids) });
+		}
 	});
 	const unsubscribeCam = camera.subscribe((c) => {
 		cam = c;
 	});
 
+	// Cleanup on destroy
 	onDestroy(() => {
 		unsubscribeShapes();
 		unsubscribeSel();
 		unsubscribeCam();
+		if (syncClient) {
+			syncClient.destroy();
+		}
 		if (typeof window !== 'undefined') {
 			window.removeEventListener('keydown', handleKeyDown);
+			window.removeEventListener('resize', updateDimensions);
+		}
+	});
+
+	// Initialize multiplayer connection
+	$effect(() => {
+		if (multiplayer && wsUrl && sceneId && typeof window !== 'undefined') {
+			clientId = generateClientId();
+
+			syncClient = createSyncClient({
+				url: wsUrl,
+				sceneId,
+				clientId,
+				historyStore: shapesHistory,
+				cameraStore: camera,
+				userId,
+				userName
+			});
+
+			// Subscribe to connection status
+			const unsubStatus = syncClient.status.subscribe((status) => {
+				connectionStatus = status;
+			});
+
+			// Subscribe to remote presences
+			const unsubPresences = syncClient.remotePresences.subscribe((presences) => {
+				remotePresences = presences;
+			});
+
+			// Connect to server
+			syncClient.connect();
+
+			return () => {
+				unsubStatus();
+				unsubPresences();
+				if (syncClient) {
+					syncClient.destroy();
+					syncClient = null;
+				}
+			};
 		}
 	});
 
@@ -82,8 +207,18 @@
 	}
 
 	function handleMouseMove(e: any) {
-		if (!isPanning) return;
 		const evt = e.evt as MouseEvent;
+
+		// Update local cursor position for presence (in world coordinates)
+		if (stageRef && multiplayer && syncClient) {
+			const stage = stageRef.getStage ? stageRef.getStage() : stageRef;
+			const worldX = (evt.offsetX - stage.x()) / cam.scale;
+			const worldY = (evt.offsetY - stage.y()) / cam.scale;
+			localCursor = { x: worldX, y: worldY };
+			syncClient.sendPresence({ cursor: localCursor });
+		}
+
+		if (!isPanning) return;
 		const dx = evt.clientX - lastPos.x;
 		const dy = evt.clientY - lastPos.y;
 		lastPos = { x: evt.clientX, y: evt.clientY };
@@ -125,6 +260,12 @@
 		};
 
 		shapesHistory.updateShapes([updated]);
+
+		// Broadcast to other clients
+		if (syncClient && multiplayer) {
+			const op = createUpdateShapesOp(sceneId, clientId, [updated]);
+			syncClient.sendOperation(op);
+		}
 	}
 
 	// Arrow drag end - snap to nearest shape
@@ -149,6 +290,12 @@
 		);
 
 		shapesHistory.updateShapes([attached]);
+
+		// Broadcast to other clients
+		if (syncClient && multiplayer) {
+			const op = createUpdateShapesOp(sceneId, clientId, [attached]);
+			syncClient.sendOperation(op);
+		}
 	}
 
 	// === Hotkeys (RU/EN - by code) ===
@@ -174,6 +321,13 @@
 				e.preventDefault();
 				const ids = Array.from(selectedIds);
 				shapesHistory.deleteShapes(ids);
+
+				// Broadcast to other clients
+				if (syncClient && multiplayer) {
+					const op = createDeleteShapesOp(sceneId, clientId, ids);
+					syncClient.sendOperation(op);
+				}
+
 				clearSelection();
 			}
 			return;
@@ -192,6 +346,13 @@
 				y: s.y + 20
 			}));
 			shapesHistory.addShapes(copies);
+
+			// Broadcast to other clients
+			if (syncClient && multiplayer) {
+				const op = createAddShapesOp(sceneId, clientId, copies);
+				syncClient.sendOperation(op);
+			}
+
 			return;
 		}
 	}
@@ -199,6 +360,7 @@
 	onMount(() => {
 		if (typeof window !== 'undefined') {
 			window.addEventListener('keydown', handleKeyDown);
+			window.addEventListener('resize', updateDimensions);
 		}
 	});
 
@@ -241,20 +403,66 @@
 	// const rc = rough.canvas(offscreenCanvas);
 	// rc.rectangle(10, 10, 100, 100, { roughness: 2.8, fill: 'blue' });
 	// Then use Konva.Image with the offscreen canvas as image source
+
+	// Helper to get remote presences as array for rendering
+	function getRemotePresencesArray(): Presence[] {
+		return Array.from(remotePresences.values());
+	}
+
+	// Connection status color
+	function getStatusColor(): string {
+		switch (connectionStatus) {
+			case 'connected':
+				return '#22C55E'; // green
+			case 'connecting':
+				return '#F59E0B'; // yellow
+			case 'reconnecting':
+				return '#EF4444'; // red
+			default:
+				return '#6B7280'; // gray
+		}
+	}
+
+	function getStatusText(): string {
+		switch (connectionStatus) {
+			case 'connected':
+				return 'Online';
+			case 'connecting':
+				return 'Connecting...';
+			case 'reconnecting':
+				return 'Reconnecting...';
+			default:
+				return 'Offline';
+		}
+	}
 </script>
 
-<div class="h-full w-full">
+<div class="relative h-full w-full">
+	<!-- Connection status indicator -->
+	{#if multiplayer}
+		<div class="absolute top-4 right-4 z-50 flex items-center gap-2 rounded-lg bg-white/90 px-3 py-2 shadow-md">
+			<div
+				class="h-3 w-3 rounded-full"
+				style="background-color: {getStatusColor()}"
+			></div>
+			<span class="text-sm font-medium">{getStatusText()}</span>
+			{#if remotePresences.size > 0}
+				<span class="text-xs text-gray-500">({remotePresences.size} online)</span>
+			{/if}
+		</div>
+	{/if}
+
 	<Stage
 		config={{
-			width: typeof window !== 'undefined' ? window.innerWidth : 800,
-			height: typeof window !== 'undefined' ? window.innerHeight : 600
+			width: stageWidth,
+			height: stageHeight
 		}}
 		on:wheel={handleWheel}
 		on:mousedown={handleMouseDown}
 		on:mousemove={handleMouseMove}
 		on:mouseup={handleMouseUp}
 		on:click={handleStageClick}
-		on:load={(e) => (stageRef = e.detail)}
+		on:load={(e) => (stageRef = e.detail as KonvaStage)}
 	>
 		<Layer
 			config={{
@@ -263,7 +471,7 @@
 				scaleX: cam.scale,
 				scaleY: cam.scale
 			}}
-			on:load={(e) => (layerRef = e.detail)}
+			on:load={(e) => (layerRef = e.detail as KonvaLayer)}
 		>
 			{#each shapes as shape (shape.id)}
 				{#if shape.type === 'rect'}
@@ -357,23 +565,123 @@
 					/>
 				{:else if shape.type === 'arrow'}
 					{@const a = shape as ArrowShape}
-					<Line
+					<Arrow
 						config={{
 							...renderArrow(a),
 							x: a.x,
 							y: a.y,
 							stroke: a.stroke,
 							strokeWidth: a.strokeWidth,
+							fill: a.stroke,
 							lineCap: 'round',
 							lineJoin: 'round',
+							pointerLength: 10,
+							pointerWidth: 10,
 							draggable: true,
 							opacity: isSelected(a.id) ? 0.8 : 1
 						}}
 						on:click={(e) => onShapeClick(a.id, e)}
 						on:dragend={(e) => onArrowDragEnd(a, e)}
 					/>
+				{:else if shape.type === 'group'}
+					{@const g = shape as GroupShape}
+					<Group
+						config={{
+							x: g.x,
+							y: g.y,
+							rotation: g.rotation,
+							scaleX: g.scaleX,
+							scaleY: g.scaleY,
+							draggable: true,
+							opacity: isSelected(g.id) ? 0.8 : 1
+						}}
+						on:click={(e) => onShapeClick(g.id, e)}
+						on:dragend={(e) => onShapeDragEnd(g, e)}
+					>
+						<!-- Group children are rendered by looking up child shapes -->
+						{#each g.children as childId}
+							{@const child = shapes.find((s) => s.id === childId)}
+							{#if child?.type === 'rect'}
+								{@const rect = child as RectShape}
+								<Rect
+									config={{
+										x: rect.x - g.x,
+										y: rect.y - g.y,
+										width: rect.width,
+										height: rect.height,
+										offsetX: rect.width / 2,
+										offsetY: rect.height / 2,
+										stroke: rect.stroke,
+										strokeWidth: rect.strokeWidth,
+										fill: rect.fill ?? undefined,
+										rotation: rect.rotation
+									}}
+								/>
+							{/if}
+						{/each}
+					</Group>
 				{/if}
 			{/each}
+
+			<!-- Remote cursors -->
+			{#if multiplayer}
+				{#each getRemotePresencesArray() as presence (presence.clientId)}
+					{#if presence.cursor}
+						{@const color = getUserColor(presence.clientId)}
+						<!-- Cursor pointer -->
+						<Line
+							config={{
+								points: [0, 0, 0, 18, 4, 14, 9, 22, 12, 21, 8, 13, 14, 13],
+								x: presence.cursor.x,
+								y: presence.cursor.y,
+								fill: color,
+								stroke: '#000',
+								strokeWidth: 1,
+								closed: true,
+								listening: false
+							}}
+						/>
+						<!-- User name label -->
+						<KonvaText
+							config={{
+								x: presence.cursor.x + 16,
+								y: presence.cursor.y + 10,
+								text: presence.name || `User ${presence.clientId.slice(0, 4)}`,
+								fontSize: 12,
+								fontFamily: 'system-ui',
+								fill: '#fff',
+								padding: 4,
+								listening: false
+							}}
+						/>
+						<!-- Name background -->
+						<Rect
+							config={{
+								x: presence.cursor.x + 14,
+								y: presence.cursor.y + 8,
+								width: (presence.name || `User ${presence.clientId.slice(0, 4)}`).length * 7 + 12,
+								height: 20,
+								fill: color,
+								cornerRadius: 4,
+								listening: false
+							}}
+						/>
+						<!-- Re-render text on top -->
+						<KonvaText
+							config={{
+								x: presence.cursor.x + 16,
+								y: presence.cursor.y + 10,
+								text: presence.name || `User ${presence.clientId.slice(0, 4)}`,
+								fontSize: 12,
+								fontFamily: 'system-ui',
+								fill: '#fff',
+								padding: 4,
+								listening: false
+							}}
+						/>
+					{/if}
+				{/each}
+			{/if}
 		</Layer>
 	</Stage>
 </div>

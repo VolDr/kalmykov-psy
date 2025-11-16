@@ -1,412 +1,287 @@
 // src/lib/canvas/sync/server.ts
-// Server-side WebSocket sync logic for canvas collaboration
+// WebSocket server for multiplayer canvas collaboration
+// This is a reference implementation - can be used with Node.js ws library or SvelteKit adapter
 
-import { WebSocketServer, WebSocket } from 'ws';
-import type { IncomingMessage } from 'http';
-import type { Duplex } from 'stream';
 import type {
 	ClientMessage,
 	ServerMessage,
-	Operation,
 	Presence,
-	ServerPresenceListMessage,
-	ServerUserJoinedMessage,
-	ServerUserLeftMessage,
-	ServerOperationMessage,
-	ServerJoinedMessage,
-	ServerErrorMessage
+	Operation,
+	JoinMessage,
+	LeaveMessage,
+	OperationMessage,
+	PresenceMessage
 } from './types';
 
-export interface ClientConnection {
-	ws: WebSocket;
+export interface ConnectedClient {
 	clientId: string;
 	sceneId: string;
 	userId?: string;
 	name?: string;
-	presence?: Presence;
+	lastSeen: number;
+	send: (message: ServerMessage) => void;
 }
 
 export interface Room {
 	sceneId: string;
-	clients: Map<string, ClientConnection>;
-	isDirty: boolean;
-	lastSaved: number;
+	clients: Map<string, ConnectedClient>;
+	// Optional: store recent operations for replay on join
+	recentOperations: Operation[];
 }
 
 export interface SyncServerOptions {
-	onLoadScene?: (sceneId: string) => Promise<unknown>;
-	onSaveScene?: (sceneId: string, data: unknown) => Promise<void>;
-	onApplyOperation?: (sceneId: string, operation: Operation) => Promise<void>;
-	saveInterval?: number; // ms between saves
-	presenceTimeout?: number; // ms before removing stale presence
+	maxOperationsPerRoom?: number;
+	presenceTimeoutMs?: number;
 }
 
-export class SyncServer {
-	private wss: WebSocketServer;
-	private rooms: Map<string, Room> = new Map();
-	private clientToRoom: Map<WebSocket, ClientConnection> = new Map();
-	private saveIntervalHandle: ReturnType<typeof setInterval> | null = null;
-	private options: SyncServerOptions;
+export function createSyncServer(options: SyncServerOptions = {}) {
+	const { maxOperationsPerRoom = 100, presenceTimeoutMs = 30000 } = options;
 
-	constructor(options: SyncServerOptions = {}) {
-		this.options = {
-			saveInterval: 5000, // Save every 5 seconds if dirty
-			presenceTimeout: 30000, // 30 seconds
-			...options
-		};
+	const rooms = new Map<string, Room>();
 
-		this.wss = new WebSocketServer({ noServer: true });
-
-		this.wss.on('connection', (ws: WebSocket) => {
-			this.handleConnection(ws);
-		});
-
-		// Start periodic save timer
-		if (this.options.onSaveScene && this.options.saveInterval) {
-			this.saveIntervalHandle = setInterval(() => {
-				this.saveDirtyRooms();
-			}, this.options.saveInterval);
-		}
-	}
-
-	// Handle HTTP upgrade for WebSocket
-	handleUpgrade(request: IncomingMessage, socket: Duplex, head: Buffer) {
-		this.wss.handleUpgrade(request, socket, head, (ws) => {
-			this.wss.emit('connection', ws, request);
-		});
-	}
-
-	private handleConnection(ws: WebSocket) {
-		ws.on('message', (data) => {
-			try {
-				const message: ClientMessage = JSON.parse(data.toString());
-				this.handleClientMessage(ws, message);
-			} catch (err) {
-				console.error('Failed to parse client message:', err);
-				this.sendError(ws, 'Invalid message format');
-			}
-		});
-
-		ws.on('close', () => {
-			this.handleDisconnect(ws);
-		});
-
-		ws.on('error', (err) => {
-			console.error('WebSocket error:', err);
-		});
-	}
-
-	private handleClientMessage(ws: WebSocket, message: ClientMessage) {
-		switch (message.type) {
-			case 'join':
-				this.handleJoin(ws, message);
-				break;
-
-			case 'leave':
-				this.handleLeave(ws, message);
-				break;
-
-			case 'operation':
-				this.handleOperation(ws, message.operation);
-				break;
-
-			case 'presence':
-				this.handlePresence(ws, message.presence);
-				break;
-		}
-	}
-
-	private handleJoin(
-		ws: WebSocket,
-		message: { sceneId: string; clientId: string; userId?: string; name?: string }
-	) {
-		const { sceneId, clientId, userId, name } = message;
-
-		// Create room if doesn't exist
-		if (!this.rooms.has(sceneId)) {
-			this.rooms.set(sceneId, {
+	function getOrCreateRoom(sceneId: string): Room {
+		let room = rooms.get(sceneId);
+		if (!room) {
+			room = {
 				sceneId,
 				clients: new Map(),
-				isDirty: false,
-				lastSaved: Date.now()
-			});
+				recentOperations: []
+			};
+			rooms.set(sceneId, room);
 		}
+		return room;
+	}
 
-		const room = this.rooms.get(sceneId)!;
+	function handleJoin(client: ConnectedClient, message: JoinMessage) {
+		const room = getOrCreateRoom(message.sceneId);
 
-		// Create client connection
-		const connection: ClientConnection = {
-			ws,
-			clientId,
-			sceneId,
-			userId,
-			name,
-			presence: {
-				clientId,
-				sceneId,
-				userId,
-				name,
-				lastSeen: Date.now(),
-				color: this.generateUserColor(clientId)
-			}
-		};
+		// Update client info
+		client.sceneId = message.sceneId;
+		client.clientId = message.clientId;
+		client.userId = message.userId;
+		client.name = message.name;
+		client.lastSeen = Date.now();
 
-		room.clients.set(clientId, connection);
-		this.clientToRoom.set(ws, connection);
+		// Add client to room
+		room.clients.set(client.clientId, client);
 
 		// Send joined confirmation
-		const joinedMessage: ServerJoinedMessage = {
+		client.send({
 			type: 'joined',
-			clientId,
-			sceneId
-		};
-		this.send(ws, joinedMessage);
+			clientId: client.clientId,
+			sceneId: message.sceneId
+		});
 
-		// Send current presence list to new client
-		const presences = Array.from(room.clients.values())
-			.filter((c) => c.clientId !== clientId && c.presence)
-			.map((c) => c.presence!);
-
-		if (presences.length > 0) {
-			const presenceListMessage: ServerPresenceListMessage = {
-				type: 'presenceList',
-				presences
-			};
-			this.send(ws, presenceListMessage);
-		}
-
-		// Notify other clients about new user
-		const userJoinedMessage: ServerUserJoinedMessage = {
-			type: 'userJoined',
-			presence: connection.presence!
-		};
-		this.broadcastToRoom(room, userJoinedMessage, clientId);
-
-		console.log(`Client ${clientId} joined room ${sceneId}`);
-	}
-
-	private handleLeave(
-		ws: WebSocket,
-		message: { sceneId: string; clientId: string }
-	) {
-		const connection = this.clientToRoom.get(ws);
-		if (!connection) return;
-
-		this.removeClientFromRoom(connection);
-	}
-
-	private handleOperation(ws: WebSocket, operation: Operation) {
-		const connection = this.clientToRoom.get(ws);
-		if (!connection) {
-			this.sendError(ws, 'Not joined to any room');
-			return;
-		}
-
-		const room = this.rooms.get(connection.sceneId);
-		if (!room) {
-			this.sendError(ws, 'Room not found');
-			return;
-		}
-
-		// Apply operation (if callback provided)
-		if (this.options.onApplyOperation) {
-			this.options.onApplyOperation(connection.sceneId, operation).catch((err) => {
-				console.error('Failed to apply operation:', err);
+		// Send current presence list
+		const presences: Presence[] = [];
+		for (const [, c] of room.clients) {
+			presences.push({
+				clientId: c.clientId,
+				sceneId: c.sceneId,
+				userId: c.userId,
+				name: c.name,
+				lastSeen: c.lastSeen
 			});
 		}
+		client.send({
+			type: 'presenceList',
+			presences
+		});
 
-		// Mark room as dirty for periodic save
-		room.isDirty = true;
-
-		// Broadcast operation to other clients in the room
-		const operationMessage: ServerOperationMessage = {
-			type: 'operation',
-			operation
+		// Notify other clients about new user
+		const joinPresence: Presence = {
+			clientId: client.clientId,
+			sceneId: client.sceneId,
+			userId: client.userId,
+			name: client.name,
+			lastSeen: client.lastSeen
 		};
-		this.broadcastToRoom(room, operationMessage, operation.clientId);
+
+		broadcastToRoom(room, client.clientId, {
+			type: 'userJoined',
+			presence: joinPresence
+		});
 	}
 
-	private handlePresence(ws: WebSocket, presence: Presence) {
-		const connection = this.clientToRoom.get(ws);
-		if (!connection) return;
-
-		const room = this.rooms.get(connection.sceneId);
+	function handleLeave(client: ConnectedClient, _message: LeaveMessage) {
+		const room = rooms.get(client.sceneId);
 		if (!room) return;
 
-		// Update connection presence
-		connection.presence = {
-			...presence,
-			lastSeen: Date.now()
-		};
-
-		// Broadcast presence to other clients
-		const presenceMessage: ServerMessage = {
-			type: 'presence',
-			presence: connection.presence
-		};
-		this.broadcastToRoom(room, presenceMessage, connection.clientId);
-	}
-
-	private handleDisconnect(ws: WebSocket) {
-		const connection = this.clientToRoom.get(ws);
-		if (!connection) return;
-
-		this.removeClientFromRoom(connection);
-	}
-
-	private removeClientFromRoom(connection: ClientConnection) {
-		const room = this.rooms.get(connection.sceneId);
-		if (!room) return;
-
-		room.clients.delete(connection.clientId);
-		this.clientToRoom.delete(connection.ws);
+		room.clients.delete(client.clientId);
 
 		// Notify other clients
-		const userLeftMessage: ServerUserLeftMessage = {
+		broadcastToRoom(room, client.clientId, {
 			type: 'userLeft',
-			clientId: connection.clientId
-		};
-		this.broadcastToRoom(room, userLeftMessage);
-
-		console.log(`Client ${connection.clientId} left room ${connection.sceneId}`);
+			clientId: client.clientId
+		});
 
 		// Clean up empty rooms
 		if (room.clients.size === 0) {
-			// Save before removing
-			if (room.isDirty && this.options.onSaveScene) {
-				this.saveRoom(room).catch((err) => {
-					console.error('Failed to save room before cleanup:', err);
-				});
-			}
-			this.rooms.delete(connection.sceneId);
-			console.log(`Room ${connection.sceneId} cleaned up`);
+			rooms.delete(client.sceneId);
 		}
 	}
 
-	private send(ws: WebSocket, message: ServerMessage) {
-		if (ws.readyState === WebSocket.OPEN) {
-			ws.send(JSON.stringify(message));
-		}
-	}
-
-	private sendError(ws: WebSocket, errorMessage: string, code?: string) {
-		const message: ServerErrorMessage = {
-			type: 'error',
-			message: errorMessage,
-			code
-		};
-		this.send(ws, message);
-	}
-
-	private broadcastToRoom(room: Room, message: ServerMessage, excludeClientId?: string) {
-		const data = JSON.stringify(message);
-		for (const [clientId, connection] of room.clients) {
-			if (clientId !== excludeClientId && connection.ws.readyState === WebSocket.OPEN) {
-				connection.ws.send(data);
-			}
-		}
-	}
-
-	private async saveDirtyRooms() {
-		if (!this.options.onSaveScene) return;
-
-		for (const room of this.rooms.values()) {
-			if (room.isDirty) {
-				await this.saveRoom(room);
-			}
-		}
-	}
-
-	private async saveRoom(room: Room) {
-		if (!this.options.onSaveScene) return;
-
-		try {
-			// The actual scene data should be loaded and modified via onApplyOperation
-			// This is just marking it as saved
-			room.isDirty = false;
-			room.lastSaved = Date.now();
-			console.log(`Room ${room.sceneId} marked as saved`);
-		} catch (err) {
-			console.error(`Failed to save room ${room.sceneId}:`, err);
-		}
-	}
-
-	private generateUserColor(clientId: string): string {
-		// Generate a consistent color based on clientId
-		const colors = [
-			'#FF6B6B',
-			'#4ECDC4',
-			'#45B7D1',
-			'#96CEB4',
-			'#FFEAA7',
-			'#DDA0DD',
-			'#98D8C8',
-			'#F7DC6F',
-			'#BB8FCE',
-			'#85C1E9'
-		];
-
-		let hash = 0;
-		for (let i = 0; i < clientId.length; i++) {
-			hash = (hash << 5) - hash + clientId.charCodeAt(i);
-			hash = hash & hash;
+	function handleOperation(client: ConnectedClient, message: OperationMessage) {
+		const room = rooms.get(client.sceneId);
+		if (!room) {
+			client.send({
+				type: 'error',
+				message: 'Not in a room',
+				code: 'NOT_IN_ROOM'
+			});
+			return;
 		}
 
-		return colors[Math.abs(hash) % colors.length];
-	}
+		const operation = message.operation;
 
-	// Public API methods
-
-	getRoomInfo(sceneId: string) {
-		const room = this.rooms.get(sceneId);
-		if (!room) return null;
-
-		return {
-			sceneId: room.sceneId,
-			clientCount: room.clients.size,
-			isDirty: room.isDirty,
-			lastSaved: room.lastSaved
-		};
-	}
-
-	getActiveRooms() {
-		return Array.from(this.rooms.keys());
-	}
-
-	getTotalConnections() {
-		let total = 0;
-		for (const room of this.rooms.values()) {
-			total += room.clients.size;
-		}
-		return total;
-	}
-
-	close() {
-		if (this.saveIntervalHandle) {
-			clearInterval(this.saveIntervalHandle);
-			this.saveIntervalHandle = null;
+		// Store recent operations (for potential replay)
+		room.recentOperations.push(operation);
+		if (room.recentOperations.length > maxOperationsPerRoom) {
+			room.recentOperations.shift();
 		}
 
-		// Save all dirty rooms before closing
-		this.saveDirtyRooms().then(() => {
-			this.wss.close();
+		// Broadcast operation to all clients in room (including sender for confirmation)
+		broadcastToRoom(room, null, {
+			type: 'operation',
+			operation
 		});
 	}
-}
 
-// Singleton instance for use across the application
-let syncServerInstance: SyncServer | null = null;
+	function handlePresence(client: ConnectedClient, message: PresenceMessage) {
+		const room = rooms.get(client.sceneId);
+		if (!room) return;
 
-export function getSyncServer(options?: SyncServerOptions): SyncServer {
-	if (!syncServerInstance) {
-		syncServerInstance = new SyncServer(options);
+		client.lastSeen = Date.now();
+
+		// Update presence and broadcast to others
+		broadcastToRoom(room, client.clientId, {
+			type: 'presence',
+			presence: message.presence
+		});
 	}
-	return syncServerInstance;
+
+	function broadcastToRoom(room: Room, excludeClientId: string | null, message: ServerMessage) {
+		for (const [clientId, client] of room.clients) {
+			if (clientId !== excludeClientId) {
+				try {
+					client.send(message);
+				} catch (err) {
+					console.error(`Failed to send to client ${clientId}:`, err);
+				}
+			}
+		}
+	}
+
+	function handleClientMessage(client: ConnectedClient, rawMessage: string) {
+		let message: ClientMessage;
+		try {
+			message = JSON.parse(rawMessage);
+		} catch (err) {
+			client.send({
+				type: 'error',
+				message: 'Invalid JSON',
+				code: 'INVALID_JSON'
+			});
+			return;
+		}
+
+		switch (message.type) {
+			case 'join':
+				handleJoin(client, message);
+				break;
+			case 'leave':
+				handleLeave(client, message);
+				break;
+			case 'operation':
+				handleOperation(client, message);
+				break;
+			case 'presence':
+				handlePresence(client, message);
+				break;
+			default:
+				client.send({
+					type: 'error',
+					message: 'Unknown message type',
+					code: 'UNKNOWN_MESSAGE_TYPE'
+				});
+		}
+	}
+
+	function removeClient(client: ConnectedClient) {
+		const room = rooms.get(client.sceneId);
+		if (room) {
+			room.clients.delete(client.clientId);
+
+			broadcastToRoom(room, client.clientId, {
+				type: 'userLeft',
+				clientId: client.clientId
+			});
+
+			if (room.clients.size === 0) {
+				rooms.delete(client.sceneId);
+			}
+		}
+	}
+
+	function cleanupStalePresences() {
+		const now = Date.now();
+
+		for (const [, room] of rooms) {
+			for (const [clientId, client] of room.clients) {
+				if (now - client.lastSeen > presenceTimeoutMs) {
+					room.clients.delete(clientId);
+
+					broadcastToRoom(room, clientId, {
+						type: 'userLeft',
+						clientId
+					});
+				}
+			}
+
+			if (room.clients.size === 0) {
+				rooms.delete(room.sceneId);
+			}
+		}
+	}
+
+	// Periodically clean up stale presences
+	const cleanupInterval = setInterval(cleanupStalePresences, presenceTimeoutMs / 2);
+
+	function destroy() {
+		clearInterval(cleanupInterval);
+		rooms.clear();
+	}
+
+	return {
+		handleClientMessage,
+		removeClient,
+		getRoomCount: () => rooms.size,
+		getClientCountInRoom: (sceneId: string) => rooms.get(sceneId)?.clients.size ?? 0,
+		destroy
+	};
 }
 
-export function closeSyncServer() {
-	if (syncServerInstance) {
-		syncServerInstance.close();
-		syncServerInstance = null;
-	}
-}
+// Example usage with Node.js ws library:
+/*
+import { WebSocketServer } from 'ws';
+
+const wss = new WebSocketServer({ port: 3001 });
+const syncServer = createSyncServer();
+
+wss.on('connection', (ws) => {
+  const client: ConnectedClient = {
+    clientId: '',
+    sceneId: '',
+    lastSeen: Date.now(),
+    send: (message) => ws.send(JSON.stringify(message))
+  };
+
+  ws.on('message', (data) => {
+    syncServer.handleClientMessage(client, data.toString());
+  });
+
+  ws.on('close', () => {
+    syncServer.removeClient(client);
+  });
+});
+*/

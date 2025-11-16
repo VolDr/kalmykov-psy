@@ -1,47 +1,36 @@
 <script lang="ts">
-	import { onMount, onDestroy } from 'svelte';
+	import { onMount } from 'svelte';
 	import { get } from 'svelte/store';
 	import Canvas from '$lib/canvas/ui/Canvas.svelte';
 	import { shapesHistory, camera } from '$lib/canvas/stores';
 	import type { SceneData, RectShape, EllipseShape, ArrowShape, TextShape } from '$lib/canvas/model/shapes';
-	import {
-		createSyncClient,
-		createSyncedHistoryStore,
-		type SyncClient,
-		type ConnectionStatus
-	} from '$lib/canvas/sync/client';
-	import { generateClientId, type Presence } from '$lib/canvas/sync/types';
+	import { createAddShapesOp } from '$lib/canvas/sync/types';
 
 	const sceneId = 'demo-scene-001';
-	const clientId = generateClientId();
 
 	let isSaving = $state(false);
 	let isLoading = $state(true);
 	let loadError = $state<string | null>(null);
 
-	// WebSocket sync state
-	let syncClient: SyncClient | null = $state(null);
-	let connectionStatus: ConnectionStatus = $state('disconnected');
-	let remoteUsers: Presence[] = $state([]);
-	let syncedHistory: ReturnType<typeof createSyncedHistoryStore> | null = $state(null);
-
-	// Determine WebSocket URL
-	function getWebSocketUrl(): string {
-		const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-		const host = window.location.hostname;
-		const port = 3001; // WebSocket server port
-		return `${protocol}//${host}:${port}/ws/scenes/${sceneId}`;
-	}
+	// Multiplayer settings
+	let multiplayerEnabled = $state(false);
+	let userName = $state('');
+	let wsUrl = $state('');
 
 	onMount(async () => {
+		// Set WebSocket URL based on current location
+		const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+		wsUrl = `${protocol}//${window.location.host}/ws`;
+
+		// Generate default username
+		userName = `User_${Math.random().toString(36).slice(2, 6)}`;
+
 		try {
 			const res = await fetch(`/api/scenes/${sceneId}`);
 			if (res.ok) {
 				const scene = (await res.json()) as SceneData;
 				shapesHistory.setAllShapes(scene.shapes);
-				if (scene.camera) {
-					camera.set(scene.camera);
-				}
+				camera.set(scene.camera);
 			} else if (res.status === 404) {
 				// No saved scene - create demo shapes
 				createDemoShapes();
@@ -52,51 +41,6 @@
 		} finally {
 			isLoading = false;
 		}
-
-		// Initialize WebSocket connection
-		initializeSync();
-	});
-
-	function initializeSync() {
-		const wsUrl = getWebSocketUrl();
-
-		syncClient = createSyncClient({
-			url: wsUrl,
-			sceneId,
-			clientId,
-			historyStore: shapesHistory,
-			cameraStore: camera,
-			userName: `User ${clientId.slice(0, 4)}`,
-			reconnectAttempts: 5,
-			reconnectDelay: 1000
-		});
-
-		// Create synced history wrapper
-		syncedHistory = createSyncedHistoryStore(shapesHistory, syncClient, sceneId, clientId);
-
-		// Subscribe to connection status
-		const unsubStatus = syncClient.status.subscribe((status) => {
-			connectionStatus = status;
-		});
-
-		// Subscribe to remote presences
-		const unsubPresence = syncClient.remotePresences.subscribe((presences) => {
-			remoteUsers = Array.from(presences.values());
-		});
-
-		// Connect to WebSocket server
-		syncClient.connect();
-
-		// Clean up on destroy
-		onDestroy(() => {
-			unsubStatus();
-			unsubPresence();
-			syncClient?.destroy();
-		});
-	}
-
-	onDestroy(() => {
-		syncClient?.destroy();
 	});
 
 	function createDemoShapes() {
@@ -173,17 +117,12 @@
 		loadError = null;
 
 		try {
-			let shapesSnapshot: any[] = [];
-			const unsub1 = shapesHistory.subscribe((s) => (shapesSnapshot = s.shapes));
-			unsub1();
-
-			let cameraSnapshot = { x: 0, y: 0, scale: 1 };
-			const unsub2 = camera.subscribe((c) => (cameraSnapshot = c));
-			unsub2();
+			const shapesState = get(shapesHistory);
+			const cameraSnapshot = get(camera);
 
 			const scene: SceneData = {
 				id: sceneId,
-				shapes: shapesSnapshot,
+				shapes: shapesState.shapes,
 				camera: cameraSnapshot
 			};
 
@@ -218,12 +157,7 @@
 			strokeWidth: 2,
 			fill: '#d0ebff'
 		};
-		// Use synced history if available (broadcasts to other clients)
-		if (syncedHistory) {
-			syncedHistory.addShapes([rect]);
-		} else {
-			shapesHistory.addShapes([rect]);
-		}
+		shapesHistory.addShapes([rect]);
 	}
 
 	function addEllipse() {
@@ -241,12 +175,7 @@
 			strokeWidth: 2,
 			fill: '#d8f5a2'
 		};
-		// Use synced history if available (broadcasts to other clients)
-		if (syncedHistory) {
-			syncedHistory.addShapes([ellipse]);
-		} else {
-			shapesHistory.addShapes([ellipse]);
-		}
+		shapesHistory.addShapes([ellipse]);
 	}
 
 	function handleUndo() {
@@ -255,35 +184,6 @@
 
 	function handleRedo() {
 		shapesHistory.redo();
-	}
-
-	function getStatusColor(status: ConnectionStatus): string {
-		switch (status) {
-			case 'connected':
-				return 'bg-green-500';
-			case 'connecting':
-			case 'reconnecting':
-				return 'bg-yellow-500';
-			case 'disconnected':
-				return 'bg-red-500';
-			default:
-				return 'bg-gray-500';
-		}
-	}
-
-	function getStatusText(status: ConnectionStatus): string {
-		switch (status) {
-			case 'connected':
-				return 'Connected';
-			case 'connecting':
-				return 'Connecting...';
-			case 'reconnecting':
-				return 'Reconnecting...';
-			case 'disconnected':
-				return 'Disconnected';
-			default:
-				return 'Unknown';
-		}
 	}
 </script>
 
@@ -332,6 +232,29 @@
 		</button>
 	</div>
 
+	<!-- Multiplayer Controls -->
+	<div class="absolute left-4 top-20 z-10 rounded-lg bg-white p-3 shadow-md">
+		<h3 class="mb-2 text-sm font-semibold">Multiplayer</h3>
+		<div class="space-y-2">
+			<label class="flex items-center gap-2">
+				<input
+					type="checkbox"
+					bind:checked={multiplayerEnabled}
+					class="h-4 w-4 rounded border-gray-300"
+				/>
+				<span class="text-sm">Enable</span>
+			</label>
+			{#if multiplayerEnabled}
+				<input
+					type="text"
+					bind:value={userName}
+					placeholder="Your name"
+					class="w-full rounded border px-2 py-1 text-sm"
+				/>
+			{/if}
+		</div>
+	</div>
+
 	<!-- Instructions -->
 	<div class="absolute right-4 top-4 z-10 max-w-xs rounded-lg bg-white p-3 text-xs shadow-md">
 		<h3 class="mb-2 font-semibold">Controls:</h3>
@@ -361,6 +284,11 @@
 			<div class="text-gray-500">Loading canvas...</div>
 		</div>
 	{:else}
-		<Canvas />
+		<Canvas
+			multiplayer={multiplayerEnabled}
+			{wsUrl}
+			{sceneId}
+			userName={userName}
+		/>
 	{/if}
 </div>
