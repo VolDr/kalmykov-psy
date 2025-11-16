@@ -13,6 +13,7 @@
 - ✅ Text labels (standalone + inside shapes)
 - ✅ **Shape Transformation (resize + rotate)** with Konva Transformer
 - ✅ **Tool Modes** (select, rect, ellipse, arrow, text, pan) with Toolbar UI
+- ✅ **Box Selection** (drag to select multiple shapes, Shift to add, Alt to remove)
 - ✅ Comprehensive test suite (253 tests)
 - ✅ **Full Multiplayer Implementation:**
   - WebSocket server with room management (`server/websocket.ts`)
@@ -197,16 +198,16 @@ interface Presence {
 **Files created:**
 - `src/lib/canvas/ui/Toolbar.svelte`
 
-### 1.3 Box Selection
+### 1.3 Box Selection ✅
 **Why**: Users need to select multiple shapes at once by drawing a rectangle.
-- [ ] Add selection box rendering (dashed rectangle)
-- [ ] Calculate intersection with shape bounds
-- [ ] Update selection store with all intersecting shapes
-- [ ] Modifier keys: Shift to add to selection, Alt to remove
+- [x] Add selection box rendering (semi-transparent blue rectangle with dashed border)
+- [x] Calculate intersection with shape bounds (getShapeBounds, rectsIntersect helpers)
+- [x] Update selection store with all intersecting shapes
+- [x] Modifier keys: Shift to add to selection, Alt to remove
+- [x] State management for box selection (isBoxSelecting, boxSelectStart, boxSelectEnd)
 
-**Files to modify:**
+**Files modified:**
 - `src/lib/canvas/ui/Canvas.svelte`
-- `src/lib/canvas/engine/magnets.ts` (add bounds intersection helper)
 
 ---
 

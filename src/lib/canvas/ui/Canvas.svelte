@@ -87,6 +87,11 @@
 	let drawingStart = $state({ x: 0, y: 0 });
 	let previewShape: Shape | null = $state(null);
 
+	// Box selection state
+	let isBoxSelecting = $state(false);
+	let boxSelectStart = $state({ x: 0, y: 0 });
+	let boxSelectEnd = $state({ x: 0, y: 0 });
+
 	// Multiplayer state
 	let syncClient: SyncClient | null = $state(null);
 	let clientId = $state('');
@@ -254,6 +259,15 @@
 			// Pan mode - start panning
 			isPanning = true;
 			lastPos = { x: evt.clientX, y: evt.clientY };
+		} else if (evt.button === 0 && tool === 'select') {
+			// In select mode, clicking on stage starts box selection
+			const stage = stageRef?.getStage ? stageRef.getStage() : stageRef;
+			if (e.target === stage) {
+				const world = screenToWorld(evt.offsetX, evt.offsetY);
+				isBoxSelecting = true;
+				boxSelectStart = { x: world.x, y: world.y };
+				boxSelectEnd = { x: world.x, y: world.y };
+			}
 		}
 	}
 
@@ -272,6 +286,11 @@
 			handleDrawingMove(world.x, world.y);
 		}
 
+		// Handle box selection
+		if (isBoxSelecting) {
+			boxSelectEnd = { x: world.x, y: world.y };
+		}
+
 		if (!isPanning) return;
 		const dx = evt.clientX - lastPos.x;
 		const dy = evt.clientY - lastPos.y;
@@ -288,14 +307,55 @@
 			const world = screenToWorld(evt.offsetX, evt.offsetY);
 			handleDrawingEnd(world.x, world.y);
 		}
+
+		// Finish box selection
+		if (isBoxSelecting) {
+			const world = screenToWorld(evt.offsetX, evt.offsetY);
+			boxSelectEnd = { x: world.x, y: world.y };
+
+			const selectedShapeIds = getShapesInBox(
+				boxSelectStart.x,
+				boxSelectStart.y,
+				boxSelectEnd.x,
+				boxSelectEnd.y
+			);
+
+			if (selectedShapeIds.length > 0) {
+				if (evt.shiftKey) {
+					// Add to existing selection
+					selection.update((s) => {
+						const ids = new Set(s.ids);
+						for (const id of selectedShapeIds) {
+							ids.add(id);
+						}
+						return { ids };
+					});
+				} else if (evt.altKey) {
+					// Remove from existing selection
+					selection.update((s) => {
+						const ids = new Set(s.ids);
+						for (const id of selectedShapeIds) {
+							ids.delete(id);
+						}
+						return { ids };
+					});
+				} else {
+					// Replace selection
+					selection.set({ ids: new Set(selectedShapeIds) });
+				}
+			} else if (!evt.shiftKey && !evt.altKey) {
+				// No shapes selected and no modifier - clear selection
+				clearSelection();
+			}
+
+			isBoxSelecting = false;
+		}
 	}
 
 	function handleStageClick(e: any) {
-		// Click on empty space - clear selection
-		const stage = stageRef?.getStage ? stageRef.getStage() : stageRef;
-		if (e.target === stage) {
-			clearSelection();
-		}
+		// Don't handle click if box selection was just performed
+		// Box selection handles selection in handleMouseUp
+		// This prevents double handling of selection
 	}
 
 	function isSelected(id: string) {
@@ -704,6 +764,91 @@
 		setTool('select');
 	}
 
+	// Get shape bounding box
+	function getShapeBounds(shape: Shape): { x: number; y: number; width: number; height: number } {
+		if (shape.type === 'rect') {
+			const rect = shape as RectShape;
+			return {
+				x: rect.x - rect.width / 2,
+				y: rect.y - rect.height / 2,
+				width: rect.width,
+				height: rect.height
+			};
+		} else if (shape.type === 'ellipse') {
+			const ellipse = shape as EllipseShape;
+			return {
+				x: ellipse.x - ellipse.rx,
+				y: ellipse.y - ellipse.ry,
+				width: ellipse.rx * 2,
+				height: ellipse.ry * 2
+			};
+		} else if (shape.type === 'text') {
+			const text = shape as TextShape;
+			const width = text.width ?? text.text.length * text.fontSize * 0.6;
+			const height = text.height ?? text.fontSize * 1.2;
+			return {
+				x: text.x - width / 2,
+				y: text.y - height / 2,
+				width,
+				height
+			};
+		} else if (shape.type === 'arrow') {
+			const arrow = shape as ArrowShape;
+			const points = arrow.points.map(([px, py]) => ({
+				x: arrow.x + px,
+				y: arrow.y + py
+			}));
+			const minX = Math.min(...points.map((p) => p.x));
+			const minY = Math.min(...points.map((p) => p.y));
+			const maxX = Math.max(...points.map((p) => p.x));
+			const maxY = Math.max(...points.map((p) => p.y));
+			return {
+				x: minX,
+				y: minY,
+				width: maxX - minX,
+				height: maxY - minY
+			};
+		}
+		return { x: shape.x, y: shape.y, width: 0, height: 0 };
+	}
+
+	// Check if two rectangles intersect
+	function rectsIntersect(
+		r1: { x: number; y: number; width: number; height: number },
+		r2: { x: number; y: number; width: number; height: number }
+	): boolean {
+		return !(
+			r2.x > r1.x + r1.width ||
+			r2.x + r2.width < r1.x ||
+			r2.y > r1.y + r1.height ||
+			r2.y + r2.height < r1.y
+		);
+	}
+
+	// Get shapes that intersect with a selection box
+	function getShapesInBox(
+		boxStartX: number,
+		boxStartY: number,
+		boxEndX: number,
+		boxEndY: number
+	): string[] {
+		const selectionRect = {
+			x: Math.min(boxStartX, boxEndX),
+			y: Math.min(boxStartY, boxEndY),
+			width: Math.abs(boxEndX - boxStartX),
+			height: Math.abs(boxEndY - boxStartY)
+		};
+
+		const intersectingIds: string[] = [];
+		for (const shape of shapes) {
+			const shapeBounds = getShapeBounds(shape);
+			if (rectsIntersect(selectionRect, shapeBounds)) {
+				intersectingIds.push(shape.id);
+			}
+		}
+		return intersectingIds;
+	}
+
 	// ROUGH.JS HOOK:
 	// To integrate Rough.js for hand-drawn style:
 	// 1. Import rough from 'roughjs'
@@ -1039,6 +1184,27 @@
 						}}
 					/>
 				{/if}
+			{/if}
+
+			<!-- Box selection rectangle -->
+			{#if isBoxSelecting}
+				{@const boxX = Math.min(boxSelectStart.x, boxSelectEnd.x)}
+				{@const boxY = Math.min(boxSelectStart.y, boxSelectEnd.y)}
+				{@const boxWidth = Math.abs(boxSelectEnd.x - boxSelectStart.x)}
+				{@const boxHeight = Math.abs(boxSelectEnd.y - boxSelectStart.y)}
+				<Rect
+					config={{
+						x: boxX,
+						y: boxY,
+						width: boxWidth,
+						height: boxHeight,
+						stroke: '#2196F3',
+						strokeWidth: 1,
+						fill: 'rgba(33, 150, 243, 0.1)',
+						dash: [5, 3],
+						listening: false
+					}}
+				/>
 			{/if}
 
 			<!-- Remote cursors -->
