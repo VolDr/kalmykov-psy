@@ -1,8 +1,10 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { get } from 'svelte/store';
 	import Canvas from '$lib/canvas/ui/Canvas.svelte';
 	import { shapesHistory, camera } from '$lib/canvas/stores';
 	import type { SceneData, RectShape, EllipseShape, ArrowShape, TextShape } from '$lib/canvas/model/shapes';
+	import { createAddShapesOp } from '$lib/canvas/sync/types';
 
 	const sceneId = 'demo-scene-001';
 
@@ -10,7 +12,19 @@
 	let isLoading = $state(true);
 	let loadError = $state<string | null>(null);
 
+	// Multiplayer settings
+	let multiplayerEnabled = $state(false);
+	let userName = $state('');
+	let wsUrl = $state('');
+
 	onMount(async () => {
+		// Set WebSocket URL based on current location
+		const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+		wsUrl = `${protocol}//${window.location.host}/ws`;
+
+		// Generate default username
+		userName = `User_${Math.random().toString(36).slice(2, 6)}`;
+
 		try {
 			const res = await fetch(`/api/scenes/${sceneId}`);
 			if (res.ok) {
@@ -103,17 +117,12 @@
 		loadError = null;
 
 		try {
-			let shapesSnapshot: any[] = [];
-			const unsub1 = shapesHistory.subscribe((s) => (shapesSnapshot = s.shapes));
-			unsub1();
-
-			let cameraSnapshot = { x: 0, y: 0, scale: 1 };
-			const unsub2 = camera.subscribe((c) => (cameraSnapshot = c));
-			unsub2();
+			const shapesState = get(shapesHistory);
+			const cameraSnapshot = get(camera);
 
 			const scene: SceneData = {
 				id: sceneId,
-				shapes: shapesSnapshot,
+				shapes: shapesState.shapes,
 				camera: cameraSnapshot
 			};
 
@@ -223,6 +232,29 @@
 		</button>
 	</div>
 
+	<!-- Multiplayer Controls -->
+	<div class="absolute left-4 top-20 z-10 rounded-lg bg-white p-3 shadow-md">
+		<h3 class="mb-2 text-sm font-semibold">Multiplayer</h3>
+		<div class="space-y-2">
+			<label class="flex items-center gap-2">
+				<input
+					type="checkbox"
+					bind:checked={multiplayerEnabled}
+					class="h-4 w-4 rounded border-gray-300"
+				/>
+				<span class="text-sm">Enable</span>
+			</label>
+			{#if multiplayerEnabled}
+				<input
+					type="text"
+					bind:value={userName}
+					placeholder="Your name"
+					class="w-full rounded border px-2 py-1 text-sm"
+				/>
+			{/if}
+		</div>
+	</div>
+
 	<!-- Instructions -->
 	<div class="absolute right-4 top-4 z-10 max-w-xs rounded-lg bg-white p-3 text-xs shadow-md">
 		<h3 class="mb-2 font-semibold">Controls:</h3>
@@ -252,6 +284,11 @@
 			<div class="text-gray-500">Loading canvas...</div>
 		</div>
 	{:else}
-		<Canvas />
+		<Canvas
+			multiplayer={multiplayerEnabled}
+			{wsUrl}
+			{sceneId}
+			userName={userName}
+		/>
 	{/if}
 </div>

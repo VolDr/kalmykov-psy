@@ -14,7 +14,9 @@
 		"lint": "prettier --check . && eslint .",
 		"test": "vitest",
 		"test:run": "vitest run",
-		"test:coverage": "vitest run --coverage"
+		"test:coverage": "vitest run --coverage",
+		"ws:server": "npx tsx server/websocket.ts",
+		"ws:server:dev": "npx tsx watch server/websocket.ts"
 	},
 	"dependencies": {
 		"bcrypt": "^6.0.0",
@@ -26,6 +28,7 @@
 		"node-cron": "^4.2.1",
 		"pg": "^8.16.3",
 		"svelte-konva": "^1.0.1",
+		"ws": "^8.18.3",
 		"zod": "^4.1.12"
 	},
 	"devDependencies": {
@@ -47,6 +50,7 @@
 		"@testing-library/svelte": "^5.2.9",
 		"@types/node": "^22",
 		"@types/pg": "^8.15.6",
+		"@types/ws": "^8.18.1",
 		"@vitest/coverage-v8": "^4.0.9",
 		"bits-ui": "^2.14.3",
 		"class-variance-authority": "^0.7.1",

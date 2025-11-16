@@ -29,6 +29,8 @@ export interface SyncClientOptions {
 	userName?: string;
 	reconnectAttempts?: number;
 	reconnectDelay?: number;
+	presenceDebounceMs?: number;
+	maxOfflineQueueSize?: number;
 }
 
 export interface SyncClient {
@@ -38,6 +40,7 @@ export interface SyncClient {
 	sendPresence: (presence: Partial<Presence>) => void;
 	status: Writable<ConnectionStatus>;
 	remotePresences: Writable<Map<string, Presence>>;
+	offlineQueueSize: () => number;
 	destroy: () => void;
 }
 
@@ -51,12 +54,21 @@ export function createSyncClient(options: SyncClientOptions): SyncClient {
 		userId,
 		userName,
 		reconnectAttempts = 5,
-		reconnectDelay = 1000
+		reconnectDelay = 1000,
+		presenceDebounceMs = 50,
+		maxOfflineQueueSize = 100
 	} = options;
 
 	let ws: WebSocket | null = null;
 	let reconnectCount = 0;
 	let reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
+
+	// Offline queue for operations
+	const offlineQueue: Operation[] = [];
+
+	// Presence debounce
+	let presenceDebounceTimeout: ReturnType<typeof setTimeout> | null = null;
+	let pendingPresence: Partial<Presence> | null = null;
 
 	const status = writable<ConnectionStatus>('disconnected');
 	const remotePresences = writable<Map<string, Presence>>(new Map());
@@ -83,6 +95,9 @@ export function createSyncClient(options: SyncClientOptions): SyncClient {
 				name: userName
 			};
 			ws?.send(JSON.stringify(joinMessage));
+
+			// Flush offline queue
+			flushOfflineQueue();
 		};
 
 		ws.onmessage = (event) => {
@@ -224,9 +239,29 @@ export function createSyncClient(options: SyncClientOptions): SyncClient {
 		}
 	}
 
+	function flushOfflineQueue() {
+		if (!ws || ws.readyState !== WebSocket.OPEN) {
+			return;
+		}
+
+		while (offlineQueue.length > 0) {
+			const op = offlineQueue.shift()!;
+			const message: ClientMessage = {
+				type: 'operation',
+				operation: op
+			};
+			ws.send(JSON.stringify(message));
+		}
+	}
+
 	function sendOperation(op: Operation) {
 		if (!ws || ws.readyState !== WebSocket.OPEN) {
-			console.warn('Cannot send operation: WebSocket not connected');
+			// Queue for later if offline
+			if (offlineQueue.length < maxOfflineQueueSize) {
+				offlineQueue.push(op);
+			} else {
+				console.warn('Offline queue full, dropping operation');
+			}
 			return;
 		}
 
@@ -238,7 +273,7 @@ export function createSyncClient(options: SyncClientOptions): SyncClient {
 		ws.send(JSON.stringify(message));
 	}
 
-	function sendPresence(partialPresence: Partial<Presence>) {
+	function sendPresenceImmediate(partialPresence: Partial<Presence>) {
 		if (!ws || ws.readyState !== WebSocket.OPEN) {
 			return;
 		}
@@ -260,7 +295,29 @@ export function createSyncClient(options: SyncClientOptions): SyncClient {
 		ws.send(JSON.stringify(message));
 	}
 
+	function sendPresence(partialPresence: Partial<Presence>) {
+		// Merge with pending presence
+		pendingPresence = { ...pendingPresence, ...partialPresence };
+
+		// Clear existing timeout
+		if (presenceDebounceTimeout) {
+			clearTimeout(presenceDebounceTimeout);
+		}
+
+		// Set new timeout
+		presenceDebounceTimeout = setTimeout(() => {
+			if (pendingPresence) {
+				sendPresenceImmediate(pendingPresence);
+				pendingPresence = null;
+			}
+			presenceDebounceTimeout = null;
+		}, presenceDebounceMs);
+	}
+
 	function destroy() {
+		if (presenceDebounceTimeout) {
+			clearTimeout(presenceDebounceTimeout);
+		}
 		disconnect();
 	}
 
@@ -271,6 +328,7 @@ export function createSyncClient(options: SyncClientOptions): SyncClient {
 		sendPresence,
 		status,
 		remotePresences,
+		offlineQueueSize: () => offlineQueue.length,
 		destroy
 	};
 }
