@@ -21,9 +21,11 @@
 		"dayjs": "^1.11.19",
 		"drizzle-orm": "^0.44.7",
 		"grammy": "^1.38.3",
+		"konva": "^10.0.9",
 		"marked": "^17.0.0",
 		"node-cron": "^4.2.1",
 		"pg": "^8.16.3",
+		"svelte-konva": "^1.0.1",
 		"zod": "^4.1.12"
 	},
 	"devDependencies": {
@@ -64,6 +66,7 @@
 		"layerchart": "^2.0.0-next.42",
 		"mode-watcher": "^1.1.0",
 		"prettier": "^3.6.2",
+		"prettier-plugin-svelte": "^3.4.0",
 		"prettier-plugin-tailwindcss": "^0.7.1",
 		"shadcn-svelte": "^1.0.11",
 		"svelte": "^5.41.0",

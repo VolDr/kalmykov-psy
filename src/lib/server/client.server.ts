@@ -181,7 +181,7 @@ export function serializeClient(client: Awaited<ReturnType<(typeof clientService
 				}
 			: undefined,
 		activities: client.activities
-			? client.activities.map((activity) => ({
+			? client.activities.map((activity: typeof schema.activity.$inferSelect) => ({
 					...activity,
 					createdAt: serializeDate(activity.createdAt),
 					updatedAt: serializeDate(activity.updatedAt),
