@@ -11,6 +11,15 @@ export * from './engine/magnets';
 // Stores
 export * from './stores';
 
+// Clipboard operations
+export * from './clipboard';
+
+// Grouping operations
+export * from './grouping';
+
+// Properties and styling
+export * from './properties';
+
 // Sync (Multiplayer)
 export * from './sync/types';
 export * from './sync/client';
