@@ -129,10 +129,7 @@ export function attachArrowEndToNearestShape(
  * Update arrow endpoints to match their bound shape positions.
  * Call this when a shape moves to keep connected arrows attached.
  */
-export function updateArrowBindings(
-	arrow: ArrowShape,
-	shapes: Shape[]
-): ArrowShape {
+export function updateArrowBindings(arrow: ArrowShape, shapes: Shape[]): ArrowShape {
 	let updated = { ...arrow };
 	let pointsChanged = false;
 	const newPoints = [...arrow.points];
@@ -176,10 +173,7 @@ export function updateArrowBindings(
 /**
  * Find all arrows that are bound to a specific shape.
  */
-export function findArrowsConnectedToShape(
-	shapeId: string,
-	shapes: Shape[]
-): ArrowShape[] {
+export function findArrowsConnectedToShape(shapeId: string, shapes: Shape[]): ArrowShape[] {
 	const connectedArrows: ArrowShape[] = [];
 
 	for (const shape of shapes) {
@@ -198,10 +192,7 @@ export function findArrowsConnectedToShape(
  * Update all arrows connected to moved shapes.
  * Returns the list of arrows that were updated.
  */
-export function updateConnectedArrows(
-	movedShapeIds: string[],
-	shapes: Shape[]
-): ArrowShape[] {
+export function updateConnectedArrows(movedShapeIds: string[], shapes: Shape[]): ArrowShape[] {
 	const updatedArrows: ArrowShape[] = [];
 	const processedArrowIds = new Set<string>();
 
