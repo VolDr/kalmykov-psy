@@ -27,7 +27,12 @@
 		getToolCursor,
 		type ToolMode
 	} from '../stores';
-	import { attachArrowEndToNearestShape, updateConnectedArrows } from '../engine/magnets';
+	import {
+		attachArrowEndToNearestShape,
+		updateConnectedArrows,
+		getMagnetFeedbackBounds,
+		type Bounds
+	} from '../engine/magnets';
 	import { isRoughEnabled, createDefaultRoughOptions } from '../engine/rough';
 	import RoughShape from './RoughShape.svelte';
 	import type {
@@ -148,6 +153,9 @@
 
 	// Track if shift key is pressed for rotation snapping
 	let isShiftPressed = $state(false);
+
+	// Magnet feedback state
+	let magnetFeedback: { bounds: Bounds; shapeId: string } | null = $state(null);
 
 	// Color palette for remote users
 	const userColors = [
@@ -294,6 +302,10 @@
 			points: newPoints
 		};
 
+		// Show magnet feedback
+		const worldPos = { x: pos.x, y: pos.y };
+		magnetFeedback = getMagnetFeedbackBounds(worldPos, shapes, arrow.id, 40);
+
 		// Update without history (just visual feedback) - use applyRemoteUpdate which doesn't touch history
 		shapesHistory.applyRemoteUpdate([updated]);
 	}
@@ -302,6 +314,9 @@
 	function onArrowEndpointDragEnd(arrow: ArrowShape, endpointIndex: number, e: any) {
 		const node = e.target;
 		const pos = node.position();
+
+		// Clear magnet feedback
+		magnetFeedback = null;
 
 		// Update the arrow points
 		const newPoints = [...arrow.points];
@@ -1960,6 +1975,21 @@
 					strokeWidth={1}
 					fill="rgba(147, 51, 234, 0.1)"
 					dash={[5, 3]}
+					listening={false}
+				/>
+			{/if}
+
+			<!-- Magnet feedback highlight -->
+			{#if magnetFeedback}
+				<Rect
+					x={magnetFeedback.bounds.x}
+					y={magnetFeedback.bounds.y}
+					width={magnetFeedback.bounds.width}
+					height={magnetFeedback.bounds.height}
+					stroke="#10B981"
+					strokeWidth={2}
+					fill="rgba(16, 185, 129, 0.08)"
+					cornerRadius={4}
 					listening={false}
 				/>
 			{/if}

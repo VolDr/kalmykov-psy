@@ -53,6 +53,7 @@ export type AnchorSide = 'top' | 'bottom' | 'left' | 'right';
 export interface ArrowEndpoint {
 	shapeId: string;
 	anchor: AnchorSide;
+	offset?: number; // Position along the edge (0 to 1), where 0.5 is center
 }
 
 export interface ArrowShape extends BaseShape {

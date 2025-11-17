@@ -95,6 +95,16 @@
 					</div>
 				{/if}
 
+				<div class="space-y-2">
+					<p class="text-sm font-medium text-muted-foreground">Канвас</p>
+					<a href="/admin/canvas?id={data.clientData?.id}" target="_blank">
+						<Button variant="outline" size="sm" class="w-full">
+							<span class="icon-[lucide--pen-tool] h-4 w-4"></span>
+							Открыть канвас клиента
+						</Button>
+					</a>
+				</div>
+
 				{#if data.clientData?.source}
 					<div class="space-y-1">
 						<p class="text-sm font-medium text-muted-foreground">Источник</p>

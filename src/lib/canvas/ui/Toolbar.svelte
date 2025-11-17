@@ -26,9 +26,16 @@
 		cutSelectedShapes,
 		duplicateSelectedShapes
 	} from '../clipboard';
+	import { icons } from './icons';
 
-	const tools: { mode: ToolMode; icon: string; label: string; hotkey: string }[] = [
-		{ mode: 'select', icon: '↖', label: 'Select', hotkey: 'V' },
+	const tools: { mode: ToolMode; icon: string; svg?: string; label: string; hotkey: string }[] = [
+		{
+			mode: 'select',
+			icon: '',
+			svg: icons.select,
+			label: 'Select',
+			hotkey: 'V'
+		},
 		{ mode: 'rect', icon: '▭', label: 'Rectangle', hotkey: 'R' },
 		{ mode: 'ellipse', icon: '◯', label: 'Ellipse', hotkey: 'E' },
 		{ mode: 'arrow', icon: '→', label: 'Arrow', hotkey: 'A' },
@@ -78,7 +85,11 @@
 				aria-label="{tool.label} tool"
 				aria-pressed={activeTool === tool.mode}
 			>
-				<span class="tool-icon">{tool.icon}</span>
+				{#if tool.svg}
+					<span class="tool-icon">{@html tool.svg}</span>
+				{:else}
+					<span class="tool-icon">{tool.icon}</span>
+				{/if}
 				<span class="tool-hotkey">{tool.hotkey}</span>
 			</button>
 		{/each}
