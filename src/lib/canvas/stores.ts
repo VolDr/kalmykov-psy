@@ -16,7 +16,15 @@ export const camera = writable<Camera>({
 });
 
 // Tool modes for canvas operations
-export type ToolMode = 'select' | 'rect' | 'ellipse' | 'arrow' | 'text' | 'pan';
+export type ToolMode =
+	| 'select'
+	| 'rect'
+	| 'ellipse'
+	| 'arrow'
+	| 'doubleArrow'
+	| 'curvedArrow'
+	| 'text'
+	| 'pan';
 
 export const currentTool = writable<ToolMode>('select');
 
@@ -33,6 +41,8 @@ export function getToolCursor(tool: ToolMode): string {
 		case 'text':
 			return 'crosshair';
 		case 'arrow':
+		case 'doubleArrow':
+		case 'curvedArrow':
 			return 'crosshair';
 		case 'pan':
 			return 'grab';

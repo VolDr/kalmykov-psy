@@ -39,6 +39,8 @@
 		{ mode: 'rect', icon: '▭', label: 'Rectangle', hotkey: 'R' },
 		{ mode: 'ellipse', icon: '◯', label: 'Ellipse', hotkey: 'E' },
 		{ mode: 'arrow', icon: '→', label: 'Arrow', hotkey: 'A' },
+		{ mode: 'doubleArrow', icon: '↔', label: 'Double Arrow', hotkey: 'D' },
+		{ mode: 'curvedArrow', icon: '⤴', label: 'Curved Arrow', hotkey: 'C' },
 		{ mode: 'text', icon: 'T', label: 'Text', hotkey: 'T' },
 		{ mode: 'pan', icon: '✋', label: 'Pan', hotkey: 'H' }
 	];
