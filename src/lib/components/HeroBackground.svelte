@@ -12,7 +12,7 @@
 	<img
 		src="/header.webp"
 		{alt}
-		class="w-full h-full object-cover"
+		class="h-full w-full object-cover"
 		loading="eager"
 		fetchpriority="high"
 	/>

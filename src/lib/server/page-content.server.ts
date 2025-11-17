@@ -143,9 +143,7 @@ class PageContentService {
 		const contents = await db
 			.select()
 			.from(schema.pageContent)
-			.where(
-				and(eq(schema.pageContent.pageSlug, pageSlug), eq(schema.pageContent.isActive, true))
-			)
+			.where(and(eq(schema.pageContent.pageSlug, pageSlug), eq(schema.pageContent.isActive, true)))
 			.orderBy(asc(schema.pageContent.sortOrder));
 
 		// Convert to a map for easier access
@@ -395,7 +393,8 @@ export const defaultPageContents = {
 			title: 'Как мы будем работать',
 			subtitle:
 				'Психотерапия — это регулярные встречи, во время которых мы работаем с вашими мыслями, чувствами и поведением для достижения желаемых изменений.',
-			subtitleSecondary: 'Если какие-то пункты вызывают у вас вопросы, вы можете обсудить их со мной.'
+			subtitleSecondary:
+				'Если какие-то пункты вызывают у вас вопросы, вы можете обсудить их со мной.'
 		},
 		blocks: [
 			{

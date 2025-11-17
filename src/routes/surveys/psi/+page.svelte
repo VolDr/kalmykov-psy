@@ -32,10 +32,7 @@
 	<meta name="twitter:description" content={description} />
 </svelte:head>
 
-<section
-	data-hero
-	class="relative min-h-[30vh] overflow-hidden text-gray-100"
->
+<section data-hero class="relative min-h-[30vh] overflow-hidden text-gray-100">
 	<HeroBackground />
 	<div
 		class="absolute z-0 h-full w-full bg-gradient-to-b from-black/25 from-0% via-black/65 via-40% to-black/65"

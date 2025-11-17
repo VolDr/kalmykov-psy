@@ -55,8 +55,7 @@ class ArticleService {
 		if (payload.uri !== undefined) updateData.uri = payload.uri;
 		if (payload.content !== undefined) updateData.content = { markdown: payload.content };
 		if (payload.imageUrl !== undefined) updateData.imageUrl = payload.imageUrl;
-		if (payload.descriptionMeta !== undefined)
-			updateData.descriptionMeta = payload.descriptionMeta;
+		if (payload.descriptionMeta !== undefined) updateData.descriptionMeta = payload.descriptionMeta;
 		if (payload.categoryId !== undefined) updateData.categoryId = payload.categoryId;
 
 		const [article] = await db
@@ -69,10 +68,7 @@ class ArticleService {
 	}
 
 	async delete(id: string) {
-		const [article] = await db
-			.delete(schema.article)
-			.where(eq(schema.article.id, id))
-			.returning();
+		const [article] = await db.delete(schema.article).where(eq(schema.article.id, id)).returning();
 
 		return article;
 	}

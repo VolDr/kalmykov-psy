@@ -6,7 +6,9 @@
 
 	const weeks = $derived.by(() => {
 		return Array.from({ length: 8 }, (_, i) => {
-			const weekStart = dayjs().subtract(7 - i, 'weeks').startOf('week');
+			const weekStart = dayjs()
+				.subtract(7 - i, 'weeks')
+				.startOf('week');
 			const weekEnd = weekStart.endOf('week');
 
 			const weekActivities = activities.filter((a) => {
@@ -26,15 +28,15 @@
 </script>
 
 <Card class="p-6">
-	<h4 class="text-lg font-semibold mb-4">Статистика по неделям</h4>
+	<h4 class="mb-4 text-lg font-semibold">Статистика по неделям</h4>
 
 	{#if !hasData}
-		<p class="text-center text-muted-foreground py-8">Нет данных для отображения</p>
+		<p class="py-8 text-center text-muted-foreground">Нет данных для отображения</p>
 	{:else}
 		<div class="space-y-3">
 			{#each weeks as week}
 				<div>
-					<div class="flex items-center justify-between mb-1">
+					<div class="mb-1 flex items-center justify-between">
 						<span class="text-sm text-muted-foreground">{week.week}</span>
 						<span class="text-sm font-medium">{week.sessions} сессий</span>
 					</div>

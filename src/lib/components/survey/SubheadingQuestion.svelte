@@ -9,7 +9,7 @@
 </script>
 
 <div class="pt-6 pb-2">
-	<h3 class="text-lg md:text-xl font-semibold text-[#191919] border-l-2 border-[#F2F0EF] pl-2">
+	<h3 class="border-l-2 border-[#F2F0EF] pl-2 text-lg font-semibold text-[#191919] md:text-xl">
 		{question.text}
 	</h3>
 </div>

@@ -44,24 +44,20 @@
 </script>
 
 <div class="space-y-6">
-	<div
-		class={cn('border-0 bg-[#F2F0EF]/40 rounded-lg border-t-4 overflow-hidden', borderClass)}
-	>
-		<div class="p-6 md:p-8 space-y-4">
-			<div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-4">
-				<h3 class="text-base md:text-lg text-[#191919] font-semibold">
-					Общий результат
-				</h3>
+	<div class={cn('overflow-hidden rounded-lg border-0 border-t-4 bg-[#F2F0EF]/40', borderClass)}>
+		<div class="space-y-4 p-6 md:p-8">
+			<div class="flex flex-col gap-4 pb-4 md:flex-row md:items-center md:justify-between">
+				<h3 class="text-base font-semibold text-[#191919] md:text-lg">Общий результат</h3>
 				<div class="text-left md:text-right">
-					<div class="text-2xl md:text-3xl font-bold text-[#191919]">
+					<div class="text-2xl font-bold text-[#191919] md:text-3xl">
 						{#if averageScore !== undefined}
 							{averageScore.toFixed(2)}
-							<span class="text-base md:text-xl text-[#191919] opacity-60">
+							<span class="text-base text-[#191919] opacity-60 md:text-xl">
 								/ {maxAverageScore.toFixed(2)}
 							</span>
 						{:else}
 							{score}
-							<span class="text-base md:text-xl text-[#191919] opacity-60">
+							<span class="text-base text-[#191919] opacity-60 md:text-xl">
 								/ {maxScore}
 							</span>
 						{/if}
@@ -76,10 +72,8 @@
 			</div>
 
 			<div class="space-y-2">
-				<h4 class="font-semibold text-black text-base md:text-lg">Рекомендации:</h4>
-				<div
-					class="text-base md:text-lg text-black opacity-80 leading-relaxed whitespace-pre-line"
-				>
+				<h4 class="text-base font-semibold text-black md:text-lg">Рекомендации:</h4>
+				<div class="text-base leading-relaxed whitespace-pre-line text-black opacity-80 md:text-lg">
 					<MarkdownLink text={interpretation.recommendation} />
 				</div>
 			</div>
@@ -87,16 +81,12 @@
 	</div>
 
 	{#if subscales && subscales.length > 0}
-		<div class="shadow-md border-0 bg-[#F2F0EF]">
-			<div class="p-6 md:p-8 space-y-4">
+		<div class="border-0 bg-[#F2F0EF] shadow-md">
+			<div class="space-y-4 p-6 md:p-8">
 				<div class="pb-4">
-					<h3 class="text-base md:text-lg text-black font-semibold">
-						Результаты по шкалам
-					</h3>
+					<h3 class="text-base font-semibold text-black md:text-lg">Результаты по шкалам</h3>
 					{#if subscales.length > 0 && subscales[0].description}
-						<p class="text-sm text-black opacity-70 mt-2">
-							Средний балл по каждой из шкал
-						</p>
+						<p class="mt-2 text-sm text-black opacity-70">Средний балл по каждой из шкал</p>
 					{/if}
 				</div>
 
@@ -104,18 +94,18 @@
 					{@const subscaleBorderClass = borderColorClasses[subscale.interpretation.color]}
 					<div
 						class={cn(
-							'flex flex-col gap-3 p-4 bg-white rounded-lg border-t-4 overflow-hidden',
+							'flex flex-col gap-3 overflow-hidden rounded-lg border-t-4 bg-white p-4',
 							subscaleBorderClass
 						)}
 					>
-						<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+						<div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
 							<div class="flex-1">
-								<h5 class="font-semibold text-[#191919] text-base">
+								<h5 class="text-base font-semibold text-[#191919]">
 									{subscale.name}
 								</h5>
 								<span
 									class={cn(
-										'inline-block text-sm mt-2 px-2 py-1 bg-[#F2F0EF] rounded',
+										'mt-2 inline-block rounded bg-[#F2F0EF] px-2 py-1 text-sm',
 										colorClasses[subscale.interpretation.color]
 									)}
 								>
@@ -123,16 +113,16 @@
 								</span>
 							</div>
 							<div class="text-right">
-								<div class="text-xl md:text-2xl font-bold text-[#191919]">
+								<div class="text-xl font-bold text-[#191919] md:text-2xl">
 									{subscale.averageScore.toFixed(2)}
-									<span class="text-sm md:text-base text-[#191919] opacity-60">
+									<span class="text-sm text-[#191919] opacity-60 md:text-base">
 										/ {maxAverageScore.toFixed(2)}
 									</span>
 								</div>
 							</div>
 						</div>
 						{#if subscale.description}
-							<p class="text-sm text-[#191919] opacity-70 leading-relaxed">
+							<p class="text-sm leading-relaxed text-[#191919] opacity-70">
 								{subscale.description}
 							</p>
 						{/if}

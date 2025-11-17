@@ -142,11 +142,7 @@ export function generateClientId(): string {
 }
 
 // Helper function to create operations
-export function createAddShapesOp(
-	sceneId: string,
-	clientId: string,
-	shapes: Shape[]
-): AddShapesOp {
+export function createAddShapesOp(sceneId: string, clientId: string, shapes: Shape[]): AddShapesOp {
 	return {
 		type: 'addShapes',
 		opId: generateOpId(),
@@ -187,11 +183,7 @@ export function createDeleteShapesOp(
 	};
 }
 
-export function createSetCameraOp(
-	sceneId: string,
-	clientId: string,
-	camera: Camera
-): SetCameraOp {
+export function createSetCameraOp(sceneId: string, clientId: string, camera: Camera): SetCameraOp {
 	return {
 		type: 'setCamera',
 		opId: generateOpId(),

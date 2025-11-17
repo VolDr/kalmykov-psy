@@ -2,10 +2,7 @@
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
 
-	let {
-		invocation = $bindable(''),
-		error
-	}: { invocation?: string; error?: string } = $props();
+	let { invocation = $bindable(''), error }: { invocation?: string; error?: string } = $props();
 
 	const invocationOptions = ['Не указано', 'ты', 'вы'];
 	let showSuggestions = $state(false);

@@ -28,7 +28,9 @@
 						: 'Как ты себя чувствуешь внутренне?'}
 				</div>
 				<div class="text-center text-sm text-gray-500 md:text-base lg:text-lg">
-					{appeal === 'plural' ? 'Ваше настроение, эмоции, мысли' : 'Твое настроение, эмоции, мысли'}
+					{appeal === 'plural'
+						? 'Ваше настроение, эмоции, мысли'
+						: 'Твое настроение, эмоции, мысли'}
 				</div>
 			</div>
 			<Slider name="individual" {editable} value={data.individual} />
@@ -70,11 +72,12 @@
 
 		<div class="container mx-auto flex justify-center">
 			<button
-				class={`cursor-pointer mb-10 rounded-[10px] border border-solid border-black bg-opacity-0 px-[30px] py-[10px] text-center font-light tracking-wide transition-all duration-200 ease-out hover:border-[#cfc1a3] hover:bg-[#cfc1a3] hover:text-white hover:shadow-md active:scale-95 active:transform ${!editable ? 'cursor-default opacity-50' : ''}`}
+				class={`bg-opacity-0 mb-10 cursor-pointer rounded-[10px] border border-solid border-black px-[30px] py-[10px] text-center font-light tracking-wide transition-all duration-200 ease-out hover:border-[#cfc1a3] hover:bg-[#cfc1a3] hover:text-white hover:shadow-md active:scale-95 active:transform ${!editable ? 'cursor-default opacity-50' : ''}`}
 				name="_action"
 				value="SEND_HOWRU"
 				type="submit"
-				disabled={!editable}>
+				disabled={!editable}
+			>
 				Отправить
 			</button>
 		</div>

@@ -68,6 +68,7 @@ server {
 ```
 
 After editing, reload nginx:
+
 ```bash
 sudo nginx -t && sudo systemctl reload nginx
 ```
@@ -78,22 +79,24 @@ Canvas scenes table is defined in `src/db/schema.ts`:
 
 ```typescript
 export const scenes = pgTable('scenes', {
-  id: uuid().primaryKey().notNull(),
-  data: jsonb().notNull(),
-  updatedAt: timestamp('updated_at', { withTimezone: true })
-    .default(sql`now()`)
-    .notNull()
+	id: uuid().primaryKey().notNull(),
+	data: jsonb().notNull(),
+	updatedAt: timestamp('updated_at', { withTimezone: true })
+		.default(sql`now()`)
+		.notNull()
 });
 ```
 
 ### Drizzle Migration Workflow
 
 1. **Generate migration** (if schema changed):
+
 ```bash
 npx drizzle-kit generate
 ```
 
 2. **Apply migration**:
+
 ```bash
 # Preview changes
 npx drizzle-kit push --dry-run
@@ -103,11 +106,13 @@ npx drizzle-kit push
 ```
 
 Or if using migration files:
+
 ```bash
 npx drizzle-kit migrate
 ```
 
 3. **Verify table**:
+
 ```sql
 SELECT EXISTS (
    SELECT FROM information_schema.tables
@@ -118,6 +123,7 @@ SELECT EXISTS (
 ### Manual SQL (if needed)
 
 If migration doesn't work, apply directly:
+
 ```sql
 -- From drizzle/0001_scenes_table.sql
 CREATE TABLE IF NOT EXISTS scenes (
@@ -146,25 +152,30 @@ npm run ws:server:dev
 ### Production with PM2
 
 1. Build the application:
+
 ```bash
 npm run build
 ```
 
 2. Start both services with PM2:
+
 ```bash
 pm2 start ecosystem.config.cjs
 ```
 
 This starts:
+
 - `kalmykov-psy-web` (SvelteKit) on port 3000
 - `kalmykov-psy-ws` (WebSocket) on port 3001
 
 3. Save PM2 process list:
+
 ```bash
 pm2 save
 ```
 
 4. Setup PM2 startup (run on server reboot):
+
 ```bash
 pm2 startup
 # Follow the instructions it prints
@@ -199,25 +210,28 @@ pm2 stop all
 ## Usage in Code
 
 ### Basic (single-player):
+
 ```svelte
 <Canvas />
 ```
 
 ### Multiplayer enabled:
+
 ```svelte
 <Canvas
-  multiplayer={true}
-  wsUrl="wss://yourdomain.com/ws"
-  sceneId="scene-uuid-here"
-  userName="Alice"
+	multiplayer={true}
+	wsUrl="wss://yourdomain.com/ws"
+	sceneId="scene-uuid-here"
+	userName="Alice"
 />
 ```
 
 ### Auto-detect URL (recommended):
+
 ```typescript
 onMount(() => {
-  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-  wsUrl = `${protocol}//${window.location.host}/ws`;
+	const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+	wsUrl = `${protocol}//${window.location.host}/ws`;
 });
 ```
 
@@ -241,6 +255,7 @@ onMount(() => {
 ## Scaling Considerations
 
 For high-traffic deployments:
+
 1. Replace in-memory rate limiter with Redis
 2. Use Redis for WebSocket pub/sub (multiple WS server instances)
 3. Add authentication/authorization
@@ -250,17 +265,20 @@ For high-traffic deployments:
 ## Troubleshooting
 
 ### WebSocket connection fails
+
 - Check nginx config: `nginx -t`
 - Verify WS server running: `pm2 status`
 - Check browser console for errors
 - Test direct connection: `wscat -c ws://localhost:3001`
 
 ### Operations not syncing
+
 - Check browser Network tab for WebSocket messages
 - Verify scene IDs match between clients
 - Check WS server logs: `pm2 logs kalmykov-psy-ws`
 
 ### Cursor lag
+
 - Normal: 50ms debounce + network latency
 - Adjust `presenceDebounceMs` in SyncClient options
 

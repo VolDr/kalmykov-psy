@@ -34,7 +34,7 @@
 	let articlesByCategory = $derived(() => {
 		const grouped: Record<
 			string,
-			{ category: (typeof data.categories)[0] | null; articles: (typeof data.articles) }
+			{ category: (typeof data.categories)[0] | null; articles: typeof data.articles }
 		> = {};
 
 		// First add uncategorized
@@ -443,7 +443,7 @@
 <!-- Article Editor Modal -->
 {#if showEditor}
 	<div
-		class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+		class="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black"
 		onclick={closeEditor}
 		role="dialog"
 		aria-modal="true"
@@ -506,7 +506,7 @@
 							name="title"
 							bind:value={articleContent.title}
 							required
-							class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+							class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
 						/>
 					</div>
 
@@ -519,7 +519,7 @@
 							bind:value={articleContent.uri}
 							required
 							placeholder="my-article"
-							class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+							class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
 						/>
 						<p class="mt-1 text-xs text-gray-500">
 							Используется в URL: /articles/{articleContent.uri || 'your-uri'}
@@ -535,7 +535,7 @@
 								id="categoryId"
 								name="categoryId"
 								bind:value={articleContent.categoryId}
-								class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+								class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
 							>
 								<option value="">Без категории</option>
 								{#each data.categories as category (category.id)}
@@ -554,7 +554,7 @@
 							name="description"
 							bind:value={articleContent.description}
 							rows="2"
-							class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+							class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
 						></textarea>
 					</div>
 
@@ -568,7 +568,7 @@
 							name="imageUrl"
 							bind:value={articleContent.imageUrl}
 							placeholder="https://example.com/image.jpg"
-							class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+							class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
 						/>
 					</div>
 
@@ -581,7 +581,7 @@
 							name="descriptionMeta"
 							bind:value={articleContent.descriptionMeta}
 							rows="2"
-							class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+							class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
 							placeholder="Краткое описание для поисковых систем"
 						></textarea>
 					</div>
@@ -596,7 +596,7 @@
 							bind:value={articleContent.content}
 							required
 							rows="15"
-							class="font-mono w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+							class="w-full rounded-lg border border-gray-300 px-4 py-2 font-mono text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
 							placeholder="# Заголовок&#10;&#10;Ваш текст здесь..."
 						></textarea>
 						<p class="mt-1 text-xs text-gray-500">
@@ -621,7 +621,7 @@
 <!-- Category Editor Modal -->
 {#if showCategoryEditor}
 	<div
-		class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+		class="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black"
 		onclick={closeCategoryEditor}
 		role="dialog"
 		aria-modal="true"
@@ -689,7 +689,7 @@
 								}
 							}}
 							required
-							class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+							class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
 						/>
 					</div>
 
@@ -704,7 +704,7 @@
 							bind:value={categoryContent.slug}
 							required
 							placeholder="category-slug"
-							class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+							class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
 						/>
 						<p class="mt-1 text-xs text-gray-500">Используется для URL и идентификации</p>
 					</div>
@@ -718,7 +718,7 @@
 							name="description"
 							bind:value={categoryContent.description}
 							rows="2"
-							class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+							class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
 						></textarea>
 					</div>
 
@@ -731,7 +731,7 @@
 							id="categorySortOrder"
 							name="sortOrder"
 							bind:value={categoryContent.sortOrder}
-							class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+							class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
 						/>
 						<p class="mt-1 text-xs text-gray-500">Меньшее число = выше в списке</p>
 					</div>

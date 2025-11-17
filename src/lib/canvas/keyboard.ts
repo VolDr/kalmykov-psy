@@ -1,8 +1,18 @@
 // src/lib/canvas/keyboard.ts
 import { get } from 'svelte/store';
 import { shapesHistory, selection, setSelection, clearSelection, setTool } from './stores';
-import { copySelectedShapes, cutSelectedShapes, pasteShapes, duplicateSelectedShapes } from './clipboard';
-import { groupSelectedShapes, ungroupSelectedShapes, canGroupSelection, selectionContainsGroups } from './grouping';
+import {
+	copySelectedShapes,
+	cutSelectedShapes,
+	pasteShapes,
+	duplicateSelectedShapes
+} from './clipboard';
+import {
+	groupSelectedShapes,
+	ungroupSelectedShapes,
+	canGroupSelection,
+	selectionContainsGroups
+} from './grouping';
 import { bringToFront, sendToBack, bringForward, sendBackward, selectAll } from './layers';
 import { isEditingText, cancelTextEditing, commitTextEditing } from './text-editing';
 import type { ToolMode } from './stores';

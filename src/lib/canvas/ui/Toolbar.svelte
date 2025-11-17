@@ -20,7 +20,12 @@
 		canDistribute
 	} from '../alignment';
 	import { bringToFront, sendToBack, bringForward, sendBackward } from '../layers';
-	import { copySelectedShapes, pasteShapes, cutSelectedShapes, duplicateSelectedShapes } from '../clipboard';
+	import {
+		copySelectedShapes,
+		pasteShapes,
+		cutSelectedShapes,
+		duplicateSelectedShapes
+	} from '../clipboard';
 
 	const tools: { mode: ToolMode; icon: string; label: string; hotkey: string }[] = [
 		{ mode: 'select', icon: '↖', label: 'Select', hotkey: 'V' },

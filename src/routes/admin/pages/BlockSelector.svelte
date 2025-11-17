@@ -51,7 +51,7 @@
 </script>
 
 <div
-	class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+	class="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black"
 	onclick={onClose}
 	role="dialog"
 	aria-modal="true"
@@ -80,13 +80,13 @@
 			<div class="mt-4 flex gap-4">
 				<div class="relative flex-1">
 					<span
-						class="icon-[lucide--search] absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+						class="absolute top-1/2 left-3 icon-[lucide--search] h-4 w-4 -translate-y-1/2 text-gray-400"
 					></span>
 					<input
 						type="text"
 						placeholder="Поиск блоков..."
 						bind:value={searchQuery}
-						class="w-full rounded-lg border border-gray-300 py-2 pl-10 pr-4 text-sm focus:border-blue-500 focus:outline-none"
+						class="w-full rounded-lg border border-gray-300 py-2 pr-4 pl-10 text-sm focus:border-blue-500 focus:outline-none"
 					/>
 				</div>
 				<div class="flex gap-1 rounded-lg bg-gray-100 p-1">
@@ -122,7 +122,7 @@
 		<div class="max-h-[60vh] overflow-y-auto p-6">
 			{#if filteredBlocks().length === 0}
 				<div class="py-12 text-center text-gray-500">
-					<span class="icon-[lucide--search-x] mx-auto mb-2 h-12 w-12 text-gray-300"></span>
+					<span class="mx-auto mb-2 icon-[lucide--search-x] h-12 w-12 text-gray-300"></span>
 					<p>Блоки не найдены</p>
 				</div>
 			{:else}

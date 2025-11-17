@@ -39,8 +39,8 @@
 	);
 </script>
 
-<div class="container mx-auto p-4 max-w-2xl">
-	<Card class="p-6 mb-4">
+<div class="container mx-auto max-w-2xl p-4">
+	<Card class="mb-4 p-6">
 		<form
 			method="POST"
 			use:enhance={() => {
@@ -59,17 +59,22 @@
 			{/if}
 
 			<div class="mb-4">
-				<label for="name" class="block mb-2">Имя *</label>
+				<label for="name" class="mb-2 block">Имя *</label>
 				{#if isNewClient}
 					<input
 						type="text"
 						id="name"
 						name="name"
-						class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
+						class="w-full rounded border px-3 py-2 focus:border-primary focus:ring-2 focus:ring-primary/50 focus:outline-none"
 						required
 					/>
 				{:else}
-					<select id="name" name="clientId" class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary" required>
+					<select
+						id="name"
+						name="clientId"
+						class="w-full rounded border px-3 py-2 focus:border-primary focus:ring-2 focus:ring-primary/50 focus:outline-none"
+						required
+					>
 						<option value="">Выберите клиента</option>
 						{#each suggestedNames as client}
 							<option value={client.id} selected={client.id === initialClientId}>
@@ -88,7 +93,7 @@
 			</div>
 
 			<div class="mb-4">
-				<label for="timestamp" class="block mb-2">Дата и время *</label>
+				<label for="timestamp" class="mb-2 block">Дата и время *</label>
 				<DateTimePicker bind:value={dateTimeValue} />
 				<input type="hidden" name="timestamp" value={dateTimeValue} required />
 			</div>
@@ -104,13 +109,13 @@
 				</div>
 
 				<div class="mb-4">
-					<label for="phone" class="block mb-2">{notPhone ? 'Телеграм' : 'Номер телефона'} *</label>
+					<label for="phone" class="mb-2 block">{notPhone ? 'Телеграм' : 'Номер телефона'} *</label>
 					<input
 						type="text"
 						id="phone"
 						name="phone"
 						placeholder={notPhone ? 'Телеграм' : '+7 (900) 000-0000'}
-						class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
+						class="w-full rounded border px-3 py-2 focus:border-primary focus:ring-2 focus:ring-primary/50 focus:outline-none"
 						required
 					/>
 				</div>
@@ -125,12 +130,12 @@
 			{/if}
 
 			<div class="mb-4">
-				<label for="description" class="block mb-2">Информация</label>
+				<label for="description" class="mb-2 block">Информация</label>
 				<textarea
 					id="description"
 					name="description"
 					value={description || ''}
-					class="w-full border rounded px-3 py-2 min-h-[100px] focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
+					class="min-h-[100px] w-full rounded border px-3 py-2 focus:border-primary focus:ring-2 focus:ring-primary/50 focus:outline-none"
 				></textarea>
 			</div>
 
@@ -140,11 +145,7 @@
 
 			<div class="flex gap-3">
 				<Button type="submit" disabled={isSubmitting}>
-					{isSubmitting
-						? 'Подождите...'
-						: editActivityId
-							? 'Обновить запись'
-							: 'Добавить запись'}
+					{isSubmitting ? 'Подождите...' : editActivityId ? 'Обновить запись' : 'Добавить запись'}
 				</Button>
 
 				{#if editActivityId}

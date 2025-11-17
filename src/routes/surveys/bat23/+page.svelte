@@ -4,8 +4,7 @@
 	import { bat23Config } from '../../../configs/bat23Config';
 
 	const url = 'https://kalmykov.pro/surveys/bat23';
-	const title =
-		'Тест на выгорание BAT-23 онлайн | Полный опросник профессионального выгорания';
+	const title = 'Тест на выгорание BAT-23 онлайн | Полный опросник профессионального выгорания';
 	const description =
 		'Пройдите тест на профессиональное выгорание BAT-23 онлайн бесплатно. Полная версия валидированного опросника для диагностической оценки выгорания. Мгновенные результаты и рекомендации психолога.';
 </script>
@@ -33,10 +32,7 @@
 	<meta name="twitter:description" content={description} />
 </svelte:head>
 
-<section
-	data-hero
-	class="relative min-h-[30vh] overflow-hidden text-gray-100"
->
+<section data-hero class="relative min-h-[30vh] overflow-hidden text-gray-100">
 	<HeroBackground />
 	<div
 		class="absolute z-0 h-full w-full bg-gradient-to-b from-black/25 from-0% via-black/65 via-40% to-black/65"

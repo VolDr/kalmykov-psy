@@ -35,12 +35,7 @@
 	<meta name="twitter:image" content={content.seo.ogImage || '/header.webp'} />
 </svelte:head>
 
-
-
-<section
-	data-hero
-	class="relative min-h-[30vh] overflow-hidden text-gray-100"
->
+<section data-hero class="relative min-h-[30vh] overflow-hidden text-gray-100">
 	<HeroBackground />
 	<div
 		class="absolute z-0 h-full w-full bg-gradient-to-b from-black/25 from-0% via-black/65 via-40% to-black/65"
@@ -79,19 +74,18 @@
 </section>
 
 <div class="container mx-auto mt-10 max-w-[720px] px-5 lg:max-w-[1200px] lg:px-0">
-	<div class="grid w-full grid-cols-1 gap-4  md:px-0">
+	<div class="grid w-full grid-cols-1 gap-4 md:px-0">
 		<div class="mt-[40px] space-y-12 sm:mt-[60px] lg:px-0">
-	{#each surveyCategories as category}
-		<div class="space-y-6">
-			<h2 class="text-2xl font-semibold text-[#191919]">{category.category}</h2>
-			<div class="grid grid-cols-1 items-start gap-4 sm:gap-6 lg:grid-cols-2 lg:gap-8">
-				{#each category.surveys as survey}
-					<Card title={survey.title} link={survey.link} description={survey.description} />
-				{/each}
-			</div>
+			{#each surveyCategories as category}
+				<div class="space-y-6">
+					<h2 class="text-2xl font-semibold text-[#191919]">{category.category}</h2>
+					<div class="grid grid-cols-1 items-start gap-4 sm:gap-6 lg:grid-cols-2 lg:gap-8">
+						{#each category.surveys as survey}
+							<Card title={survey.title} link={survey.link} description={survey.description} />
+						{/each}
+					</div>
+				</div>
+			{/each}
 		</div>
-	{/each}
-</div>
-
 	</div>
 </div>

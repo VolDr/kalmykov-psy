@@ -20,66 +20,48 @@
 	}
 </script>
 
-
-
-
-
-
 <svelte:head>
-  <title>Страница не найдена</title>
-  <meta name="robots" content="noindex" />
+	<title>Страница не найдена</title>
+	<meta name="robots" content="noindex" />
 </svelte:head>
 
 {#if !isActivated}
-<div class="flex flex-col items-center justify-center min-h-screen text-center px-4 gap-10">
-
-
-
-    <button type="button" onclick={handleIconClick} class="outline-none" aria-label="Иконка компаса">
-      <span class="icon-[lucide--compass] text-[#B8A98A] w-8 h-8"></span>
-    </button>
-
-    <h1 class="select-none">Страница не найдена</h1>
-
-
-
-    <p class="max-w-md text-lg  leading-relaxed">
-       Такой страницы нет!
-    </p>
-
-
-  <div class="flex items-center gap-3">
-
-    <Button href="/" rel="noopener noreferrer" class="max-w-[250px]">
-      На главную
-    </Button>
-
-
-
-  </div>
-
-
-</div>
-{:else}
-<div class="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
-	<div class="w-full max-w-md">
-		<form
-			method="POST"
-			use:enhance={() => {
-				isSubmitting = true;
-				return async ({ update }) => {
-					await update();
-					isSubmitting = false;
-				};
-			}}
-			class="flex flex-col gap-4 rounded-lg bg-white p-8 shadow-sm"
+	<div class="flex min-h-screen flex-col items-center justify-center gap-10 px-4 text-center">
+		<button
+			type="button"
+			onclick={handleIconClick}
+			class="outline-none"
+			aria-label="Иконка компаса"
 		>
-			<UsernameInput error={form?.errors?.username} value={form?.username} {isSubmitting} />
-			<PasswordInput error={form?.errors?.password} {isSubmitting} />
-			<Submit {isSubmitting} />
-		</form>
+			<span class="icon-[lucide--compass] h-8 w-8 text-[#B8A98A]"></span>
+		</button>
+
+		<h1 class="select-none">Страница не найдена</h1>
+
+		<p class="max-w-md text-lg leading-relaxed">Такой страницы нет!</p>
+
+		<div class="flex items-center gap-3">
+			<Button href="/" rel="noopener noreferrer" class="max-w-[250px]">На главную</Button>
+		</div>
 	</div>
-</div>
+{:else}
+	<div class="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
+		<div class="w-full max-w-md">
+			<form
+				method="POST"
+				use:enhance={() => {
+					isSubmitting = true;
+					return async ({ update }) => {
+						await update();
+						isSubmitting = false;
+					};
+				}}
+				class="flex flex-col gap-4 rounded-lg bg-white p-8 shadow-sm"
+			>
+				<UsernameInput error={form?.errors?.username} value={form?.username} {isSubmitting} />
+				<PasswordInput error={form?.errors?.password} {isSubmitting} />
+				<Submit {isSubmitting} />
+			</form>
+		</div>
+	</div>
 {/if}
-
-

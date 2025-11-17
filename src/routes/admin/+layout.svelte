@@ -39,28 +39,16 @@
 			<div class="mb-6">
 				<h2 class="mb-2 text-lg font-semibold">Управление</h2>
 				<nav class="space-y-1">
-					<a
-						href="/admin/articles"
-						class="block rounded-lg px-3 py-2 text-sm hover:bg-gray-100"
-					>
+					<a href="/admin/articles" class="block rounded-lg px-3 py-2 text-sm hover:bg-gray-100">
 						Статьи
 					</a>
-					<a
-						href="/admin/surveys"
-						class="block rounded-lg px-3 py-2 text-sm hover:bg-gray-100"
-					>
+					<a href="/admin/surveys" class="block rounded-lg px-3 py-2 text-sm hover:bg-gray-100">
 						Опросники
 					</a>
-					<a
-						href="/admin/constructor"
-						class="block rounded-lg px-3 py-2 text-sm hover:bg-gray-100"
-					>
+					<a href="/admin/constructor" class="block rounded-lg px-3 py-2 text-sm hover:bg-gray-100">
 						Конструктор страниц
 					</a>
-					<a
-						href="/admin/pages"
-						class="block rounded-lg px-3 py-2 text-sm hover:bg-gray-100"
-					>
+					<a href="/admin/pages" class="block rounded-lg px-3 py-2 text-sm hover:bg-gray-100">
 						Настройки страниц
 					</a>
 				</nav>

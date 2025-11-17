@@ -5,13 +5,14 @@
 	import type { PageConfiguration } from '$lib/types/page-blocks';
 
 	let { data }: { data: PageData } = $props();
-	const { content, blocks, hasBlocks } = data;
+	const { content, blocks, layout, hasBlocks } = data;
 
 	// Create page configuration for PageRenderer
 	const pageConfig: PageConfiguration = $derived({
 		slug: 'home',
 		name: 'Главная страница',
 		seo: content.seo,
+		layout: layout,
 		blocks: blocks
 	});
 </script>

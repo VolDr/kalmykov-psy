@@ -49,7 +49,7 @@
 	)}
 >
 	{#if title}
-		<h3 class={cn('subtitle px-6 md:px-0', titleAlignClasses[titleAlign])}>
+		<h3 class={cn('px-6 subtitle md:px-0', titleAlignClasses[titleAlign])}>
 			{title}
 		</h3>
 	{/if}

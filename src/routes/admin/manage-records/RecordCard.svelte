@@ -17,15 +17,15 @@
 
 <Card class={cn('p-4', isPast && 'opacity-60')}>
 	<div class="flex items-start justify-between gap-4">
-		<div class="flex items-start gap-3 flex-1">
+		<div class="flex flex-1 items-start gap-3">
 			<Avatar class="h-10 w-10">
 				<div class="flex h-full w-full items-center justify-center bg-[#cfc1a3] text-white">
 					{activity.client?.name?.charAt(0).toUpperCase() ?? '?'}
 				</div>
 			</Avatar>
 
-			<div class="flex-1 min-w-0">
-				<p class="font-semibold text-sm truncate">
+			<div class="min-w-0 flex-1">
+				<p class="truncate text-sm font-semibold">
 					{activity.client?.nick ?? activity.client?.name}
 				</p>
 				<p class="text-xs text-muted-foreground">
@@ -33,7 +33,7 @@
 				</p>
 
 				{#if activity.client?.invocation}
-					<p class="text-xs text-muted-foreground mt-2">
+					<p class="mt-2 text-xs text-muted-foreground">
 						<strong>Обращение:</strong>
 						{activity.client.invocation}
 					</p>
@@ -47,7 +47,7 @@
 				{/if}
 
 				{#if activity.description}
-					<p class="text-xs text-muted-foreground line-clamp-2 mt-1">
+					<p class="mt-1 line-clamp-2 text-xs text-muted-foreground">
 						<strong>Информация:</strong>
 						{activity.description}
 					</p>

@@ -356,10 +356,7 @@ export const survey = pgTable(
 			'btree',
 			table.isPublished.asc().nullsLast().op('bool_ops')
 		),
-		index('Survey_sortOrder_idx').using(
-			'btree',
-			table.sortOrder.asc().nullsLast().op('int4_ops')
-		),
+		index('Survey_sortOrder_idx').using('btree', table.sortOrder.asc().nullsLast().op('int4_ops')),
 		foreignKey({
 			columns: [table.categoryId],
 			foreignColumns: [surveyCategory.id],

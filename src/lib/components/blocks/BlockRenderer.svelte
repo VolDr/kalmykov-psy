@@ -10,6 +10,7 @@
 	import ListCard from './ListCard.svelte';
 	import IconCard from './IconCard.svelte';
 	import ContactCard from './ContactCard.svelte';
+	import AboutIntroDual from './AboutIntroDual.svelte';
 
 	// Unique blocks
 	import Hero from '$lib/components/sections/Hero.svelte';
@@ -99,7 +100,7 @@
 {:else if block.type === 'home-hero'}
 	<Hero />
 {:else if block.type === 'education'}
-	<Education isOpen={block.config.isOpen} />
+	<Education isOpen={block.config.isOpen} reveal={block.config.withReveal ?? true} />
 {:else if block.type === 'faq'}
 	<Faq />
 {:else if block.type === 'consultation-info'}
@@ -112,6 +113,14 @@
 	<AboutSection items={block.config.items} />
 {:else if block.type === 'issues-list'}
 	<IssuesList items={block.config.items} />
+{:else if block.type === 'about-intro-dual'}
+	<AboutIntroDual
+		leftImage={block.config.leftImage}
+		leftTexts={block.config.leftTexts}
+		rightTexts={block.config.rightTexts}
+		rightImage={block.config.rightImage}
+		withReveal={block.config.withReveal}
+	/>
 {:else}
 	<div class="rounded border border-red-300 bg-red-50 p-4 text-red-600">
 		Неизвестный тип блока: {block.type}

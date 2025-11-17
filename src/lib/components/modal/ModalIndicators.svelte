@@ -17,13 +17,13 @@
 	}
 </script>
 
-<div class="flex justify-center items-center gap-2 pb-4 pt-[30px] w-full">
+<div class="flex w-full items-center justify-center gap-2 pt-[30px] pb-4">
 	{#each Array(total) as _, index}
 		<button
 			onclick={(e) => handleClick(e, index)}
 			class={cn(
-				'transition-all duration-200 cursor-pointer rounded-full',
-				index === current ? 'bg-[#cfc1a3] w-8 h-2' : 'bg-gray-300 hover:bg-gray-400 w-2 h-2'
+				'cursor-pointer rounded-full transition-all duration-200',
+				index === current ? 'h-2 w-8 bg-[#cfc1a3]' : 'h-2 w-2 bg-gray-300 hover:bg-gray-400'
 			)}
 			aria-label="Перейти к диплому {index + 1}"
 		></button>

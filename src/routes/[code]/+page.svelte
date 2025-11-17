@@ -59,11 +59,17 @@
 					await update({ reset: false });
 					await invalidateAll();
 				};
-			}}>
+			}}
+		>
 			<input type="hidden" name="smallId" value={feedback?.smallId ?? currentState?.smallId} />
 			<input type="hidden" name="sendingType" value="feedback" />
 
-			<Feedback {appeal} {gender} editable={feedback.editable && !client && !submitting} data={feedback} />
+			<Feedback
+				{appeal}
+				{gender}
+				editable={feedback.editable && !client && !submitting}
+				data={feedback}
+			/>
 
 			{#if client}
 				<div class="flex items-center justify-center">
@@ -73,7 +79,8 @@
 							name="actionType"
 							value={feedback?.editable || currentState?.editable ? 'disable' : 'enable'}
 							type="submit"
-							disabled={!checked}>
+							disabled={!checked}
+						>
 							{#snippet children()}
 								{feedback?.editable || currentState?.editable
 									? 'Отключить редактирование'
@@ -85,7 +92,8 @@
 							name="actionType"
 							value={feedback?.disabled || currentState?.disabled ? 'on' : 'off'}
 							type="submit"
-							disabled={!checked}>
+							disabled={!checked}
+						>
 							{#snippet children()}
 								{feedback?.disabled || currentState?.disabled ? 'Открыть форму' : 'Скрыть форму'}
 							{/snippet}
@@ -110,11 +118,16 @@
 					await update({ reset: false });
 					await invalidateAll();
 				};
-			}}>
+			}}
+		>
 			<input type="hidden" name="smallId" value={currentState.smallId} />
 			<input type="hidden" name="sendingType" value="currentState" />
 
-			<CurrentState editable={currentState.editable && !client && !submitting} data={currentState} {appeal} />
+			<CurrentState
+				editable={currentState.editable && !client && !submitting}
+				data={currentState}
+				{appeal}
+			/>
 
 			{#if client}
 				<div class="flex items-center justify-center">
@@ -124,7 +137,8 @@
 							name="actionType"
 							value={currentState.editable ? 'disable' : 'enable'}
 							type="submit"
-							disabled={!checked}>
+							disabled={!checked}
+						>
 							{#snippet children()}
 								{currentState.editable ? 'Отключить редактирование' : 'Включить редактирование'}
 							{/snippet}
@@ -134,7 +148,8 @@
 							name="actionType"
 							value={currentState.disabled ? 'on' : 'off'}
 							type="submit"
-							disabled={!checked}>
+							disabled={!checked}
+						>
 							{#snippet children()}
 								{currentState.disabled ? 'Открыть форму' : 'Скрыть форму'}
 							{/snippet}

@@ -28,7 +28,7 @@
 	let isExpanded = $state(
 		browser
 			? localStorage.getItem(`survey-section-${sectionKey}`) === 'true'
-			: section.expanded ?? false
+			: (section.expanded ?? false)
 	);
 
 	$effect(() => {
@@ -45,39 +45,39 @@
 	{#snippet header()}
 		<div class="flex items-center gap-3">
 			{#if iconClass}
-				<span class={cn(iconClass, 'w-5 h-5 text-[#191919] opacity-70 flex-shrink-0')}></span>
+				<span class={cn(iconClass, 'h-5 w-5 flex-shrink-0 text-[#191919] opacity-70')}></span>
 			{/if}
-			<span class="text-base md:text-lg  text-[#191919]">{section.title}</span>
+			<span class="text-base text-[#191919] md:text-lg">{section.title}</span>
 		</div>
 	{/snippet}
 
 	{#snippet children()}
 		{#if typeof section.content === 'string'}
-		<div class="space-y-4">
-			<div class="text-sm md:text-base text-black opacity-80 leading-relaxed space-y-4">
-				{#each section.content.split('\n\n') as paragraph}
-					<p><MarkdownLink text={paragraph} /></p>
-				{/each}
-			</div>
-		</div>
-	{:else}
-		<div class="space-y-3">
-			{#if section.content.purpose}
-				<p class="text-sm md:text-base font-medium text-[#191919]">
-					{section.content.purpose}
-				</p>
-			{/if}
-			{#if section.content.bullets}
-				<ul class="space-y-2 text-sm md:text-base text-[#191919] opacity-80">
-					{#each section.content.bullets as bullet}
-						<li class="flex items-start gap-2">
-							<span class="flex-shrink-0">—</span>
-							<span>{bullet}</span>
-						</li>
+			<div class="space-y-4">
+				<div class="space-y-4 text-sm leading-relaxed text-black opacity-80 md:text-base">
+					{#each section.content.split('\n\n') as paragraph}
+						<p><MarkdownLink text={paragraph} /></p>
 					{/each}
-				</ul>
-			{/if}
-		</div>
+				</div>
+			</div>
+		{:else}
+			<div class="space-y-3">
+				{#if section.content.purpose}
+					<p class="text-sm font-medium text-[#191919] md:text-base">
+						{section.content.purpose}
+					</p>
+				{/if}
+				{#if section.content.bullets}
+					<ul class="space-y-2 text-sm text-[#191919] opacity-80 md:text-base">
+						{#each section.content.bullets as bullet}
+							<li class="flex items-start gap-2">
+								<span class="flex-shrink-0">—</span>
+								<span>{bullet}</span>
+							</li>
+						{/each}
+					</ul>
+				{/if}
+			</div>
 		{/if}
 	{/snippet}
 </AccordionItem>

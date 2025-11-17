@@ -34,10 +34,7 @@
 	<meta name="twitter:image" content={content.seo.ogImage || '/header.webp'} />
 </svelte:head>
 
-<section
-	data-hero
-	class="relative min-h-[30vh] overflow-hidden text-gray-100"
->
+<section data-hero class="relative min-h-[30vh] overflow-hidden text-gray-100">
 	<HeroBackground />
 	<div
 		class="absolute z-0 h-full w-full bg-gradient-to-b from-black/25 from-0% via-black/65 via-40% to-black/65"
@@ -66,7 +63,7 @@
 		</div>
 
 		<div
-			class="col-start-1 col-end-12 row-start-8 row-end-11 flex flex-col gap-4 text-base leading-relaxed lg:text-md"
+			class="lg:text-md col-start-1 col-end-12 row-start-8 row-end-11 flex flex-col gap-4 text-base leading-relaxed"
 		>
 			<p class="mx-auto text-center lg:mx-0 lg:text-left">
 				{content.hero.subtitle}
@@ -87,8 +84,7 @@
 					<div class="grid grid-cols-1 items-start gap-4 sm:gap-6 lg:grid-cols-2 lg:gap-8">
 						{#each data.articles as article (article.id)}
 							<Card
-
-							todo='Читать'
+								todo="Читать"
 								title={article.title}
 								link="/articles/{article.uri}"
 								description={article.description || 'Читать далее'}

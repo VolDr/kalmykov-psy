@@ -1,7 +1,4 @@
-import {
-	pageContentService,
-	getPageContentWithDefaults
-} from '$lib/server/page-content.server';
+import { pageContentService, getPageContentWithDefaults } from '$lib/server/page-content.server';
 import type { PageServerLoad } from './$types';
 import type { PageBlock } from '$lib/types/page-blocks';
 

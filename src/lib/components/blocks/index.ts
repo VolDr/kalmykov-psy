@@ -4,6 +4,7 @@ export { default as ImageTextBlock } from './ImageTextBlock.svelte';
 export { default as SectionContainer } from './SectionContainer.svelte';
 export { default as CardGrid } from './CardGrid.svelte';
 export { default as TextBlockSection } from './TextBlockSection.svelte';
+export { default as AboutIntroDual } from './AboutIntroDual.svelte';
 
 // Card components
 export { default as ListCard } from './ListCard.svelte';

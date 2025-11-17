@@ -77,7 +77,7 @@
 	<Header initialMenuColor="white" />
 	<Affix />
 {/if}
-{#if !isAdminRoute && !isCodeRoute && !isLoginRoute && !isSurveys && !isArticles }
+{#if !isAdminRoute && !isCodeRoute && !isLoginRoute && !isSurveys && !isArticles}
 	<ProgressBar progress={$progress} />
 {/if}
 <Toaster position="top-right" />

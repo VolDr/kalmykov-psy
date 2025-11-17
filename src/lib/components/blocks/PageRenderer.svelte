@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { PageConfiguration } from '$lib/types/page-blocks';
 	import BlockRenderer from './BlockRenderer.svelte';
+	import { cn } from '$lib/utils';
 
 	interface Props {
 		page: PageConfiguration;
@@ -12,6 +13,23 @@
 	const sortedBlocks = $derived(
 		[...page.blocks].sort((a, b) => a.sortOrder - b.sortOrder).filter((b) => b.isActive)
 	);
+
+	// Map maxWidth setting to Tailwind classes
+	const maxWidthClasses = {
+		sm: 'max-w-[720px]',
+		md: 'max-w-[960px]',
+		lg: 'max-w-[1200px]',
+		xl: 'max-w-[1440px]',
+		full: 'max-w-full'
+	};
+
+	const containerClass = $derived(() => {
+		const layout = page.layout;
+		if (!layout?.withContainer) return '';
+
+		const maxWidth = layout.maxWidth || 'lg';
+		return cn('container mx-auto px-5 lg:px-0', maxWidthClasses[maxWidth], layout.containerClass);
+	});
 </script>
 
 <svelte:head>
@@ -27,7 +45,7 @@
 	<meta name="twitter:image" content={page.seo.ogImage || '/header.webp'} />
 </svelte:head>
 
-<div class="page-content">
+<div class={cn('page-content', containerClass())}>
 	{#each sortedBlocks as block (block.id)}
 		<BlockRenderer {block} />
 	{/each}

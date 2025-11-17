@@ -8,9 +8,7 @@
 		const today = dayjs().startOf('day');
 		const weekStart = dayjs().startOf('week');
 
-		const todayCount = activities.filter((a) =>
-			dayjs(a.scheduledDate).isSame(today, 'day')
-		).length;
+		const todayCount = activities.filter((a) => dayjs(a.scheduledDate).isSame(today, 'day')).length;
 
 		const weekCount = activities.filter((a) => dayjs(a.scheduledDate).isAfter(weekStart)).length;
 
@@ -37,19 +35,18 @@
 	});
 </script>
 
-<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+<div class="grid grid-cols-1 gap-4 md:grid-cols-3">
 	{#each stats as stat}
 		<Card class="p-6">
 			<div class="flex items-center justify-between">
 				<div>
-					<p class="text-xs font-bold uppercase text-muted-foreground">
+					<p class="text-xs font-bold text-muted-foreground uppercase">
 						{stat.title}
 					</p>
-					<p class="text-2xl font-bold mt-1">
+					<p class="mt-1 text-2xl font-bold">
 						{stat.value}
 					</p>
 				</div>
-		
 			</div>
 		</Card>
 	{/each}

@@ -5,13 +5,7 @@ import {
 	findNearestAnchor,
 	attachArrowEndToNearestShape
 } from './magnets';
-import type {
-	RectShape,
-	EllipseShape,
-	TextShape,
-	ArrowShape,
-	GroupShape
-} from '../model/shapes';
+import type { RectShape, EllipseShape, TextShape, ArrowShape, GroupShape } from '../model/shapes';
 
 function createTestRect(id: string, x: number, y: number, width = 100, height = 50): RectShape {
 	return {
@@ -45,13 +39,7 @@ function createTestEllipse(id: string, x: number, y: number, rx = 50, ry = 30): 
 	};
 }
 
-function createTestText(
-	id: string,
-	x: number,
-	y: number,
-	text = 'Test',
-	fontSize = 16
-): TextShape {
+function createTestText(id: string, x: number, y: number, text = 'Test', fontSize = 16): TextShape {
 	return {
 		id,
 		type: 'text',
@@ -258,10 +246,7 @@ describe('findNearestAnchor', () => {
 });
 
 describe('attachArrowEndToNearestShape', () => {
-	const shapes = [
-		createTestRect('rect1', 100, 100),
-		createTestEllipse('ellipse1', 300, 100)
-	];
+	const shapes = [createTestRect('rect1', 100, 100), createTestEllipse('ellipse1', 300, 100)];
 
 	it('should attach arrow to nearest shape', () => {
 		const arrow = createTestArrow('arrow1', 0, 0);

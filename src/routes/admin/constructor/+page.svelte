@@ -141,7 +141,7 @@
 	<div class="mb-6 flex items-center justify-between rounded-lg border bg-white p-4 shadow-sm">
 		<div class="flex items-center gap-4">
 			<Button onclick={() => (showBlockSelector = true)}>
-				<span class="icon-[lucide--plus] mr-2 h-4 w-4"></span>
+				<span class="mr-2 icon-[lucide--plus] h-4 w-4"></span>
 				<span>Добавить блок</span>
 			</Button>
 
@@ -166,7 +166,7 @@
 			<input type="hidden" name="pageSlug" value={data.selectedPage} />
 			<input type="hidden" name="blocks" value={JSON.stringify(blocks)} />
 			<Button type="submit" disabled={!hasUnsavedChanges}>
-				<span class="icon-[lucide--save] mr-2 h-4 w-4"></span>
+				<span class="mr-2 icon-[lucide--save] h-4 w-4"></span>
 				<span>Сохранить</span>
 			</Button>
 		</form>
@@ -176,10 +176,10 @@
 	<div class="space-y-4">
 		{#if blocks.length === 0}
 			<div class="rounded-lg border-2 border-dashed border-gray-300 bg-white p-12 text-center">
-				<span class="icon-[lucide--layout-grid] mx-auto mb-4 h-12 w-12 text-gray-400"></span>
+				<span class="mx-auto mb-4 icon-[lucide--layout-grid] h-12 w-12 text-gray-400"></span>
 				<p class="mb-4 text-gray-600">Нет блоков на этой странице</p>
 				<Button onclick={() => (showBlockSelector = true)}>
-					<span class="icon-[lucide--plus] mr-2 h-4 w-4"></span>
+					<span class="mr-2 icon-[lucide--plus] h-4 w-4"></span>
 					<span>Добавить первый блок</span>
 				</Button>
 			</div>
@@ -253,11 +253,9 @@
 							name="pageName"
 							bind:value={newPageName}
 							placeholder="Например: О компании"
-							class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+							class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
 						/>
-						<p class="mt-1 text-xs text-gray-500">
-							Отображаемое название в списке страниц
-						</p>
+						<p class="mt-1 text-xs text-gray-500">Отображаемое название в списке страниц</p>
 					</div>
 
 					<div>
@@ -272,7 +270,7 @@
 							placeholder="Например: about-company"
 							required
 							pattern="[a-z0-9-]+"
-							class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+							class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
 						/>
 						<p class="mt-1 text-xs text-gray-500">
 							URL страницы (только латинские буквы в нижнем регистре, цифры и дефисы)
@@ -289,7 +287,7 @@
 						Отмена
 					</button>
 					<Button type="submit" disabled={!newPageSlug}>
-						<span class="icon-[lucide--plus] mr-2 h-4 w-4"></span>
+						<span class="mr-2 icon-[lucide--plus] h-4 w-4"></span>
 						<span>Создать</span>
 					</Button>
 				</div>

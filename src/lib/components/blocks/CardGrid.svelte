@@ -10,8 +10,13 @@
 		class?: string;
 	}
 
-	let { cols = '2', gap = 'md', responsive = true, children, class: className = '' }: Props =
-		$props();
+	let {
+		cols = '2',
+		gap = 'md',
+		responsive = true,
+		children,
+		class: className = ''
+	}: Props = $props();
 
 	const getColsClass = () => {
 		if (!responsive) {

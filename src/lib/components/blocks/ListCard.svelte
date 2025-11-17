@@ -39,7 +39,9 @@
 <div class={cn(gridClass, `min-h-[${minHeight}]`)}>
 	{#if withReveal}
 		<Reveal axis="x" class="h-full">
-			<div class={cn('flex h-full min-h-[180px] flex-col rounded-lg bg-[#F2F0EF] p-6', justifyClass)}>
+			<div
+				class={cn('flex h-full min-h-[180px] flex-col rounded-lg bg-[#F2F0EF] p-6', justifyClass)}
+			>
 				<div class="mb-4 flex items-center gap-3">
 					<h4 class="text-lg font-semibold text-[#191919]">{title}</h4>
 				</div>

@@ -41,36 +41,36 @@
 	}
 </script>
 
-<div class="overflow-x-auto mt-4">
+<div class="mt-4 overflow-x-auto">
 	<table class="w-full text-xs">
 		<thead>
 			<tr class="border-b">
-				<th class="text-left py-2 px-2">Дата</th>
-				<th class="text-left py-2 px-2">Отнош.</th>
-				<th class="text-left py-2 px-2">Цели</th>
-				<th class="text-left py-2 px-2">Метод</th>
-				<th class="text-left py-2 px-2">Общее</th>
-				<th class="text-left py-2 px-2 w-[60px]">Ссылка</th>
+				<th class="px-2 py-2 text-left">Дата</th>
+				<th class="px-2 py-2 text-left">Отнош.</th>
+				<th class="px-2 py-2 text-left">Цели</th>
+				<th class="px-2 py-2 text-left">Метод</th>
+				<th class="px-2 py-2 text-left">Общее</th>
+				<th class="w-[60px] px-2 py-2 text-left">Ссылка</th>
 			</tr>
 		</thead>
 		<tbody>
 			{#each sortedData as item}
 				<tr class="border-b hover:bg-gray-50">
-					<td class="py-2 px-2">{dayjs(item.datetime).format('DD.MM.YY')}</td>
-					<td class="py-2 px-2">{item.attitude}</td>
-					<td class="py-2 px-2">{item.goals}</td>
-					<td class="py-2 px-2">{item.method}</td>
-					<td class="py-2 px-2">{item.generally}</td>
-					<td class="py-2 px-2">
+					<td class="px-2 py-2">{dayjs(item.datetime).format('DD.MM.YY')}</td>
+					<td class="px-2 py-2">{item.attitude}</td>
+					<td class="px-2 py-2">{item.goals}</td>
+					<td class="px-2 py-2">{item.method}</td>
+					<td class="px-2 py-2">{item.generally}</td>
+					<td class="px-2 py-2">
 						<button
 							onclick={() => copyToClipboard(item.smallId)}
-							class="p-1 hover:bg-gray-200 rounded"
+							class="rounded p-1 hover:bg-gray-200"
 							title={copiedId === item.smallId ? 'Copied' : 'Copy'}
 						>
 							{#if copiedId === item.smallId}
-								<span class="icon-[lucide--check] w-4 h-4 text-teal-600"></span>
+								<span class="icon-[lucide--check] h-4 w-4 text-teal-600"></span>
 							{:else}
-								<span class="icon-[lucide--copy] w-4 h-4 text-gray-600"></span>
+								<span class="icon-[lucide--copy] h-4 w-4 text-gray-600"></span>
 							{/if}
 						</button>
 					</td>

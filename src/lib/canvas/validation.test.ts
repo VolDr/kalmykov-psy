@@ -431,10 +431,7 @@ describe('validation', () => {
 				const group = {
 					...validBaseFields,
 					type: 'group',
-					children: [
-						'550e8400-e29b-41d4-a716-446655440001',
-						'550e8400-e29b-41d4-a716-446655440002'
-					]
+					children: ['550e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655440002']
 				};
 				const result = shapeSchema.safeParse(group);
 				expect(result.success).toBe(true);
