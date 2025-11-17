@@ -8,6 +8,7 @@ export const load = async (event) => {
 	requireAuth(event);
 
 	// Get clients with their latest session date
+	// Clients without sessions appear at the end (NULLS LAST)
 	const clients = await db
 		.select({
 			id: schema.client.id,
@@ -18,7 +19,7 @@ export const load = async (event) => {
 		.leftJoin(schema.activity, eq(schema.client.id, schema.activity.clientId))
 		.where(eq(schema.client.disabled, false))
 		.groupBy(schema.client.id, schema.client.name)
-		.orderBy(desc(sql`MAX(${schema.activity.scheduledDate})`));
+		.orderBy(sql`MAX(${schema.activity.scheduledDate}) DESC NULLS LAST`);
 
 	return {
 		user: event.locals.user,
