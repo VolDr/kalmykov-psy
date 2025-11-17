@@ -52,6 +52,7 @@
 		type Presence
 	} from '../sync/types';
 	import Toolbar from './Toolbar.svelte';
+	import { CANVAS_FONT_FAMILY, DEFAULT_FONT_SIZE } from '../constants';
 
 	// Import new modules for integration
 	import { handleKeyboardEvent } from '../keyboard';
@@ -1033,8 +1034,8 @@
 					x: centerX,
 					y: centerY,
 					text: 'Text',
-					fontSize: 16,
-					fontFamily: 'Arial',
+					fontSize: DEFAULT_FONT_SIZE,
+					fontFamily: CANVAS_FONT_FAMILY,
 					align: 'center',
 					width,
 					height
@@ -1552,6 +1553,7 @@
 							offsetY={effectiveHeight / 2}
 							stroke={rect.stroke}
 							strokeWidth={rect.strokeWidth}
+							strokeScaleEnabled={false}
 							fill={rect.fill ?? undefined}
 							dash={rect.dash ?? undefined}
 							rotation={rect.rotation}
@@ -1600,6 +1602,7 @@
 							radiusY={effectiveRy}
 							stroke={el.stroke}
 							strokeWidth={el.strokeWidth}
+							strokeScaleEnabled={false}
 							fill={el.fill ?? undefined}
 							dash={el.dash ?? undefined}
 							rotation={el.rotation}
@@ -1642,7 +1645,10 @@
 						offsetY={textHeight / 2}
 						rotation={t.rotation}
 						draggable={true}
-						opacity={isSelected(t.id) ? 0.8 : 1}
+						opacity={0}
+						fill="transparent"
+						stroke="transparent"
+						strokeScaleEnabled={false}
 						onclick={(e) => onShapeClick(t.id, e)}
 						ondblclick={() => handleDoubleClick(t.id)}
 						ondragmove={(e) => onShapeDragMove(t, e)}
@@ -1688,6 +1694,7 @@
 							points={renderArrow(a).points}
 							stroke={a.stroke}
 							strokeWidth={a.strokeWidth}
+							strokeScaleEnabled={false}
 							dash={a.dash ?? undefined}
 							lineCap="round"
 							lineJoin="round"
@@ -1737,6 +1744,7 @@
 							points={renderArrow(a).points}
 							stroke={a.stroke}
 							strokeWidth={a.strokeWidth}
+							strokeScaleEnabled={false}
 							fill={a.stroke}
 							dash={a.dash ?? undefined}
 							lineCap="round"
@@ -2039,8 +2047,8 @@
 			<!-- Fill color picker (not for arrows) -->
 			{#if hasSelectedNonArrows()}
 				<div class="flex flex-col gap-1">
-					<div class="flex items-center gap-1">
-						<span class="text-xs text-gray-500">Заливка:</span>
+					<div class="flex flex-wrap items-center gap-1">
+						<span class="w-full text-xs text-gray-500">Заливка:</span>
 						<button
 							type="button"
 							class="h-5 w-5 rounded border-2 border-gray-400"
@@ -2051,39 +2059,73 @@
 						></button>
 						<button
 							type="button"
-							class="h-5 w-5 rounded border border-gray-300 bg-white"
-							onclick={() => setFillColor('#FFFFFF')}
-							aria-label="White fill"
-						></button>
-						<button
-							type="button"
-							class="h-5 w-5 rounded border border-gray-300 bg-gray-200"
-							onclick={() => setFillColor('#E5E7EB')}
+							class="h-5 w-5 rounded border border-gray-300"
+							style="background-color: #f3f4f6"
+							onclick={() => setFillColor('#f3f4f6')}
 							aria-label="Light gray fill"
 						></button>
 						<button
 							type="button"
-							class="h-5 w-5 rounded border border-gray-300 bg-yellow-100"
-							onclick={() => setFillColor('#FEF3C7')}
-							aria-label="Yellow fill"
+							class="h-5 w-5 rounded border border-gray-300"
+							style="background-color: #fee2e2"
+							onclick={() => setFillColor('#fee2e2')}
+							aria-label="Light red fill"
 						></button>
 						<button
 							type="button"
-							class="h-5 w-5 rounded border border-gray-300 bg-blue-100"
-							onclick={() => setFillColor('#DBEAFE')}
-							aria-label="Blue fill"
+							class="h-5 w-5 rounded border border-gray-300"
+							style="background-color: #ffedd5"
+							onclick={() => setFillColor('#ffedd5')}
+							aria-label="Light orange fill"
 						></button>
 						<button
 							type="button"
-							class="h-5 w-5 rounded border border-gray-300 bg-green-100"
-							onclick={() => setFillColor('#DCFCE7')}
-							aria-label="Green fill"
+							class="h-5 w-5 rounded border border-gray-300"
+							style="background-color: #fef3c7"
+							onclick={() => setFillColor('#fef3c7')}
+							aria-label="Light yellow fill"
 						></button>
 						<button
 							type="button"
-							class="h-5 w-5 rounded border border-gray-300 bg-red-100"
-							onclick={() => setFillColor('#FEE2E2')}
-							aria-label="Red fill"
+							class="h-5 w-5 rounded border border-gray-300"
+							style="background-color: #ecfccb"
+							onclick={() => setFillColor('#ecfccb')}
+							aria-label="Light lime fill"
+						></button>
+						<button
+							type="button"
+							class="h-5 w-5 rounded border border-gray-300"
+							style="background-color: #d1fae5"
+							onclick={() => setFillColor('#d1fae5')}
+							aria-label="Light green fill"
+						></button>
+						<button
+							type="button"
+							class="h-5 w-5 rounded border border-gray-300"
+							style="background-color: #cffafe"
+							onclick={() => setFillColor('#cffafe')}
+							aria-label="Light cyan fill"
+						></button>
+						<button
+							type="button"
+							class="h-5 w-5 rounded border border-gray-300"
+							style="background-color: #dbeafe"
+							onclick={() => setFillColor('#dbeafe')}
+							aria-label="Light blue fill"
+						></button>
+						<button
+							type="button"
+							class="h-5 w-5 rounded border border-gray-300"
+							style="background-color: #ede9fe"
+							onclick={() => setFillColor('#ede9fe')}
+							aria-label="Light purple fill"
+						></button>
+						<button
+							type="button"
+							class="h-5 w-5 rounded border border-gray-300"
+							style="background-color: #fce7f3"
+							onclick={() => setFillColor('#fce7f3')}
+							aria-label="Light pink fill"
 						></button>
 					</div>
 				</div>
@@ -2118,31 +2160,77 @@
 			</button>
 
 			<!-- Stroke color -->
-			<div class="flex items-center gap-1">
-				<span class="text-xs text-gray-500">Цвет:</span>
+			<div class="flex flex-wrap items-center gap-1">
+				<span class="w-full text-xs text-gray-500">Цвет:</span>
 				<button
 					type="button"
-					class="h-5 w-5 rounded border border-gray-300 bg-black"
-					onclick={() => setStrokeColor('#000000')}
-					aria-label="Black stroke"
+					class="h-5 w-5 rounded border border-gray-300"
+					style="background-color: #6b7280"
+					onclick={() => setStrokeColor('#6b7280')}
+					aria-label="Gray stroke"
 				></button>
 				<button
 					type="button"
-					class="h-5 w-5 rounded border border-gray-300 bg-red-500"
-					onclick={() => setStrokeColor('#EF4444')}
-					aria-label="Red stroke"
+					class="h-5 w-5 rounded border border-gray-300"
+					style="background-color: #f87171"
+					onclick={() => setStrokeColor('#f87171')}
+					aria-label="Soft red stroke"
 				></button>
 				<button
 					type="button"
-					class="h-5 w-5 rounded border border-gray-300 bg-blue-500"
-					onclick={() => setStrokeColor('#3B82F6')}
-					aria-label="Blue stroke"
+					class="h-5 w-5 rounded border border-gray-300"
+					style="background-color: #fb923c"
+					onclick={() => setStrokeColor('#fb923c')}
+					aria-label="Soft orange stroke"
 				></button>
 				<button
 					type="button"
-					class="h-5 w-5 rounded border border-gray-300 bg-green-500"
-					onclick={() => setStrokeColor('#22C55E')}
-					aria-label="Green stroke"
+					class="h-5 w-5 rounded border border-gray-300"
+					style="background-color: #fbbf24"
+					onclick={() => setStrokeColor('#fbbf24')}
+					aria-label="Soft yellow stroke"
+				></button>
+				<button
+					type="button"
+					class="h-5 w-5 rounded border border-gray-300"
+					style="background-color: #a3e635"
+					onclick={() => setStrokeColor('#a3e635')}
+					aria-label="Soft lime stroke"
+				></button>
+				<button
+					type="button"
+					class="h-5 w-5 rounded border border-gray-300"
+					style="background-color: #4ade80"
+					onclick={() => setStrokeColor('#4ade80')}
+					aria-label="Soft green stroke"
+				></button>
+				<button
+					type="button"
+					class="h-5 w-5 rounded border border-gray-300"
+					style="background-color: #22d3ee"
+					onclick={() => setStrokeColor('#22d3ee')}
+					aria-label="Soft cyan stroke"
+				></button>
+				<button
+					type="button"
+					class="h-5 w-5 rounded border border-gray-300"
+					style="background-color: #60a5fa"
+					onclick={() => setStrokeColor('#60a5fa')}
+					aria-label="Soft blue stroke"
+				></button>
+				<button
+					type="button"
+					class="h-5 w-5 rounded border border-gray-300"
+					style="background-color: #a78bfa"
+					onclick={() => setStrokeColor('#a78bfa')}
+					aria-label="Soft purple stroke"
+				></button>
+				<button
+					type="button"
+					class="h-5 w-5 rounded border border-gray-300"
+					style="background-color: #f472b6"
+					onclick={() => setStrokeColor('#f472b6')}
+					aria-label="Soft pink stroke"
 				></button>
 			</div>
 

@@ -11,8 +11,9 @@
 		TextShape
 	} from '$lib/canvas/model/shapes';
 	import { createAddShapesOp } from '$lib/canvas/sync/types';
+	import { CANVAS_FONT_FAMILY, DEFAULT_FONT_SIZE } from '$lib/canvas/constants';
 
-	const sceneId = 'demo-scene-001';
+	const sceneId = '550e8400-e29b-41d4-a716-446655440000'; // Demo scene UUID
 
 	let isSaving = $state(false);
 	let isLoading = $state(true);
@@ -106,7 +107,7 @@
 			y: 350,
 			text: 'Excalidraw Clone',
 			fontSize: 24,
-			fontFamily: 'Arial',
+			fontFamily: CANVAS_FONT_FAMILY,
 			align: 'center',
 			rotation: 0,
 			scaleX: 1,

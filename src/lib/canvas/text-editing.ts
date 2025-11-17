@@ -3,6 +3,7 @@ import { writable, get } from 'svelte/store';
 import type { TextShape, RectShape, EllipseShape, Shape } from './model/shapes';
 import { shapesHistory, selection, setSelection } from './stores';
 import { v4 as uuidv4 } from 'uuid';
+import { CANVAS_FONT_FAMILY, DEFAULT_FONT_SIZE } from './constants';
 
 /**
  * State for text editing
@@ -172,8 +173,8 @@ export function createTextShapeAt(
 		stroke: options.stroke ?? '#000000',
 		strokeWidth: options.strokeWidth ?? 0,
 		text: initialText,
-		fontSize: options.fontSize ?? 16,
-		fontFamily: options.fontFamily ?? 'Arial',
+		fontSize: options.fontSize ?? DEFAULT_FONT_SIZE,
+		fontFamily: options.fontFamily ?? CANVAS_FONT_FAMILY,
 		align: options.align ?? 'left',
 		width: options.width,
 		height: options.height
