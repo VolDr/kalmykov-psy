@@ -168,6 +168,14 @@
 		font-style: normal;
 	}
 
+	@font-face {
+		font-family: 'Excalifont';
+		src: url('/Excalifont-Regular.woff2') format('woff2');
+		font-display: swap;
+		font-weight: normal;
+		font-style: normal;
+	}
+
 	html,
 	body {
 		max-width: 100%;

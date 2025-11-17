@@ -896,17 +896,53 @@
 		}
 	}
 
-	// Handle rotation snapping during transform
+	// Handle rotation snapping during transform and apply scale to prevent line deformation
 	function onTransform(e: any) {
-		if (!transformerRef || !isShiftPressed) return;
+		if (!transformerRef) return;
 
 		const nodes = transformerRef.nodes();
 		for (const node of nodes) {
-			const rotation = node.rotation();
-			// Snap to 22.5 degree increments (0, 22.5, 45, 67.5, 90, etc.)
-			const snapAngle = 22.5;
-			const snappedRotation = Math.round(rotation / snapAngle) * snapAngle;
-			node.rotation(snappedRotation);
+			// Snap rotation if shift is pressed
+			if (isShiftPressed) {
+				const rotation = node.rotation();
+				// Snap to 22.5 degree increments (0, 22.5, 45, 67.5, 90, etc.)
+				const snapAngle = 22.5;
+				const snappedRotation = Math.round(rotation / snapAngle) * snapAngle;
+				node.rotation(snappedRotation);
+			}
+
+			// Apply scale to dimensions to prevent stroke deformation
+			const shapeId = node.id();
+			const shape = shapes.find((s) => s.id === shapeId);
+			if (!shape) continue;
+
+			const scaleX = node.scaleX();
+			const scaleY = node.scaleY();
+
+			// Only apply if scale changed significantly
+			if (Math.abs(scaleX - 1) < 0.001 && Math.abs(scaleY - 1) < 0.001) continue;
+
+			if (shape.type === 'rect') {
+				const rect = shape as RectShape;
+				node.width(rect.width * scaleX);
+				node.height(rect.height * scaleY);
+				node.scaleX(1);
+				node.scaleY(1);
+			} else if (shape.type === 'ellipse') {
+				const ellipse = shape as EllipseShape;
+				node.setAttr('radiusX', ellipse.rx * scaleX);
+				node.setAttr('radiusY', ellipse.ry * scaleY);
+				node.scaleX(1);
+				node.scaleY(1);
+			} else if (shape.type === 'text') {
+				const text = shape as TextShape;
+				const currentWidth = text.width ?? text.text.length * text.fontSize * 0.6;
+				const currentHeight = text.height ?? text.fontSize * 1.2;
+				node.width(currentWidth * scaleX);
+				node.height(currentHeight * scaleY);
+				node.scaleX(1);
+				node.scaleY(1);
+			}
 		}
 	}
 

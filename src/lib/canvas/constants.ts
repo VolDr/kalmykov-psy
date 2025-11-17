@@ -2,10 +2,9 @@
 
 /**
  * Default font family for canvas text elements
- * Using handwritten-style font similar to Excalidraw
- * When Excalifont-Regular.woff2 is added to /static/, update this to 'Excalifont'
+ * Using Excalifont for handwritten-style similar to Excalidraw
  */
-export const CANVAS_FONT_FAMILY = 'Virgil, Segoe Print, Comic Sans MS, cursive';
+export const CANVAS_FONT_FAMILY = 'Excalifont, Virgil, Segoe Print, Comic Sans MS, cursive';
 
 /**
  * Default font size for canvas text
