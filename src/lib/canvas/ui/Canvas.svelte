@@ -1014,6 +1014,17 @@
 			}}
 			on:load={(e) => (layerRef = e.detail as KonvaLayer)}
 		>
+			<!-- Background rect to capture all mouse events -->
+			<Rect
+				config={{
+					x: -10000,
+					y: -10000,
+					width: 20000,
+					height: 20000,
+					fill: 'transparent',
+					listening: true
+				}}
+			/>
 			{#each shapes as shape (shape.id)}
 				{#if shape.type === 'rect'}
 					{@const rect = shape as RectShape}
