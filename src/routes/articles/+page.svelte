@@ -4,16 +4,14 @@
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
+	const { content } = data;
 
 	const url = `${import.meta.env.VITE_URL}/articles`;
-	const title = 'Статьи по психологии | Андрей Калмыков — Психолог';
-	const description =
-		'Полезные статьи по психологии: депрессия, тревожность, перфекционизм, прокрастинация, выгорание. Профессиональная помощь и рекомендации психолога.';
 </script>
 
 <svelte:head>
-	<title>{title}</title>
-	<meta name="description" content={description} />
+	<title>{content.seo.title}</title>
+	<meta name="description" content={content.seo.description} />
 	<meta
 		name="keywords"
 		content="психология, статьи по психологии, депрессия, тревожность, перфекционизм, прокрастинация, выгорание, психологическая помощь"
@@ -23,15 +21,17 @@
 
 	<!-- Open Graph -->
 	<meta property="og:type" content="website" />
-	<meta property="og:title" content={title} />
-	<meta property="og:description" content={description} />
+	<meta property="og:title" content={content.seo.title} />
+	<meta property="og:description" content={content.seo.description} />
 	<meta property="og:url" content={url} />
 	<meta property="og:site_name" content="Андрей Калмыков — Психолог" />
+	<meta property="og:image" content={content.seo.ogImage || '/header.webp'} />
 
 	<!-- Twitter Card -->
 	<meta name="twitter:card" content="summary_large_image" />
-	<meta name="twitter:title" content={title} />
-	<meta name="twitter:description" content={description} />
+	<meta name="twitter:title" content={content.seo.title} />
+	<meta name="twitter:description" content={content.seo.description} />
+	<meta name="twitter:image" content={content.seo.ogImage || '/header.webp'} />
 </svelte:head>
 
 <section
@@ -48,12 +48,11 @@
 		<div
 			class="relative z-10 mx-auto mt-[10vh] mb-4 min-h-[100px] max-w-[960px] pt-[63px] lg:hidden"
 		>
-			<h1 class="self-end font-circe text-3xl">Статьи</h1>
+			<h1 class="self-end font-circe text-3xl">{content.hero.title}</h1>
 		</div>
 		<div class="relative z-10 -mt-2 mb-5 flex flex-col gap-2 lg:hidden">
 			<p class="col-start-1 col-end-6 row-start-5 row-end-7 text-left">
-				Делюсь тут статьями о психологии и человеческих переживаниях. Рассказываю о выгорании,
-				тревоге и поиске себя простым языком.
+				{content.hero.subtitle}
 			</p>
 		</div>
 	</div>
@@ -63,15 +62,14 @@
 		class="relative z-10 mx-auto hidden aspect-[1.51] max-w-[720px] grid-cols-12 grid-rows-12 gap-4 gap-x-0 pt-14 leading-relaxed lg:grid lg:max-w-[960px]"
 	>
 		<div class="col-start-1 col-end-12 row-start-5 row-end-12">
-			<h1 class="font-circe text-3xl leading-tight lg:text-5xl">Статьи</h1>
+			<h1 class="font-circe text-3xl leading-tight lg:text-5xl">{content.hero.title}</h1>
 		</div>
 
 		<div
 			class="col-start-1 col-end-12 row-start-8 row-end-11 flex flex-col gap-4 text-base leading-relaxed lg:text-md"
 		>
 			<p class="mx-auto text-center lg:mx-0 lg:text-left">
-				Делюсь тут статьями о психологии и человеческих переживаниях. Рассказываю о выгорании,
-				тревоге и поиске себя простым языком.
+				{content.hero.subtitle}
 			</p>
 		</div>
 	</div>

@@ -20,6 +20,15 @@
 			<a href="/admin/articles" class="text-sm font-medium text-gray-700 hover:text-gray-900">
 				Статьи
 			</a>
+			<a href="/admin/surveys" class="text-sm font-medium text-gray-700 hover:text-gray-900">
+				Опросники
+			</a>
+			<a href="/admin/constructor" class="text-sm font-medium text-gray-700 hover:text-gray-900">
+				Конструктор
+			</a>
+			<a href="/admin/pages" class="text-sm font-medium text-gray-700 hover:text-gray-900">
+				Настройки
+			</a>
 		</nav>
 		<Button onclick={handleLogout} variant="outline">Выйти</Button>
 	</header>
@@ -35,6 +44,24 @@
 						class="block rounded-lg px-3 py-2 text-sm hover:bg-gray-100"
 					>
 						Статьи
+					</a>
+					<a
+						href="/admin/surveys"
+						class="block rounded-lg px-3 py-2 text-sm hover:bg-gray-100"
+					>
+						Опросники
+					</a>
+					<a
+						href="/admin/constructor"
+						class="block rounded-lg px-3 py-2 text-sm hover:bg-gray-100"
+					>
+						Конструктор страниц
+					</a>
+					<a
+						href="/admin/pages"
+						class="block rounded-lg px-3 py-2 text-sm hover:bg-gray-100"
+					>
+						Настройки страниц
 					</a>
 				</nav>
 			</div>
