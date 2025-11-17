@@ -697,7 +697,7 @@
 				cancelTextEditing();
 				return;
 			}
-			if (e.code === 'Enter' && !e.shiftKey) {
+			if (e.code === 'Enter' && e.ctrlKey) {
 				e.preventDefault();
 				commitTextEditing();
 				return;
@@ -1376,6 +1376,25 @@
 
 		return lines * fontSize * 1.2;
 	}
+
+	// Cache for text height calculations to avoid recalculating on every render
+	const textHeightCache = new Map<string, number>();
+
+	function getCachedTextHeight(text: string, width: number, fontSize: number): number {
+		const key = `${text}-${width}-${fontSize}`;
+		if (!textHeightCache.has(key)) {
+			textHeightCache.set(key, calculateTextHeight(text, width, fontSize));
+		}
+		return textHeightCache.get(key)!;
+	}
+
+	// Clear cache when shapes change significantly
+	$effect(() => {
+		// Clear cache when shapes array changes
+		if (shapes.length > 0) {
+			textHeightCache.clear();
+		}
+	});
 </script>
 
 <div class="relative h-full w-full bg-white" style="cursor: {getToolCursor(tool)}">
@@ -1416,7 +1435,7 @@
 			{#each shapes as shape (shape.id)}
 				{#if shape.type === 'rect'}
 					{@const rect = shape as RectShape}
-					{@const textHeight = rect.text ? calculateTextHeight(rect.text, rect.width, 14) : 0}
+					{@const textHeight = rect.text ? getCachedTextHeight(rect.text, rect.width, 14) : 0}
 					{@const effectiveHeight = Math.max(rect.height, textHeight + 20)}
 					<Rect
 						id={rect.id}
@@ -1455,7 +1474,7 @@
 					{/if}
 				{:else if shape.type === 'ellipse'}
 					{@const el = shape as EllipseShape}
-					{@const textHeight = el.text ? calculateTextHeight(el.text, el.rx * 2, 14) : 0}
+					{@const textHeight = el.text ? getCachedTextHeight(el.text, el.rx * 2, 14) : 0}
 					{@const effectiveRy = Math.max(el.ry, (textHeight + 20) / 2)}
 					<Ellipse
 						id={el.id}
@@ -1795,9 +1814,8 @@
 	{#if editingText && editingShapeId}
 		{@const inputPos = getEditingInputPosition()}
 		{#if inputPos}
-			<input
-				type="text"
-				class="absolute z-50 border-2 border-purple-500 bg-white px-2 py-1 text-center focus:outline-none focus:ring-2 focus:ring-purple-300"
+			<textarea
+				class="absolute z-50 resize-none border-2 border-purple-500 bg-white px-2 py-1 text-center focus:outline-none focus:ring-2 focus:ring-purple-300"
 				style="left: {inputPos.x}px; top: {inputPos.y}px; width: {inputPos.width}px; min-height: {inputPos.height}px;"
 				value={editingTextContent}
 				oninput={handleTextInput}
@@ -1806,13 +1824,12 @@
 					if (e.key === 'Escape') {
 						e.preventDefault();
 						cancelTextEditing();
-					} else if (e.key === 'Enter' && !e.shiftKey) {
+					} else if (e.key === 'Enter' && e.ctrlKey) {
 						e.preventDefault();
 						commitTextEditing();
 					}
 				}}
-				autofocus
-			/>
+			></textarea>
 		{/if}
 	{/if}
 

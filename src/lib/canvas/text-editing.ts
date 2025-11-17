@@ -76,6 +76,30 @@ export function updateEditingText(text: string): void {
 }
 
 /**
+ * Calculate text height based on wrapping
+ */
+function calculateTextHeight(text: string, width: number, fontSize: number): number {
+	const avgCharWidth = fontSize * 0.6;
+	const charsPerLine = Math.floor(width / avgCharWidth);
+	if (charsPerLine <= 0) return fontSize * 1.2;
+
+	const words = text.split(' ');
+	let lines = 1;
+	let currentLineLength = 0;
+
+	for (const word of words) {
+		if (currentLineLength + word.length > charsPerLine) {
+			lines++;
+			currentLineLength = word.length + 1;
+		} else {
+			currentLineLength += word.length + 1;
+		}
+	}
+
+	return lines * fontSize * 1.2;
+}
+
+/**
  * Commit the text changes and stop editing
  * Returns true if changes were committed, false otherwise
  */
@@ -103,10 +127,23 @@ export function commitTextEditing(): boolean {
 				...shape,
 				text: state.currentText
 			};
-		} else if (shape.type === 'rect' || shape.type === 'ellipse') {
+		} else if (shape.type === 'rect') {
+			const rectShape = shape as RectShape;
+			const textHeight = calculateTextHeight(state.currentText, rectShape.width, 14);
+			const requiredHeight = textHeight + 20;
 			updatedShape = {
-				...shape,
-				text: state.currentText || undefined
+				...rectShape,
+				text: state.currentText || undefined,
+				height: Math.max(rectShape.height, requiredHeight)
+			};
+		} else if (shape.type === 'ellipse') {
+			const ellipseShape = shape as EllipseShape;
+			const textHeight = calculateTextHeight(state.currentText, ellipseShape.rx * 2, 14);
+			const requiredRy = (textHeight + 20) / 2;
+			updatedShape = {
+				...ellipseShape,
+				text: state.currentText || undefined,
+				ry: Math.max(ellipseShape.ry, requiredRy)
 			};
 		} else {
 			cancelTextEditing();
