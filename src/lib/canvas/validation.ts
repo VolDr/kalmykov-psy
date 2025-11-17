@@ -13,6 +13,7 @@ const baseShapeSchema = z.object({
 	stroke: z.string(),
 	strokeWidth: z.number().nonnegative(),
 	fill: z.string().nullable().optional(),
+	dash: z.array(z.number()).optional(),
 	roughOptions: z.record(z.unknown()).optional()
 });
 
@@ -54,7 +55,9 @@ const arrowShapeSchema = baseShapeSchema.extend({
 	type: z.literal('arrow'),
 	points: z.array(z.tuple([z.number(), z.number()])).min(2),
 	from: arrowEndpointSchema.optional(),
-	to: arrowEndpointSchema.optional()
+	to: arrowEndpointSchema.optional(),
+	doubleEnded: z.boolean().optional(),
+	curved: z.boolean().optional()
 });
 
 // Group shape schema

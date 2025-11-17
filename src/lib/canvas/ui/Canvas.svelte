@@ -148,6 +148,9 @@
 	let editingShapeId: string | null = $state(null);
 	let editingTextContent = $state('');
 
+	// Track if shift key is pressed for rotation snapping
+	let isShiftPressed = $state(false);
+
 	// Color palette for remote users
 	const userColors = [
 		'#FF6B6B',
@@ -231,12 +234,38 @@
 		}
 	});
 
+	// Check if selection contains only arrows
+	function isArrowOnlySelection(): boolean {
+		if (selectedIds.size === 0) return false;
+		for (const id of selectedIds) {
+			const shape = shapes.find(s => s.id === id);
+			if (!shape || shape.type !== 'arrow') return false;
+		}
+		return true;
+	}
+
+	// Get selected arrows
+	function getSelectedArrows(): ArrowShape[] {
+		const arrows: ArrowShape[] = [];
+		for (const id of selectedIds) {
+			const shape = shapes.find(s => s.id === id);
+			if (shape && shape.type === 'arrow') {
+				arrows.push(shape as ArrowShape);
+			}
+		}
+		return arrows;
+	}
+
 	// Update transformer nodes when selection changes
 	$effect(() => {
 		if (!transformerRef || !layerRef) return;
 
 		const nodes: KonvaNode[] = [];
+		// Don't attach transformer to arrows - we use custom handles
 		for (const id of selectedIds) {
+			const shape = shapes.find(s => s.id === id);
+			if (!shape || shape.type === 'arrow') continue;
+
 			// Find the node by ID in the layer
 			const node = layerRef.findOne(`#${id}`);
 			if (node) {
@@ -253,6 +282,49 @@
 		transformerRef.getLayer()?.batchDraw();
 	});
 
+	// Handle arrow endpoint drag
+	function onArrowEndpointDrag(arrow: ArrowShape, endpointIndex: number, e: any) {
+		const node = e.target;
+		const pos = node.position();
+
+		// Update the arrow points
+		const newPoints = [...arrow.points];
+		newPoints[endpointIndex] = [pos.x - arrow.x, pos.y - arrow.y];
+
+		const updated: ArrowShape = {
+			...arrow,
+			points: newPoints
+		};
+
+		// If dragging end point, try to snap
+		if (endpointIndex === arrow.points.length - 1) {
+			const worldPos = { x: pos.x, y: pos.y };
+			const attached = attachArrowEndToNearestShape(updated, shapes, 'to', worldPos, 40);
+			shapesHistory.updateShapes([attached]);
+
+			if (syncClient && multiplayer) {
+				const op = createUpdateShapesOp(sceneId, clientId, [attached]);
+				syncClient.sendOperation(op);
+			}
+		} else if (endpointIndex === 0) {
+			const worldPos = { x: pos.x, y: pos.y };
+			const attached = attachArrowEndToNearestShape(updated, shapes, 'from', worldPos, 40);
+			shapesHistory.updateShapes([attached]);
+
+			if (syncClient && multiplayer) {
+				const op = createUpdateShapesOp(sceneId, clientId, [attached]);
+				syncClient.sendOperation(op);
+			}
+		} else {
+			shapesHistory.updateShapes([updated]);
+
+			if (syncClient && multiplayer) {
+				const op = createUpdateShapesOp(sceneId, clientId, [updated]);
+				syncClient.sendOperation(op);
+			}
+		}
+	}
+
 	// Cleanup on destroy
 	onDestroy(() => {
 		unsubscribeShapes();
@@ -265,6 +337,7 @@
 		}
 		if (typeof window !== 'undefined') {
 			window.removeEventListener('keydown', handleKeyDown);
+			window.removeEventListener('keyup', handleKeyUp);
 			window.removeEventListener('resize', updateDimensions);
 		}
 	});
@@ -464,6 +537,10 @@
 
 	function onShapeClick(shapeId: string, e: any) {
 		const evt = e.evt as MouseEvent;
+		// Ignore middle mouse button clicks on shapes - always pan canvas
+		if (evt.button === 1) {
+			return;
+		}
 		toggleSelection(shapeId, evt.ctrlKey || evt.metaKey);
 		e.cancelBubble = true;
 	}
@@ -607,6 +684,11 @@
 	// === Hotkeys (RU/EN - by code) ===
 
 	function handleKeyDown(e: KeyboardEvent) {
+		// Track shift key for rotation snapping
+		if (e.key === 'Shift') {
+			isShiftPressed = true;
+		}
+
 		// Handle text editing input
 		if (editingText && editingShapeId) {
 			// Let text input handle its own keys
@@ -692,9 +774,31 @@
 		});
 		if (typeof window !== 'undefined') {
 			window.addEventListener('keydown', handleKeyDown);
+			window.addEventListener('keyup', handleKeyUp);
 			window.addEventListener('resize', updateDimensions);
 		}
 	});
+
+	// Track shift key state for rotation snapping
+	function handleKeyUp(e: KeyboardEvent) {
+		if (e.key === 'Shift') {
+			isShiftPressed = false;
+		}
+	}
+
+	// Handle rotation snapping during transform
+	function onTransform(e: any) {
+		if (!transformerRef || !isShiftPressed) return;
+
+		const nodes = transformerRef.nodes();
+		for (const node of nodes) {
+			const rotation = node.rotation();
+			// Snap to 22.5 degree increments (0, 22.5, 45, 67.5, 90, etc.)
+			const snapAngle = 22.5;
+			const snappedRotation = Math.round(rotation / snapAngle) * snapAngle;
+			node.rotation(snappedRotation);
+		}
+	}
 
 	// Register shape node reference for transformer (deprecated - now using Layer.findOne)
 	// function registerShapeRef(shapeId: string, node: KonvaNode | null) {
@@ -1022,9 +1126,259 @@
 				return 'Offline';
 		}
 	}
+
+	// Check if camera is away from content
+	function isAwayFromContent(): boolean {
+		if (shapes.length === 0) return false;
+
+		// Calculate the bounding box of all shapes
+		let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+		for (const shape of shapes) {
+			const bounds = getShapeBounds(shape);
+			minX = Math.min(minX, bounds.x);
+			minY = Math.min(minY, bounds.y);
+			maxX = Math.max(maxX, bounds.x + bounds.width);
+			maxY = Math.max(maxY, bounds.y + bounds.height);
+		}
+
+		// Convert viewport corners to world coordinates
+		const viewportLeft = -cam.x / cam.scale;
+		const viewportTop = -cam.y / cam.scale;
+		const viewportRight = (stageWidth - cam.x) / cam.scale;
+		const viewportBottom = (stageHeight - cam.y) / cam.scale;
+
+		// Check if content is visible in viewport
+		const isVisible = !(maxX < viewportLeft || minX > viewportRight || maxY < viewportTop || minY > viewportBottom);
+		return !isVisible;
+	}
+
+	// Center camera on all content
+	function centerOnContent() {
+		if (shapes.length === 0) return;
+
+		// Calculate the bounding box of all shapes
+		let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+		for (const shape of shapes) {
+			const bounds = getShapeBounds(shape);
+			minX = Math.min(minX, bounds.x);
+			minY = Math.min(minY, bounds.y);
+			maxX = Math.max(maxX, bounds.x + bounds.width);
+			maxY = Math.max(maxY, bounds.y + bounds.height);
+		}
+
+		const contentWidth = maxX - minX;
+		const contentHeight = maxY - minY;
+		const contentCenterX = minX + contentWidth / 2;
+		const contentCenterY = minY + contentHeight / 2;
+
+		// Calculate scale to fit content with padding
+		const padding = 50;
+		const scaleX = (stageWidth - padding * 2) / contentWidth;
+		const scaleY = (stageHeight - padding * 2) / contentHeight;
+		const newScale = Math.min(scaleX, scaleY, 1); // Don't zoom in more than 100%
+
+		// Center the content
+		const newX = stageWidth / 2 - contentCenterX * newScale;
+		const newY = stageHeight / 2 - contentCenterY * newScale;
+
+		camera.set({ x: newX, y: newY, scale: newScale });
+	}
+
+	// Properties panel functions
+	function getSelectedShapes(): Shape[] {
+		const selected: Shape[] = [];
+		for (const id of selectedIds) {
+			const shape = shapes.find(s => s.id === id);
+			if (shape) selected.push(shape);
+		}
+		return selected;
+	}
+
+	function hasSelectedNonArrows(): boolean {
+		const selected = getSelectedShapes();
+		return selected.some(s => s.type !== 'arrow');
+	}
+
+	function getCommonFill(): string | null | undefined {
+		const selected = getSelectedShapes().filter(s => s.type !== 'arrow');
+		if (selected.length === 0) return undefined;
+		const firstFill = selected[0].fill;
+		for (const shape of selected) {
+			if (shape.fill !== firstFill) return undefined; // Mixed values
+		}
+		return firstFill;
+	}
+
+	function getCommonDash(): number[] | undefined {
+		const selected = getSelectedShapes();
+		if (selected.length === 0) return undefined;
+		const firstDash = selected[0].dash;
+		for (const shape of selected) {
+			const shapeHasDash = shape.dash && shape.dash.length > 0;
+			const firstHasDash = firstDash && firstDash.length > 0;
+			if (shapeHasDash !== firstHasDash) return undefined; // Mixed values
+		}
+		return firstDash;
+	}
+
+	function toggleFill() {
+		const selected = getSelectedShapes().filter(s => s.type !== 'arrow');
+		if (selected.length === 0) return;
+
+		const hasFill = selected[0].fill;
+		const updatedShapes: Shape[] = selected.map(s => ({
+			...s,
+			fill: hasFill ? null : '#D1D5DB' // Toggle between no fill and gray fill
+		}));
+
+		shapesHistory.updateShapes(updatedShapes);
+
+		if (syncClient && multiplayer) {
+			const op = createUpdateShapesOp(sceneId, clientId, updatedShapes);
+			syncClient.sendOperation(op);
+		}
+	}
+
+	function toggleDash() {
+		const selected = getSelectedShapes();
+		if (selected.length === 0) return;
+
+		const hasDash = selected[0].dash && selected[0].dash.length > 0;
+		const updatedShapes: Shape[] = selected.map(s => ({
+			...s,
+			dash: hasDash ? undefined : [10, 5] // Toggle between solid and dashed
+		}));
+
+		shapesHistory.updateShapes(updatedShapes);
+
+		if (syncClient && multiplayer) {
+			const op = createUpdateShapesOp(sceneId, clientId, updatedShapes);
+			syncClient.sendOperation(op);
+		}
+	}
+
+	function setStrokeColor(color: string) {
+		const selected = getSelectedShapes();
+		if (selected.length === 0) return;
+
+		const updatedShapes: Shape[] = selected.map(s => ({
+			...s,
+			stroke: color
+		}));
+
+		shapesHistory.updateShapes(updatedShapes);
+
+		if (syncClient && multiplayer) {
+			const op = createUpdateShapesOp(sceneId, clientId, updatedShapes);
+			syncClient.sendOperation(op);
+		}
+	}
+
+	function hasSelectedArrows(): boolean {
+		const selected = getSelectedShapes();
+		return selected.some(s => s.type === 'arrow');
+	}
+
+	function getCommonDoubleEnded(): boolean | undefined {
+		const arrows = getSelectedShapes().filter(s => s.type === 'arrow') as ArrowShape[];
+		if (arrows.length === 0) return undefined;
+		const first = arrows[0].doubleEnded ?? false;
+		for (const arrow of arrows) {
+			if ((arrow.doubleEnded ?? false) !== first) return undefined;
+		}
+		return first;
+	}
+
+	function getCommonCurved(): boolean | undefined {
+		const arrows = getSelectedShapes().filter(s => s.type === 'arrow') as ArrowShape[];
+		if (arrows.length === 0) return undefined;
+		const first = arrows[0].curved ?? false;
+		for (const arrow of arrows) {
+			if ((arrow.curved ?? false) !== first) return undefined;
+		}
+		return first;
+	}
+
+	function toggleDoubleEnded() {
+		const arrows = getSelectedShapes().filter(s => s.type === 'arrow') as ArrowShape[];
+		if (arrows.length === 0) return;
+
+		const currentValue = arrows[0].doubleEnded ?? false;
+		const updatedShapes: Shape[] = arrows.map(a => ({
+			...a,
+			doubleEnded: !currentValue
+		}));
+
+		shapesHistory.updateShapes(updatedShapes);
+
+		if (syncClient && multiplayer) {
+			const op = createUpdateShapesOp(sceneId, clientId, updatedShapes);
+			syncClient.sendOperation(op);
+		}
+	}
+
+	function toggleCurved() {
+		const arrows = getSelectedShapes().filter(s => s.type === 'arrow') as ArrowShape[];
+		if (arrows.length === 0) return;
+
+		const currentValue = arrows[0].curved ?? false;
+		const updatedShapes: Shape[] = arrows.map(a => {
+			const isCurved = !currentValue;
+			// If toggling to curved and only has 2 points, add middle control point
+			if (isCurved && a.points.length === 2) {
+				const midX = (a.points[0][0] + a.points[1][0]) / 2;
+				const midY = (a.points[0][1] + a.points[1][1]) / 2;
+				return {
+					...a,
+					curved: true,
+					points: [a.points[0], [midX, midY - 50], a.points[1]] // Add control point above midpoint
+				};
+			} else if (!isCurved && a.points.length === 3) {
+				// If toggling to straight and has 3 points, remove middle point
+				return {
+					...a,
+					curved: false,
+					points: [a.points[0], a.points[2]]
+				};
+			}
+			return {
+				...a,
+				curved: isCurved
+			};
+		});
+
+		shapesHistory.updateShapes(updatedShapes);
+
+		if (syncClient && multiplayer) {
+			const op = createUpdateShapesOp(sceneId, clientId, updatedShapes);
+			syncClient.sendOperation(op);
+		}
+	}
+
+	// Calculate text height based on wrapping
+	function calculateTextHeight(text: string, width: number, fontSize: number): number {
+		const avgCharWidth = fontSize * 0.6;
+		const charsPerLine = Math.floor(width / avgCharWidth);
+		if (charsPerLine <= 0) return fontSize * 1.2;
+
+		const words = text.split(' ');
+		let lines = 1;
+		let currentLineLength = 0;
+
+		for (const word of words) {
+			if (currentLineLength + word.length > charsPerLine) {
+				lines++;
+				currentLineLength = word.length + 1;
+			} else {
+				currentLineLength += word.length + 1;
+			}
+		}
+
+		return lines * fontSize * 1.2;
+	}
 </script>
 
-<div class="relative h-full w-full" style="cursor: {getToolCursor(tool)}">
+<div class="relative h-full w-full bg-white" style="cursor: {getToolCursor(tool)}">
 	<!-- Toolbar -->
 	<Toolbar />
 
@@ -1062,17 +1416,20 @@
 			{#each shapes as shape (shape.id)}
 				{#if shape.type === 'rect'}
 					{@const rect = shape as RectShape}
+					{@const textHeight = rect.text ? calculateTextHeight(rect.text, rect.width, 14) : 0}
+					{@const effectiveHeight = Math.max(rect.height, textHeight + 20)}
 					<Rect
 						id={rect.id}
 						x={rect.x}
 						y={rect.y}
 						width={rect.width}
-						height={rect.height}
+						height={effectiveHeight}
 						offsetX={rect.width / 2}
-						offsetY={rect.height / 2}
+						offsetY={effectiveHeight / 2}
 						stroke={rect.stroke}
 						strokeWidth={rect.strokeWidth}
 						fill={rect.fill ?? undefined}
+						dash={rect.dash ?? undefined}
 						rotation={rect.rotation}
 						draggable={true}
 						opacity={isSelected(rect.id) ? 0.8 : 1}
@@ -1085,27 +1442,31 @@
 							x={rect.x}
 							y={rect.y}
 							offsetX={rect.width / 2}
-							offsetY={rect.height / 2}
+							offsetY={effectiveHeight / 2}
 							width={rect.width}
-							height={rect.height}
+							height={effectiveHeight}
 							align="center"
 							verticalAlign="middle"
 							text={rect.text}
 							fontSize={14}
+							wrap="word"
 							listening={false}
 						/>
 					{/if}
 				{:else if shape.type === 'ellipse'}
 					{@const el = shape as EllipseShape}
+					{@const textHeight = el.text ? calculateTextHeight(el.text, el.rx * 2, 14) : 0}
+					{@const effectiveRy = Math.max(el.ry, (textHeight + 20) / 2)}
 					<Ellipse
 						id={el.id}
 						x={el.x}
 						y={el.y}
 						radiusX={el.rx}
-						radiusY={el.ry}
+						radiusY={effectiveRy}
 						stroke={el.stroke}
 						strokeWidth={el.strokeWidth}
 						fill={el.fill ?? undefined}
+						dash={el.dash ?? undefined}
 						rotation={el.rotation}
 						draggable={true}
 						opacity={isSelected(el.id) ? 0.8 : 1}
@@ -1118,13 +1479,14 @@
 							x={el.x}
 							y={el.y}
 							offsetX={el.rx}
-							offsetY={el.ry}
+							offsetY={effectiveRy}
 							width={el.rx * 2}
-							height={el.ry * 2}
+							height={effectiveRy * 2}
 							align="center"
 							verticalAlign="middle"
 							text={el.text}
 							fontSize={14}
+							wrap="word"
 							listening={false}
 						/>
 					{/if}
@@ -1148,23 +1510,71 @@
 					/>
 				{:else if shape.type === 'arrow'}
 					{@const a = shape as ArrowShape}
-					<Arrow
-						id={a.id}
-						x={a.x}
-						y={a.y}
-						points={renderArrow(a).points}
-						stroke={a.stroke}
-						strokeWidth={a.strokeWidth}
-						fill={a.stroke}
-						lineCap="round"
-						lineJoin="round"
-						pointerLength={10}
-						pointerWidth={10}
-						draggable={true}
-						opacity={isSelected(a.id) ? 0.8 : 1}
-						onclick={(e) => onShapeClick(a.id, e)}
-						ondragend={(e) => onArrowDragEnd(a, e)}
-					/>
+					{#if a.curved && a.points.length === 3}
+						<!-- Curved arrow using quadratic bezier -->
+						<Line
+							id={a.id}
+							x={a.x}
+							y={a.y}
+							points={renderArrow(a).points}
+							stroke={a.stroke}
+							strokeWidth={a.strokeWidth}
+							dash={a.dash ?? undefined}
+							lineCap="round"
+							lineJoin="round"
+							tension={0.5}
+							draggable={true}
+							opacity={isSelected(a.id) ? 0.8 : 1}
+							onclick={(e) => onShapeClick(a.id, e)}
+							ondragend={(e) => onArrowDragEnd(a, e)}
+						/>
+						<!-- Arrow head at end -->
+						<Arrow
+							x={a.x}
+							y={a.y}
+							points={[a.points[1][0], a.points[1][1], a.points[2][0], a.points[2][1]]}
+							stroke={a.stroke}
+							strokeWidth={a.strokeWidth}
+							fill={a.stroke}
+							pointerLength={10}
+							pointerWidth={10}
+							listening={false}
+						/>
+						{#if a.doubleEnded}
+							<!-- Arrow head at beginning for curved -->
+							<Arrow
+								x={a.x}
+								y={a.y}
+								points={[a.points[1][0], a.points[1][1], a.points[0][0], a.points[0][1]]}
+								stroke={a.stroke}
+								strokeWidth={a.strokeWidth}
+								fill={a.stroke}
+								pointerLength={10}
+								pointerWidth={10}
+								listening={false}
+							/>
+						{/if}
+					{:else}
+						<Arrow
+							id={a.id}
+							x={a.x}
+							y={a.y}
+							points={renderArrow(a).points}
+							stroke={a.stroke}
+							strokeWidth={a.strokeWidth}
+							fill={a.stroke}
+							dash={a.dash ?? undefined}
+							lineCap="round"
+							lineJoin="round"
+							pointerLength={10}
+							pointerWidth={10}
+							pointerAtBeginning={a.doubleEnded ?? false}
+							draggable={true}
+							opacity={isSelected(a.id) ? 0.8 : 1}
+							onclick={(e) => onShapeClick(a.id, e)}
+							ondragend={(e) => onArrowDragEnd(a, e)}
+						/>
+					{/if}
 				{:else if shape.type === 'group'}
 					{@const g = shape as GroupShape}
 					<Group
@@ -1226,8 +1636,29 @@
 				]}
 				rotateEnabled={true}
 				keepRatio={false}
+				borderStroke="#9333EA"
+				anchorFill="#FFFFFF"
+				anchorStroke="#9333EA"
+				anchorCornerRadius={2}
+				ontransform={onTransform}
 				ontransformend={onTransformEnd}
 			/>
+
+			<!-- Arrow endpoint handles -->
+			{#each getSelectedArrows() as arrow (arrow.id)}
+				{#each arrow.points as point, i}
+					<Circle
+						x={arrow.x + point[0]}
+						y={arrow.y + point[1]}
+						radius={6}
+						fill="#FFFFFF"
+						stroke="#9333EA"
+						strokeWidth={2}
+						draggable={true}
+						ondragend={(e) => onArrowEndpointDrag(arrow, i, e)}
+					/>
+				{/each}
+			{/each}
 
 			<!-- Preview shape while drawing -->
 			{#if previewShape && isDrawing}
@@ -1253,8 +1684,6 @@
 						y={el.y}
 						radiusX={el.rx}
 						radiusY={el.ry}
-						offsetX={el.rx}
-						offsetY={el.ry}
 						stroke={el.stroke}
 						strokeWidth={el.strokeWidth}
 						opacity={0.5}
@@ -1300,9 +1729,9 @@
 					y={boxY}
 					width={boxWidth}
 					height={boxHeight}
-					stroke="#2196F3"
+					stroke="#9333EA"
 					strokeWidth={1}
-					fill="rgba(33, 150, 243, 0.1)"
+					fill="rgba(147, 51, 234, 0.1)"
 					dash={[5, 3]}
 					listening={false}
 				/>
@@ -1368,7 +1797,7 @@
 		{#if inputPos}
 			<input
 				type="text"
-				class="absolute z-50 border-2 border-blue-500 bg-white px-2 py-1 text-center focus:outline-none focus:ring-2 focus:ring-blue-300"
+				class="absolute z-50 border-2 border-purple-500 bg-white px-2 py-1 text-center focus:outline-none focus:ring-2 focus:ring-purple-300"
 				style="left: {inputPos.x}px; top: {inputPos.y}px; width: {inputPos.width}px; min-height: {inputPos.height}px;"
 				value={editingTextContent}
 				oninput={handleTextInput}
@@ -1385,6 +1814,134 @@
 				autofocus
 			/>
 		{/if}
+	{/if}
+
+	<!-- Return to content button -->
+	{#if isAwayFromContent()}
+		<button
+			type="button"
+			class="absolute bottom-4 left-1/2 z-50 -translate-x-1/2 transform rounded-lg bg-purple-600 px-4 py-2 font-medium text-white shadow-lg transition-colors hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+			onclick={centerOnContent}
+		>
+			Вернуться к содержимому
+		</button>
+	{/if}
+
+	<!-- Shape properties panel -->
+	{#if selectedIds.size > 0}
+		<div class="absolute left-4 top-20 z-50 flex flex-col gap-2 rounded-lg bg-white p-3 shadow-lg">
+			<div class="text-xs font-semibold text-gray-600">Свойства</div>
+
+			<!-- Fill toggle (not for arrows) -->
+			{#if hasSelectedNonArrows()}
+				<button
+					type="button"
+					class="flex items-center gap-2 rounded px-2 py-1 text-sm hover:bg-gray-100"
+					onclick={toggleFill}
+				>
+					<div
+						class="h-4 w-4 rounded border-2 border-gray-600"
+						style="background-color: {getCommonFill() ? '#D1D5DB' : 'transparent'}"
+					></div>
+					<span>Заливка</span>
+				</button>
+			{/if}
+
+			<!-- Line type toggle -->
+			<button
+				type="button"
+				class="flex items-center gap-2 rounded px-2 py-1 text-sm hover:bg-gray-100"
+				onclick={toggleDash}
+			>
+				<div class="flex h-4 w-4 items-center justify-center">
+					{#if getCommonDash() && getCommonDash()!.length > 0}
+						<svg width="16" height="16" viewBox="0 0 16 16">
+							<line x1="0" y1="8" x2="16" y2="8" stroke="currentColor" stroke-width="2" stroke-dasharray="4 2" />
+						</svg>
+					{:else}
+						<svg width="16" height="16" viewBox="0 0 16 16">
+							<line x1="0" y1="8" x2="16" y2="8" stroke="currentColor" stroke-width="2" />
+						</svg>
+					{/if}
+				</div>
+				<span>Штрих</span>
+			</button>
+
+			<!-- Stroke color -->
+			<div class="flex items-center gap-1">
+				<span class="text-xs text-gray-500">Цвет:</span>
+				<button
+					type="button"
+					class="h-5 w-5 rounded border border-gray-300 bg-black"
+					onclick={() => setStrokeColor('#000000')}
+					aria-label="Black stroke"
+				></button>
+				<button
+					type="button"
+					class="h-5 w-5 rounded border border-gray-300 bg-red-500"
+					onclick={() => setStrokeColor('#EF4444')}
+					aria-label="Red stroke"
+				></button>
+				<button
+					type="button"
+					class="h-5 w-5 rounded border border-gray-300 bg-blue-500"
+					onclick={() => setStrokeColor('#3B82F6')}
+					aria-label="Blue stroke"
+				></button>
+				<button
+					type="button"
+					class="h-5 w-5 rounded border border-gray-300 bg-green-500"
+					onclick={() => setStrokeColor('#22C55E')}
+					aria-label="Green stroke"
+				></button>
+			</div>
+
+			<!-- Arrow-specific options -->
+			{#if hasSelectedArrows()}
+				<div class="mt-2 border-t border-gray-200 pt-2">
+					<div class="text-xs font-semibold text-gray-600">Стрелка</div>
+					<button
+						type="button"
+						class="flex items-center gap-2 rounded px-2 py-1 text-sm hover:bg-gray-100"
+						onclick={toggleDoubleEnded}
+					>
+						<div class="flex h-4 w-4 items-center justify-center">
+							{#if getCommonDoubleEnded()}
+								<svg width="16" height="16" viewBox="0 0 16 16">
+									<line x1="2" y1="8" x2="14" y2="8" stroke="currentColor" stroke-width="2" />
+									<polygon points="2,8 6,5 6,11" fill="currentColor" />
+									<polygon points="14,8 10,5 10,11" fill="currentColor" />
+								</svg>
+							{:else}
+								<svg width="16" height="16" viewBox="0 0 16 16">
+									<line x1="2" y1="8" x2="14" y2="8" stroke="currentColor" stroke-width="2" />
+									<polygon points="14,8 10,5 10,11" fill="currentColor" />
+								</svg>
+							{/if}
+						</div>
+						<span>Двусторонняя</span>
+					</button>
+					<button
+						type="button"
+						class="flex items-center gap-2 rounded px-2 py-1 text-sm hover:bg-gray-100"
+						onclick={toggleCurved}
+					>
+						<div class="flex h-4 w-4 items-center justify-center">
+							{#if getCommonCurved()}
+								<svg width="16" height="16" viewBox="0 0 16 16">
+									<path d="M 2 12 Q 8 2 14 12" stroke="currentColor" stroke-width="2" fill="none" />
+								</svg>
+							{:else}
+								<svg width="16" height="16" viewBox="0 0 16 16">
+									<line x1="2" y1="8" x2="14" y2="8" stroke="currentColor" stroke-width="2" />
+								</svg>
+							{/if}
+						</div>
+						<span>Изогнутая</span>
+					</button>
+				</div>
+			{/if}
+		</div>
 	{/if}
 </div>
 
