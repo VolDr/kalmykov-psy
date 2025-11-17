@@ -52,21 +52,35 @@ export function getShapeBounds(shape: Shape): Bounds | null {
 	}
 }
 
-export function getAnchorPoint(bounds: Bounds, anchor: AnchorSide) {
+export function getAnchorPoint(
+	bounds: Bounds,
+	anchor: AnchorSide,
+	offset?: number
+): { x: number; y: number } {
+	// If offset is provided, use it to position along the edge
+	// Otherwise, use the center of the edge
+	const ratio = offset !== undefined ? offset : 0.5;
+
 	switch (anchor) {
 		case 'top':
-			return { x: bounds.x + bounds.width / 2, y: bounds.y };
+			return {
+				x: bounds.x + bounds.width * ratio,
+				y: bounds.y
+			};
 		case 'bottom':
 			return {
-				x: bounds.x + bounds.width / 2,
+				x: bounds.x + bounds.width * ratio,
 				y: bounds.y + bounds.height
 			};
 		case 'left':
-			return { x: bounds.x, y: bounds.y + bounds.height / 2 };
+			return {
+				x: bounds.x,
+				y: bounds.y + bounds.height * ratio
+			};
 		case 'right':
 			return {
 				x: bounds.x + bounds.width,
-				y: bounds.y + bounds.height / 2
+				y: bounds.y + bounds.height * ratio
 			};
 	}
 }
@@ -77,28 +91,104 @@ function dist2(a: { x: number; y: number }, b: { x: number; y: number }) {
 	return dx * dx + dy * dy;
 }
 
+/**
+ * Find the closest point on a shape's border to the given point.
+ * Returns the anchor side and offset along that side.
+ */
+function findClosestBorderPoint(
+	point: { x: number; y: number },
+	bounds: Bounds
+): { anchor: AnchorSide; offset: number; point: { x: number; y: number }; distance: number } {
+	const { x, y, width, height } = bounds;
+
+	// Check all four edges and find the closest point
+	const edges: Array<{
+		anchor: AnchorSide;
+		closestPoint: { x: number; y: number };
+		offset: number;
+	}> = [
+		// Top edge
+		{
+			anchor: 'top',
+			closestPoint: {
+				x: Math.max(x, Math.min(point.x, x + width)),
+				y: y
+			},
+			offset: Math.max(0, Math.min(1, (Math.max(x, Math.min(point.x, x + width)) - x) / width))
+		},
+		// Bottom edge
+		{
+			anchor: 'bottom',
+			closestPoint: {
+				x: Math.max(x, Math.min(point.x, x + width)),
+				y: y + height
+			},
+			offset: Math.max(0, Math.min(1, (Math.max(x, Math.min(point.x, x + width)) - x) / width))
+		},
+		// Left edge
+		{
+			anchor: 'left',
+			closestPoint: {
+				x: x,
+				y: Math.max(y, Math.min(point.y, y + height))
+			},
+			offset: Math.max(0, Math.min(1, (Math.max(y, Math.min(point.y, y + height)) - y) / height))
+		},
+		// Right edge
+		{
+			anchor: 'right',
+			closestPoint: {
+				x: x + width,
+				y: Math.max(y, Math.min(point.y, y + height))
+			},
+			offset: Math.max(0, Math.min(1, (Math.max(y, Math.min(point.y, y + height)) - y) / height))
+		}
+	];
+
+	// Find the edge with minimum distance
+	let minDistance = Infinity;
+	let bestEdge = edges[0];
+
+	for (const edge of edges) {
+		const distance = Math.sqrt(dist2(point, edge.closestPoint));
+		if (distance < minDistance) {
+			minDistance = distance;
+			bestEdge = edge;
+		}
+	}
+
+	return {
+		anchor: bestEdge.anchor,
+		offset: bestEdge.offset,
+		point: bestEdge.closestPoint,
+		distance: minDistance
+	};
+}
+
 export function findNearestAnchor(
 	point: { x: number; y: number },
 	shapes: Shape[],
 	excludeId?: string,
 	maxDistance = 40
 ): ArrowEndpoint | null {
-	let best: { endpoint: ArrowEndpoint; d2: number } | null = null;
-	const maxD2 = maxDistance * maxDistance;
+	let best: { endpoint: ArrowEndpoint; distance: number } | null = null;
 
 	for (const s of shapes) {
 		if (s.id === excludeId) continue;
 		const bounds = getShapeBounds(s);
 		if (!bounds) continue;
 
-		const anchors: AnchorSide[] = ['top', 'bottom', 'left', 'right'];
+		const closest = findClosestBorderPoint(point, bounds);
 
-		for (const anchor of anchors) {
-			const p = getAnchorPoint(bounds, anchor);
-			const d2 = dist2(point, p);
-			if (d2 <= maxD2 && (!best || d2 < best.d2)) {
-				best = { endpoint: { shapeId: s.id, anchor }, d2 };
-			}
+		if (closest.distance <= maxDistance && (!best || closest.distance < best.distance)) {
+			best = {
+				endpoint: {
+					shapeId: s.id,
+					anchor: closest.anchor,
+					offset: closest.offset
+				},
+				distance: closest.distance
+			};
 		}
 	}
 
@@ -140,7 +230,7 @@ export function updateArrowBindings(arrow: ArrowShape, shapes: Shape[]): ArrowSh
 		if (targetShape) {
 			const bounds = getShapeBounds(targetShape);
 			if (bounds) {
-				const anchorPoint = getAnchorPoint(bounds, arrow.from.anchor);
+				const anchorPoint = getAnchorPoint(bounds, arrow.from.anchor, arrow.from.offset);
 				// Calculate new relative position
 				newPoints[0] = [anchorPoint.x - arrow.x, anchorPoint.y - arrow.y];
 				pointsChanged = true;
@@ -154,7 +244,7 @@ export function updateArrowBindings(arrow: ArrowShape, shapes: Shape[]): ArrowSh
 		if (targetShape) {
 			const bounds = getShapeBounds(targetShape);
 			if (bounds) {
-				const anchorPoint = getAnchorPoint(bounds, arrow.to.anchor);
+				const anchorPoint = getAnchorPoint(bounds, arrow.to.anchor, arrow.to.offset);
 				// Calculate new relative position
 				const lastIdx = newPoints.length - 1;
 				newPoints[lastIdx] = [anchorPoint.x - arrow.x, anchorPoint.y - arrow.y];
@@ -219,4 +309,36 @@ export function updateConnectedArrows(movedShapeIds: string[], shapes: Shape[]):
 	}
 
 	return updatedArrows;
+}
+
+/**
+ * Get expanded bounds for visual feedback during magneting.
+ * Returns null if no shape is being targeted.
+ */
+export function getMagnetFeedbackBounds(
+	point: { x: number; y: number },
+	shapes: Shape[],
+	excludeId?: string,
+	maxDistance = 40
+): { bounds: Bounds; shapeId: string } | null {
+	const endpoint = findNearestAnchor(point, shapes, excludeId, maxDistance);
+	if (!endpoint) return null;
+
+	const targetShape = shapes.find((s) => s.id === endpoint.shapeId);
+	if (!targetShape) return null;
+
+	const bounds = getShapeBounds(targetShape);
+	if (!bounds) return null;
+
+	// Expand bounds slightly for visual feedback
+	const padding = 8;
+	return {
+		bounds: {
+			x: bounds.x - padding,
+			y: bounds.y - padding,
+			width: bounds.width + padding * 2,
+			height: bounds.height + padding * 2
+		},
+		shapeId: endpoint.shapeId
+	};
 }

@@ -13,8 +13,11 @@
 	import { createAddShapesOp } from '$lib/canvas/sync/types';
 	import { CANVAS_FONT_FAMILY, DEFAULT_FONT_SIZE } from '$lib/canvas/constants';
 	import { createDefaultRoughOptions } from '$lib/canvas/engine/rough';
+	import { icons } from '$lib/canvas/ui/icons';
+	import { page } from '$app/stores';
 
-	const sceneId = '550e8400-e29b-41d4-a716-446655440000'; // Demo scene UUID
+	// Get sceneId from URL query parameter or use demo scene UUID
+	let sceneId = $derived($page.url.searchParams.get('id') || '550e8400-e29b-41d4-a716-446655440000');
 
 	let isSaving = $state(false);
 	let isLoading = $state(true);
@@ -204,42 +207,32 @@
 
 <div class="relative h-screen w-screen bg-gray-50">
 	<!-- Toolbar -->
-	<div class="absolute top-4 left-4 z-10 flex gap-2 rounded-lg bg-white p-2 shadow-md">
-		<button
-			onclick={addRect}
-			class="rounded bg-blue-500 px-3 py-1 text-sm text-white hover:bg-blue-600"
-			aria-label="Add rectangle"
-		>
-			Rect
-		</button>
-		<button
-			onclick={addEllipse}
-			class="rounded bg-green-500 px-3 py-1 text-sm text-white hover:bg-green-600"
-			aria-label="Add ellipse"
-		>
-			Ellipse
-		</button>
+	<div class="absolute top-4 left-4 z-10 flex gap-1 rounded-lg bg-white p-2 shadow-md">
 		<button
 			onclick={handleUndo}
-			class="rounded bg-gray-500 px-3 py-1 text-sm text-white hover:bg-gray-600"
+			class="flex h-8 w-8 items-center justify-center rounded hover:bg-gray-100 disabled:opacity-50"
+			title="Undo (Ctrl+Z)"
 			aria-label="Undo"
 		>
-			Undo
+			{@html icons.undo}
 		</button>
 		<button
 			onclick={handleRedo}
-			class="rounded bg-gray-500 px-3 py-1 text-sm text-white hover:bg-gray-600"
+			class="flex h-8 w-8 items-center justify-center rounded hover:bg-gray-100 disabled:opacity-50"
+			title="Redo (Ctrl+Shift+Z)"
 			aria-label="Redo"
 		>
-			Redo
+			{@html icons.redo}
 		</button>
+		<div class="mx-1 w-px bg-gray-200"></div>
 		<button
 			onclick={save}
 			disabled={isSaving}
-			class="rounded bg-purple-500 px-3 py-1 text-sm text-white hover:bg-purple-600 disabled:opacity-50"
+			class="flex h-8 w-8 items-center justify-center rounded hover:bg-gray-100 disabled:opacity-50"
+			title="Save scene"
 			aria-label="Save scene"
 		>
-			{isSaving ? 'Saving...' : 'Save'}
+			{@html icons.save}
 		</button>
 	</div>
 
