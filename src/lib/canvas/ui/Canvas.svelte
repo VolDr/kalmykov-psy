@@ -1132,6 +1132,13 @@
 
 			// Select the new shape
 			selection.set({ ids: new Set([newShape.id]) });
+
+			// Auto-start text editing for text shapes
+			if (newShape.type === 'text') {
+				setTimeout(() => {
+					startTextEditing(newShape.id);
+				}, 10);
+			}
 		}
 
 		previewShape = null;
