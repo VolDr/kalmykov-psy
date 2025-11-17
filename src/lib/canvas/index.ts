@@ -11,6 +11,27 @@ export * from './engine/magnets';
 // Stores
 export * from './stores';
 
+// Clipboard operations
+export * from './clipboard';
+
+// Grouping operations
+export * from './grouping';
+
+// Properties and styling
+export * from './properties';
+
+// Text editing
+export * from './text-editing';
+
+// Layers management
+export * from './layers';
+
+// Keyboard shortcuts
+export * from './keyboard';
+
+// Alignment and distribution
+export * from './alignment';
+
 // Sync (Multiplayer)
 export * from './sync/types';
 export * from './sync/client';
