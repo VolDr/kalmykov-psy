@@ -2,10 +2,21 @@
 	import AccordionItem from '$lib/components/AccordionItem.svelte';
 	import DiplomaModal from '$lib/components/DiplomaModal.svelte';
 	import Reveal from '$lib/components/Reveal.svelte';
-	import { educationGroups } from '$lib/data/education';
+	import { educationGroups as defaultEducationGroups } from '$lib/data/education';
+	import type { EducationGroup } from '$lib/data/education';
 	import { cn } from '$lib/utils';
 
-	let { isOpen = false, reveal = true }: { isOpen?: boolean; reveal?: boolean } = $props();
+	let {
+		isOpen = false,
+		reveal = true,
+		groups
+	}: {
+		isOpen?: boolean;
+		reveal?: boolean;
+		groups?: EducationGroup[];
+	} = $props();
+
+	const educationGroups = $derived(groups || defaultEducationGroups);
 
 	let isModalOpen = $state(false);
 	let selectedDiplomaIndex = $state(0);

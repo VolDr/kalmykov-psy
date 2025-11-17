@@ -113,11 +113,15 @@
 	</div>
 {:else if block.type === 'education'}
 	<div class={block.config.customClass}>
-		<Education isOpen={block.config.isOpen} reveal={block.config.withReveal ?? false} />
+		<Education
+			isOpen={block.config.isOpen}
+			reveal={block.config.withReveal ?? false}
+			groups={block.config.groups}
+		/>
 	</div>
 {:else if block.type === 'faq'}
 	<div class={block.config.customClass}>
-		<Faq />
+		<Faq items={block.config.items} />
 	</div>
 {:else if block.type === 'consultation-info'}
 	<div class={block.config.customClass}>

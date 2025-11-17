@@ -158,6 +158,15 @@ export interface EducationBlock extends BaseBlock {
 		withReveal?: boolean;
 		customClass?: string;
 		// Data comes from education.ts or can be overridden
+		groups?: Array<{
+			category: string;
+			items: Array<{
+				title: string;
+				details: string;
+				diploma?: string;
+				completed: boolean;
+			}>;
+		}>;
 	};
 }
 
@@ -441,7 +450,7 @@ export function createEmptyBlock(type: BlockType): PageBlock {
 			return {
 				...base,
 				type: 'education',
-				config: { isOpen: false, withReveal: true }
+				config: { isOpen: false, withReveal: true, groups: [] }
 			} as EducationBlock;
 
 		case 'faq':
