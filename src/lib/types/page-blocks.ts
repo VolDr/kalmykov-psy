@@ -84,7 +84,13 @@ export interface CardGridBlock extends BaseBlock {
 		gap?: 'sm' | 'md' | 'lg';
 		responsive?: boolean;
 		className?: string;
-		cards: (ListCardConfig | IconCardConfig | ContactCardConfig | LinkCardConfig)[];
+		cards: (
+			| ListCardConfig
+			| IconCardConfig
+			| ContactCardConfig
+			| LinkCardConfig
+			| RichContactCardConfig
+		)[];
 	};
 }
 
@@ -135,6 +141,19 @@ export interface LinkCardConfig {
 	description: string;
 	link: string;
 	cta?: string;
+}
+
+export interface RichContactCardConfig {
+	type: 'rich-contact-card';
+	title: string;
+	introText?: string[];
+	contacts: Array<{
+		icon: string;
+		text: string;
+	}>;
+	additionalLinks?: string[];
+	gridClass?: string;
+	minHeight?: string;
 }
 
 // Unique/Specialized Block Configurations
