@@ -311,14 +311,17 @@
 
 		const scaleBy = 1.05;
 		const oldScale = cam.scale;
-		const stage = stageRef.getStage ? stageRef.getStage() : stageRef;
+
+		// Calculate mouse position in world coordinates BEFORE zoom
+		// Use cam.x/cam.y since the transform is applied to the Layer, not Stage
 		const mousePointTo = {
-			x: (evt.offsetX - stage.x()) / oldScale,
-			y: (evt.offsetY - stage.y()) / oldScale
+			x: (evt.offsetX - cam.x) / oldScale,
+			y: (evt.offsetY - cam.y) / oldScale
 		};
 
 		const newScale = evt.deltaY > 0 ? oldScale / scaleBy : oldScale * scaleBy;
 
+		// Calculate new camera position so that the point under cursor stays fixed
 		const newPos = {
 			x: evt.offsetX - mousePointTo.x * newScale,
 			y: evt.offsetY - mousePointTo.y * newScale
@@ -726,11 +729,11 @@
 
 	// Helper to convert screen coordinates to world coordinates
 	function screenToWorld(screenX: number, screenY: number) {
-		const stage = stageRef?.getStage ? stageRef.getStage() : stageRef;
-		if (!stage) return { x: screenX, y: screenY };
+		// Use cam.x/cam.y since the transform is applied to the Layer, not Stage
+		// Stage coordinates are always (0, 0)
 		return {
-			x: (screenX - stage.x()) / cam.scale,
-			y: (screenY - stage.y()) / cam.scale
+			x: (screenX - cam.x) / cam.scale,
+			y: (screenY - cam.y) / cam.scale
 		};
 	}
 
