@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { PageData, ActionData } from './$types';
-	import type { PageBlock } from '$lib/types/page-blocks';
+	import type { PageBlock, PageLayoutSettings } from '$lib/types/page-blocks';
 	import { enhance } from '$app/forms';
 	import { goto } from '$app/navigation';
 	import Button from '$lib/components/ui/Button.svelte';
@@ -9,10 +9,13 @@
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
 
-	let blocks = $state<PageBlock[]>(data.blocks || []);
+	let blocks = $state<PageBlock[]>(Array.isArray(data.blocks) ? data.blocks : []);
+	let layout = $state<PageLayoutSettings>(data.layout || { maxWidth: 'lg', withContainer: true });
 	let showBlockSelector = $state(false);
 	let showCreatePageModal = $state(false);
+	let showLayoutSettings = $state(false);
 	let hasUnsavedChanges = $state(false);
+	let hasLayoutChanges = $state(false);
 	let newPageSlug = $state('');
 	let newPageName = $state('');
 
@@ -88,8 +91,10 @@
 
 	// Sync blocks when page changes
 	$effect(() => {
-		blocks = data.blocks || [];
+		blocks = Array.isArray(data.blocks) ? data.blocks : [];
+		layout = data.layout || { maxWidth: 'lg', withContainer: true };
 		hasUnsavedChanges = false;
+		hasLayoutChanges = false;
 	});
 
 	// Handle form response for page creation
@@ -98,7 +103,15 @@
 			closeCreatePageModal();
 			goto(`/admin/constructor?page=${form.newPageSlug}`);
 		}
+		if (form?.layoutSaved) {
+			hasLayoutChanges = false;
+		}
 	});
+
+	function updateLayout(key: keyof PageLayoutSettings, value: string | boolean) {
+		layout = { ...layout, [key]: value };
+		hasLayoutChanges = true;
+	}
 </script>
 
 <div class="container mx-auto px-4 py-8">
@@ -145,10 +158,22 @@
 				<span>Добавить блок</span>
 			</Button>
 
+			<Button onclick={() => (showLayoutSettings = !showLayoutSettings)}>
+				<span class="mr-2 icon-[lucide--settings] h-4 w-4"></span>
+				<span>Настройки макета</span>
+			</Button>
+
 			{#if hasUnsavedChanges}
 				<span class="flex items-center gap-1 text-sm text-orange-600">
 					<span class="icon-[lucide--alert-circle] h-4 w-4"></span>
 					Есть несохранённые изменения
+				</span>
+			{/if}
+
+			{#if hasLayoutChanges}
+				<span class="flex items-center gap-1 text-sm text-purple-600">
+					<span class="icon-[lucide--alert-circle] h-4 w-4"></span>
+					Настройки макета изменены
 				</span>
 			{/if}
 		</div>
@@ -171,6 +196,93 @@
 			</Button>
 		</form>
 	</div>
+
+	<!-- Layout Settings Panel -->
+	{#if showLayoutSettings}
+		<div class="mb-6 rounded-lg border bg-white p-4 shadow-sm">
+			<div class="mb-4 flex items-center justify-between">
+				<h2 class="text-lg font-semibold text-gray-800">Настройки макета страницы</h2>
+				<button
+					onclick={() => (showLayoutSettings = false)}
+					class="text-gray-400 hover:text-gray-600"
+					aria-label="Закрыть"
+				>
+					<span class="icon-[lucide--x] h-5 w-5"></span>
+				</button>
+			</div>
+
+			<div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+				<div>
+					<label for="maxWidth" class="mb-1 block text-sm font-medium text-gray-700">
+						Максимальная ширина
+					</label>
+					<select
+						id="maxWidth"
+						value={layout.maxWidth || 'lg'}
+						onchange={(e) => updateLayout('maxWidth', e.currentTarget.value)}
+						class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none"
+					>
+						<option value="sm">Узкая (720px)</option>
+						<option value="md">Средняя (960px)</option>
+						<option value="lg">Широкая (1200px)</option>
+						<option value="xl">Очень широкая (1440px)</option>
+						<option value="full">Во всю ширину</option>
+					</select>
+					<p class="mt-1 text-xs text-gray-500">Определяет максимальную ширину контента</p>
+				</div>
+
+				<div>
+					<label for="containerClass" class="mb-1 block text-sm font-medium text-gray-700">
+						Дополнительные классы
+					</label>
+					<input
+						type="text"
+						id="containerClass"
+						value={layout.containerClass || ''}
+						oninput={(e) => updateLayout('containerClass', e.currentTarget.value)}
+						placeholder="px-4 py-8..."
+						class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none"
+					/>
+					<p class="mt-1 text-xs text-gray-500">Tailwind классы для контейнера</p>
+				</div>
+
+				<div>
+					<span class="mb-1 block text-sm font-medium text-gray-700">Использовать контейнер</span>
+					<div class="mt-2 flex items-center gap-2">
+						<input
+							type="checkbox"
+							id="withContainer"
+							checked={layout.withContainer !== false}
+							onchange={(e) => updateLayout('withContainer', e.currentTarget.checked)}
+							class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+						/>
+						<label for="withContainer" class="text-sm text-gray-600">
+							Обернуть блоки в контейнер
+						</label>
+					</div>
+				</div>
+			</div>
+
+			<div class="mt-4 flex justify-end">
+				<form
+					method="POST"
+					action="?/saveLayout"
+					use:enhance={() => {
+						return async ({ update }) => {
+							await update();
+						};
+					}}
+				>
+					<input type="hidden" name="pageSlug" value={data.selectedPage} />
+					<input type="hidden" name="layout" value={JSON.stringify(layout)} />
+					<Button type="submit" disabled={!hasLayoutChanges}>
+						<span class="mr-2 icon-[lucide--save] h-4 w-4"></span>
+						<span>Сохранить настройки макета</span>
+					</Button>
+				</form>
+			</div>
+		</div>
+	{/if}
 
 	<!-- Blocks list -->
 	<div class="space-y-4">

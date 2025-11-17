@@ -100,7 +100,7 @@
 {:else if block.type === 'home-hero'}
 	<Hero />
 {:else if block.type === 'education'}
-	<Education isOpen={block.config.isOpen} reveal={block.config.withReveal ?? true} />
+	<Education isOpen={block.config.isOpen} reveal={block.config.withReveal ?? false} />
 {:else if block.type === 'faq'}
 	<Faq />
 {:else if block.type === 'consultation-info'}
@@ -110,9 +110,9 @@
 		duration={block.config.duration}
 	/>
 {:else if block.type === 'about-section'}
-	<AboutSection items={block.config.items} />
+	<AboutSection items={block.config.items} withReveal={block.config.withReveal ?? false} />
 {:else if block.type === 'issues-list'}
-	<IssuesList items={block.config.items} />
+	<IssuesList items={block.config.items} withReveal={block.config.withReveal ?? false} />
 {:else if block.type === 'about-intro-dual'}
 	<AboutIntroDual
 		leftImage={block.config.leftImage}

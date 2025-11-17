@@ -1,6 +1,7 @@
 import { pageContentService, serializePageContent } from '$lib/server/page-content.server';
 import { fail } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
+import type { PageLayoutSettings } from '$lib/types/page-blocks';
 
 // Default pages that use block-based structure
 const DEFAULT_BLOCK_PAGES = [
@@ -37,10 +38,19 @@ export const load: PageServerLoad = async ({ url }) => {
 	// Get blocks for selected page
 	const blocksContent = await pageContentService.get(selectedPage, 'blocks');
 
+	// Get layout settings for selected page
+	const layoutContent = await pageContentService.get(selectedPage, 'layout');
+	const layout: PageLayoutSettings = (layoutContent?.content as PageLayoutSettings) || {
+		maxWidth: 'lg',
+		containerClass: '',
+		withContainer: true
+	};
+
 	return {
 		pageOptions,
 		selectedPage,
 		blocks: blocksContent?.content || [],
+		layout,
 		lastUpdated: blocksContent?.updatedAt || null
 	};
 };
@@ -115,6 +125,37 @@ export const actions: Actions = {
 		} catch (error) {
 			console.error('Error creating page:', error);
 			return fail(500, { error: 'Не удалось создать страницу' });
+		}
+	},
+
+	saveLayout: async ({ request }) => {
+		const formData = await request.formData();
+		const pageSlug = formData.get('pageSlug') as string;
+		const layoutJson = formData.get('layout') as string;
+
+		if (!pageSlug) {
+			return fail(400, { error: 'Укажите страницу' });
+		}
+
+		let layout: PageLayoutSettings;
+		try {
+			layout = JSON.parse(layoutJson);
+		} catch {
+			return fail(400, { error: 'Неверный JSON формат' });
+		}
+
+		try {
+			await pageContentService.upsert({
+				pageSlug,
+				sectionKey: 'layout',
+				content: layout,
+				sortOrder: 0,
+				isActive: true
+			});
+			return { success: true, layoutSaved: true };
+		} catch (error) {
+			console.error('Error saving layout:', error);
+			return fail(500, { error: 'Не удалось сохранить настройки макета' });
 		}
 	}
 };

@@ -24,8 +24,32 @@
 
 	const blockMeta = $derived(blockMetadataRegistry.find((b) => b.type === block.type));
 
+	// Block types that support withReveal animation
+	const blocksWithRevealSupport = [
+		'image-text',
+		'issues-list',
+		'about-section',
+		'education',
+		'about-intro-dual'
+	];
+
+	const supportsReveal = $derived(blocksWithRevealSupport.includes(block.type));
+	const hasReveal = $derived(
+		supportsReveal && 'withReveal' in (block.config as Record<string, unknown>)
+			? (block.config as Record<string, unknown>).withReveal
+			: false
+	);
+
 	function toggleActive() {
 		onUpdate({ ...block, isActive: !block.isActive });
+	}
+
+	function toggleReveal() {
+		if (!supportsReveal) return;
+		const config = block.config as Record<string, unknown>;
+		const newConfig = { ...config, withReveal: !config.withReveal };
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		onUpdate({ ...block, config: newConfig as any });
 	}
 
 	function updateFromJson() {
@@ -123,6 +147,18 @@
 				<span class="icon-[lucide--chevron-down] h-4 w-4"></span>
 			</button>
 			<div class="mx-1 h-4 w-px bg-gray-300"></div>
+			{#if supportsReveal}
+				<button
+					onclick={toggleReveal}
+					class="rounded p-1.5 {hasReveal
+						? 'text-amber-600 hover:text-amber-700'
+						: 'text-gray-500 hover:text-amber-600'} hover:bg-gray-200"
+					aria-label={hasReveal ? 'Отключить анимацию' : 'Включить анимацию'}
+					title={hasReveal ? 'Анимация включена' : 'Анимация выключена'}
+				>
+					<span class="icon-[lucide--sparkles] h-4 w-4"></span>
+				</button>
+			{/if}
 			<button
 				onclick={onDuplicate}
 				class="rounded p-1.5 text-gray-500 hover:bg-gray-200 hover:text-blue-600"
@@ -164,7 +200,7 @@
 				<!-- JSON Editor -->
 				<div class="space-y-3">
 					<div class="flex items-center justify-between">
-						<label class="text-sm font-medium text-gray-700">Редактор JSON</label>
+						<span class="text-sm font-medium text-gray-700">Редактор JSON</span>
 						<button onclick={formatJson} class="text-xs text-blue-600 hover:text-blue-800">
 							Форматировать
 						</button>
