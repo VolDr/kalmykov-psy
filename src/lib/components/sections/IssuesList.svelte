@@ -1,27 +1,57 @@
 <script lang="ts">
 	import Reveal from '$lib/components/Reveal.svelte';
 	let {
-		items
+		items,
+		withReveal = false
 	}: {
-		items: Array<{ theme: string; points: string[]; gridClass: string }>;
+		items: Array<{ theme: string; points: string[]; gridClass?: string }>;
+		withReveal?: boolean;
 	} = $props();
 </script>
 
 <div
 	class="m-auto flex max-w-[720px] flex-col items-center gap-10 md:max-w-[960px] lg:max-w-[1200px]"
 >
-	<Reveal>
+	{#if withReveal}
+		<Reveal>
+			<div class="text-center subtitle">
+				Помогаю справляться с тревогой, выгоранием, прокрастинацией и найти путь к жизни, которую
+				вам хочется жить
+			</div>
+		</Reveal>
+	{:else}
 		<div class="text-center subtitle">
 			Помогаю справляться с тревогой, выгоранием, прокрастинацией и найти путь к жизни, которую вам
 			хочется жить
 		</div>
-	</Reveal>
+	{/if}
 
 	<h3 class="subtitle">c чем ко мне обращаются</h3>
 	<div class="grid w-full grid-cols-1 gap-4 px-5 md:grid-cols-2 md:px-0">
 		{#each items as group}
 			<div class="{group.gridClass} min-h-[220px]">
-				<Reveal axis="x" class="h-full">
+				{#if withReveal}
+					<Reveal axis="x" class="h-full">
+						<div
+							class="flex h-full min-h-[180px] flex-col justify-between rounded-lg bg-[#F2F0EF] p-6"
+						>
+							<!-- Заголовок карточки -->
+							<div class="mb-4 flex items-center gap-3">
+								<h4 class="text-lg font-semibold text-[#191919]">{group.theme}</h4>
+							</div>
+
+							<!-- Список пунктов -->
+							<ul class="flex flex-col content-start items-start justify-start gap-2.5 lg:gap-3.5">
+								{#each group.points as point}
+									<li class="flex items-center gap-3">
+										<span class="flex-shrink-0">—</span>
+										<div><div class="reveal-root w-fit"><p>{point}</p></div></div>
+									</li>
+								{/each}
+							</ul>
+						</div>
+					</Reveal>
+				{:else}
 					<div
 						class="flex h-full min-h-[180px] flex-col justify-between rounded-lg bg-[#F2F0EF] p-6"
 					>
@@ -40,7 +70,7 @@
 							{/each}
 						</ul>
 					</div>
-				</Reveal>
+				{/if}
 			</div>
 		{/each}
 	</div>

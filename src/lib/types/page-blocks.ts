@@ -186,6 +186,7 @@ export interface AboutSectionBlock extends BaseBlock {
 			text: string;
 			gridClass?: string;
 		}>;
+		withReveal?: boolean;
 	};
 }
 
@@ -200,6 +201,7 @@ export interface IssuesListBlock extends BaseBlock {
 			points: string[];
 			gridClass?: string;
 		}>;
+		withReveal?: boolean;
 	};
 }
 
