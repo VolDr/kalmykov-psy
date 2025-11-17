@@ -51,6 +51,45 @@
 	} from '../sync/types';
 	import Toolbar from './Toolbar.svelte';
 
+	// Import new modules for integration
+	import { handleKeyboardEvent } from '../keyboard';
+	import {
+		copySelectedShapes,
+		cutSelectedShapes,
+		pasteShapes,
+		duplicateSelectedShapes
+	} from '../clipboard';
+	import {
+		groupSelectedShapes,
+		ungroupSelectedShapes,
+		canGroupSelection,
+		selectionContainsGroups
+	} from '../grouping';
+	import {
+		startTextEditing,
+		commitTextEditing,
+		cancelTextEditing,
+		isEditingText,
+		textEditingState,
+		updateEditingText
+	} from '../text-editing';
+	import {
+		bringToFront,
+		sendToBack,
+		bringForward,
+		sendBackward
+	} from '../layers';
+	import {
+		alignLeft,
+		alignRight,
+		alignCenterHorizontal,
+		alignTop,
+		alignBottom,
+		alignCenterVertical,
+		distributeHorizontally,
+		distributeVertically
+	} from '../alignment';
+
 	// Props for multiplayer mode
 	interface Props {
 		multiplayer?: boolean;
@@ -98,6 +137,11 @@
 	let connectionStatus: ConnectionStatus = $state('disconnected');
 	let remotePresences: Map<string, Presence> = $state(new Map());
 	let localCursor = $state({ x: 0, y: 0 });
+
+	// Text editing state
+	let editingText = $state(false);
+	let editingShapeId: string | null = $state(null);
+	let editingTextContent = $state('');
 
 	// Color palette for remote users
 	const userColors = [
@@ -147,6 +191,13 @@
 		previewShape = null;
 	});
 
+	// Subscribe to text editing state
+	const unsubscribeTextEditing = textEditingState.subscribe((state) => {
+		editingText = state.isEditing;
+		editingShapeId = state.shapeId;
+		editingTextContent = state.currentText;
+	});
+
 	// Update transformer nodes when selection changes
 	$effect(() => {
 		if (!transformerRef) return;
@@ -169,6 +220,7 @@
 		unsubscribeSel();
 		unsubscribeCam();
 		unsubscribeTool();
+		unsubscribeTextEditing();
 		if (syncClient) {
 			syncClient.destroy();
 		}
@@ -509,84 +561,79 @@
 	// === Hotkeys (RU/EN - by code) ===
 
 	function handleKeyDown(e: KeyboardEvent) {
-		// ctrl/cmd + Z — undo
-		if (e.code === 'KeyZ' && (e.ctrlKey || e.metaKey) && !e.shiftKey) {
-			e.preventDefault();
-			shapesHistory.undo();
-			return;
-		}
-
-		// ctrl/cmd + shift + Z — redo
-		if (e.code === 'KeyZ' && (e.ctrlKey || e.metaKey) && (e.shiftKey || e.altKey)) {
-			e.preventDefault();
-			shapesHistory.redo();
-			return;
-		}
-
-		// Delete / Backspace — delete selected
-		if (e.code === 'Delete' || e.code === 'Backspace') {
-			if (selectedIds.size > 0) {
+		// Handle text editing input
+		if (editingText && editingShapeId) {
+			// Let text input handle its own keys
+			if (e.code === 'Escape') {
 				e.preventDefault();
-				const ids = Array.from(selectedIds);
-				shapesHistory.deleteShapes(ids);
-
-				// Broadcast to other clients
-				if (syncClient && multiplayer) {
-					const op = createDeleteShapesOp(sceneId, clientId, ids);
-					syncClient.sendOperation(op);
-				}
-
-				clearSelection();
+				cancelTextEditing();
+				return;
 			}
+			if (e.code === 'Enter' && !e.shiftKey) {
+				e.preventDefault();
+				commitTextEditing();
+				return;
+			}
+			// Don't intercept other keys during text editing
 			return;
 		}
 
-		// ctrl + D — duplicate
-		if (e.code === 'KeyD' && (e.ctrlKey || e.metaKey)) {
-			e.preventDefault();
-			if (!selectedIds.size) return;
-			const ids = Array.from(selectedIds);
-			const toCopy = shapes.filter((s) => ids.includes(s.id));
-			const copies = toCopy.map((s) => ({
-				...s,
-				id: crypto.randomUUID(),
-				x: s.x + 20,
-				y: s.y + 20
-			}));
-			shapesHistory.addShapes(copies);
+		// Use the new keyboard manager for all shortcuts
+		const handled = handleKeyboardEvent(e);
 
-			// Broadcast to other clients
-			if (syncClient && multiplayer) {
-				const op = createAddShapesOp(sceneId, clientId, copies);
-				syncClient.sendOperation(op);
-			}
-
+		// If keyboard manager handled it, we're done
+		if (handled) {
+			// Broadcast operations to multiplayer if needed
+			// The keyboard manager already executed the action
 			return;
 		}
+	}
 
-		// Tool switching hotkeys (only when no modifiers pressed)
-		if (!e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey) {
-			switch (e.code) {
-				case 'KeyV':
-					setTool('select');
-					break;
-				case 'KeyR':
-					setTool('rect');
-					break;
-				case 'KeyE':
-					setTool('ellipse');
-					break;
-				case 'KeyA':
-					setTool('arrow');
-					break;
-				case 'KeyT':
-					setTool('text');
-					break;
-				case 'KeyH':
-					setTool('pan');
-					break;
-			}
+	// Handle double-click for text editing
+	function handleDoubleClick(shapeId: string) {
+		const shape = shapes.find((s) => s.id === shapeId);
+		if (!shape) return;
+
+		// Start text editing for shapes that support it
+		if (shape.type === 'text' || shape.type === 'rect' || shape.type === 'ellipse') {
+			startTextEditing(shapeId);
 		}
+	}
+
+	// Handle text input change
+	function handleTextInput(e: Event) {
+		const target = e.target as HTMLInputElement;
+		updateEditingText(target.value);
+	}
+
+	// Commit text editing on blur
+	function handleTextBlur() {
+		if (editingText) {
+			commitTextEditing();
+		}
+	}
+
+	// Get screen position for text editing overlay
+	function getEditingInputPosition(): { x: number; y: number; width: number; height: number } | null {
+		if (!editingShapeId) return null;
+
+		const shape = shapes.find((s) => s.id === editingShapeId);
+		if (!shape) return null;
+
+		const bounds = getShapeBounds(shape);
+
+		// Convert world coordinates to screen coordinates
+		const screenX = bounds.x * cam.scale + cam.x;
+		const screenY = bounds.y * cam.scale + cam.y;
+		const screenWidth = bounds.width * cam.scale;
+		const screenHeight = bounds.height * cam.scale;
+
+		return {
+			x: screenX,
+			y: screenY,
+			width: Math.max(screenWidth, 100),
+			height: Math.max(screenHeight, 30)
+		};
 	}
 
 	onMount(() => {
@@ -950,6 +997,7 @@
 							opacity: isSelected(rect.id) ? 0.8 : 1
 						}}
 						on:click={(e) => onShapeClick(rect.id, e)}
+						on:dblclick={() => handleDoubleClick(rect.id)}
 						on:dragend={(e) => onShapeDragEnd(rect, e)}
 						on:load={(e) => registerShapeRef(rect.id, e.detail as KonvaNode)}
 					/>
@@ -989,6 +1037,7 @@
 							opacity: isSelected(el.id) ? 0.8 : 1
 						}}
 						on:click={(e) => onShapeClick(el.id, e)}
+						on:dblclick={() => handleDoubleClick(el.id)}
 						on:dragend={(e) => onShapeDragEnd(el, e)}
 						on:load={(e) => registerShapeRef(el.id, e.detail as KonvaNode)}
 					/>
@@ -1026,6 +1075,7 @@
 							opacity: isSelected(t.id) ? 0.8 : 1
 						}}
 						on:click={(e) => onShapeClick(t.id, e)}
+						on:dblclick={() => handleDoubleClick(t.id)}
 						on:dragend={(e) => onShapeDragEnd(t, e)}
 						on:load={(e) => registerShapeRef(t.id, e.detail as KonvaNode)}
 					/>
@@ -1268,6 +1318,31 @@
 			{/if}
 		</Layer>
 	</Stage>
+
+	<!-- Text editing input overlay -->
+	{#if editingText && editingShapeId}
+		{@const inputPos = getEditingInputPosition()}
+		{#if inputPos}
+			<input
+				type="text"
+				class="absolute z-50 border-2 border-blue-500 bg-white px-2 py-1 text-center focus:outline-none focus:ring-2 focus:ring-blue-300"
+				style="left: {inputPos.x}px; top: {inputPos.y}px; width: {inputPos.width}px; min-height: {inputPos.height}px;"
+				value={editingTextContent}
+				oninput={handleTextInput}
+				onblur={handleTextBlur}
+				onkeydown={(e) => {
+					if (e.key === 'Escape') {
+						e.preventDefault();
+						cancelTextEditing();
+					} else if (e.key === 'Enter' && !e.shiftKey) {
+						e.preventDefault();
+						commitTextEditing();
+					}
+				}}
+				autofocus
+			/>
+		{/if}
+	{/if}
 </div>
 
 <style>
