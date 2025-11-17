@@ -29,6 +29,9 @@ export * from './layers';
 // Keyboard shortcuts
 export * from './keyboard';
 
+// Alignment and distribution
+export * from './alignment';
+
 // Sync (Multiplayer)
 export * from './sync/types';
 export * from './sync/client';
