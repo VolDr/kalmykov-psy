@@ -44,6 +44,7 @@ export interface PageHeroBlock extends BaseBlock {
 		maxWidth?: 'sm' | 'md' | 'lg';
 		titleLineHeight?: 'tight' | 'relaxed';
 		subtitleRowStart?: '8' | '9';
+		customClass?: string;
 	};
 }
 
@@ -59,6 +60,7 @@ export interface ImageTextBlock extends BaseBlock {
 		layout: 'image-left' | 'image-right';
 		paragraphs: string[];
 		withReveal?: boolean;
+		customClass?: string;
 	};
 }
 
@@ -93,6 +95,7 @@ export interface TextBlockSectionBlock extends BaseBlock {
 			title: string;
 			data: string[];
 		}>;
+		customClass?: string;
 	};
 }
 
@@ -144,6 +147,7 @@ export interface HomeHeroBlock extends BaseBlock {
 		titleLine2?: string;
 		subtitle?: string;
 		subtitleSecondary?: string;
+		customClass?: string;
 	};
 }
 
@@ -152,6 +156,7 @@ export interface EducationBlock extends BaseBlock {
 	config: {
 		isOpen?: boolean;
 		withReveal?: boolean;
+		customClass?: string;
 		// Data comes from education.ts or can be overridden
 	};
 }
@@ -164,6 +169,7 @@ export interface FaqBlock extends BaseBlock {
 			question: string;
 			answer: string;
 		}>;
+		customClass?: string;
 	};
 }
 
@@ -173,6 +179,7 @@ export interface ConsultationInfoBlock extends BaseBlock {
 		price: string;
 		format: string;
 		duration: string;
+		customClass?: string;
 	};
 }
 
@@ -187,6 +194,7 @@ export interface AboutSectionBlock extends BaseBlock {
 			gridClass?: string;
 		}>;
 		withReveal?: boolean;
+		customClass?: string;
 	};
 }
 
@@ -202,6 +210,7 @@ export interface IssuesListBlock extends BaseBlock {
 			gridClass?: string;
 		}>;
 		withReveal?: boolean;
+		customClass?: string;
 	};
 }
 
@@ -227,6 +236,7 @@ export interface AboutIntroDualBlock extends BaseBlock {
 			imgClass?: string;
 		};
 		withReveal?: boolean;
+		customClass?: string;
 	};
 }
 

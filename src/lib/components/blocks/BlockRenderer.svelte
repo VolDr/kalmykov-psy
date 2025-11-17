@@ -30,97 +30,121 @@
 {#if !block.isActive}
 	<!-- Skip inactive blocks -->
 {:else if block.type === 'page-hero'}
-	<PageHero
-		title={block.config.title}
-		subtitle={block.config.subtitle}
-		subtitleSecondary={block.config.subtitleSecondary}
-		maxWidth={block.config.maxWidth}
-		titleLineHeight={block.config.titleLineHeight}
-		subtitleRowStart={block.config.subtitleRowStart}
-	/>
+	<div class={block.config.customClass}>
+		<PageHero
+			title={block.config.title}
+			subtitle={block.config.subtitle}
+			subtitleSecondary={block.config.subtitleSecondary}
+			maxWidth={block.config.maxWidth}
+			titleLineHeight={block.config.titleLineHeight}
+			subtitleRowStart={block.config.subtitleRowStart}
+		/>
+	</div>
 {:else if block.type === 'image-text'}
-	<ImageTextBlock
-		image={block.config.image}
-		layout={block.config.layout}
-		paragraphs={block.config.paragraphs}
-		withReveal={block.config.withReveal}
-	/>
+	<div class={block.config.customClass}>
+		<ImageTextBlock
+			image={block.config.image}
+			layout={block.config.layout}
+			paragraphs={block.config.paragraphs}
+			withReveal={block.config.withReveal}
+		/>
+	</div>
 {:else if block.type === 'section-container'}
-	<SectionContainer
-		title={block.config.title}
-		subtitle={block.config.subtitle}
-		maxWidth={block.config.maxWidth}
-		gap={block.config.gap}
-		titleAlign={block.config.titleAlign}
-		class={block.config.className}
-	>
-		{#each block.config.children as childBlock (childBlock.id)}
-			<svelte:self block={childBlock} />
-		{/each}
-	</SectionContainer>
+	<div class={block.config.customClass}>
+		<SectionContainer
+			title={block.config.title}
+			subtitle={block.config.subtitle}
+			maxWidth={block.config.maxWidth}
+			gap={block.config.gap}
+			titleAlign={block.config.titleAlign}
+			class={block.config.className}
+		>
+			{#each block.config.children as childBlock (childBlock.id)}
+				<svelte:self block={childBlock} />
+			{/each}
+		</SectionContainer>
+	</div>
 {:else if block.type === 'card-grid'}
-	<CardGrid
-		cols={block.config.cols}
-		gap={block.config.gap}
-		responsive={block.config.responsive}
-		class={block.config.className}
-	>
-		{#each block.config.cards as card}
-			{#if card.type === 'list-card'}
-				<ListCard
-					title={card.title}
-					points={card.points}
-					gridClass={card.gridClass}
-					minHeight={card.minHeight}
-					withReveal={card.withReveal}
-					justify={card.justify}
-				/>
-			{:else if card.type === 'icon-card'}
-				<IconCard
-					icon={card.icon}
-					highlight={card.highlight}
-					text={card.text}
-					gridClass={card.gridClass}
-					minHeight={card.minHeight}
-					withReveal={card.withReveal}
-					showIcon={card.showIcon}
-				/>
-			{:else if card.type === 'contact-card'}
-				<ContactCard
-					title={card.title}
-					phone={card.phone}
-					link={card.link}
-					minHeight={card.minHeight}
-				/>
-			{/if}
-		{/each}
-	</CardGrid>
+	<div class={block.config.customClass}>
+		<CardGrid
+			cols={block.config.cols}
+			gap={block.config.gap}
+			responsive={block.config.responsive}
+			class={block.config.className}
+		>
+			{#each block.config.cards as card}
+				{#if card.type === 'list-card'}
+					<ListCard
+						title={card.title}
+						points={card.points}
+						gridClass={card.gridClass}
+						minHeight={card.minHeight}
+						withReveal={card.withReveal}
+						justify={card.justify}
+					/>
+				{:else if card.type === 'icon-card'}
+					<IconCard
+						icon={card.icon}
+						highlight={card.highlight}
+						text={card.text}
+						gridClass={card.gridClass}
+						minHeight={card.minHeight}
+						withReveal={card.withReveal}
+						showIcon={card.showIcon}
+					/>
+				{:else if card.type === 'contact-card'}
+					<ContactCard
+						title={card.title}
+						phone={card.phone}
+						link={card.link}
+						minHeight={card.minHeight}
+					/>
+				{/if}
+			{/each}
+		</CardGrid>
+	</div>
 {:else if block.type === 'text-block-section'}
-	<TextBlockSection blocks={block.config.blocks} />
+	<div class={block.config.customClass}>
+		<TextBlockSection blocks={block.config.blocks} />
+	</div>
 {:else if block.type === 'home-hero'}
-	<Hero />
+	<div class={block.config.customClass}>
+		<Hero />
+	</div>
 {:else if block.type === 'education'}
-	<Education isOpen={block.config.isOpen} reveal={block.config.withReveal ?? false} />
+	<div class={block.config.customClass}>
+		<Education isOpen={block.config.isOpen} reveal={block.config.withReveal ?? false} />
+	</div>
 {:else if block.type === 'faq'}
-	<Faq />
+	<div class={block.config.customClass}>
+		<Faq />
+	</div>
 {:else if block.type === 'consultation-info'}
-	<ConsultationInfo
-		price={block.config.price}
-		format={block.config.format}
-		duration={block.config.duration}
-	/>
+	<div class={block.config.customClass}>
+		<ConsultationInfo
+			price={block.config.price}
+			format={block.config.format}
+			duration={block.config.duration}
+		/>
+	</div>
 {:else if block.type === 'about-section'}
-	<AboutSection items={block.config.items} withReveal={block.config.withReveal ?? false} />
+	<div class={block.config.customClass}>
+		<AboutSection items={block.config.items} withReveal={block.config.withReveal ?? false} />
+	</div>
 {:else if block.type === 'issues-list'}
-	<IssuesList items={block.config.items} withReveal={block.config.withReveal ?? false} />
+	<div class={block.config.customClass}>
+		<IssuesList items={block.config.items} withReveal={block.config.withReveal ?? false} />
+	</div>
 {:else if block.type === 'about-intro-dual'}
-	<AboutIntroDual
-		leftImage={block.config.leftImage}
-		leftTexts={block.config.leftTexts}
-		rightTexts={block.config.rightTexts}
-		rightImage={block.config.rightImage}
-		withReveal={block.config.withReveal}
-	/>
+	<div class={block.config.customClass}>
+		<AboutIntroDual
+			leftImage={block.config.leftImage}
+			leftTexts={block.config.leftTexts}
+			rightTexts={block.config.rightTexts}
+			rightImage={block.config.rightImage}
+			withReveal={block.config.withReveal}
+		/>
+	</div>
 {:else}
 	<div class="rounded border border-red-300 bg-red-50 p-4 text-red-600">
 		Неизвестный тип блока: {block.type}

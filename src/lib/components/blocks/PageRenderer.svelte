@@ -14,6 +14,16 @@
 		[...page.blocks].sort((a, b) => a.sortOrder - b.sortOrder).filter((b) => b.isActive)
 	);
 
+	// Blocks that should NOT be wrapped in container
+	// (hero blocks and other full-width sections)
+	const fullWidthBlockTypes = ['page-hero', 'home-hero'];
+
+	// Split blocks into hero and body sections
+	const heroBlocks = $derived(sortedBlocks.filter((b) => fullWidthBlockTypes.includes(b.type)));
+	const bodyBlocks = $derived(
+		sortedBlocks.filter((b) => !fullWidthBlockTypes.includes(b.type))
+	);
+
 	// Map maxWidth setting to Tailwind classes
 	const maxWidthClasses = {
 		sm: 'max-w-[720px]',
@@ -45,8 +55,16 @@
 	<meta name="twitter:image" content={page.seo.ogImage || '/header.webp'} />
 </svelte:head>
 
-<div class={cn('page-content', containerClass())}>
-	{#each sortedBlocks as block (block.id)}
+<div class="page-content">
+	<!-- Hero blocks (full width, no container) -->
+	{#each heroBlocks as block (block.id)}
 		<BlockRenderer {block} />
 	{/each}
+
+	<!-- Body blocks (wrapped in container if withContainer is enabled) -->
+	<div class={containerClass()}>
+		{#each bodyBlocks as block (block.id)}
+			<BlockRenderer {block} />
+		{/each}
+	</div>
 </div>
