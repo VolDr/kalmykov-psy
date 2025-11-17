@@ -54,28 +54,43 @@ export const load: PageServerLoad = async ({ url }) => {
 	const names: Array<{
 		id: string;
 		value: string;
-		numOfActivities: number;
+		lastSessionDate: string | null;
 		nick: string | undefined;
 	}> = [];
 
 	clients.forEach((c) => {
 		const nick = c.nick ?? undefined;
+		// Find the latest session date
+		const lastSessionDate =
+			c.activities.length > 0
+				? c.activities.reduce((latest, activity) => {
+						const activityDate = new Date(activity.scheduledDate);
+						return activityDate > new Date(latest) ? activity.scheduledDate : latest;
+					}, c.activities[0].scheduledDate)
+				: null;
+
 		names.push({
 			id: c.id,
 			value: c.name,
-			numOfActivities: c.activities.length,
+			lastSessionDate,
 			nick
 		});
 		if (nick !== undefined) {
 			names.push({
 				id: c.id,
 				value: nick,
-				numOfActivities: c.activities.length,
+				lastSessionDate,
 				nick
 			});
 		}
 	});
-	names.sort((a, b) => b.numOfActivities - a.numOfActivities);
+	// Sort by last session date (DESC), clients without sessions at the end
+	names.sort((a, b) => {
+		if (a.lastSessionDate === null && b.lastSessionDate === null) return 0;
+		if (a.lastSessionDate === null) return 1;
+		if (b.lastSessionDate === null) return -1;
+		return new Date(b.lastSessionDate).getTime() - new Date(a.lastSessionDate).getTime();
+	});
 
 	const suggestedSources = (await sourceService.getAll()).map((c) => c.name);
 
