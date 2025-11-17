@@ -619,14 +619,21 @@
 				node.scaleY(1);
 			} else if (shape.type === 'text') {
 				const text = shape as TextShape;
+				const currentWidth = text.width ?? text.text.length * text.fontSize * 0.6;
+				const currentHeight = text.height ?? text.fontSize * 1.2;
 				updated = {
 					...text,
 					x,
 					y,
+					width: currentWidth * scaleX,
+					height: currentHeight * scaleY,
 					rotation,
-					scaleX,
-					scaleY
+					scaleX: 1,
+					scaleY: 1
 				};
+				// Reset node scale after applying to dimensions
+				node.scaleX(1);
+				node.scaleY(1);
 			} else {
 				// For other shapes, just update position and rotation
 				updated = {
@@ -664,6 +671,30 @@
 				syncClient.sendOperation(op);
 			}
 		}
+	}
+
+	// Shape drag move - real-time update for smooth movement
+	function onShapeDragMove(shape: Shape, e: any) {
+		const node = e.target;
+		const pos = node.position();
+
+		const updated: Shape = {
+			...shape,
+			x: pos.x,
+			y: pos.y
+		};
+
+		// Get current shapes and update the moved shape
+		const currentShapes = shapes.map((s) => (s.id === shape.id ? updated : s));
+
+		// Update all arrows connected to this shape in real-time
+		const connectedArrowUpdates = updateConnectedArrows([shape.id], currentShapes);
+
+		// Combine updates
+		const allUpdates = [updated, ...connectedArrowUpdates];
+
+		// Update without history for visual feedback
+		shapesHistory.applyRemoteUpdate(allUpdates);
 	}
 
 	function onShapeDragEnd(shape: Shape, e: any) {
@@ -1528,6 +1559,7 @@
 							opacity={isSelected(rect.id) ? 0.8 : 1}
 							onclick={(e) => onShapeClick(rect.id, e)}
 							ondblclick={() => handleDoubleClick(rect.id)}
+							ondragmove={(e) => onShapeDragMove(rect, e)}
 							ondragend={(e) => onShapeDragEnd(rect, e)}
 						/>
 					{/if}
@@ -1575,6 +1607,7 @@
 							opacity={isSelected(el.id) ? 0.8 : 1}
 							onclick={(e) => onShapeClick(el.id, e)}
 							ondblclick={() => handleDoubleClick(el.id)}
+							ondragmove={(e) => onShapeDragMove(el, e)}
 							ondragend={(e) => onShapeDragEnd(el, e)}
 						/>
 					{/if}
@@ -1596,22 +1629,41 @@
 					{/if}
 				{:else if shape.type === 'text'}
 					{@const t = shape as TextShape}
-					<KonvaText
+					{@const textWidth = t.width ?? t.text.length * t.fontSize * 0.6}
+					{@const textHeight = t.height ?? t.fontSize * 1.2}
+					<!-- Invisible rect for transformer support -->
+					<Rect
 						id={t.id}
 						x={t.x}
 						y={t.y}
-						offsetX={(t.width ?? t.text.length * t.fontSize * 0.6) / 2}
-						offsetY={(t.height ?? t.fontSize * 1.2) / 2}
+						width={textWidth}
+						height={textHeight}
+						offsetX={textWidth / 2}
+						offsetY={textHeight / 2}
+						rotation={t.rotation}
+						draggable={true}
+						opacity={isSelected(t.id) ? 0.8 : 1}
+						onclick={(e) => onShapeClick(t.id, e)}
+						ondblclick={() => handleDoubleClick(t.id)}
+						ondragmove={(e) => onShapeDragMove(t, e)}
+						ondragend={(e) => onShapeDragEnd(t, e)}
+					/>
+					<!-- Text content -->
+					<KonvaText
+						x={t.x}
+						y={t.y}
+						offsetX={textWidth / 2}
+						offsetY={textHeight / 2}
+						width={textWidth}
+						height={textHeight}
 						text={t.text}
 						fontSize={t.fontSize}
 						fontFamily={t.fontFamily}
 						fill={t.fill ?? t.stroke ?? '#000000'}
 						align={t.align}
-						draggable={true}
-						opacity={isSelected(t.id) ? 0.8 : 1}
-						onclick={(e) => onShapeClick(t.id, e)}
-						ondblclick={() => handleDoubleClick(t.id)}
-						ondragend={(e) => onShapeDragEnd(t, e)}
+						verticalAlign="middle"
+						rotation={t.rotation}
+						listening={false}
 					/>
 				{:else if shape.type === 'arrow'}
 					{@const a = shape as ArrowShape}
@@ -1710,6 +1762,7 @@
 						draggable={true}
 						opacity={isSelected(g.id) ? 0.8 : 1}
 						onclick={(e) => onShapeClick(g.id, e)}
+						ondragmove={(e) => onShapeDragMove(g, e)}
 						ondragend={(e) => onShapeDragEnd(g, e)}
 					>
 						<!-- Group children are rendered by looking up child shapes -->
@@ -1830,14 +1883,34 @@
 					/>
 				{:else if previewShape.type === 'text'}
 					{@const t = previewShape as TextShape}
+					{@const previewWidth = t.width ?? 50}
+					{@const previewHeight = t.height ?? 20}
+					<!-- Preview rect outline -->
+					<Rect
+						x={t.x}
+						y={t.y}
+						width={previewWidth}
+						height={previewHeight}
+						offsetX={previewWidth / 2}
+						offsetY={previewHeight / 2}
+						opacity={0.5}
+						dash={[10, 5]}
+						stroke="#9333EA"
+						strokeWidth={1}
+						listening={false}
+					/>
 					<KonvaText
 						x={t.x}
 						y={t.y}
-						offsetX={(t.width ?? 50) / 2}
-						offsetY={(t.height ?? 20) / 2}
+						offsetX={previewWidth / 2}
+						offsetY={previewHeight / 2}
+						width={previewWidth}
+						height={previewHeight}
 						text={t.text}
 						fontSize={t.fontSize}
 						fill={t.fill ?? t.stroke ?? '#000000'}
+						align="center"
+						verticalAlign="middle"
 						opacity={0.5}
 						listening={false}
 					/>
