@@ -2,7 +2,12 @@
 	import AccordionItem from '$lib/components/AccordionItem.svelte';
 	import Reveal from '$lib/components/Reveal.svelte';
 	import MarkdownLink from '$lib/components/MarkdownLink.svelte';
-	import { faqItems } from '$lib/data/faq';
+	import { faqItems as defaultFaqItems } from '$lib/data/faq';
+	import type { FaqItem } from '$lib/data/faq';
+
+	let { items }: { items?: FaqItem[] } = $props();
+
+	const faqItems = $derived(items || defaultFaqItems);
 </script>
 
 <div class="flex w-full flex-col items-center gap-2.5 md:gap-3.5">

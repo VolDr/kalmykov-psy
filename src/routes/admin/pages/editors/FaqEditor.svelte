@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { FaqBlock } from '$lib/types/page-blocks';
+	import { faqItems } from '$lib/data/faq';
 
 	interface Props {
 		block: FaqBlock;
@@ -7,6 +8,8 @@
 	}
 
 	let { block, onUpdate }: Props = $props();
+
+	const isUsingDefaults = $derived(!block.config.items || block.config.items.length === 0);
 
 	function updateConfig<K extends keyof FaqBlock['config']>(
 		key: K,
@@ -19,16 +22,20 @@
 		onUpdate(updated);
 	}
 
+	function loadDefaults() {
+		updateConfig('items', JSON.parse(JSON.stringify(faqItems)));
+	}
+
+	function clearCustomData() {
+		updateConfig('items', undefined);
+	}
+
 	function addItem() {
 		const items = [...(block.config.items || []), { question: '', answer: '' }];
 		updateConfig('items', items);
 	}
 
-	function updateItem(
-		index: number,
-		field: 'question' | 'answer',
-		value: string
-	) {
+	function updateItem(index: number, field: 'question' | 'answer', value: string) {
 		const items = [...(block.config.items || [])];
 		items[index] = { ...items[index], [field]: value };
 		updateConfig('items', items);
@@ -42,30 +49,49 @@
 
 <div class="space-y-4">
 	<div class="rounded bg-blue-50 p-3 text-sm text-blue-700">
-		{#if !block.config.items || block.config.items.length === 0}
-			Данные по умолчанию берутся из файла src/lib/data/faq.ts. Добавьте вопросы ниже для
-			переопределения.
+		{#if isUsingDefaults}
+			Используются данные по умолчанию из файла src/lib/data/faq.ts. Нажмите "Загрузить данные
+			по умолчанию" для редактирования.
 		{:else}
-			Используются пользовательские вопросы. Удалите все вопросы для использования данных по
-			умолчанию.
+			Используются пользовательские данные. Нажмите "Сбросить" для возврата к данным по умолчанию.
 		{/if}
 	</div>
 
-	<div>
-		<div class="mb-2 flex items-center justify-between">
-			<label class="block text-sm font-medium text-gray-700">Вопросы и ответы</label>
+	<div class="flex gap-2">
+		{#if isUsingDefaults}
 			<button
-				onclick={addItem}
-				class="rounded bg-blue-600 px-3 py-1 text-xs text-white hover:bg-blue-700"
+				onclick={loadDefaults}
+				class="rounded bg-blue-600 px-3 py-1.5 text-sm text-white hover:bg-blue-700"
 				type="button"
 			>
-				+ Добавить вопрос
+				Загрузить данные по умолчанию
 			</button>
-		</div>
+		{:else}
+			<button
+				onclick={clearCustomData}
+				class="rounded bg-gray-600 px-3 py-1.5 text-sm text-white hover:bg-gray-700"
+				type="button"
+			>
+				Сбросить
+			</button>
+		{/if}
+	</div>
 
-		{#if block.config.items && block.config.items.length > 0}
+	{#if !isUsingDefaults}
+		<div>
+			<div class="mb-2 flex items-center justify-between">
+				<label class="block text-sm font-medium text-gray-700">Вопросы и ответы</label>
+				<button
+					onclick={addItem}
+					class="rounded bg-blue-600 px-3 py-1 text-xs text-white hover:bg-blue-700"
+					type="button"
+				>
+					+ Добавить вопрос
+				</button>
+			</div>
+
 			<div class="space-y-3">
-				{#each block.config.items as item, i (i)}
+				{#each block.config.items || [] as item, i (i)}
 					<div class="rounded border border-gray-200 p-3">
 						<div class="mb-2 flex items-center justify-between">
 							<span class="text-xs font-medium text-gray-500">Вопрос {i + 1}</span>
@@ -97,6 +123,6 @@
 					</div>
 				{/each}
 			</div>
-		{/if}
-	</div>
+		</div>
+	{/if}
 </div>
