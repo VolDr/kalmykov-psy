@@ -11,7 +11,10 @@
 
 	let blocks = $state<PageBlock[]>(data.blocks || []);
 	let showBlockSelector = $state(false);
+	let showCreatePageModal = $state(false);
 	let hasUnsavedChanges = $state(false);
+	let newPageSlug = $state('');
+	let newPageName = $state('');
 
 	function selectPage(pageSlug: string) {
 		if (hasUnsavedChanges && !confirm('Есть несохранённые изменения. Продолжить?')) {
@@ -71,10 +74,30 @@
 		hasUnsavedChanges = true;
 	}
 
+	function openCreatePageModal() {
+		newPageSlug = '';
+		newPageName = '';
+		showCreatePageModal = true;
+	}
+
+	function closeCreatePageModal() {
+		showCreatePageModal = false;
+		newPageSlug = '';
+		newPageName = '';
+	}
+
 	// Sync blocks when page changes
 	$effect(() => {
 		blocks = data.blocks || [];
 		hasUnsavedChanges = false;
+	});
+
+	// Handle form response for page creation
+	$effect(() => {
+		if (form?.newPageSlug) {
+			closeCreatePageModal();
+			goto(`/admin/constructor?page=${form.newPageSlug}`);
+		}
 	});
 </script>
 
@@ -83,7 +106,7 @@
 		<h1 class="mb-4 text-3xl font-bold text-gray-800">Конструктор страниц</h1>
 
 		<!-- Page selector -->
-		<div class="mb-6 flex flex-wrap gap-2">
+		<div class="mb-6 flex flex-wrap items-center gap-2">
 			{#each data.pageOptions as page (page.slug)}
 				<button
 					onclick={() => selectPage(page.slug)}
@@ -95,6 +118,14 @@
 					{page.name}
 				</button>
 			{/each}
+			<button
+				onclick={openCreatePageModal}
+				class="flex items-center gap-1 rounded-lg border-2 border-dashed border-gray-300 px-4 py-2 text-sm font-medium text-gray-500 transition-colors hover:border-blue-400 hover:text-blue-600"
+				aria-label="Создать новую страницу"
+			>
+				<span class="icon-[lucide--plus] h-4 w-4"></span>
+				<span>Новая страница</span>
+			</button>
 		</div>
 	</div>
 
@@ -178,4 +209,91 @@
 <!-- Block selector modal -->
 {#if showBlockSelector}
 	<BlockSelector onSelect={addBlock} onClose={() => (showBlockSelector = false)} />
+{/if}
+
+<!-- Create page modal -->
+{#if showCreatePageModal}
+	<div
+		class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+		role="dialog"
+		aria-modal="true"
+		aria-labelledby="create-page-title"
+	>
+		<div class="w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
+			<div class="mb-4 flex items-center justify-between">
+				<h2 id="create-page-title" class="text-xl font-semibold text-gray-800">
+					Создать новую страницу
+				</h2>
+				<button
+					onclick={closeCreatePageModal}
+					class="text-gray-400 transition-colors hover:text-gray-600"
+					aria-label="Закрыть"
+				>
+					<span class="icon-[lucide--x] h-5 w-5"></span>
+				</button>
+			</div>
+
+			<form
+				method="POST"
+				action="?/createPage"
+				use:enhance={() => {
+					return async ({ update }) => {
+						await update();
+					};
+				}}
+			>
+				<div class="space-y-4">
+					<div>
+						<label for="pageName" class="mb-1 block text-sm font-medium text-gray-700">
+							Название страницы
+						</label>
+						<input
+							type="text"
+							id="pageName"
+							name="pageName"
+							bind:value={newPageName}
+							placeholder="Например: О компании"
+							class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+						/>
+						<p class="mt-1 text-xs text-gray-500">
+							Отображаемое название в списке страниц
+						</p>
+					</div>
+
+					<div>
+						<label for="pageSlug" class="mb-1 block text-sm font-medium text-gray-700">
+							Slug страницы <span class="text-red-500">*</span>
+						</label>
+						<input
+							type="text"
+							id="pageSlug"
+							name="pageSlug"
+							bind:value={newPageSlug}
+							placeholder="Например: about-company"
+							required
+							pattern="[a-z0-9-]+"
+							class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+						/>
+						<p class="mt-1 text-xs text-gray-500">
+							URL страницы (только латинские буквы в нижнем регистре, цифры и дефисы)
+						</p>
+					</div>
+				</div>
+
+				<div class="mt-6 flex justify-end gap-3">
+					<button
+						type="button"
+						onclick={closeCreatePageModal}
+						class="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+					>
+						Отмена
+					</button>
+					<Button type="submit" disabled={!newPageSlug}>
+						<span class="icon-[lucide--plus] mr-2 h-4 w-4"></span>
+						<span>Создать</span>
+					</Button>
+				</div>
+			</form>
+		</div>
+	</div>
 {/if}
