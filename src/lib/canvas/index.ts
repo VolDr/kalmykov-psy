@@ -26,6 +26,9 @@ export * from './text-editing';
 // Layers management
 export * from './layers';
 
+// Keyboard shortcuts
+export * from './keyboard';
+
 // Sync (Multiplayer)
 export * from './sync/types';
 export * from './sync/client';
