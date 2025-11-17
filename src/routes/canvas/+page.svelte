@@ -96,6 +96,7 @@
 			scaleY: 1,
 			stroke: '#e8590c',
 			strokeWidth: 3,
+			doubleEnded: true,
 			from: { shapeId: rect.id, anchor: 'right' },
 			to: { shapeId: ellipse.id, anchor: 'left' }
 		};
