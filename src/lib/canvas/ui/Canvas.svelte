@@ -171,10 +171,14 @@
 		}
 	}
 
+	console.log('[Canvas] Component script initializing');
+
 	const unsubscribeShapes = shapesHistory.subscribe((state) => {
+		console.log('[Canvas] shapes updated', { count: state.shapes.length, shapes: state.shapes });
 		shapes = state.shapes;
 	});
 	const unsubscribeSel = selection.subscribe((s) => {
+		console.log('[Canvas] selection updated', { ids: Array.from(s.ids) });
 		selectedIds = s.ids;
 		// Broadcast selection change to other clients
 		if (syncClient && multiplayer) {
@@ -182,9 +186,11 @@
 		}
 	});
 	const unsubscribeCam = camera.subscribe((c) => {
+		console.log('[Canvas] camera updated', c);
 		cam = c;
 	});
 	const unsubscribeTool = currentTool.subscribe((t) => {
+		console.log('[Canvas] tool changed', { tool: t });
 		tool = t;
 		// Clear drawing state when tool changes
 		isDrawing = false;
@@ -641,6 +647,13 @@
 	}
 
 	onMount(() => {
+		console.log('[Canvas] onMount called', {
+			stageWidth,
+			stageHeight,
+			shapesCount: shapes.length,
+			tool,
+			cam
+		});
 		if (typeof window !== 'undefined') {
 			window.addEventListener('keydown', handleKeyDown);
 			window.addEventListener('resize', updateDimensions);
@@ -1003,7 +1016,10 @@
 		on:mousemove={handleMouseMove}
 		on:mouseup={handleMouseUp}
 		on:click={handleStageClick}
-		on:load={(e) => (stageRef = e.detail as KonvaStage)}
+		on:load={(e) => {
+			console.log('[Canvas] Stage loaded', e.detail);
+			stageRef = e.detail as KonvaStage;
+		}}
 	>
 		<Layer
 			config={{
@@ -1012,7 +1028,10 @@
 				scaleX: cam.scale,
 				scaleY: cam.scale
 			}}
-			on:load={(e) => (layerRef = e.detail as KonvaLayer)}
+			on:load={(e) => {
+				console.log('[Canvas] Layer loaded', e.detail);
+				layerRef = e.detail as KonvaLayer;
+			}}
 		>
 			{#each shapes as shape (shape.id)}
 				{#if shape.type === 'rect'}
