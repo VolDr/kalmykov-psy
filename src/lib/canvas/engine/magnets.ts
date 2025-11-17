@@ -124,3 +124,108 @@ export function attachArrowEndToNearestShape(
 		[end]: endpoint
 	};
 }
+
+/**
+ * Update arrow endpoints to match their bound shape positions.
+ * Call this when a shape moves to keep connected arrows attached.
+ */
+export function updateArrowBindings(
+	arrow: ArrowShape,
+	shapes: Shape[]
+): ArrowShape {
+	let updated = { ...arrow };
+	let pointsChanged = false;
+	const newPoints = [...arrow.points];
+
+	// Update 'from' endpoint (first point)
+	if (arrow.from) {
+		const targetShape = shapes.find((s) => s.id === arrow.from!.shapeId);
+		if (targetShape) {
+			const bounds = getShapeBounds(targetShape);
+			if (bounds) {
+				const anchorPoint = getAnchorPoint(bounds, arrow.from.anchor);
+				// Calculate new relative position
+				newPoints[0] = [anchorPoint.x - arrow.x, anchorPoint.y - arrow.y];
+				pointsChanged = true;
+			}
+		}
+	}
+
+	// Update 'to' endpoint (last point)
+	if (arrow.to) {
+		const targetShape = shapes.find((s) => s.id === arrow.to!.shapeId);
+		if (targetShape) {
+			const bounds = getShapeBounds(targetShape);
+			if (bounds) {
+				const anchorPoint = getAnchorPoint(bounds, arrow.to.anchor);
+				// Calculate new relative position
+				const lastIdx = newPoints.length - 1;
+				newPoints[lastIdx] = [anchorPoint.x - arrow.x, anchorPoint.y - arrow.y];
+				pointsChanged = true;
+			}
+		}
+	}
+
+	if (pointsChanged) {
+		updated = { ...updated, points: newPoints };
+	}
+
+	return updated;
+}
+
+/**
+ * Find all arrows that are bound to a specific shape.
+ */
+export function findArrowsConnectedToShape(
+	shapeId: string,
+	shapes: Shape[]
+): ArrowShape[] {
+	const connectedArrows: ArrowShape[] = [];
+
+	for (const shape of shapes) {
+		if (shape.type === 'arrow') {
+			const arrow = shape as ArrowShape;
+			if (arrow.from?.shapeId === shapeId || arrow.to?.shapeId === shapeId) {
+				connectedArrows.push(arrow);
+			}
+		}
+	}
+
+	return connectedArrows;
+}
+
+/**
+ * Update all arrows connected to moved shapes.
+ * Returns the list of arrows that were updated.
+ */
+export function updateConnectedArrows(
+	movedShapeIds: string[],
+	shapes: Shape[]
+): ArrowShape[] {
+	const updatedArrows: ArrowShape[] = [];
+	const processedArrowIds = new Set<string>();
+
+	for (const shapeId of movedShapeIds) {
+		const connectedArrows = findArrowsConnectedToShape(shapeId, shapes);
+
+		for (const arrow of connectedArrows) {
+			if (processedArrowIds.has(arrow.id)) continue;
+			processedArrowIds.add(arrow.id);
+
+			const updatedArrow = updateArrowBindings(arrow, shapes);
+			// Only add if something changed
+			if (
+				updatedArrow.points[0][0] !== arrow.points[0][0] ||
+				updatedArrow.points[0][1] !== arrow.points[0][1] ||
+				updatedArrow.points[updatedArrow.points.length - 1][0] !==
+					arrow.points[arrow.points.length - 1][0] ||
+				updatedArrow.points[updatedArrow.points.length - 1][1] !==
+					arrow.points[arrow.points.length - 1][1]
+			) {
+				updatedArrows.push(updatedArrow);
+			}
+		}
+	}
+
+	return updatedArrows;
+}
