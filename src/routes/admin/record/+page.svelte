@@ -12,7 +12,7 @@
 
 	let { data }: { data: PageData } = $props();
 
-	let isNewClient = $state(data.initialClientId === undefined);
+	let isNewClient = $state(false);
 	let notPhone = $state(false);
 	let isSubmitting = $state(false);
 
