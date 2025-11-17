@@ -3,7 +3,7 @@
 
 	import HeroBackground from '$lib/components/HeroBackground.svelte';
 	import Education from '$lib/components/sections/Education.svelte';
-	import { parseMarkdownLinks } from '$lib/utils/markdown';
+
 	import MarkdownLink from '$lib/components/MarkdownLink.svelte';
 
 	export const items = [
@@ -281,7 +281,7 @@
 		class="col-span-1 md:col-span-1 flex-col max-w-[720px] md:max-w-[960px] lg:max-w-[1200px] mx-auto flex gap-2.5 md:gap-3.5 items-stretch w-full px-5 mt-8"
 	>
 		<div class="w-full">
-			<Education isOpen={true} />
+			<Education  reveal={false} />
 		</div>
 
 		<!-- Контакты для связи -->
@@ -303,7 +303,7 @@
 						<span
 							><MarkdownLink
 								text="
-						[+7 906 534-82-41](https://api.whatsapp.com/send?phone=79065378241)  
+						[+7 906 537-82-41](https://api.whatsapp.com/send?phone=79065378241)  
 				"
 							/></span
 						>

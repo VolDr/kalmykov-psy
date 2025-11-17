@@ -5,7 +5,7 @@
 	import { educationGroups } from '$lib/data/education';
 	import { cn } from '$lib/utils';
 
-	let { isOpen = false }: { isOpen?: boolean } = $props();
+	let { isOpen = false, reveal = true }: { isOpen?: boolean, reveal?: boolean } = $props();
 
 	let isModalOpen = $state(false);
 	let selectedDiplomaIndex = $state(0);
@@ -28,11 +28,18 @@
 </script>
 
 <div class="w-full">
-	<AccordionItem {isOpen}>
+	<AccordionItem >
 		{#snippet header()}
-			<Reveal width="full" axis="x">
+		 {#if reveal}
+				<Reveal width="full" axis="x">
 				<h3 id="education" class="subtitle">где я учился</h3>
 			</Reveal>
+		 {/if}
+		 {#if !reveal}
+		 
+				<h3 id="education" class="subtitle">где я учился</h3>
+		
+		 {/if}
 		{/snippet}
 		{#snippet children()}
 			<div class="pl-4 lg:pl-32">
