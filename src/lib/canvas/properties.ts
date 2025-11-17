@@ -2,6 +2,7 @@
 import { writable, get } from 'svelte/store';
 import type { Shape } from './model/shapes';
 import { shapesHistory, selection } from './stores';
+import { CANVAS_FONT_FAMILY, DEFAULT_FONT_SIZE } from './constants';
 
 /**
  * Default style properties for creating new shapes
@@ -35,8 +36,8 @@ const DEFAULT_STYLE: StyleProperties = {
 };
 
 const DEFAULT_TEXT: TextProperties = {
-	fontSize: 16,
-	fontFamily: 'Arial',
+	fontSize: DEFAULT_FONT_SIZE,
+	fontFamily: CANVAS_FONT_FAMILY,
 	align: 'left'
 };
 

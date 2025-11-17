@@ -11,8 +11,10 @@
 		TextShape
 	} from '$lib/canvas/model/shapes';
 	import { createAddShapesOp } from '$lib/canvas/sync/types';
+	import { CANVAS_FONT_FAMILY, DEFAULT_FONT_SIZE } from '$lib/canvas/constants';
+	import { createDefaultRoughOptions } from '$lib/canvas/engine/rough';
 
-	const sceneId = 'demo-scene-001';
+	const sceneId = '550e8400-e29b-41d4-a716-446655440000'; // Demo scene UUID
 
 	let isSaving = $state(false);
 	let isLoading = $state(true);
@@ -63,7 +65,8 @@
 			stroke: '#1971c2',
 			strokeWidth: 2,
 			fill: '#d0ebff',
-			text: 'Rectangle'
+			text: 'Rectangle',
+			roughOptions: createDefaultRoughOptions()
 		};
 
 		const ellipse: EllipseShape = {
@@ -78,7 +81,8 @@
 			scaleY: 1,
 			stroke: '#2f9e44',
 			strokeWidth: 2,
-			fill: '#d8f5a2'
+			fill: '#d8f5a2',
+			roughOptions: createDefaultRoughOptions()
 		};
 
 		const arrow: ArrowShape = {
@@ -95,6 +99,7 @@
 			scaleY: 1,
 			stroke: '#e8590c',
 			strokeWidth: 3,
+			doubleEnded: true,
 			from: { shapeId: rect.id, anchor: 'right' },
 			to: { shapeId: ellipse.id, anchor: 'left' }
 		};
@@ -106,7 +111,7 @@
 			y: 350,
 			text: 'Excalidraw Clone',
 			fontSize: 24,
-			fontFamily: 'Arial',
+			fontFamily: CANVAS_FONT_FAMILY,
 			align: 'center',
 			rotation: 0,
 			scaleX: 1,
