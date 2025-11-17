@@ -8,16 +8,12 @@ import { fail } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 
 const PAGE_OPTIONS = [
-	{ slug: 'home', name: 'Главная страница' },
-	{ slug: 'online-therapy', name: 'Онлайн-терапия' },
-	{ slug: 'for-doctors', name: 'Для врачей' },
-	{ slug: 'sos', name: 'Экстренная помощь' },
 	{ slug: 'articles', name: 'Статьи' },
 	{ slug: 'surveys', name: 'Опросники' }
 ];
 
 export const load: PageServerLoad = async ({ url }) => {
-	const selectedPage = url.searchParams.get('page') || 'home';
+	const selectedPage = url.searchParams.get('page') || 'articles';
 	const pageContent = await pageContentService.getAllForPage(selectedPage);
 	const siteSettings = await siteSettingsService.getAllRaw();
 
