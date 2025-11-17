@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
+	import { get } from 'svelte/store';
 	import {
 		Stage,
 		Layer,
@@ -41,7 +42,8 @@
 		EllipseShape,
 		TextShape,
 		ArrowShape,
-		GroupShape
+		GroupShape,
+		SceneData
 	} from '../model/shapes';
 	import {
 		createSyncClient,
@@ -100,6 +102,8 @@
 		sceneId?: string;
 		userId?: string;
 		userName?: string;
+		autoSave?: boolean;
+		autoSaveDelay?: number;
 	}
 
 	let {
@@ -107,7 +111,9 @@
 		wsUrl = '',
 		sceneId = '',
 		userId = undefined,
-		userName = undefined
+		userName = undefined,
+		autoSave = true, // Auto-save enabled by default
+		autoSaveDelay = 2000 // Auto-save delay in ms (2 seconds)
 	}: Props = $props();
 
 	let stageRef: KonvaStage | null = $state(null);
@@ -188,9 +194,58 @@
 
 	console.log('[Canvas] Component script initializing');
 
+	// Auto-save state
+	let autoSaveTimer: ReturnType<typeof setTimeout> | null = null;
+	let isSaving = $state(false);
+	let lastSaveTime = $state<number | null>(null);
+
+	// Auto-save function with debounce
+	async function autoSaveScene() {
+		if (!autoSave || !sceneId || isSaving) return;
+
+		// Clear existing timer
+		if (autoSaveTimer) {
+			clearTimeout(autoSaveTimer);
+		}
+
+		// Set new timer
+		autoSaveTimer = setTimeout(async () => {
+			isSaving = true;
+			try {
+				const shapesState = get(shapesHistory);
+				const cameraSnapshot = get(camera);
+
+				const scene: SceneData = {
+					id: sceneId,
+					shapes: shapesState.shapes,
+					camera: cameraSnapshot
+				};
+
+				const res = await fetch(`/api/scenes/${sceneId}`, {
+					method: 'PUT',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify(scene)
+				});
+
+				if (res.ok) {
+					lastSaveTime = Date.now();
+					console.log('[Canvas] Auto-saved successfully');
+				} else {
+					console.error('[Canvas] Auto-save failed:', await res.text());
+				}
+			} catch (err) {
+				console.error('[Canvas] Auto-save error:', err);
+			} finally {
+				isSaving = false;
+			}
+		}, autoSaveDelay);
+	}
+
 	const unsubscribeShapes = shapesHistory.subscribe((state) => {
 		console.log('[Canvas] shapes updated', { count: state.shapes.length, shapes: state.shapes });
 		shapes = state.shapes;
+		// Trigger auto-save on shapes change
+		autoSaveScene();
 	});
 	const unsubscribeSel = selection.subscribe((s) => {
 		console.log('[Canvas] selection updated', { ids: Array.from(s.ids) });
@@ -203,6 +258,8 @@
 	const unsubscribeCam = camera.subscribe((c) => {
 		console.log('[Canvas] camera updated', c);
 		cam = c;
+		// Trigger auto-save on camera change
+		autoSaveScene();
 	});
 	const unsubscribeTool = currentTool.subscribe((t) => {
 		console.log('[Canvas] tool changed', { tool: t });
@@ -364,6 +421,10 @@
 		unsubscribeCam();
 		unsubscribeTool();
 		unsubscribeTextEditing();
+		// Clear auto-save timer
+		if (autoSaveTimer) {
+			clearTimeout(autoSaveTimer);
+		}
 		if (syncClient) {
 			syncClient.destroy();
 		}
@@ -2392,6 +2453,50 @@
 						</div>
 						<span>Изогнутая</span>
 					</button>
+				</div>
+			{/if}
+		</div>
+	{/if}
+
+	<!-- Auto-save indicator -->
+	{#if autoSave && sceneId}
+		<div class="fixed bottom-4 right-4 z-50 rounded-lg bg-white px-3 py-2 text-xs shadow-md">
+			{#if isSaving}
+				<div class="flex items-center gap-2 text-gray-600">
+					<svg
+						class="h-3 w-3 animate-spin"
+						xmlns="http://www.w3.org/2000/svg"
+						fill="none"
+						viewBox="0 0 24 24"
+					>
+						<circle
+							class="opacity-25"
+							cx="12"
+							cy="12"
+							r="10"
+							stroke="currentColor"
+							stroke-width="4"
+						></circle>
+						<path
+							class="opacity-75"
+							fill="currentColor"
+							d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+						></path>
+					</svg>
+					<span>Сохранение...</span>
+				</div>
+			{:else if lastSaveTime}
+				<div class="flex items-center gap-2 text-green-600">
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						class="h-3 w-3"
+						fill="none"
+						viewBox="0 0 24 24"
+						stroke="currentColor"
+					>
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+					</svg>
+					<span>Автосохранено</span>
 				</div>
 			{/if}
 		</div>
