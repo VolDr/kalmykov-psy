@@ -2,6 +2,17 @@
 	import type { PageBlock } from '$lib/types/page-blocks';
 	import { blockMetadataRegistry } from '$lib/types/page-blocks';
 	import PageHeroEditor from './PageHeroEditor.svelte';
+	import ImageTextEditor from './ImageTextEditor.svelte';
+	import SectionContainerEditor from './SectionContainerEditor.svelte';
+	import CardGridEditor from './CardGridEditor.svelte';
+	import TextBlockSectionEditor from './TextBlockSectionEditor.svelte';
+	import HomeHeroEditor from './HomeHeroEditor.svelte';
+	import EducationEditor from './EducationEditor.svelte';
+	import FaqEditor from './FaqEditor.svelte';
+	import ConsultationInfoEditor from './ConsultationInfoEditor.svelte';
+	import AboutSectionEditor from './AboutSectionEditor.svelte';
+	import IssuesListEditor from './IssuesListEditor.svelte';
+	import AboutIntroDualEditor from './AboutIntroDualEditor.svelte';
 
 	interface Props {
 		block: PageBlock;
@@ -235,6 +246,28 @@
 				<!-- Type-specific editors -->
 				{#if block.type === 'page-hero'}
 					<PageHeroEditor {block} onUpdate={(b) => onUpdate(b)} />
+				{:else if block.type === 'image-text'}
+					<ImageTextEditor {block} onUpdate={(b) => onUpdate(b)} />
+				{:else if block.type === 'section-container'}
+					<SectionContainerEditor {block} onUpdate={(b) => onUpdate(b)} />
+				{:else if block.type === 'card-grid'}
+					<CardGridEditor {block} onUpdate={(b) => onUpdate(b)} />
+				{:else if block.type === 'text-block-section'}
+					<TextBlockSectionEditor {block} onUpdate={(b) => onUpdate(b)} />
+				{:else if block.type === 'home-hero'}
+					<HomeHeroEditor {block} onUpdate={(b) => onUpdate(b)} />
+				{:else if block.type === 'education'}
+					<EducationEditor {block} onUpdate={(b) => onUpdate(b)} />
+				{:else if block.type === 'faq'}
+					<FaqEditor {block} onUpdate={(b) => onUpdate(b)} />
+				{:else if block.type === 'consultation-info'}
+					<ConsultationInfoEditor {block} onUpdate={(b) => onUpdate(b)} />
+				{:else if block.type === 'about-section'}
+					<AboutSectionEditor {block} onUpdate={(b) => onUpdate(b)} />
+				{:else if block.type === 'issues-list'}
+					<IssuesListEditor {block} onUpdate={(b) => onUpdate(b)} />
+				{:else if block.type === 'about-intro-dual'}
+					<AboutIntroDualEditor {block} onUpdate={(b) => onUpdate(b)} />
 				{:else}
 					<!-- Fallback to JSON for blocks without visual editor -->
 					<div class="rounded border border-dashed border-gray-300 bg-gray-50 p-4 text-center">
@@ -250,6 +283,30 @@
 						</button>
 					</div>
 				{/if}
+
+				<!-- Custom CSS Classes (common for all blocks) -->
+				<div class="mt-4 border-t pt-4">
+					<label for="custom-class" class="mb-1 block text-sm font-medium text-gray-700">
+						Дополнительные Tailwind классы
+					</label>
+					<input
+						id="custom-class"
+						type="text"
+						value={('customClass' in block.config ? block.config.customClass : '') || ''}
+						oninput={(e) => {
+							const config = block.config as Record<string, unknown>;
+							onUpdate({
+								...block,
+								config: { ...config, customClass: e.currentTarget.value || undefined }
+							});
+						}}
+						class="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+						placeholder="bg-gray-100 py-8 mb-12"
+					/>
+					<p class="mt-1 text-xs text-gray-500">
+						Эти классы будут применены к обёртке блока
+					</p>
+				</div>
 			{/if}
 		</div>
 	{/if}
