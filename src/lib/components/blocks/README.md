@@ -6,16 +6,16 @@
 
 ```svelte
 <script>
-  import {
-    PageHero,
-    ImageTextBlock,
-    SectionContainer,
-    CardGrid,
-    TextBlockSection,
-    ListCard,
-    IconCard,
-    ContactCard
-  } from '$lib/components/blocks';
+	import {
+		PageHero,
+		ImageTextBlock,
+		SectionContainer,
+		CardGrid,
+		TextBlockSection,
+		ListCard,
+		IconCard,
+		ContactCard
+	} from '$lib/components/blocks';
 </script>
 ```
 
@@ -27,24 +27,24 @@ Hero секция с фоновым изображением и градиент
 
 ### Props
 
-| Prop | Тип | По умолчанию | Описание |
-|------|-----|--------------|----------|
-| `title` | `string` | required | Заголовок страницы |
-| `subtitle` | `string` | required | Подзаголовок |
-| `subtitleSecondary` | `string` | `''` | Дополнительный подзаголовок |
-| `maxWidth` | `'sm' \| 'md' \| 'lg'` | `'lg'` | Максимальная ширина (960px / 1200px) |
-| `titleLineHeight` | `'tight' \| 'relaxed'` | `'relaxed'` | Межстрочный интервал заголовка |
-| `subtitleRowStart` | `'8' \| '9'` | `'8'` | Позиция subtitle в grid (row-start-8 или row-start-9) |
+| Prop                | Тип                    | По умолчанию | Описание                                              |
+| ------------------- | ---------------------- | ------------ | ----------------------------------------------------- |
+| `title`             | `string`               | required     | Заголовок страницы                                    |
+| `subtitle`          | `string`               | required     | Подзаголовок                                          |
+| `subtitleSecondary` | `string`               | `''`         | Дополнительный подзаголовок                           |
+| `maxWidth`          | `'sm' \| 'md' \| 'lg'` | `'lg'`       | Максимальная ширина (960px / 1200px)                  |
+| `titleLineHeight`   | `'tight' \| 'relaxed'` | `'relaxed'`  | Межстрочный интервал заголовка                        |
+| `subtitleRowStart`  | `'8' \| '9'`           | `'8'`        | Позиция subtitle в grid (row-start-8 или row-start-9) |
 
 ### Пример использования
 
 ```svelte
 <PageHero
-  title="Как мы будем работать"
-  subtitle="Здесь собрана важная информация о консультациях"
-  subtitleSecondary="Пожалуйста, прочитайте внимательно"
-  maxWidth="sm"
-  titleLineHeight="tight"
+	title="Как мы будем работать"
+	subtitle="Здесь собрана важная информация о консультациях"
+	subtitleSecondary="Пожалуйста, прочитайте внимательно"
+	maxWidth="sm"
+	titleLineHeight="tight"
 />
 ```
 
@@ -64,22 +64,22 @@ Hero секция с фоновым изображением и градиент
 
 ### Props
 
-| Prop | Тип | По умолчанию | Описание |
-|------|-----|--------------|----------|
-| `image` | `ImageProps` | required | Данные изображения |
-| `layout` | `'image-left' \| 'image-right'` | `'image-left'` | Расположение изображения |
-| `paragraphs` | `string[]` | `[]` | Массив параграфов текста |
-| `textContent` | `Snippet` | `undefined` | Кастомный контент (snippet) |
-| `withReveal` | `boolean` | `false` | Анимация появления |
+| Prop          | Тип                             | По умолчанию   | Описание                    |
+| ------------- | ------------------------------- | -------------- | --------------------------- |
+| `image`       | `ImageProps`                    | required       | Данные изображения          |
+| `layout`      | `'image-left' \| 'image-right'` | `'image-left'` | Расположение изображения    |
+| `paragraphs`  | `string[]`                      | `[]`           | Массив параграфов текста    |
+| `textContent` | `Snippet`                       | `undefined`    | Кастомный контент (snippet) |
+| `withReveal`  | `boolean`                       | `false`        | Анимация появления          |
 
 ### ImageProps
 
 ```typescript
 interface ImageProps {
-  src: string;
-  srcSmall?: string;
-  alt: string;
-  imgClass?: string;
+	src: string;
+	srcSmall?: string;
+	alt: string;
+	imgClass?: string;
 }
 ```
 
@@ -89,18 +89,14 @@ interface ImageProps {
 
 ```svelte
 <ImageTextBlock
-  image={{
-    src: '/1.webp',
-    srcSmall: '/1_small.webp',
-    alt: 'Андрей',
-    imgClass: 'h-[320px] w-[285px] lg:h-[720px] lg:w-[505px]'
-  }}
-  layout="image-left"
-  paragraphs={[
-    'Первый параграф текста.',
-    'Второй параграф текста.',
-    'Третий параграф текста.'
-  ]}
+	image={{
+		src: '/1.webp',
+		srcSmall: '/1_small.webp',
+		alt: 'Андрей',
+		imgClass: 'h-[320px] w-[285px] lg:h-[720px] lg:w-[505px]'
+	}}
+	layout="image-left"
+	paragraphs={['Первый параграф текста.', 'Второй параграф текста.', 'Третий параграф текста.']}
 />
 ```
 
@@ -108,32 +104,29 @@ interface ImageProps {
 
 ```svelte
 <ImageTextBlock
-  image={{
-    src: '/2.webp',
-    srcSmall: '/2_small.webp',
-    alt: 'Психолог'
-  }}
-  layout="image-right"
-  paragraphs={content.aboutText}
-  withReveal={true}
+	image={{
+		src: '/2.webp',
+		srcSmall: '/2_small.webp',
+		alt: 'Психолог'
+	}}
+	layout="image-right"
+	paragraphs={content.aboutText}
+	withReveal={true}
 />
 ```
 
 **С кастомным контентом:**
 
 ```svelte
-<ImageTextBlock
-  image={{ src: '/1.webp', alt: 'Андрей' }}
-  layout="image-left"
->
-  {#snippet textContent()}
-    <Reveal>
-      <div class="container mx-auto flex flex-col gap-4">
-        <p>Кастомный контент с особой разметкой.</p>
-        <a href="/link">Ссылка</a>
-      </div>
-    </Reveal>
-  {/snippet}
+<ImageTextBlock image={{ src: '/1.webp', alt: 'Андрей' }} layout="image-left">
+	{#snippet textContent()}
+		<Reveal>
+			<div class="container mx-auto flex flex-col gap-4">
+				<p>Кастомный контент с особой разметкой.</p>
+				<a href="/link">Ссылка</a>
+			</div>
+		</Reveal>
+	{/snippet}
 </ImageTextBlock>
 ```
 
@@ -150,30 +143,30 @@ interface ImageProps {
 
 ### Props
 
-| Prop | Тип | По умолчанию | Описание |
-|------|-----|--------------|----------|
-| `title` | `string` | `''` | Заголовок секции |
-| `subtitle` | `string` | `''` | Подзаголовок |
-| `maxWidth` | `'sm' \| 'md' \| 'lg'` | `'lg'` | Максимальная ширина |
-| `gap` | `'sm' \| 'md' \| 'lg'` | `'lg'` | Отступ между элементами |
-| `titleAlign` | `'left' \| 'center'` | `'center'` | Выравнивание заголовка |
-| `class` | `string` | `''` | Дополнительные классы |
-| `children` | `Snippet` | required | Содержимое секции |
+| Prop         | Тип                    | По умолчанию | Описание                |
+| ------------ | ---------------------- | ------------ | ----------------------- |
+| `title`      | `string`               | `''`         | Заголовок секции        |
+| `subtitle`   | `string`               | `''`         | Подзаголовок            |
+| `maxWidth`   | `'sm' \| 'md' \| 'lg'` | `'lg'`       | Максимальная ширина     |
+| `gap`        | `'sm' \| 'md' \| 'lg'` | `'lg'`       | Отступ между элементами |
+| `titleAlign` | `'left' \| 'center'`   | `'center'`   | Выравнивание заголовка  |
+| `class`      | `string`               | `''`         | Дополнительные классы   |
+| `children`   | `Snippet`              | required     | Содержимое секции       |
 
 ### Пример использования
 
 ```svelte
 <SectionContainer
-  title="какие проблемы психологи помогают решить врачам"
-  titleAlign="left"
-  maxWidth="lg"
-  gap="lg"
+	title="какие проблемы психологи помогают решить врачам"
+	titleAlign="left"
+	maxWidth="lg"
+	gap="lg"
 >
-  <CardGrid cols="24">
-    {#each items as item}
-      <IconCard {...item} />
-    {/each}
-  </CardGrid>
+	<CardGrid cols="24">
+		{#each items as item}
+			<IconCard {...item} />
+		{/each}
+	</CardGrid>
 </SectionContainer>
 ```
 
@@ -190,13 +183,13 @@ interface ImageProps {
 
 ### Props
 
-| Prop | Тип | По умолчанию | Описание |
-|------|-----|--------------|----------|
-| `cols` | `'1' \| '2' \| '3' \| '24'` | `'2'` | Количество колонок |
-| `gap` | `'sm' \| 'md' \| 'lg'` | `'md'` | Размер отступов |
-| `responsive` | `boolean` | `true` | Адаптивность колонок |
-| `class` | `string` | `''` | Дополнительные классы |
-| `children` | `Snippet` | required | Содержимое сетки |
+| Prop         | Тип                         | По умолчанию | Описание              |
+| ------------ | --------------------------- | ------------ | --------------------- |
+| `cols`       | `'1' \| '2' \| '3' \| '24'` | `'2'`        | Количество колонок    |
+| `gap`        | `'sm' \| 'md' \| 'lg'`      | `'md'`       | Размер отступов       |
+| `responsive` | `boolean`                   | `true`       | Адаптивность колонок  |
+| `class`      | `string`                    | `''`         | Дополнительные классы |
+| `children`   | `Snippet`                   | required     | Содержимое сетки      |
 
 ### Варианты колонок
 
@@ -209,20 +202,16 @@ interface ImageProps {
 
 ```svelte
 <CardGrid cols="2" gap="lg">
-  {#each items as item}
-    <ListCard title={item.theme} points={item.points} />
-  {/each}
+	{#each items as item}
+		<ListCard title={item.theme} points={item.points} />
+	{/each}
 </CardGrid>
 
 <!-- Асимметричная сетка -->
 <CardGrid cols="24">
-  {#each items as item}
-    <IconCard
-      highlight={item.highlight}
-      text={item.text}
-      gridClass={item.gridClass}
-    />
-  {/each}
+	{#each items as item}
+		<IconCard highlight={item.highlight} text={item.text} gridClass={item.gridClass} />
+	{/each}
 </CardGrid>
 ```
 
@@ -241,27 +230,23 @@ interface ImageProps {
 
 ### Props
 
-| Prop | Тип | По умолчанию | Описание |
-|------|-----|--------------|----------|
-| `title` | `string` | required | Заголовок карточки |
-| `points` | `string[]` | required | Список пунктов |
-| `gridClass` | `string` | `''` | CSS класс для grid (col-span) |
-| `minHeight` | `string` | `'220px'` | Минимальная высота |
-| `withReveal` | `boolean` | `false` | Анимация появления |
-| `justify` | `'between' \| 'start'` | `'between'` | Выравнивание контента |
+| Prop         | Тип                    | По умолчанию | Описание                      |
+| ------------ | ---------------------- | ------------ | ----------------------------- |
+| `title`      | `string`               | required     | Заголовок карточки            |
+| `points`     | `string[]`             | required     | Список пунктов                |
+| `gridClass`  | `string`               | `''`         | CSS класс для grid (col-span) |
+| `minHeight`  | `string`               | `'220px'`    | Минимальная высота            |
+| `withReveal` | `boolean`              | `false`      | Анимация появления            |
+| `justify`    | `'between' \| 'start'` | `'between'`  | Выравнивание контента         |
 
 ### Пример использования
 
 ```svelte
 <ListCard
-  title="Эмоциональные трудности"
-  points={[
-    'тревога и беспокойство',
-    'апатия и потеря интереса',
-    'перепады настроения'
-  ]}
-  gridClass="col-span-1"
-  withReveal={true}
+	title="Эмоциональные трудности"
+	points={['тревога и беспокойство', 'апатия и потеря интереса', 'перепады настроения']}
+	gridClass="col-span-1"
+	withReveal={true}
 />
 ```
 
@@ -278,15 +263,15 @@ interface ImageProps {
 
 ### Props
 
-| Prop | Тип | По умолчанию | Описание |
-|------|-----|--------------|----------|
-| `icon` | `string` | `''` | Название иконки (briefcase, flask и т.д.) |
-| `highlight` | `string` | required | Заголовок |
-| `text` | `string` | required | Описание |
-| `gridClass` | `string` | `''` | CSS класс для grid |
-| `minHeight` | `string` | `'180px'` | Минимальная высота |
-| `withReveal` | `boolean` | `false` | Анимация появления |
-| `showIcon` | `boolean` | `true` | Показывать иконку |
+| Prop         | Тип       | По умолчанию | Описание                                  |
+| ------------ | --------- | ------------ | ----------------------------------------- |
+| `icon`       | `string`  | `''`         | Название иконки (briefcase, flask и т.д.) |
+| `highlight`  | `string`  | required     | Заголовок                                 |
+| `text`       | `string`  | required     | Описание                                  |
+| `gridClass`  | `string`  | `''`         | CSS класс для grid                        |
+| `minHeight`  | `string`  | `'180px'`    | Минимальная высота                        |
+| `withReveal` | `boolean` | `false`      | Анимация появления                        |
+| `showIcon`   | `boolean` | `true`       | Показывать иконку                         |
 
 ### Доступные иконки
 
@@ -302,19 +287,19 @@ interface ImageProps {
 
 ```svelte
 <IconCard
-  icon="briefcase"
-  highlight="опыт в IT"
-  text="Знаю специфику цифровых профессий изнутри"
-  gridClass="col-span-1 md:col-span-14"
-  withReveal={true}
+	icon="briefcase"
+	highlight="опыт в IT"
+	text="Знаю специфику цифровых профессий изнутри"
+	gridClass="col-span-1 md:col-span-14"
+	withReveal={true}
 />
 
 <!-- Без иконки -->
 <IconCard
-  highlight="Отрицание проблемы"
-  text="Пациент не признает наличие психологических трудностей"
-  showIcon={false}
-  gridClass="col-span-24"
+	highlight="Отрицание проблемы"
+	text="Пациент не признает наличие психологических трудностей"
+	showIcon={false}
+	gridClass="col-span-24"
 />
 ```
 
@@ -331,22 +316,18 @@ interface ImageProps {
 
 ### Props
 
-| Prop | Тип | По умолчанию | Описание |
-|------|-----|--------------|----------|
-| `title` | `string` | required | Название службы |
-| `phone` | `string` | required | Номер телефона |
-| `link` | `string` | required | Ссылка (tel:) |
-| `minHeight` | `string` | `'220px'` | Минимальная высота |
-| `class` | `string` | `''` | Дополнительные классы |
+| Prop        | Тип      | По умолчанию | Описание              |
+| ----------- | -------- | ------------ | --------------------- |
+| `title`     | `string` | required     | Название службы       |
+| `phone`     | `string` | required     | Номер телефона        |
+| `link`      | `string` | required     | Ссылка (tel:)         |
+| `minHeight` | `string` | `'220px'`    | Минимальная высота    |
+| `class`     | `string` | `''`         | Дополнительные классы |
 
 ### Пример использования
 
 ```svelte
-<ContactCard
-  title="Телефон доверия"
-  phone="8-800-2000-122"
-  link="tel:88002000122"
-/>
+<ContactCard title="Телефон доверия" phone="8-800-2000-122" link="tel:88002000122" />
 ```
 
 ### Заменяет код в
@@ -361,16 +342,16 @@ interface ImageProps {
 
 ### Props
 
-| Prop | Тип | По умолчанию | Описание |
-|------|-----|--------------|----------|
-| `blocks` | `TextBlock[]` | required | Массив блоков |
+| Prop     | Тип           | По умолчанию | Описание      |
+| -------- | ------------- | ------------ | ------------- |
+| `blocks` | `TextBlock[]` | required     | Массив блоков |
 
 ### TextBlock interface
 
 ```typescript
 interface TextBlock {
-  title: string;
-  data: string[];
+	title: string;
+	data: string[];
 }
 ```
 
@@ -378,19 +359,16 @@ interface TextBlock {
 
 ```svelte
 <TextBlockSection
-  blocks={[
-    {
-      title: 'С чего начать',
-      data: [
-        'Напишите мне в Telegram.',
-        'Мы договоримся о времени первой встречи.'
-      ]
-    },
-    {
-      title: 'Где проходит сессия',
-      data: ['Консультации проходят онлайн через видеосвязь.']
-    }
-  ]}
+	blocks={[
+		{
+			title: 'С чего начать',
+			data: ['Напишите мне в Telegram.', 'Мы договоримся о времени первой встречи.']
+		},
+		{
+			title: 'Где проходит сессия',
+			data: ['Консультации проходят онлайн через видеосвязь.']
+		}
+	]}
 />
 ```
 
@@ -404,43 +382,40 @@ interface TextBlock {
 
 ```svelte
 <script lang="ts">
-  import {
-    PageHero,
-    ImageTextBlock,
-    SectionContainer,
-    CardGrid,
-    ListCard,
-    IconCard
-  } from '$lib/components/blocks';
+	import {
+		PageHero,
+		ImageTextBlock,
+		SectionContainer,
+		CardGrid,
+		ListCard,
+		IconCard
+	} from '$lib/components/blocks';
 
-  const heroData = {
-    title: 'Заголовок страницы',
-    subtitle: 'Описание страницы'
-  };
+	const heroData = {
+		title: 'Заголовок страницы',
+		subtitle: 'Описание страницы'
+	};
 
-  const aboutText = ['Параграф 1', 'Параграф 2'];
+	const aboutText = ['Параграф 1', 'Параграф 2'];
 
-  const issues = [
-    { theme: 'Тема 1', points: ['пункт 1', 'пункт 2'], gridClass: '' },
-    { theme: 'Тема 2', points: ['пункт 3', 'пункт 4'], gridClass: '' }
-  ];
+	const issues = [
+		{ theme: 'Тема 1', points: ['пункт 1', 'пункт 2'], gridClass: '' },
+		{ theme: 'Тема 2', points: ['пункт 3', 'пункт 4'], gridClass: '' }
+	];
 </script>
 
 <PageHero title={heroData.title} subtitle={heroData.subtitle} />
 
 <div class="flex flex-col gap-10">
-  <ImageTextBlock
-    image={{ src: '/1.webp', alt: 'Фото' }}
-    paragraphs={aboutText}
-  />
+	<ImageTextBlock image={{ src: '/1.webp', alt: 'Фото' }} paragraphs={aboutText} />
 
-  <SectionContainer title="С чем я работаю">
-    <CardGrid cols="2">
-      {#each issues as issue}
-        <ListCard title={issue.theme} points={issue.points} withReveal={true} />
-      {/each}
-    </CardGrid>
-  </SectionContainer>
+	<SectionContainer title="С чем я работаю">
+		<CardGrid cols="2">
+			{#each issues as issue}
+				<ListCard title={issue.theme} points={issue.points} withReveal={true} />
+			{/each}
+		</CardGrid>
+	</SectionContainer>
 </div>
 ```
 
@@ -451,6 +426,7 @@ interface TextBlock {
 ### Сохранение точной стилизации
 
 Все компоненты сохраняют:
+
 - Цвета: `bg-[#F2F0EF]`, `text-[#B8A98A]`, `text-[#191919]`
 - Скругления: `rounded-lg`, `rounded-xl`
 - Отступы: `p-6`, `gap-4`, `gap-2.5 lg:gap-3.5`
@@ -460,6 +436,7 @@ interface TextBlock {
 ### gridClass для асимметричных layouts
 
 При использовании `cols="24"` в CardGrid, каждая карточка должна иметь `gridClass`:
+
 - `col-span-1 md:col-span-14` - широкая карточка
 - `col-span-1 md:col-span-10` - узкая карточка
 - `col-span-24` - на всю ширину

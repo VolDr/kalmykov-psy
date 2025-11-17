@@ -1,7 +1,4 @@
-import {
-	pageContentService,
-	serializePageContent
-} from '$lib/server/page-content.server';
+import { pageContentService, serializePageContent } from '$lib/server/page-content.server';
 import { fail } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 

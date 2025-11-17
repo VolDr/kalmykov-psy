@@ -93,7 +93,9 @@
 		}
 
 		isDragging = true;
-		document.addEventListener('mousemove', handleMouseMove, { passive: true } as AddEventListenerOptions);
+		document.addEventListener('mousemove', handleMouseMove, {
+			passive: true
+		} as AddEventListenerOptions);
 		document.addEventListener('mouseup', handleMouseUp);
 	};
 
@@ -224,25 +226,27 @@
 		style="transform: translateZ(0)"
 		onclick={handleTrackClick}
 		ontouchstart={handleTrackTouch}
-		onmousedown={preventSelection}>
+		onmousedown={preventSelection}
+	>
 		<!-- Filled track with will-change for better performance -->
 		<div
 			bind:this={trackFillRef}
 			class={`absolute h-full rounded ${editable ? 'bg-[#cfc1a3]' : 'bg-[#e8e1d3]'}`}
-			style="width: {(currValue / 10) * 100}%; transform: translateZ(0); will-change: width;">
-		</div>
+			style="width: {(currValue / 10) * 100}%; transform: translateZ(0); will-change: width;"
+		></div>
 
 		<!-- Thumb with hardware acceleration optimizations -->
 		{#if editable}
 			<div
 				bind:this={thumbRef}
 				class="absolute top-1/2 h-4 w-4 cursor-grab touch-none rounded-full border-2 border-[#cfc1a3] bg-white shadow active:cursor-grabbing"
-				style="left: calc({(currValue / 10) * 100}% - 0.5rem); transform: translateZ(0) translateY(-50%); transition: {isDragging
+				style="left: calc({(currValue / 10) *
+					100}% - 0.5rem); transform: translateZ(0) translateY(-50%); transition: {isDragging
 					? 'none'
 					: 'left 0.05s linear'};"
 				onmousedown={handleThumbMouseDown}
-				ontouchstart={handleThumbTouchStart}>
-			</div>
+				ontouchstart={handleThumbTouchStart}
+			></div>
 		{/if}
 	</div>
 </div>

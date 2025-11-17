@@ -5,11 +5,11 @@
 <button
 	type="submit"
 	disabled={isSubmitting}
-	class="w-full rounded-md bg-[#cfc1a3] px-4 py-2 font-medium text-white transition duration-200 hover:brightness-95 focus:outline-none focus:ring-2 focus:brightness-95 focus:ring-opacity-50 disabled:cursor-not-default disabled:opacity-70"
+	class="focus:ring-opacity-50 disabled:cursor-not-default w-full rounded-md bg-[#cfc1a3] px-4 py-2 font-medium text-white transition duration-200 hover:brightness-95 focus:ring-2 focus:brightness-95 focus:outline-none disabled:opacity-70"
 >
 	{#if isSubmitting}
 		<svg
-			class="-ml-1 mr-2 inline h-4 w-4 animate-spin text-white"
+			class="mr-2 -ml-1 inline h-4 w-4 animate-spin text-white"
 			xmlns="http://www.w3.org/2000/svg"
 			fill="none"
 			viewBox="0 0 24 24"

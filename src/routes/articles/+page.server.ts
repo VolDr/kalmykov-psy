@@ -1,8 +1,5 @@
 import { articleService, serializeArticle } from '$lib/server/article.server';
-import {
-	pageContentService,
-	getPageContentWithDefaults
-} from '$lib/server/page-content.server';
+import { pageContentService, getPageContentWithDefaults } from '$lib/server/page-content.server';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async () => {

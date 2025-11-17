@@ -273,7 +273,7 @@
 <!-- Section Editor Modal -->
 {#if showSectionEditor}
 	<div
-		class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+		class="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black"
 		onclick={closeSectionEditor}
 		role="dialog"
 		aria-modal="true"
@@ -383,12 +383,12 @@
 							bind:value={sectionContent.content}
 							required
 							rows="20"
-							class="font-mono w-full rounded border border-gray-300 px-3 py-2 text-xs focus:border-blue-500 focus:outline-none"
+							class="w-full rounded border border-gray-300 px-3 py-2 font-mono text-xs focus:border-blue-500 focus:outline-none"
 							onblur={() => validateJson(sectionContent.content)}
 						></textarea>
 						<p class="mt-1 text-xs text-gray-500">
-							Поддерживаются Tailwind классы в полях gridClass, containerClass. Markdown в
-							текстовых полях.
+							Поддерживаются Tailwind классы в полях gridClass, containerClass. Markdown в текстовых
+							полях.
 						</p>
 					</div>
 
@@ -409,7 +409,7 @@
 <!-- Setting Editor Modal -->
 {#if showSettingEditor}
 	<div
-		class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+		class="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black"
 		onclick={closeSettingEditor}
 		role="dialog"
 		aria-modal="true"
@@ -502,7 +502,7 @@
 							bind:value={settingContent.value}
 							required
 							rows="12"
-							class="font-mono w-full rounded border border-gray-300 px-3 py-2 text-xs focus:border-blue-500 focus:outline-none"
+							class="w-full rounded border border-gray-300 px-3 py-2 font-mono text-xs focus:border-blue-500 focus:outline-none"
 							onblur={() => validateJson(settingContent.value)}
 						></textarea>
 					</div>

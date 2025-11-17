@@ -68,9 +68,7 @@ describe('getPageContentWithDefaults', () => {
 		});
 
 		it('should override blocks with DB content', () => {
-			const customBlocks = [
-				{ title: 'Custom Block', data: ['Custom data'] }
-			];
+			const customBlocks = [{ title: 'Custom Block', data: ['Custom data'] }];
 
 			const result = getPageContentWithDefaults('online-therapy', {
 				blocks: customBlocks

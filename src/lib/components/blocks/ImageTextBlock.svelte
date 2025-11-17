@@ -46,9 +46,7 @@
 
 		<!-- Text Right -->
 		<div class="col-span-1 mx-5 md:col-span-6 lg:col-span-6 lg:mx-0">
-			<div
-				class="flex min-h-[50px] flex-col flex-nowrap items-center justify-start gap-4 lg:gap-8"
-			>
+			<div class="flex min-h-[50px] flex-col flex-nowrap items-center justify-start gap-4 lg:gap-8">
 				{#if textContent}
 					{@render textContent()}
 				{:else if paragraphs.length > 0}

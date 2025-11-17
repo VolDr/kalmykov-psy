@@ -68,6 +68,7 @@ npm run lint
 Located in `src/lib/canvas/`, this module provides a whiteboard/diagramming canvas framework.
 
 **Structure:**
+
 - `model/shapes.ts` - Primitive types (rect, ellipse, arrow, text, group), Camera, SceneData
 - `model/history.ts` - Undo/redo store with action tracking (add, update, delete, group, ungroup)
 - `engine/magnets.ts` - Arrow snapping to shape anchors (top, bottom, left, right)
@@ -76,6 +77,7 @@ Located in `src/lib/canvas/`, this module provides a whiteboard/diagramming canv
 - `index.ts` - Barrel file for exports
 
 **Key Features:**
+
 - Infinite canvas with pan (Shift+Alt+drag or middle-click) and zoom (mouse wheel)
 - Hotkeys using `KeyboardEvent.code` (works for RU/EN layouts):
   - `Ctrl/Cmd + Z` - Undo
@@ -87,24 +89,28 @@ Located in `src/lib/canvas/`, this module provides a whiteboard/diagramming canv
 - Rough.js hooks: prepared for hand-drawn styling integration via `roughOptions`
 
 **Server API:**
+
 - `src/routes/api/scenes/[id]/+server.ts` - GET/PUT/DELETE for scene persistence
 - `src/lib/server/db.server.ts` - PostgreSQL connection using pg pool
 - `drizzle/0001_scenes_table.sql` - Migration for scenes table (id uuid, data jsonb, updated_at)
 
 **Demo Page:**
+
 - Available at `/canvas` route
 - Toolbar for adding shapes, undo/redo, save functionality
 - Instructions panel with controls documentation
 
 **Testing:**
+
 - `model/history.test.ts` - 20 tests for undo/redo logic
 - `engine/magnets.test.ts` - 22 tests for bounds and anchor calculations
 - `stores.test.ts` - 20 tests for selection and camera stores
 
 **Usage:**
+
 ```svelte
 <script>
-  import { Canvas, shapesHistory, camera } from '$lib/canvas';
+	import { Canvas, shapesHistory, camera } from '$lib/canvas';
 </script>
 
 <Canvas />

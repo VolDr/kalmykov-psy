@@ -69,20 +69,13 @@ class SurveyService {
 	}
 
 	async delete(id: string) {
-		const [survey] = await db
-			.delete(schema.survey)
-			.where(eq(schema.survey.id, id))
-			.returning();
+		const [survey] = await db.delete(schema.survey).where(eq(schema.survey.id, id)).returning();
 
 		return survey;
 	}
 
 	async get(id: string) {
-		const [survey] = await db
-			.select()
-			.from(schema.survey)
-			.where(eq(schema.survey.id, id))
-			.limit(1);
+		const [survey] = await db.select().from(schema.survey).where(eq(schema.survey.id, id)).limit(1);
 
 		return survey;
 	}

@@ -24,7 +24,7 @@
 <div class="border-b">
 	<button
 		class={cn(
-			'flex w-full p-4 text-left transition-colors cursor-pointer ',
+			'flex w-full cursor-pointer p-4 text-left transition-colors ',
 			className,
 			!className && 'hover:bg-[#F2F0EF]',
 			!className && open && 'bg-[#F2F0EF]'
@@ -35,11 +35,11 @@
 		<div class="cursor-pointer">{@render header()}</div>
 		<div
 			class={cn(
-				'ml-auto transition-transform ease-out cursor-pointer duration-500',
+				'ml-auto cursor-pointer transition-transform duration-500 ease-out',
 				open && 'rotate-180'
 			)}
 		>
-			<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+			<svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
 				<path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
 			</svg>
 		</div>

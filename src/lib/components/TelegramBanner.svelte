@@ -87,7 +87,7 @@
 {#if isVisible && isShowing}
 	<div
 		transition:fly={{ y: 100, duration: 300 }}
-		class="fixed bottom-0 left-0 right-0 z-[100] flex min-h-12 max-w-[100vw] items-center justify-between bg-[#F2F0EF] shadow-lg"
+		class="fixed right-0 bottom-0 left-0 z-[100] flex min-h-12 max-w-[100vw] items-center justify-between bg-[#F2F0EF] shadow-lg"
 	>
 		<button
 			onclick={closeBanner}

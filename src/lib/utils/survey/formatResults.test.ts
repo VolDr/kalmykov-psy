@@ -170,8 +170,7 @@ describe('formatResultsForClipboard', () => {
 			...mockScoringResult,
 			interpretation: {
 				...mockScoringResult.interpretation,
-				recommendation:
-					'Check [link1](url1) and [link2](url2) then read [another](url3) guide'
+				recommendation: 'Check [link1](url1) and [link2](url2) then read [another](url3) guide'
 			}
 		};
 

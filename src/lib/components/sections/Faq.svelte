@@ -5,14 +5,14 @@
 	import { faqItems } from '$lib/data/faq';
 </script>
 
-<div class="flex flex-col items-center gap-2.5 md:gap-3.5 w-full">
+<div class="flex w-full flex-col items-center gap-2.5 md:gap-3.5">
 	<Reveal>
 		<a id="faq" class="subtitle" href="#faq">вопрос — ответ</a>
 	</Reveal>
 
-	<div class="grid grid-cols-1 sm:grid-cols-1 gap-5 min-w-full">
+	<div class="grid min-w-full grid-cols-1 gap-5 sm:grid-cols-1">
 		<div class="sm:col-span-7 lg:col-span-8">
-			<div class="flex flex-col flex-nowrap content-center justify-center items-stretch gap-4">
+			<div class="flex flex-col flex-nowrap content-center items-stretch justify-center gap-4">
 				{#each faqItems as item}
 					<Reveal width="full" axis="x">
 						<AccordionItem>

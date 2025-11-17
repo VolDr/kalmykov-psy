@@ -16,40 +16,43 @@
 	} = $props();
 
 	let curDate = $state<DateValue | undefined>(
-		currentDate ? new CalendarDate(currentDate.getFullYear(), currentDate.getMonth() + 1, currentDate.getDate()) : undefined
+		currentDate
+			? new CalendarDate(
+					currentDate.getFullYear(),
+					currentDate.getMonth() + 1,
+					currentDate.getDate()
+				)
+			: undefined
 	);
 	let waitingForDoubleClick = $state(false);
 	let clickTimeout: ReturnType<typeof setTimeout> | null = null;
 	let pendingClickDate: DateValue | null = null;
 
 	function handleDateClick(dateValue: DateValue | undefined) {
-
-
 		// undefined = clicked on already selected date
 		if (!dateValue) {
-		
-
 			// If we were waiting for double-click - this is the second click!
 			if (waitingForDoubleClick && pendingClickDate) {
-	
 				if (clickTimeout) {
 					clearTimeout(clickTimeout);
 					clickTimeout = null;
 				}
 				waitingForDoubleClick = false;
-				const date = new Date(pendingClickDate.year, pendingClickDate.month - 1, pendingClickDate.day);
+				const date = new Date(
+					pendingClickDate.year,
+					pendingClickDate.month - 1,
+					pendingClickDate.day
+				);
 				pendingClickDate = null;
 				const targetUrl = `/admin/record/?date=${dayjs(date).startOf('day').add(12, 'hour').format('DD-MM-YYYY-HH-mm')}`;
 				goto(targetUrl);
 			} else if (curDate) {
-	
 				waitingForDoubleClick = true;
 				pendingClickDate = curDate;
 				if (clickTimeout) {
 					clearTimeout(clickTimeout);
 				}
 				clickTimeout = setTimeout(() => {
-		
 					waitingForDoubleClick = false;
 					pendingClickDate = null;
 					clickTimeout = null;
@@ -62,13 +65,14 @@
 			return;
 		}
 
-
-
 		// Check if this is second click (after undefined) on same date
-		const isSameAsPending = pendingClickDate && dateValue.day === pendingClickDate.day && dateValue.month === pendingClickDate.month && dateValue.year === pendingClickDate.year;
+		const isSameAsPending =
+			pendingClickDate &&
+			dateValue.day === pendingClickDate.day &&
+			dateValue.month === pendingClickDate.month &&
+			dateValue.year === pendingClickDate.year;
 
 		if (isSameAsPending && waitingForDoubleClick) {
-		
 			if (clickTimeout) {
 				clearTimeout(clickTimeout);
 				clickTimeout = null;
@@ -89,7 +93,6 @@
 			clearTimeout(clickTimeout);
 		}
 		clickTimeout = setTimeout(() => {
-		
 			waitingForDoubleClick = false;
 			pendingClickDate = null;
 			clickTimeout = null;
@@ -104,10 +107,12 @@
 	}
 
 	function handleDayClick(date: DateValue) {
-		
-
 		// Check if this is second click on pending date
-		const isSameAsPending = pendingClickDate && date.day === pendingClickDate.day && date.month === pendingClickDate.month && date.year === pendingClickDate.year;
+		const isSameAsPending =
+			pendingClickDate &&
+			date.day === pendingClickDate.day &&
+			date.month === pendingClickDate.month &&
+			date.year === pendingClickDate.year;
 
 		if (isSameAsPending && waitingForDoubleClick) {
 			console.log('handleDayClick: Second click detected! Navigating...');
@@ -120,7 +125,7 @@
 			pendingClickDate = null;
 			const targetUrl = `/admin/record/?date=${dayjs(jsDate).startOf('day').add(12, 'hour').format('DD-MM-YYYY-HH-mm')}`;
 			goto(targetUrl);
-		} 
+		}
 	}
 
 	function computeDotPositions(numOfDots: number): number[] {
@@ -163,7 +168,6 @@
 
 		return '#' + pad(r) + pad(g) + pad(b);
 	}
-
 </script>
 
 <Card class="w-fit p-4">
@@ -172,11 +176,18 @@
 			{@const jsDate = new Date(date.year, date.month - 1, date.day)}
 			{@const dotTypes = dotsPerDate[dayjs(jsDate).startOf('day').toDate().toISOString()]}
 			{@const numOfDots = dotTypes?.length ?? 0}
-			{@const isSelected = curDate && date.year === curDate.year && date.month === curDate.month && date.day === curDate.day}
+			{@const isSelected =
+				curDate &&
+				date.year === curDate.year &&
+				date.month === curDate.month &&
+				date.day === curDate.day}
 
-			<CalendarDay date={date} month={date} onclick={() => handleDayClick(date)}>
+			<CalendarDay {date} month={date} onclick={() => handleDayClick(date)}>
 				{date.day}
-				<div class="absolute bottom-[10px] left-1/2 -translate-x-1/2 flex h-1 items-center justify-center" style="width: 20px;">
+				<div
+					class="absolute bottom-[10px] left-1/2 flex h-1 -translate-x-1/2 items-center justify-center"
+					style="width: 20px;"
+				>
 					{#each computeDotPositions(numOfDots) as position, idx}
 						<div
 							class="absolute rounded-full"
@@ -186,7 +197,7 @@
 								border: 2px solid;
 								right: {position}%;
 								top: {idx > 2 && numOfDots > 4 ? 105 : 85}%;
-								border-color: {isSelected ? '#ffffff' : dotTypes?.[idx] ?? '#c6b693'};
+								border-color: {isSelected ? '#ffffff' : (dotTypes?.[idx] ?? '#c6b693')};
 								transform: translateX(2px);
 							"
 						></div>
@@ -196,4 +207,3 @@
 		{/snippet}
 	</Calendar>
 </Card>
-

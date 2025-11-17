@@ -1,5 +1,5 @@
 <script lang="ts">
-		import { Input } from '$lib/components/ui/input';
+	import { Input } from '$lib/components/ui/input';
 	let { error, isSubmitting }: { error?: string; isSubmitting: boolean } = $props();
 	let showPassword = $state(false);
 </script>
@@ -13,7 +13,7 @@
 			type={showPassword ? 'text' : 'password'}
 			placeholder="пароль"
 			disabled={isSubmitting}
-aria-invalid={!!error}
+			aria-invalid={!!error}
 		/>
 		<button
 			type="button"

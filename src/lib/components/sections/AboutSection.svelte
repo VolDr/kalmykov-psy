@@ -1,34 +1,33 @@
 <script lang="ts">
 	import Reveal from '$lib/components/Reveal.svelte';
 
+	export const items = [
+		{
+			icon: 'briefcase',
+			highlight: 'опыт в IT',
+			text: 'Знаю специфику цифровых профессий изнутри: сам проходил через выгорание и перфекционизм и говорю с вами на одном языке.',
+			gridClass: 'col-span-1 md:col-span-14'
+		},
+		{
+			icon: 'flask',
+			highlight: 'научный подход',
+			text: 'Применяю методы с доказанной эффективностью (ACT и КПТ), которые фокусируются на реальных действиях, а не только на симптомах.',
+			gridClass: 'col-span-1 md:col-span-10 '
+		},
+		{
+			icon: 'lightbulb',
+			highlight: 'практика',
+			text: 'Постоянно учусь у коллег на практических курсах, чтобы применять живые, современные подходы, а не застревать в теории.',
+			gridClass: 'col-span-1 md:col-span-10'
+		},
 
-export const items = [
-	{
-		icon: 'briefcase',
-		highlight: 'опыт в IT',
-		text: 'Знаю специфику цифровых профессий изнутри: сам проходил через выгорание и перфекционизм и говорю с вами на одном языке.',
-		gridClass: 'col-span-1 md:col-span-14'
-	},
-	{
-		icon: 'flask',
-		highlight: 'научный подход',
-		text: 'Применяю методы с доказанной эффективностью (ACT и КПТ), которые фокусируются на реальных действиях, а не только на симптомах.',
-		gridClass: 'col-span-1 md:col-span-10 '
-	},
-	{
-		icon: 'lightbulb',
-		highlight: 'практика',
-		text: 'Постоянно учусь у коллег на практических курсах, чтобы применять живые, современные подходы, а не застревать в теории.',
-		gridClass: 'col-span-1 md:col-span-10'
-	},
-
-	{
-		icon: 'trending-up',
-		highlight: 'измеримый результат',
-		text: 'Использую систему трекинга прогресса и обратной связи, чтобы наша работа приводила к конкретным результатам и можно было вовремя корректировать курс.',
-		gridClass: 'col-span-1 md:col-span-14'
-	}
-];
+		{
+			icon: 'trending-up',
+			highlight: 'измеримый результат',
+			text: 'Использую систему трекинга прогресса и обратной связи, чтобы наша работа приводила к конкретным результатам и можно было вовремя корректировать курс.',
+			gridClass: 'col-span-1 md:col-span-14'
+		}
+	];
 
 	const iconMap: Record<string, string> = {
 		briefcase: 'icon-[lucide--briefcase]',

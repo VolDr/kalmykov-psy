@@ -29,7 +29,8 @@ class CurrentStateService {
 				social: payload.social,
 				generally: payload.generally,
 				clientId: payload.clientId,
-				datetime: typeof payload.datetime === 'string' ? payload.datetime : payload.datetime.toISOString(),
+				datetime:
+					typeof payload.datetime === 'string' ? payload.datetime : payload.datetime.toISOString(),
 				disabled: payload.disabled ?? false,
 				editable: payload.editable ?? true,
 				createdAt: now,
@@ -54,7 +55,8 @@ class CurrentStateService {
 		if (payload.editable !== undefined) updateData.editable = payload.editable;
 		if (payload.disabled !== undefined) updateData.disabled = payload.disabled;
 		if (payload.datetime !== undefined) {
-			updateData.datetime = typeof payload.datetime === 'string' ? payload.datetime : payload.datetime.toISOString();
+			updateData.datetime =
+				typeof payload.datetime === 'string' ? payload.datetime : payload.datetime.toISOString();
 		}
 
 		const [currentState] = await db

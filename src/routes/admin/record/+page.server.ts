@@ -118,10 +118,7 @@ async function createFeedback(clientId: string, datetime: Date | string) {
 		const smallId = [...uuid().slice(-7, -1).toLocaleLowerCase()]
 			.map((c) => (Math.random() < 0.3 ? c : c.toUpperCase()))
 			.join('');
-		if (
-			(await feedbackService.get(smallId, {})) ||
-			(await currentStateService.get(smallId, {}))
-		) {
+		if ((await feedbackService.get(smallId, {})) || (await currentStateService.get(smallId, {}))) {
 			throw new Error('Already exists');
 		}
 		return await feedbackService.create({
@@ -152,10 +149,7 @@ async function createCurrentState(clientId: string, datetime: Date | string) {
 		const smallId = [...uuid().slice(-7, -1).toLocaleLowerCase()]
 			.map((c) => (Math.random() < 0.3 ? c : c.toUpperCase()))
 			.join('');
-		if (
-			(await feedbackService.get(smallId, {})) ||
-			(await currentStateService.get(smallId, {}))
-		) {
+		if ((await feedbackService.get(smallId, {})) || (await currentStateService.get(smallId, {}))) {
 			throw new Error('Already exists');
 		}
 		return await currentStateService.create({
@@ -230,9 +224,7 @@ export const actions = {
 
 		const timestamp = formData.get('timestamp');
 		const formattedTimestamp =
-			timestamp && typeof timestamp === 'string'
-				? dayjs(timestamp).format('DD-MM-YYYY-HH-mm')
-				: '';
+			timestamp && typeof timestamp === 'string' ? dayjs(timestamp).format('DD-MM-YYYY-HH-mm') : '';
 
 		const data = Object.fromEntries(formData);
 		data.timestamp = formattedTimestamp;

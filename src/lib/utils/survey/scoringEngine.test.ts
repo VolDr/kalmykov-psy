@@ -487,7 +487,6 @@ describe('calculateScore', () => {
 	});
 });
 
-
 describe('validateAnswers', () => {
 	it('should return valid when all required questions answered', () => {
 		const answers = { q1: 0, q2: 1 };

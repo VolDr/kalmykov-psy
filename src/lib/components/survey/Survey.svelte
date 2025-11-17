@@ -133,7 +133,7 @@
 	}
 </script>
 
-<div class="py-8 md:py-12 space-y-8 md:space-y-10">
+<div class="space-y-8 py-8 md:space-y-10 md:py-12">
 	<!-- Information Sections -->
 	<div class="space-y-4 px-5">
 		{#each Object.entries(config.infoSections) as [key, section]}
@@ -144,7 +144,7 @@
 	<!-- Survey Form -->
 	<div class="px-5">
 		<div class="p-6 md:p-8">
-			<form onsubmit={handleSubmit} class="space-y-8" >
+			<form onsubmit={handleSubmit} class="space-y-8">
 				{#each config.questions as question}
 					{@const shouldShow = shouldDisplayQuestion(question, state.answers)}
 
@@ -176,7 +176,7 @@
 
 				<!-- Current Score Display (optional, can be hidden) -->
 				{#if Object.keys(state.answers).length > 0 && !state.showResults}
-					<div class="pt-4 border-t border-[#F2F0EF]">
+					<div class="border-t border-[#F2F0EF] pt-4">
 						<div class="flex items-center justify-between text-base md:text-lg">
 							<span class="text-black opacity-70">Текущий балл:</span>
 							<!-- Uncomment to show current score
@@ -194,16 +194,12 @@
 
 				<!-- Submit Button -->
 				<div class="flex gap-4 pt-4">
-					<Button 
-						class="flex-1  px-4 py-2 cursor-pointer"
-					>
-						Посмотреть результат
-					</Button>
+					<Button class="flex-1  cursor-pointer px-4 py-2">Посмотреть результат</Button>
 				</div>
 
 				<!-- Validation Error Message -->
 				{#if state.attemptedSubmit && !validation.isValid}
-					<div class="p-4 bg-[#F2F0EF]">
+					<div class="bg-[#F2F0EF] p-4">
 						<p class="text-sm text-black">
 							Пожалуйста, ответьте на все обязательные вопросы перед отправкой.
 						</p>
@@ -215,10 +211,10 @@
 
 	<!-- Results Section -->
 	{#if state.showResults}
-		<div bind:this={resultsSection} id="survey-results" class="space-y-6 scroll-mt-6 px-5">
+		<div bind:this={resultsSection} id="survey-results" class="scroll-mt-6 space-y-6 px-5">
 			<div class="h-px bg-[#F2F0EF]"></div>
 
-			<h2 class="text-[24px] md:text-[28px] lg:text-[32px] font-semibold text-[#191919]">
+			<h2 class="text-[24px] font-semibold text-[#191919] md:text-[28px] lg:text-[32px]">
 				Результаты оценки
 			</h2>
 
@@ -247,22 +243,14 @@
 			{/if}
 
 			<!-- Action Buttons -->
-			<div class="flex flex-col sm:flex-row gap-4">
-				<Button
-					onclick={handleReset}
-					class="flex-1 bg-white  "
-				>
-					Пройти опрос заново
-				</Button>
-				<Button
-					onclick={handleCopyResults}
-					class="flex-1 gap-2 bg-white   "
-				>
+			<div class="flex flex-col gap-4 sm:flex-row">
+				<Button onclick={handleReset} class="flex-1 bg-white  ">Пройти опрос заново</Button>
+				<Button onclick={handleCopyResults} class="flex-1 gap-2 bg-white   ">
 					{#if state.copied}
-						<span class="icon-[lucide--check] w-4 h-4"></span>
+						<span class="icon-[lucide--check] h-4 w-4"></span>
 						Скопировано
 					{:else}
-						<span class="icon-[lucide--copy] w-4 h-4"></span>
+						<span class="icon-[lucide--copy] h-4 w-4"></span>
 						Скопировать результаты
 					{/if}
 				</Button>

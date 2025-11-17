@@ -73,12 +73,7 @@
 		textEditingState,
 		updateEditingText
 	} from '../text-editing';
-	import {
-		bringToFront,
-		sendToBack,
-		bringForward,
-		sendBackward
-	} from '../layers';
+	import { bringToFront, sendToBack, bringForward, sendBackward } from '../layers';
 	import {
 		alignLeft,
 		alignRight,
@@ -238,7 +233,7 @@
 	function isArrowOnlySelection(): boolean {
 		if (selectedIds.size === 0) return false;
 		for (const id of selectedIds) {
-			const shape = shapes.find(s => s.id === id);
+			const shape = shapes.find((s) => s.id === id);
 			if (!shape || shape.type !== 'arrow') return false;
 		}
 		return true;
@@ -248,7 +243,7 @@
 	function getSelectedArrows(): ArrowShape[] {
 		const arrows: ArrowShape[] = [];
 		for (const id of selectedIds) {
-			const shape = shapes.find(s => s.id === id);
+			const shape = shapes.find((s) => s.id === id);
 			if (shape && shape.type === 'arrow') {
 				arrows.push(shape as ArrowShape);
 			}
@@ -263,7 +258,7 @@
 		const nodes: KonvaNode[] = [];
 		// Don't attach transformer to arrows - we use custom handles
 		for (const id of selectedIds) {
-			const shape = shapes.find(s => s.id === id);
+			const shape = shapes.find((s) => s.id === id);
 			if (!shape || shape.type === 'arrow') continue;
 
 			// Find the node by ID in the layer
@@ -415,7 +410,12 @@
 
 	function handleMouseDown(e: any) {
 		const evt = e.evt as MouseEvent;
-		console.log('[Canvas] mousedown', { button: evt.button, tool, shiftKey: evt.shiftKey, altKey: evt.altKey });
+		console.log('[Canvas] mousedown', {
+			button: evt.button,
+			tool,
+			shiftKey: evt.shiftKey,
+			altKey: evt.altKey
+		});
 		if (evt.button === 1 || (evt.button === 0 && evt.shiftKey && evt.altKey)) {
 			isPanning = true;
 			lastPos = { x: evt.clientX, y: evt.clientY };
@@ -742,7 +742,12 @@
 	}
 
 	// Get screen position for text editing overlay
-	function getEditingInputPosition(): { x: number; y: number; width: number; height: number } | null {
+	function getEditingInputPosition(): {
+		x: number;
+		y: number;
+		width: number;
+		height: number;
+	} | null {
 		if (!editingShapeId) return null;
 
 		const shape = shapes.find((s) => s.id === editingShapeId);
@@ -1132,7 +1137,10 @@
 		if (shapes.length === 0) return false;
 
 		// Calculate the bounding box of all shapes
-		let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+		let minX = Infinity,
+			minY = Infinity,
+			maxX = -Infinity,
+			maxY = -Infinity;
 		for (const shape of shapes) {
 			const bounds = getShapeBounds(shape);
 			minX = Math.min(minX, bounds.x);
@@ -1148,7 +1156,12 @@
 		const viewportBottom = (stageHeight - cam.y) / cam.scale;
 
 		// Check if content is visible in viewport
-		const isVisible = !(maxX < viewportLeft || minX > viewportRight || maxY < viewportTop || minY > viewportBottom);
+		const isVisible = !(
+			maxX < viewportLeft ||
+			minX > viewportRight ||
+			maxY < viewportTop ||
+			minY > viewportBottom
+		);
 		return !isVisible;
 	}
 
@@ -1157,7 +1170,10 @@
 		if (shapes.length === 0) return;
 
 		// Calculate the bounding box of all shapes
-		let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+		let minX = Infinity,
+			minY = Infinity,
+			maxX = -Infinity,
+			maxY = -Infinity;
 		for (const shape of shapes) {
 			const bounds = getShapeBounds(shape);
 			minX = Math.min(minX, bounds.x);
@@ -1188,7 +1204,7 @@
 	function getSelectedShapes(): Shape[] {
 		const selected: Shape[] = [];
 		for (const id of selectedIds) {
-			const shape = shapes.find(s => s.id === id);
+			const shape = shapes.find((s) => s.id === id);
 			if (shape) selected.push(shape);
 		}
 		return selected;
@@ -1196,11 +1212,11 @@
 
 	function hasSelectedNonArrows(): boolean {
 		const selected = getSelectedShapes();
-		return selected.some(s => s.type !== 'arrow');
+		return selected.some((s) => s.type !== 'arrow');
 	}
 
 	function getCommonFill(): string | null | undefined {
-		const selected = getSelectedShapes().filter(s => s.type !== 'arrow');
+		const selected = getSelectedShapes().filter((s) => s.type !== 'arrow');
 		if (selected.length === 0) return undefined;
 		const firstFill = selected[0].fill;
 		for (const shape of selected) {
@@ -1222,11 +1238,11 @@
 	}
 
 	function toggleFill() {
-		const selected = getSelectedShapes().filter(s => s.type !== 'arrow');
+		const selected = getSelectedShapes().filter((s) => s.type !== 'arrow');
 		if (selected.length === 0) return;
 
 		const hasFill = selected[0].fill;
-		const updatedShapes: Shape[] = selected.map(s => ({
+		const updatedShapes: Shape[] = selected.map((s) => ({
 			...s,
 			fill: hasFill ? null : '#D1D5DB' // Toggle between no fill and gray fill
 		}));
@@ -1244,7 +1260,7 @@
 		if (selected.length === 0) return;
 
 		const hasDash = selected[0].dash && selected[0].dash.length > 0;
-		const updatedShapes: Shape[] = selected.map(s => ({
+		const updatedShapes: Shape[] = selected.map((s) => ({
 			...s,
 			dash: hasDash ? undefined : [10, 5] // Toggle between solid and dashed
 		}));
@@ -1261,7 +1277,7 @@
 		const selected = getSelectedShapes();
 		if (selected.length === 0) return;
 
-		const updatedShapes: Shape[] = selected.map(s => ({
+		const updatedShapes: Shape[] = selected.map((s) => ({
 			...s,
 			stroke: color
 		}));
@@ -1276,11 +1292,11 @@
 
 	function hasSelectedArrows(): boolean {
 		const selected = getSelectedShapes();
-		return selected.some(s => s.type === 'arrow');
+		return selected.some((s) => s.type === 'arrow');
 	}
 
 	function getCommonDoubleEnded(): boolean | undefined {
-		const arrows = getSelectedShapes().filter(s => s.type === 'arrow') as ArrowShape[];
+		const arrows = getSelectedShapes().filter((s) => s.type === 'arrow') as ArrowShape[];
 		if (arrows.length === 0) return undefined;
 		const first = arrows[0].doubleEnded ?? false;
 		for (const arrow of arrows) {
@@ -1290,7 +1306,7 @@
 	}
 
 	function getCommonCurved(): boolean | undefined {
-		const arrows = getSelectedShapes().filter(s => s.type === 'arrow') as ArrowShape[];
+		const arrows = getSelectedShapes().filter((s) => s.type === 'arrow') as ArrowShape[];
 		if (arrows.length === 0) return undefined;
 		const first = arrows[0].curved ?? false;
 		for (const arrow of arrows) {
@@ -1300,11 +1316,11 @@
 	}
 
 	function toggleDoubleEnded() {
-		const arrows = getSelectedShapes().filter(s => s.type === 'arrow') as ArrowShape[];
+		const arrows = getSelectedShapes().filter((s) => s.type === 'arrow') as ArrowShape[];
 		if (arrows.length === 0) return;
 
 		const currentValue = arrows[0].doubleEnded ?? false;
-		const updatedShapes: Shape[] = arrows.map(a => ({
+		const updatedShapes: Shape[] = arrows.map((a) => ({
 			...a,
 			doubleEnded: !currentValue
 		}));
@@ -1318,11 +1334,11 @@
 	}
 
 	function toggleCurved() {
-		const arrows = getSelectedShapes().filter(s => s.type === 'arrow') as ArrowShape[];
+		const arrows = getSelectedShapes().filter((s) => s.type === 'arrow') as ArrowShape[];
 		if (arrows.length === 0) return;
 
 		const currentValue = arrows[0].curved ?? false;
-		const updatedShapes: Shape[] = arrows.map(a => {
+		const updatedShapes: Shape[] = arrows.map((a) => {
 			const isCurved = !currentValue;
 			// If toggling to curved and only has 2 points, add middle control point
 			if (isCurved && a.points.length === 2) {
@@ -1384,11 +1400,10 @@
 
 	<!-- Connection status indicator -->
 	{#if multiplayer}
-		<div class="absolute top-4 right-4 z-50 flex items-center gap-2 rounded-lg bg-white/90 px-3 py-2 shadow-md">
-			<div
-				class="h-3 w-3 rounded-full"
-				style="background-color: {getStatusColor()}"
-			></div>
+		<div
+			class="absolute top-4 right-4 z-50 flex items-center gap-2 rounded-lg bg-white/90 px-3 py-2 shadow-md"
+		>
+			<div class="h-3 w-3 rounded-full" style="background-color: {getStatusColor()}"></div>
 			<span class="text-sm font-medium">{getStatusText()}</span>
 			{#if remotePresences.size > 0}
 				<span class="text-xs text-gray-500">({remotePresences.size} online)</span>
@@ -1406,13 +1421,7 @@
 		onmouseup={handleMouseUp}
 		onclick={handleStageClick}
 	>
-		<Layer
-			bind:this={layerComponent}
-			x={cam.x}
-			y={cam.y}
-			scaleX={cam.scale}
-			scaleY={cam.scale}
-		>
+		<Layer bind:this={layerComponent} x={cam.x} y={cam.y} scaleX={cam.scale} scaleY={cam.scale}>
 			{#each shapes as shape (shape.id)}
 				{#if shape.type === 'rect'}
 					{@const rect = shape as RectShape}
@@ -1797,7 +1806,7 @@
 		{#if inputPos}
 			<input
 				type="text"
-				class="absolute z-50 border-2 border-purple-500 bg-white px-2 py-1 text-center focus:outline-none focus:ring-2 focus:ring-purple-300"
+				class="absolute z-50 border-2 border-purple-500 bg-white px-2 py-1 text-center focus:ring-2 focus:ring-purple-300 focus:outline-none"
 				style="left: {inputPos.x}px; top: {inputPos.y}px; width: {inputPos.width}px; min-height: {inputPos.height}px;"
 				value={editingTextContent}
 				oninput={handleTextInput}
@@ -1820,7 +1829,7 @@
 	{#if isAwayFromContent()}
 		<button
 			type="button"
-			class="absolute bottom-4 left-1/2 z-50 -translate-x-1/2 transform rounded-lg bg-purple-600 px-4 py-2 font-medium text-white shadow-lg transition-colors hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+			class="absolute bottom-4 left-1/2 z-50 -translate-x-1/2 transform rounded-lg bg-purple-600 px-4 py-2 font-medium text-white shadow-lg transition-colors hover:bg-purple-700 focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:outline-none"
 			onclick={centerOnContent}
 		>
 			Вернуться к содержимому
@@ -1829,7 +1838,7 @@
 
 	<!-- Shape properties panel -->
 	{#if selectedIds.size > 0}
-		<div class="absolute left-4 top-20 z-50 flex flex-col gap-2 rounded-lg bg-white p-3 shadow-lg">
+		<div class="absolute top-20 left-4 z-50 flex flex-col gap-2 rounded-lg bg-white p-3 shadow-lg">
 			<div class="text-xs font-semibold text-gray-600">Свойства</div>
 
 			<!-- Fill toggle (not for arrows) -->
@@ -1856,7 +1865,15 @@
 				<div class="flex h-4 w-4 items-center justify-center">
 					{#if getCommonDash() && getCommonDash()!.length > 0}
 						<svg width="16" height="16" viewBox="0 0 16 16">
-							<line x1="0" y1="8" x2="16" y2="8" stroke="currentColor" stroke-width="2" stroke-dasharray="4 2" />
+							<line
+								x1="0"
+								y1="8"
+								x2="16"
+								y2="8"
+								stroke="currentColor"
+								stroke-width="2"
+								stroke-dasharray="4 2"
+							/>
 						</svg>
 					{:else}
 						<svg width="16" height="16" viewBox="0 0 16 16">

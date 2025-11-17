@@ -44,11 +44,7 @@ describe('clipboard', () => {
 		ry: 30
 	});
 
-	const createArrow = (
-		id: string,
-		fromId?: string,
-		toId?: string
-	): ArrowShape => ({
+	const createArrow = (id: string, fromId?: string, toId?: string): ArrowShape => ({
 		id,
 		type: 'arrow',
 		x: 0,

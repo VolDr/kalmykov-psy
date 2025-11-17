@@ -3,13 +3,7 @@
 import { writable, type Writable, get } from 'svelte/store';
 import type { HistoryStore } from '../model/history';
 import type { Camera } from '../model/shapes';
-import type {
-	Operation,
-	Presence,
-	ClientMessage,
-	ServerMessage,
-	generateClientId
-} from './types';
+import type { Operation, Presence, ClientMessage, ServerMessage, generateClientId } from './types';
 import {
 	createAddShapesOp,
 	createUpdateShapesOp,

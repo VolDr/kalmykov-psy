@@ -3,7 +3,13 @@
 	import { get } from 'svelte/store';
 	import Canvas from '$lib/canvas/ui/Canvas.svelte';
 	import { shapesHistory, camera } from '$lib/canvas/stores';
-	import type { SceneData, RectShape, EllipseShape, ArrowShape, TextShape } from '$lib/canvas/model/shapes';
+	import type {
+		SceneData,
+		RectShape,
+		EllipseShape,
+		ArrowShape,
+		TextShape
+	} from '$lib/canvas/model/shapes';
 	import { createAddShapesOp } from '$lib/canvas/sync/types';
 
 	const sceneId = 'demo-scene-001';
@@ -193,7 +199,7 @@
 
 <div class="relative h-screen w-screen bg-gray-50">
 	<!-- Toolbar -->
-	<div class="absolute left-4 top-4 z-10 flex gap-2 rounded-lg bg-white p-2 shadow-md">
+	<div class="absolute top-4 left-4 z-10 flex gap-2 rounded-lg bg-white p-2 shadow-md">
 		<button
 			onclick={addRect}
 			class="rounded bg-blue-500 px-3 py-1 text-sm text-white hover:bg-blue-600"
@@ -233,7 +239,7 @@
 	</div>
 
 	<!-- Multiplayer Controls -->
-	<div class="absolute left-4 top-20 z-10 rounded-lg bg-white p-3 shadow-md">
+	<div class="absolute top-20 left-4 z-10 rounded-lg bg-white p-3 shadow-md">
 		<h3 class="mb-2 text-sm font-semibold">Multiplayer</h3>
 		<div class="space-y-2">
 			<label class="flex items-center gap-2">
@@ -256,7 +262,7 @@
 	</div>
 
 	<!-- Instructions -->
-	<div class="absolute right-4 top-4 z-10 max-w-xs rounded-lg bg-white p-3 text-xs shadow-md">
+	<div class="absolute top-4 right-4 z-10 max-w-xs rounded-lg bg-white p-3 text-xs shadow-md">
 		<h3 class="mb-2 font-semibold">Controls:</h3>
 		<ul class="space-y-1 text-gray-600">
 			<li>Click shape to select</li>
@@ -273,7 +279,9 @@
 
 	<!-- Error display -->
 	{#if loadError}
-		<div class="absolute left-1/2 top-4 z-10 -translate-x-1/2 rounded bg-red-100 px-4 py-2 text-red-700">
+		<div
+			class="absolute top-4 left-1/2 z-10 -translate-x-1/2 rounded bg-red-100 px-4 py-2 text-red-700"
+		>
 			{loadError}
 		</div>
 	{/if}
@@ -284,11 +292,6 @@
 			<div class="text-gray-500">Loading canvas...</div>
 		</div>
 	{:else}
-		<Canvas
-			multiplayer={multiplayerEnabled}
-			{wsUrl}
-			{sceneId}
-			userName={userName}
-		/>
+		<Canvas multiplayer={multiplayerEnabled} {wsUrl} {sceneId} {userName} />
 	{/if}
 </div>
