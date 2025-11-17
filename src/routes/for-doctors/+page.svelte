@@ -8,13 +8,14 @@
 	import type { PageConfiguration } from '$lib/types/page-blocks';
 
 	let { data }: { data: PageData } = $props();
-	const { content, blocks, hasBlocks } = data;
+	const { content, blocks, layout, hasBlocks } = data;
 
 	// Create page configuration for PageRenderer
 	const pageConfig: PageConfiguration = $derived({
 		slug: 'for-doctors',
 		name: 'Для врачей',
 		seo: content.seo,
+		layout: layout,
 		blocks: blocks
 	});
 </script>
@@ -39,10 +40,7 @@
 {#if hasBlocks}
 	<PageRenderer page={pageConfig} />
 {:else}
-	<section
-		data-hero
-		class="relative min-h-[30vh] overflow-hidden bg-cover bg-center text-gray-100"
-	>
+	<section data-hero class="relative min-h-[30vh] overflow-hidden bg-cover bg-center text-gray-100">
 		<HeroBackground />
 		<div
 			class="absolute z-0 h-full w-full bg-gradient-to-b from-black/25 from-0% via-black/65 via-40% to-black/65"
@@ -117,7 +115,7 @@
 		<div
 			class="mx-auto flex max-w-[720px] flex-col items-center gap-10 md:max-w-[960px] lg:max-w-[1200px]"
 		>
-			<h3 class="subtitle px-6 text-center md:px-0 md:text-left">
+			<h3 class="px-6 text-center subtitle md:px-0 md:text-left">
 				{content.problemsSection.title}
 			</h3>
 
@@ -140,7 +138,7 @@
 		<div
 			class="m-auto flex max-w-[720px] flex-col items-center gap-10 md:max-w-[960px] lg:max-w-[1200px]"
 		>
-			<h3 class="subtitle px-6 text-center md:px-0 md:text-left">
+			<h3 class="px-6 text-center subtitle md:px-0 md:text-left">
 				{content.requestsSection.title}
 			</h3>
 			<div class="grid w-full grid-cols-1 gap-4 px-5 md:grid-cols-2 md:px-0">
@@ -201,7 +199,7 @@
 			</div>
 
 			<!-- Контакты для связи -->
-			<div class="mb-10 mt-6 flex w-full flex-col items-center gap-2.5 md:gap-3.5">
+			<div class="mt-6 mb-10 flex w-full flex-col items-center gap-2.5 md:gap-3.5">
 				<h3 class="subtitle">как со мной связаться</h3>
 
 				<div

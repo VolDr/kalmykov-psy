@@ -14,16 +14,8 @@
 		isLast: boolean;
 	}
 
-	let {
-		block,
-		onUpdate,
-		onDelete,
-		onDuplicate,
-		onMoveUp,
-		onMoveDown,
-		isFirst,
-		isLast
-	}: Props = $props();
+	let { block, onUpdate, onDelete, onDuplicate, onMoveUp, onMoveDown, isFirst, isLast }: Props =
+		$props();
 
 	let isExpanded = $state(true);
 	let showJsonEditor = $state(false);
@@ -73,7 +65,8 @@
 		'circle-help': 'icon-[lucide--circle-help]',
 		info: 'icon-[lucide--info]',
 		user: 'icon-[lucide--user]',
-		'list-checks': 'icon-[lucide--list-checks]'
+		'list-checks': 'icon-[lucide--list-checks]',
+		'layout-grid': 'icon-[lucide--layout-grid]'
 	};
 </script>
 
@@ -144,8 +137,7 @@
 					: 'hover:text-green-600'}"
 				aria-label={block.isActive ? 'Деактивировать' : 'Активировать'}
 			>
-				<span
-					class="h-4 w-4 {block.isActive ? 'icon-[lucide--eye-off]' : 'icon-[lucide--eye]'}"
+				<span class="h-4 w-4 {block.isActive ? 'icon-[lucide--eye-off]' : 'icon-[lucide--eye]'}"
 				></span>
 			</button>
 			<button
@@ -183,7 +175,7 @@
 					<textarea
 						bind:value={jsonContent}
 						rows="15"
-						class="font-mono w-full rounded border border-gray-300 px-3 py-2 text-xs focus:border-blue-500 focus:outline-none"
+						class="w-full rounded border border-gray-300 px-3 py-2 font-mono text-xs focus:border-blue-500 focus:outline-none"
 					></textarea>
 					<div class="flex justify-end gap-2">
 						<button
@@ -206,11 +198,11 @@
 			{:else}
 				<!-- Type-specific editors -->
 				{#if block.type === 'page-hero'}
-					<PageHeroEditor block={block} onUpdate={(b) => onUpdate(b)} />
+					<PageHeroEditor {block} onUpdate={(b) => onUpdate(b)} />
 				{:else}
 					<!-- Fallback to JSON for blocks without visual editor -->
 					<div class="rounded border border-dashed border-gray-300 bg-gray-50 p-4 text-center">
-						<span class="icon-[lucide--code] mx-auto mb-2 h-8 w-8 text-gray-400"></span>
+						<span class="mx-auto mb-2 icon-[lucide--code] h-8 w-8 text-gray-400"></span>
 						<p class="mb-2 text-sm text-gray-600">
 							Визуальный редактор для этого блока в разработке
 						</p>

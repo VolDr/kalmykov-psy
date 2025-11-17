@@ -30,7 +30,8 @@ export type BlockType =
 	| 'faq'
 	| 'consultation-info'
 	| 'about-section'
-	| 'issues-list';
+	| 'issues-list'
+	| 'about-intro-dual';
 
 // Universal Block Configurations
 
@@ -150,6 +151,7 @@ export interface EducationBlock extends BaseBlock {
 	type: 'education';
 	config: {
 		isOpen?: boolean;
+		withReveal?: boolean;
 		// Data comes from education.ts or can be overridden
 	};
 }
@@ -201,6 +203,31 @@ export interface IssuesListBlock extends BaseBlock {
 	};
 }
 
+export interface AboutIntroDualBlock extends BaseBlock {
+	type: 'about-intro-dual';
+	config: {
+		leftImage: {
+			src: string;
+			srcSmall?: string;
+			alt: string;
+			width?: number;
+			height?: number;
+			imgClass?: string;
+		};
+		leftTexts: string[];
+		rightTexts: string[];
+		rightImage: {
+			src: string;
+			srcSmall?: string;
+			alt: string;
+			width?: number;
+			height?: number;
+			imgClass?: string;
+		};
+		withReveal?: boolean;
+	};
+}
+
 // Union type for all blocks
 export type PageBlock =
 	| PageHeroBlock
@@ -213,7 +240,15 @@ export type PageBlock =
 	| FaqBlock
 	| ConsultationInfoBlock
 	| AboutSectionBlock
-	| IssuesListBlock;
+	| IssuesListBlock
+	| AboutIntroDualBlock;
+
+// Page layout configuration
+export interface PageLayoutSettings {
+	maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | 'full';
+	containerClass?: string;
+	withContainer?: boolean;
+}
 
 // Page configuration
 export interface PageConfiguration {
@@ -224,6 +259,7 @@ export interface PageConfiguration {
 		description: string;
 		ogImage?: string;
 	};
+	layout?: PageLayoutSettings;
 	blocks: PageBlock[];
 }
 
@@ -315,6 +351,13 @@ export const blockMetadataRegistry: BlockMetadata[] = [
 		description: 'Карточки с темами и списками пунктов',
 		category: 'unique',
 		icon: 'list-checks'
+	},
+	{
+		type: 'about-intro-dual',
+		name: 'Двойное введение',
+		description: 'Два изображения с текстом (левое и правое)',
+		category: 'unique',
+		icon: 'layout-grid'
 	}
 ];
 
@@ -386,7 +429,7 @@ export function createEmptyBlock(type: BlockType): PageBlock {
 			return {
 				...base,
 				type: 'education',
-				config: { isOpen: false }
+				config: { isOpen: false, withReveal: true }
 			} as EducationBlock;
 
 		case 'faq':
@@ -426,6 +469,19 @@ export function createEmptyBlock(type: BlockType): PageBlock {
 					items: []
 				}
 			} as IssuesListBlock;
+
+		case 'about-intro-dual':
+			return {
+				...base,
+				type: 'about-intro-dual',
+				config: {
+					leftImage: { src: '/1.webp', alt: 'Левое изображение' },
+					leftTexts: ['Текст слева'],
+					rightTexts: ['Текст справа'],
+					rightImage: { src: '/2.webp', alt: 'Правое изображение' },
+					withReveal: false
+				}
+			} as AboutIntroDualBlock;
 
 		default:
 			throw new Error(`Unknown block type: ${type}`);

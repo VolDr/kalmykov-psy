@@ -7,13 +7,14 @@
 	import type { PageConfiguration } from '$lib/types/page-blocks';
 
 	let { data }: { data: PageData } = $props();
-	const { content, blocks, hasBlocks } = data;
+	const { content, blocks, layout, hasBlocks } = data;
 
 	// Create page configuration for PageRenderer
 	const pageConfig: PageConfiguration = $derived({
 		slug: 'online-therapy',
 		name: 'Онлайн-терапия',
 		seo: content.seo,
+		layout: layout,
 		blocks: blocks
 	});
 </script>
@@ -38,10 +39,7 @@
 {#if hasBlocks}
 	<PageRenderer page={pageConfig} />
 {:else}
-	<section
-		data-hero
-		class="relative min-h-[30vh] overflow-hidden bg-cover bg-center text-gray-100"
-	>
+	<section data-hero class="relative min-h-[30vh] overflow-hidden bg-cover bg-center text-gray-100">
 		<HeroBackground />
 		<div
 			class="absolute z-0 h-full w-full bg-gradient-to-b from-black/25 from-0% via-black/65 via-40% to-black/65"
@@ -109,13 +107,13 @@
 
 			<a
 				class={cn(
-					'text-center text-[#191919] max-w-[250px]',
+					'max-w-[250px] text-center text-[#191919]',
 					'font-light tracking-wide',
-					'py-[10px] px-[30px]',
-					'border border-solid rounded-[10px] border-black bg-opacity-0 block mx-auto',
+					'px-[30px] py-[10px]',
+					'bg-opacity-0 mx-auto block rounded-[10px] border border-solid border-black',
 					'transition-all duration-200 ease-out',
-					'hover:bg-[#cfc1a3] hover:border-[#cfc1a3] hover:text-white hover:shadow-md hover:-translate-y-0.5',
-					'active:transform active:scale-95'
+					'hover:-translate-y-0.5 hover:border-[#cfc1a3] hover:bg-[#cfc1a3] hover:text-white hover:shadow-md',
+					'active:scale-95 active:transform'
 				)}
 				href={content.bookingLink || 'https://t.me/m/hSP1SM5sYjcy'}
 				target="_blank"
