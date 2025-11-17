@@ -4,7 +4,7 @@
 		link: string;
 		description: string;
 		icon?: string;
-		todo: string;
+		todo?: string;
 	}
 
 	let { title, link, description, icon = 'arrow-right', todo = 'Заполнить' }: Props = $props();

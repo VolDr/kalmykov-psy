@@ -2,10 +2,9 @@
 	import Card from '$lib/components/ui/Card.svelte';
 	import HeroBackground from '$lib/components/HeroBackground.svelte';
 	import type { PageData } from './$types';
-	import { surveyCategories } from '$lib/data/content';
 
 	let { data }: { data: PageData } = $props();
-	const { content } = data;
+	const { content, surveysByCategory } = data;
 
 	const url = `${import.meta.env.VITE_URL}/surveys`;
 </script>
@@ -76,11 +75,13 @@
 <div class="container mx-auto mt-10 max-w-[720px] px-5 lg:max-w-[1200px] lg:px-0">
 	<div class="grid w-full grid-cols-1 gap-4 md:px-0">
 		<div class="mt-[40px] space-y-12 sm:mt-[60px] lg:px-0">
-			{#each surveyCategories as category}
+			{#each surveysByCategory as group}
 				<div class="space-y-6">
-					<h2 class="text-2xl font-semibold text-[#191919]">{category.category}</h2>
+					<h2 class="text-2xl font-semibold text-[#191919]">
+						{group.category ? group.category.name : 'Без категории'}
+					</h2>
 					<div class="grid grid-cols-1 items-start gap-4 sm:gap-6 lg:grid-cols-2 lg:gap-8">
-						{#each category.surveys as survey}
+						{#each group.surveys as survey}
 							<Card title={survey.title} link={survey.link} description={survey.description} />
 						{/each}
 					</div>
