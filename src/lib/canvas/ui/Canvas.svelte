@@ -1397,6 +1397,24 @@
 		}
 	}
 
+	function toggleStroke() {
+		const selected = getSelectedShapes().filter((s) => s.type !== 'arrow');
+		if (selected.length === 0) return;
+
+		const hasStroke = selected[0].strokeWidth > 0;
+		const updatedShapes: Shape[] = selected.map((s) => ({
+			...s,
+			strokeWidth: hasStroke ? 0 : 2
+		}));
+
+		shapesHistory.updateShapes(updatedShapes);
+
+		if (syncClient && multiplayer) {
+			const op = createUpdateShapesOp(sceneId, clientId, updatedShapes);
+			syncClient.sendOperation(op);
+		}
+	}
+
 	function hasSelectedArrows(): boolean {
 		const selected = getSelectedShapes();
 		return selected.some((s) => s.type === 'arrow');
@@ -2032,7 +2050,7 @@
 	{#if isAwayFromContent()}
 		<button
 			type="button"
-			class="absolute bottom-4 left-1/2 z-50 -translate-x-1/2 transform rounded-lg bg-purple-600 px-4 py-2 font-medium text-white shadow-lg transition-colors hover:bg-purple-700 focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:outline-none"
+			class="absolute bottom-4 left-1/2 z-50 -translate-x-1/2 transform rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-normal text-gray-700 shadow-md transition-colors hover:bg-gray-50 focus:ring-2 focus:ring-gray-200 focus:ring-offset-2 focus:outline-none"
 			onclick={centerOnContent}
 		>
 			Вернуться к содержимому
@@ -2161,7 +2179,17 @@
 
 			<!-- Stroke color -->
 			<div class="flex flex-wrap items-center gap-1">
-				<span class="w-full text-xs text-gray-500">Цвет:</span>
+				<span class="w-full text-xs text-gray-500">Контур:</span>
+				{#if hasSelectedNonArrows()}
+					<button
+						type="button"
+						class="h-5 w-5 rounded border-2 border-gray-400"
+						style="background: repeating-conic-gradient(#ccc 0% 25%, transparent 0% 50%) 50% / 8px 8px"
+						onclick={() => toggleStroke()}
+						aria-label="Toggle stroke"
+						title="Без контура / С контуром"
+					></button>
+				{/if}
 				<button
 					type="button"
 					class="h-5 w-5 rounded border border-gray-300"
