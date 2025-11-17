@@ -116,8 +116,8 @@
 	let layerComponent: { node: KonvaLayer } | null = $state(null);
 	let transformerComponent: { node: KonvaTransformer } | null = $state(null);
 
-	// Map to store shape node references for transformer
-	let shapeRefs: Map<string, KonvaNode> = $state(new Map());
+	// Map to store shape node references for transformer (deprecated - now using Layer.findOne)
+	// let shapeRefs: Map<string, KonvaNode> = $state(new Map());
 
 	let shapes: Shape[] = $state([]);
 	let selectedIds: Set<string> = $state(new Set());
@@ -233,15 +233,21 @@
 
 	// Update transformer nodes when selection changes
 	$effect(() => {
-		if (!transformerRef) return;
+		if (!transformerRef || !layerRef) return;
 
 		const nodes: KonvaNode[] = [];
 		for (const id of selectedIds) {
-			const node = shapeRefs.get(id);
+			// Find the node by ID in the layer
+			const node = layerRef.findOne(`#${id}`);
 			if (node) {
 				nodes.push(node);
 			}
 		}
+
+		console.log('[Canvas] Updating transformer nodes', {
+			selectedIds: Array.from(selectedIds),
+			foundNodes: nodes.length
+		});
 
 		transformerRef.nodes(nodes);
 		transformerRef.getLayer()?.batchDraw();
@@ -690,14 +696,14 @@
 		}
 	});
 
-	// Register shape node reference for transformer
-	function registerShapeRef(shapeId: string, node: KonvaNode | null) {
-		if (node) {
-			shapeRefs.set(shapeId, node);
-		} else {
-			shapeRefs.delete(shapeId);
-		}
-	}
+	// Register shape node reference for transformer (deprecated - now using Layer.findOne)
+	// function registerShapeRef(shapeId: string, node: KonvaNode | null) {
+	// 	if (node) {
+	// 		shapeRefs.set(shapeId, node);
+	// 	} else {
+	// 		shapeRefs.delete(shapeId);
+	// 	}
+	// }
 
 	// Render helpers
 	function renderRect(rect: RectShape) {
@@ -1073,7 +1079,6 @@
 						onclick={(e) => onShapeClick(rect.id, e)}
 						ondblclick={() => handleDoubleClick(rect.id)}
 						ondragend={(e) => onShapeDragEnd(rect, e)}
-						onload={(e) => registerShapeRef(rect.id, e.target as KonvaNode)}
 					/>
 					{#if rect.text}
 						<KonvaText
@@ -1098,8 +1103,6 @@
 						y={el.y}
 						radiusX={el.rx}
 						radiusY={el.ry}
-						offsetX={el.rx}
-						offsetY={el.ry}
 						stroke={el.stroke}
 						strokeWidth={el.strokeWidth}
 						fill={el.fill ?? undefined}
@@ -1109,7 +1112,6 @@
 						onclick={(e) => onShapeClick(el.id, e)}
 						ondblclick={() => handleDoubleClick(el.id)}
 						ondragend={(e) => onShapeDragEnd(el, e)}
-						onload={(e) => registerShapeRef(el.id, e.target as KonvaNode)}
 					/>
 					{#if el.text}
 						<KonvaText
@@ -1143,7 +1145,6 @@
 						onclick={(e) => onShapeClick(t.id, e)}
 						ondblclick={() => handleDoubleClick(t.id)}
 						ondragend={(e) => onShapeDragEnd(t, e)}
-						onload={(e) => registerShapeRef(t.id, e.target as KonvaNode)}
 					/>
 				{:else if shape.type === 'arrow'}
 					{@const a = shape as ArrowShape}
@@ -1163,7 +1164,6 @@
 						opacity={isSelected(a.id) ? 0.8 : 1}
 						onclick={(e) => onShapeClick(a.id, e)}
 						ondragend={(e) => onArrowDragEnd(a, e)}
-						onload={(e) => registerShapeRef(a.id, e.target as KonvaNode)}
 					/>
 				{:else if shape.type === 'group'}
 					{@const g = shape as GroupShape}
