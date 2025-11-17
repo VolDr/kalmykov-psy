@@ -28,6 +28,8 @@
 		type ToolMode
 	} from '../stores';
 	import { attachArrowEndToNearestShape, updateConnectedArrows } from '../engine/magnets';
+	import { isRoughEnabled } from '../engine/rough';
+	import RoughShape from './RoughShape.svelte';
 	import type {
 		Shape,
 		RectShape,
@@ -617,14 +619,21 @@
 				node.scaleY(1);
 			} else if (shape.type === 'text') {
 				const text = shape as TextShape;
+				const currentWidth = text.width ?? text.text.length * text.fontSize * 0.6;
+				const currentHeight = text.height ?? text.fontSize * 1.2;
 				updated = {
 					...text,
 					x,
 					y,
+					width: currentWidth * scaleX,
+					height: currentHeight * scaleY,
 					rotation,
-					scaleX,
-					scaleY
+					scaleX: 1,
+					scaleY: 1
 				};
+				// Reset node scale after applying to dimensions
+				node.scaleX(1);
+				node.scaleY(1);
 			} else {
 				// For other shapes, just update position and rotation
 				updated = {
@@ -664,6 +673,30 @@
 		}
 	}
 
+	// Shape drag move - real-time update for smooth movement
+	function onShapeDragMove(shape: Shape, e: any) {
+		const node = e.target;
+		const pos = node.position();
+
+		const updated: Shape = {
+			...shape,
+			x: pos.x,
+			y: pos.y
+		};
+
+		// Get current shapes and update the moved shape
+		const currentShapes = shapes.map((s) => (s.id === shape.id ? updated : s));
+
+		// Update all arrows connected to this shape in real-time
+		const connectedArrowUpdates = updateConnectedArrows([shape.id], currentShapes);
+
+		// Combine updates
+		const allUpdates = [updated, ...connectedArrowUpdates];
+
+		// Update without history for visual feedback
+		shapesHistory.applyRemoteUpdate(allUpdates);
+	}
+
 	function onShapeDragEnd(shape: Shape, e: any) {
 		const node = e.target;
 		const pos = node.position();
@@ -690,6 +723,21 @@
 			const op = createUpdateShapesOp(sceneId, clientId, allUpdates);
 			syncClient.sendOperation(op);
 		}
+	}
+
+	// Arrow drag move - real-time update for handles to follow
+	function onArrowDragMove(arrow: ArrowShape, e: any) {
+		const node = e.target;
+		const pos = node.position();
+
+		const updated: ArrowShape = {
+			...arrow,
+			x: pos.x,
+			y: pos.y
+		};
+
+		// Update without history for visual feedback
+		shapesHistory.applyRemoteUpdate([updated]);
 	}
 
 	// Arrow drag end - snap to nearest shape
@@ -1297,10 +1345,10 @@
 	}
 
 	function setFillColor(color: string | null) {
-		const selected = getSelectedShapes().filter(s => s.type !== 'arrow');
+		const selected = getSelectedShapes().filter((s) => s.type !== 'arrow');
 		if (selected.length === 0) return;
 
-		const updatedShapes: Shape[] = selected.map(s => ({
+		const updatedShapes: Shape[] = selected.map((s) => ({
 			...s,
 			fill: color
 		}));
@@ -1485,25 +1533,36 @@
 					{@const rect = shape as RectShape}
 					{@const textHeight = rect.text ? calculateTextHeight(rect.text, rect.width, 14) : 0}
 					{@const effectiveHeight = Math.max(rect.height, textHeight + 20)}
-					<Rect
-						id={rect.id}
-						x={rect.x}
-						y={rect.y}
-						width={rect.width}
-						height={effectiveHeight}
-						offsetX={rect.width / 2}
-						offsetY={effectiveHeight / 2}
-						stroke={rect.stroke}
-						strokeWidth={rect.strokeWidth}
-						fill={rect.fill ?? undefined}
-						dash={rect.dash ?? undefined}
-						rotation={rect.rotation}
-						draggable={true}
-						opacity={isSelected(rect.id) ? 0.8 : 1}
-						onclick={(e) => onShapeClick(rect.id, e)}
-						ondblclick={() => handleDoubleClick(rect.id)}
-						ondragend={(e) => onShapeDragEnd(rect, e)}
-					/>
+					{#if isRoughEnabled(rect)}
+						<RoughShape
+							shape={rect}
+							isSelected={isSelected(rect.id)}
+							onclick={(e) => onShapeClick(rect.id, e)}
+							ondblclick={() => handleDoubleClick(rect.id)}
+							ondragend={(e) => onShapeDragEnd(rect, e)}
+						/>
+					{:else}
+						<Rect
+							id={rect.id}
+							x={rect.x}
+							y={rect.y}
+							width={rect.width}
+							height={effectiveHeight}
+							offsetX={rect.width / 2}
+							offsetY={effectiveHeight / 2}
+							stroke={rect.stroke}
+							strokeWidth={rect.strokeWidth}
+							fill={rect.fill ?? undefined}
+							dash={rect.dash ?? undefined}
+							rotation={rect.rotation}
+							draggable={true}
+							opacity={isSelected(rect.id) ? 0.8 : 1}
+							onclick={(e) => onShapeClick(rect.id, e)}
+							ondblclick={() => handleDoubleClick(rect.id)}
+							ondragmove={(e) => onShapeDragMove(rect, e)}
+							ondragend={(e) => onShapeDragEnd(rect, e)}
+						/>
+					{/if}
 					{#if rect.text}
 						<KonvaText
 							x={rect.x}
@@ -1524,23 +1583,34 @@
 					{@const el = shape as EllipseShape}
 					{@const textHeight = el.text ? calculateTextHeight(el.text, el.rx * 2, 14) : 0}
 					{@const effectiveRy = Math.max(el.ry, (textHeight + 20) / 2)}
-					<Ellipse
-						id={el.id}
-						x={el.x}
-						y={el.y}
-						radiusX={el.rx}
-						radiusY={effectiveRy}
-						stroke={el.stroke}
-						strokeWidth={el.strokeWidth}
-						fill={el.fill ?? undefined}
-						dash={el.dash ?? undefined}
-						rotation={el.rotation}
-						draggable={true}
-						opacity={isSelected(el.id) ? 0.8 : 1}
-						onclick={(e) => onShapeClick(el.id, e)}
-						ondblclick={() => handleDoubleClick(el.id)}
-						ondragend={(e) => onShapeDragEnd(el, e)}
-					/>
+					{#if isRoughEnabled(el)}
+						<RoughShape
+							shape={el}
+							isSelected={isSelected(el.id)}
+							onclick={(e) => onShapeClick(el.id, e)}
+							ondblclick={() => handleDoubleClick(el.id)}
+							ondragend={(e) => onShapeDragEnd(el, e)}
+						/>
+					{:else}
+						<Ellipse
+							id={el.id}
+							x={el.x}
+							y={el.y}
+							radiusX={el.rx}
+							radiusY={effectiveRy}
+							stroke={el.stroke}
+							strokeWidth={el.strokeWidth}
+							fill={el.fill ?? undefined}
+							dash={el.dash ?? undefined}
+							rotation={el.rotation}
+							draggable={true}
+							opacity={isSelected(el.id) ? 0.8 : 1}
+							onclick={(e) => onShapeClick(el.id, e)}
+							ondblclick={() => handleDoubleClick(el.id)}
+							ondragmove={(e) => onShapeDragMove(el, e)}
+							ondragend={(e) => onShapeDragEnd(el, e)}
+						/>
+					{/if}
 					{#if el.text}
 						<KonvaText
 							x={el.x}
@@ -1559,26 +1629,58 @@
 					{/if}
 				{:else if shape.type === 'text'}
 					{@const t = shape as TextShape}
-					<KonvaText
+					{@const textWidth = t.width ?? t.text.length * t.fontSize * 0.6}
+					{@const textHeight = t.height ?? t.fontSize * 1.2}
+					<!-- Invisible rect for transformer support -->
+					<Rect
 						id={t.id}
 						x={t.x}
 						y={t.y}
-						offsetX={(t.width ?? t.text.length * t.fontSize * 0.6) / 2}
-						offsetY={(t.height ?? t.fontSize * 1.2) / 2}
-						text={t.text}
-						fontSize={t.fontSize}
-						fontFamily={t.fontFamily}
-						align={t.align}
+						width={textWidth}
+						height={textHeight}
+						offsetX={textWidth / 2}
+						offsetY={textHeight / 2}
+						rotation={t.rotation}
 						draggable={true}
 						opacity={isSelected(t.id) ? 0.8 : 1}
 						onclick={(e) => onShapeClick(t.id, e)}
 						ondblclick={() => handleDoubleClick(t.id)}
+						ondragmove={(e) => onShapeDragMove(t, e)}
 						ondragend={(e) => onShapeDragEnd(t, e)}
+					/>
+					<!-- Text content -->
+					<KonvaText
+						x={t.x}
+						y={t.y}
+						offsetX={textWidth / 2}
+						offsetY={textHeight / 2}
+						width={textWidth}
+						height={textHeight}
+						text={t.text}
+						fontSize={t.fontSize}
+						fontFamily={t.fontFamily}
+						fill={t.fill ?? t.stroke ?? '#000000'}
+						align={t.align}
+						verticalAlign="middle"
+						rotation={t.rotation}
+						listening={false}
 					/>
 				{:else if shape.type === 'arrow'}
 					{@const a = shape as ArrowShape}
 					{#if a.curved && a.points.length === 3}
 						<!-- Curved arrow using quadratic bezier -->
+						{@const controlX = a.points[1][0]}
+						{@const controlY = a.points[1][1]}
+						{@const endX = a.points[2][0]}
+						{@const endY = a.points[2][1]}
+						{@const startX = a.points[0][0]}
+						{@const startY = a.points[0][1]}
+						{@const endDx = endX - controlX}
+						{@const endDy = endY - controlY}
+						{@const endLen = Math.sqrt(endDx * endDx + endDy * endDy)}
+						{@const startDx = startX - controlX}
+						{@const startDy = startY - controlY}
+						{@const startLen = Math.sqrt(startDx * startDx + startDy * startDy)}
 						<Line
 							id={a.id}
 							x={a.x}
@@ -1593,13 +1695,14 @@
 							draggable={true}
 							opacity={isSelected(a.id) ? 0.8 : 1}
 							onclick={(e) => onShapeClick(a.id, e)}
+							ondragmove={(e) => onArrowDragMove(a, e)}
 							ondragend={(e) => onArrowDragEnd(a, e)}
 						/>
-						<!-- Arrow head at end -->
+						<!-- Arrow head at end - only arrowhead, no line -->
 						<Arrow
 							x={a.x}
 							y={a.y}
-							points={[a.points[1][0], a.points[1][1], a.points[2][0], a.points[2][1]]}
+							points={[endX - (endDx / endLen) * 0.1, endY - (endDy / endLen) * 0.1, endX, endY]}
 							stroke={a.stroke}
 							strokeWidth={a.strokeWidth}
 							fill={a.stroke}
@@ -1612,7 +1715,12 @@
 							<Arrow
 								x={a.x}
 								y={a.y}
-								points={[a.points[1][0], a.points[1][1], a.points[0][0], a.points[0][1]]}
+								points={[
+									startX - (startDx / startLen) * 0.1,
+									startY - (startDy / startLen) * 0.1,
+									startX,
+									startY
+								]}
 								stroke={a.stroke}
 								strokeWidth={a.strokeWidth}
 								fill={a.stroke}
@@ -1639,6 +1747,7 @@
 							draggable={true}
 							opacity={isSelected(a.id) ? 0.8 : 1}
 							onclick={(e) => onShapeClick(a.id, e)}
+							ondragmove={(e) => onArrowDragMove(a, e)}
 							ondragend={(e) => onArrowDragEnd(a, e)}
 						/>
 					{/if}
@@ -1653,6 +1762,7 @@
 						draggable={true}
 						opacity={isSelected(g.id) ? 0.8 : 1}
 						onclick={(e) => onShapeClick(g.id, e)}
+						ondragmove={(e) => onShapeDragMove(g, e)}
 						ondragend={(e) => onShapeDragEnd(g, e)}
 					>
 						<!-- Group children are rendered by looking up child shapes -->
@@ -1773,13 +1883,34 @@
 					/>
 				{:else if previewShape.type === 'text'}
 					{@const t = previewShape as TextShape}
+					{@const previewWidth = t.width ?? 50}
+					{@const previewHeight = t.height ?? 20}
+					<!-- Preview rect outline -->
+					<Rect
+						x={t.x}
+						y={t.y}
+						width={previewWidth}
+						height={previewHeight}
+						offsetX={previewWidth / 2}
+						offsetY={previewHeight / 2}
+						opacity={0.5}
+						dash={[10, 5]}
+						stroke="#9333EA"
+						strokeWidth={1}
+						listening={false}
+					/>
 					<KonvaText
 						x={t.x}
 						y={t.y}
-						offsetX={(t.width ?? 50) / 2}
-						offsetY={(t.height ?? 20) / 2}
+						offsetX={previewWidth / 2}
+						offsetY={previewHeight / 2}
+						width={previewWidth}
+						height={previewHeight}
 						text={t.text}
 						fontSize={t.fontSize}
+						fill={t.fill ?? t.stroke ?? '#000000'}
+						align="center"
+						verticalAlign="middle"
 						opacity={0.5}
 						listening={false}
 					/>
@@ -1864,8 +1995,9 @@
 		{@const inputPos = getEditingInputPosition()}
 		{#if inputPos}
 			<textarea
-				class="absolute z-50 resize-none border-2 border-purple-500 bg-white/95 px-2 py-1 text-center focus:outline-none focus:ring-2 focus:ring-purple-300"
-				style="left: {inputPos.x}px; top: {inputPos.y}px; width: {inputPos.width}px; min-height: {inputPos.height}px; font-size: {14 * cam.scale}px; line-height: 1.4;"
+				class="absolute z-50 resize-none border-2 border-purple-500 bg-white/95 px-2 py-1 text-center focus:ring-2 focus:ring-purple-300 focus:outline-none"
+				style="left: {inputPos.x}px; top: {inputPos.y}px; width: {inputPos.width}px; min-height: {inputPos.height}px; font-size: {14 *
+					cam.scale}px; line-height: 1.4;"
 				value={editingTextContent}
 				oninput={handleTextInput}
 				onblur={handleTextBlur}
