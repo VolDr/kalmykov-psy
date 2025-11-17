@@ -53,6 +53,9 @@ export type AnchorSide = 'top' | 'bottom' | 'left' | 'right';
 export interface ArrowEndpoint {
 	shapeId: string;
 	anchor: AnchorSide;
+	// Position along the side (0 = start, 0.5 = center, 1 = end)
+	// This allows arrows to snap anywhere along a shape's edge, not just the center
+	offset?: number;
 }
 
 export interface ArrowShape extends BaseShape {

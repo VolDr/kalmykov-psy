@@ -27,7 +27,12 @@
 		getToolCursor,
 		type ToolMode
 	} from '../stores';
-	import { attachArrowEndToNearestShape, updateConnectedArrows } from '../engine/magnets';
+	import {
+		attachArrowEndToNearestShape,
+		updateConnectedArrows,
+		findNearestAnchorWithDetails,
+		type MagnetizationResult
+	} from '../engine/magnets';
 	import { isRoughEnabled, createDefaultRoughOptions } from '../engine/rough';
 	import RoughShape from './RoughShape.svelte';
 	import type {
@@ -148,6 +153,9 @@
 
 	// Track if shift key is pressed for rotation snapping
 	let isShiftPressed = $state(false);
+
+	// Magnetization visual feedback
+	let magnetizationFeedback: MagnetizationResult | null = $state(null);
 
 	// Color palette for remote users
 	const userColors = [
@@ -285,6 +293,11 @@
 		const node = e.target;
 		const pos = node.position();
 
+		// Check for nearby shapes to show magnetization feedback
+		const worldPos = { x: pos.x, y: pos.y };
+		const magnetResult = findNearestAnchorWithDetails(worldPos, shapes, arrow.id, 40);
+		magnetizationFeedback = magnetResult;
+
 		// Update the arrow points in real-time
 		const newPoints = [...arrow.points];
 		newPoints[endpointIndex] = [pos.x - arrow.x, pos.y - arrow.y];
@@ -302,6 +315,9 @@
 	function onArrowEndpointDragEnd(arrow: ArrowShape, endpointIndex: number, e: any) {
 		const node = e.target;
 		const pos = node.position();
+
+		// Clear magnetization feedback
+		magnetizationFeedback = null;
 
 		// Update the arrow points
 		const newPoints = [...arrow.points];
@@ -1560,6 +1576,7 @@
 							isSelected={isSelected(rect.id)}
 							onclick={(e) => onShapeClick(rect.id, e)}
 							ondblclick={() => handleDoubleClick(rect.id)}
+							ondragmove={(e) => onShapeDragMove(rect, e)}
 							ondragend={(e) => onShapeDragEnd(rect, e)}
 						/>
 					{:else}
@@ -1611,6 +1628,7 @@
 							isSelected={isSelected(el.id)}
 							onclick={(e) => onShapeClick(el.id, e)}
 							ondblclick={() => handleDoubleClick(el.id)}
+							ondragmove={(e) => onShapeDragMove(el, e)}
 							ondragend={(e) => onShapeDragEnd(el, e)}
 						/>
 					{:else}
@@ -1960,6 +1978,23 @@
 					strokeWidth={1}
 					fill="rgba(147, 51, 234, 0.1)"
 					dash={[5, 3]}
+					listening={false}
+				/>
+			{/if}
+
+			<!-- Magnetization visual feedback -->
+			{#if magnetizationFeedback}
+				{@const bounds = magnetizationFeedback.bounds}
+				{@const padding = 8}
+				<Rect
+					x={bounds.x - padding}
+					y={bounds.y - padding}
+					width={bounds.width + padding * 2}
+					height={bounds.height + padding * 2}
+					stroke="#9333EA"
+					strokeWidth={2}
+					dash={[5, 5]}
+					opacity={0.6}
 					listening={false}
 				/>
 			{/if}

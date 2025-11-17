@@ -7,18 +7,6 @@
 		canGroupSelection,
 		selectionContainsGroups
 	} from '../grouping';
-	import {
-		alignLeft,
-		alignRight,
-		alignCenterHorizontal,
-		alignTop,
-		alignBottom,
-		alignCenterVertical,
-		distributeHorizontally,
-		distributeVertically,
-		canAlign,
-		canDistribute
-	} from '../alignment';
 	import { bringToFront, sendToBack, bringForward, sendBackward } from '../layers';
 	import {
 		copySelectedShapes,
@@ -28,7 +16,7 @@
 	} from '../clipboard';
 
 	const tools: { mode: ToolMode; icon: string; label: string; hotkey: string }[] = [
-		{ mode: 'select', icon: '↖', label: 'Select', hotkey: 'V' },
+		{ mode: 'select', icon: '⌖', label: 'Select', hotkey: 'V' },
 		{ mode: 'rect', icon: '▭', label: 'Rectangle', hotkey: 'R' },
 		{ mode: 'ellipse', icon: '◯', label: 'Ellipse', hotkey: 'E' },
 		{ mode: 'arrow', icon: '→', label: 'Arrow', hotkey: 'A' },
@@ -40,8 +28,6 @@
 	let hasSelection = $state(false);
 	let canGroup = $state(false);
 	let hasGroups = $state(false);
-	let canAlignShapes = $state(false);
-	let canDistributeShapes = $state(false);
 
 	const unsubscribeTool = currentTool.subscribe((tool) => {
 		activeTool = tool;
@@ -51,8 +37,6 @@
 		hasSelection = sel.ids.size > 0;
 		canGroup = canGroupSelection();
 		hasGroups = selectionContainsGroups();
-		canAlignShapes = canAlign();
-		canDistributeShapes = canDistribute();
 	});
 
 	function handleToolClick(mode: ToolMode) {

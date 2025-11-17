@@ -52,21 +52,22 @@ export function getShapeBounds(shape: Shape): Bounds | null {
 	}
 }
 
-export function getAnchorPoint(bounds: Bounds, anchor: AnchorSide) {
+export function getAnchorPoint(bounds: Bounds, anchor: AnchorSide, offset: number = 0.5) {
+	// offset: 0 = start of side, 0.5 = center, 1 = end of side
 	switch (anchor) {
 		case 'top':
-			return { x: bounds.x + bounds.width / 2, y: bounds.y };
+			return { x: bounds.x + bounds.width * offset, y: bounds.y };
 		case 'bottom':
 			return {
-				x: bounds.x + bounds.width / 2,
+				x: bounds.x + bounds.width * offset,
 				y: bounds.y + bounds.height
 			};
 		case 'left':
-			return { x: bounds.x, y: bounds.y + bounds.height / 2 };
+			return { x: bounds.x, y: bounds.y + bounds.height * offset };
 		case 'right':
 			return {
 				x: bounds.x + bounds.width,
-				y: bounds.y + bounds.height / 2
+				y: bounds.y + bounds.height * offset
 			};
 	}
 }
@@ -77,13 +78,57 @@ function dist2(a: { x: number; y: number }, b: { x: number; y: number }) {
 	return dx * dx + dy * dy;
 }
 
+// Find the closest point on a line segment to a given point
+function closestPointOnSegment(
+	point: { x: number; y: number },
+	start: { x: number; y: number },
+	end: { x: number; y: number }
+): { point: { x: number; y: number }; t: number } {
+	const dx = end.x - start.x;
+	const dy = end.y - start.y;
+	const lengthSq = dx * dx + dy * dy;
+
+	if (lengthSq === 0) {
+		// Start and end are the same point
+		return { point: { ...start }, t: 0 };
+	}
+
+	// Calculate parametric position along the line (0 = start, 1 = end)
+	let t = ((point.x - start.x) * dx + (point.y - start.y) * dy) / lengthSq;
+	t = Math.max(0, Math.min(1, t)); // Clamp to [0, 1]
+
+	const closest = {
+		x: start.x + t * dx,
+		y: start.y + t * dy
+	};
+
+	return { point: closest, t };
+}
+
+export interface MagnetizationResult {
+	endpoint: ArrowEndpoint;
+	shapeId: string;
+	bounds: Bounds;
+}
+
 export function findNearestAnchor(
 	point: { x: number; y: number },
 	shapes: Shape[],
 	excludeId?: string,
 	maxDistance = 40
 ): ArrowEndpoint | null {
-	let best: { endpoint: ArrowEndpoint; d2: number } | null = null;
+	const result = findNearestAnchorWithDetails(point, shapes, excludeId, maxDistance);
+	return result?.endpoint ?? null;
+}
+
+// Extended version that returns shape bounds for visual feedback
+export function findNearestAnchorWithDetails(
+	point: { x: number; y: number },
+	shapes: Shape[],
+	excludeId?: string,
+	maxDistance = 40
+): MagnetizationResult | null {
+	let best: { result: MagnetizationResult; d2: number } | null = null;
 	const maxD2 = maxDistance * maxDistance;
 
 	for (const s of shapes) {
@@ -91,18 +136,56 @@ export function findNearestAnchor(
 		const bounds = getShapeBounds(s);
 		if (!bounds) continue;
 
-		const anchors: AnchorSide[] = ['top', 'bottom', 'left', 'right'];
+		// Check all four sides of the bounding box
+		const sides: Array<{
+			anchor: AnchorSide;
+			start: { x: number; y: number };
+			end: { x: number; y: number };
+		}> = [
+			{
+				anchor: 'top',
+				start: { x: bounds.x, y: bounds.y },
+				end: { x: bounds.x + bounds.width, y: bounds.y }
+			},
+			{
+				anchor: 'bottom',
+				start: { x: bounds.x, y: bounds.y + bounds.height },
+				end: { x: bounds.x + bounds.width, y: bounds.y + bounds.height }
+			},
+			{
+				anchor: 'left',
+				start: { x: bounds.x, y: bounds.y },
+				end: { x: bounds.x, y: bounds.y + bounds.height }
+			},
+			{
+				anchor: 'right',
+				start: { x: bounds.x + bounds.width, y: bounds.y },
+				end: { x: bounds.x + bounds.width, y: bounds.y + bounds.height }
+			}
+		];
 
-		for (const anchor of anchors) {
-			const p = getAnchorPoint(bounds, anchor);
-			const d2 = dist2(point, p);
+		for (const side of sides) {
+			const { point: closestPoint, t } = closestPointOnSegment(point, side.start, side.end);
+			const d2 = dist2(point, closestPoint);
+
 			if (d2 <= maxD2 && (!best || d2 < best.d2)) {
-				best = { endpoint: { shapeId: s.id, anchor }, d2 };
+				best = {
+					result: {
+						endpoint: {
+							shapeId: s.id,
+							anchor: side.anchor,
+							offset: t // Store the parametric position along the side
+						},
+						shapeId: s.id,
+						bounds
+					},
+					d2
+				};
 			}
 		}
 	}
 
-	return best?.endpoint ?? null;
+	return best?.result ?? null;
 }
 
 export function attachArrowEndToNearestShape(
@@ -140,7 +223,11 @@ export function updateArrowBindings(arrow: ArrowShape, shapes: Shape[]): ArrowSh
 		if (targetShape) {
 			const bounds = getShapeBounds(targetShape);
 			if (bounds) {
-				const anchorPoint = getAnchorPoint(bounds, arrow.from.anchor);
+				const anchorPoint = getAnchorPoint(
+					bounds,
+					arrow.from.anchor,
+					arrow.from.offset ?? 0.5
+				);
 				// Calculate new relative position
 				newPoints[0] = [anchorPoint.x - arrow.x, anchorPoint.y - arrow.y];
 				pointsChanged = true;
@@ -154,7 +241,7 @@ export function updateArrowBindings(arrow: ArrowShape, shapes: Shape[]): ArrowSh
 		if (targetShape) {
 			const bounds = getShapeBounds(targetShape);
 			if (bounds) {
-				const anchorPoint = getAnchorPoint(bounds, arrow.to.anchor);
+				const anchorPoint = getAnchorPoint(bounds, arrow.to.anchor, arrow.to.offset ?? 0.5);
 				// Calculate new relative position
 				const lastIdx = newPoints.length - 1;
 				newPoints[lastIdx] = [anchorPoint.x - arrow.x, anchorPoint.y - arrow.y];

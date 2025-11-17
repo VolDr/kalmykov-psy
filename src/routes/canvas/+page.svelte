@@ -13,8 +13,11 @@
 	import { createAddShapesOp } from '$lib/canvas/sync/types';
 	import { CANVAS_FONT_FAMILY, DEFAULT_FONT_SIZE } from '$lib/canvas/constants';
 	import { createDefaultRoughOptions } from '$lib/canvas/engine/rough';
+	import type { PageData } from './$types';
 
-	const sceneId = '550e8400-e29b-41d4-a716-446655440000'; // Demo scene UUID
+	let { data }: { data: PageData } = $props();
+
+	const sceneId = data.sceneId;
 
 	let isSaving = $state(false);
 	let isLoading = $state(true);
@@ -199,51 +202,61 @@
 </script>
 
 <svelte:head>
-	<title>Canvas Demo - Excalidraw Clone</title>
+	<title>{data.mode === 'shared' ? `Канвас - ${data.clientName}` : 'Canvas Demo'}</title>
 </svelte:head>
 
 <div class="relative h-screen w-screen bg-gray-50">
-	<!-- Toolbar -->
-	<div class="absolute top-4 left-4 z-10 flex gap-2 rounded-lg bg-white p-2 shadow-md">
-		<button
-			onclick={addRect}
-			class="rounded bg-blue-500 px-3 py-1 text-sm text-white hover:bg-blue-600"
-			aria-label="Add rectangle"
+	<!-- Top info bar for shared mode -->
+	{#if data.mode === 'shared'}
+		<div
+			class="absolute top-4 left-1/2 -translate-x-1/2 z-10 rounded-lg bg-white px-4 py-2 shadow-md"
 		>
-			Rect
-		</button>
-		<button
-			onclick={addEllipse}
-			class="rounded bg-green-500 px-3 py-1 text-sm text-white hover:bg-green-600"
-			aria-label="Add ellipse"
-		>
-			Ellipse
-		</button>
+			<p class="text-sm text-gray-700">
+				<span class="font-semibold">{data.clientName}</span>
+				<span class="mx-2 text-gray-400">•</span>
+				<span class="text-gray-500">Режим просмотра</span>
+			</p>
+		</div>
+	{/if}
+
+	<!-- Toolbar (only in demo mode) -->
+	{#if data.mode === 'demo'}
+		<div class="absolute top-4 right-4 z-10 flex gap-2 rounded-lg bg-white p-2 shadow-md">
 		<button
 			onclick={handleUndo}
-			class="rounded bg-gray-500 px-3 py-1 text-sm text-white hover:bg-gray-600"
+			class="flex h-8 w-8 items-center justify-center rounded text-gray-700 hover:bg-gray-100"
+			title="Undo (Ctrl+Z)"
 			aria-label="Undo"
 		>
-			Undo
+			<span class="icon-[lucide--undo-2] h-5 w-5"></span>
 		</button>
 		<button
 			onclick={handleRedo}
-			class="rounded bg-gray-500 px-3 py-1 text-sm text-white hover:bg-gray-600"
+			class="flex h-8 w-8 items-center justify-center rounded text-gray-700 hover:bg-gray-100"
+			title="Redo (Ctrl+Shift+Z)"
 			aria-label="Redo"
 		>
-			Redo
+			<span class="icon-[lucide--redo-2] h-5 w-5"></span>
 		</button>
+		<div class="mx-1 w-px bg-gray-300"></div>
 		<button
 			onclick={save}
 			disabled={isSaving}
-			class="rounded bg-purple-500 px-3 py-1 text-sm text-white hover:bg-purple-600 disabled:opacity-50"
+			class="flex h-8 w-8 items-center justify-center rounded text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+			title={isSaving ? 'Saving...' : 'Save scene (Ctrl+S)'}
 			aria-label="Save scene"
 		>
-			{isSaving ? 'Saving...' : 'Save'}
+			{#if isSaving}
+				<span class="icon-[lucide--loader-2] h-5 w-5 animate-spin"></span>
+			{:else}
+				<span class="icon-[lucide--save] h-5 w-5"></span>
+			{/if}
 		</button>
 	</div>
+	{/if}
 
-	<!-- Multiplayer Controls -->
+	<!-- Multiplayer Controls (only in demo mode) -->
+	{#if data.mode === 'demo'}
 	<div class="absolute top-20 left-4 z-10 rounded-lg bg-white p-3 shadow-md">
 		<h3 class="mb-2 text-sm font-semibold">Multiplayer</h3>
 		<div class="space-y-2">
@@ -265,8 +278,10 @@
 			{/if}
 		</div>
 	</div>
+	{/if}
 
-	<!-- Instructions -->
+	<!-- Instructions (only in demo mode) -->
+	{#if data.mode === 'demo'}
 	<div class="absolute top-4 right-4 z-10 max-w-xs rounded-lg bg-white p-3 text-xs shadow-md">
 		<h3 class="mb-2 font-semibold">Controls:</h3>
 		<ul class="space-y-1 text-gray-600">
@@ -281,6 +296,7 @@
 			<li>Ctrl/Cmd+D to duplicate</li>
 		</ul>
 	</div>
+	{/if}
 
 	<!-- Error display -->
 	{#if loadError}

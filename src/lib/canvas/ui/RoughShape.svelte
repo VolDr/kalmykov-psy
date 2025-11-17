@@ -8,10 +8,11 @@
 		isSelected: boolean;
 		onclick?: (e: any) => void;
 		ondblclick?: () => void;
+		ondragmove?: (e: any) => void;
 		ondragend?: (e: any) => void;
 	}
 
-	let { shape, isSelected, onclick, ondblclick, ondragend }: Props = $props();
+	let { shape, isSelected, onclick, ondblclick, ondragmove, ondragend }: Props = $props();
 
 	// Render rough canvas on change
 	let roughCanvas: HTMLCanvasElement | null = $state(null);
@@ -53,6 +54,7 @@
 		opacity={isSelected ? 0.8 : 1}
 		{onclick}
 		{ondblclick}
+		{ondragmove}
 		{ondragend}
 	/>
 {/if}

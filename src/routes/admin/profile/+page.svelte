@@ -44,6 +44,16 @@
 					Основная информация
 				</h2>
 
+				<!-- Canvas Link -->
+				<div>
+					<a href="/admin/canvas?clientId={data.clientData?.id}">
+						<Button variant="outline" size="sm" class="w-full">
+							<span class="icon-[lucide--layout-dashboard] mr-2 h-4 w-4"></span>
+							Открыть канвас
+						</Button>
+					</a>
+				</div>
+
 				<div class="flex flex-wrap gap-2">
 					{#if data.clientData?.gender}
 						<Badge variant="outline" class="border-primary/20 bg-primary/10">
