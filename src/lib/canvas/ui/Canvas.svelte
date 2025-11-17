@@ -111,6 +111,11 @@
 	let layerRef: KonvaLayer | null = $state(null);
 	let transformerRef: KonvaTransformer | null = $state(null);
 
+	// Component refs for svelte-konva v1
+	let stageComponent: { node: KonvaStage } | null = $state(null);
+	let layerComponent: { node: KonvaLayer } | null = $state(null);
+	let transformerComponent: { node: KonvaTransformer } | null = $state(null);
+
 	// Map to store shape node references for transformer
 	let shapeRefs: Map<string, KonvaNode> = $state(new Map());
 
@@ -202,6 +207,28 @@
 		editingText = state.isEditing;
 		editingShapeId = state.shapeId;
 		editingTextContent = state.currentText;
+	});
+
+	// Sync component refs to node refs
+	$effect(() => {
+		if (stageComponent?.node) {
+			stageRef = stageComponent.node;
+			console.log('[Canvas] Stage ref synced from component');
+		}
+	});
+
+	$effect(() => {
+		if (layerComponent?.node) {
+			layerRef = layerComponent.node;
+			console.log('[Canvas] Layer ref synced from component');
+		}
+	});
+
+	$effect(() => {
+		if (transformerComponent?.node) {
+			transformerRef = transformerComponent.node;
+			console.log('[Canvas] Transformer ref synced from component');
+		}
 	});
 
 	// Update transformer nodes when selection changes
@@ -1007,167 +1034,146 @@
 	{/if}
 
 	<Stage
-		config={{
-			width: stageWidth,
-			height: stageHeight
-		}}
-		on:wheel={handleWheel}
-		on:mousedown={handleMouseDown}
-		on:mousemove={handleMouseMove}
-		on:mouseup={handleMouseUp}
-		on:click={handleStageClick}
-		on:load={(e) => {
-			console.log('[Canvas] Stage loaded', e.detail);
-			stageRef = e.detail as KonvaStage;
-		}}
+		bind:this={stageComponent}
+		width={stageWidth}
+		height={stageHeight}
+		onwheel={handleWheel}
+		onmousedown={handleMouseDown}
+		onmousemove={handleMouseMove}
+		onmouseup={handleMouseUp}
+		onclick={handleStageClick}
 	>
 		<Layer
-			config={{
-				x: cam.x,
-				y: cam.y,
-				scaleX: cam.scale,
-				scaleY: cam.scale
-			}}
-			on:load={(e) => {
-				console.log('[Canvas] Layer loaded', e.detail);
-				layerRef = e.detail as KonvaLayer;
-			}}
+			bind:this={layerComponent}
+			x={cam.x}
+			y={cam.y}
+			scaleX={cam.scale}
+			scaleY={cam.scale}
 		>
 			{#each shapes as shape (shape.id)}
 				{#if shape.type === 'rect'}
 					{@const rect = shape as RectShape}
 					<Rect
-						config={{
-							id: rect.id,
-							...renderRect(rect),
-							offsetX: rect.width / 2,
-							offsetY: rect.height / 2,
-							stroke: rect.stroke,
-							strokeWidth: rect.strokeWidth,
-							fill: rect.fill ?? undefined,
-							rotation: rect.rotation,
-							draggable: true,
-							opacity: isSelected(rect.id) ? 0.8 : 1
-						}}
-						on:click={(e) => onShapeClick(rect.id, e)}
-						on:dblclick={() => handleDoubleClick(rect.id)}
-						on:dragend={(e) => onShapeDragEnd(rect, e)}
-						on:load={(e) => registerShapeRef(rect.id, e.detail as KonvaNode)}
+						id={rect.id}
+						x={rect.x}
+						y={rect.y}
+						width={rect.width}
+						height={rect.height}
+						offsetX={rect.width / 2}
+						offsetY={rect.height / 2}
+						stroke={rect.stroke}
+						strokeWidth={rect.strokeWidth}
+						fill={rect.fill ?? undefined}
+						rotation={rect.rotation}
+						draggable={true}
+						opacity={isSelected(rect.id) ? 0.8 : 1}
+						onclick={(e) => onShapeClick(rect.id, e)}
+						ondblclick={() => handleDoubleClick(rect.id)}
+						ondragend={(e) => onShapeDragEnd(rect, e)}
+						onload={(e) => registerShapeRef(rect.id, e.target as KonvaNode)}
 					/>
 					{#if rect.text}
 						<KonvaText
-							config={{
-								x: rect.x,
-								y: rect.y,
-								offsetX: rect.width / 2,
-								offsetY: rect.height / 2,
-								width: rect.width,
-								height: rect.height,
-								align: 'center',
-								verticalAlign: 'middle',
-								text: rect.text,
-								fontSize: 14,
-								listening: false
-							}}
+							x={rect.x}
+							y={rect.y}
+							offsetX={rect.width / 2}
+							offsetY={rect.height / 2}
+							width={rect.width}
+							height={rect.height}
+							align="center"
+							verticalAlign="middle"
+							text={rect.text}
+							fontSize={14}
+							listening={false}
 						/>
 					{/if}
 				{:else if shape.type === 'ellipse'}
 					{@const el = shape as EllipseShape}
 					<Ellipse
+						id={el.id}
+						x={el.x}
+						y={el.y}
 						radiusX={el.rx}
 						radiusY={el.ry}
-						config={{
-							id: el.id,
-							x: el.x,
-							y: el.y,
-							offsetX: el.rx,
-							offsetY: el.ry,
-							stroke: el.stroke,
-							strokeWidth: el.strokeWidth,
-							fill: el.fill ?? undefined,
-							rotation: el.rotation,
-							draggable: true,
-							opacity: isSelected(el.id) ? 0.8 : 1
-						}}
-						on:click={(e) => onShapeClick(el.id, e)}
-						on:dblclick={() => handleDoubleClick(el.id)}
-						on:dragend={(e) => onShapeDragEnd(el, e)}
-						on:load={(e) => registerShapeRef(el.id, e.detail as KonvaNode)}
+						offsetX={el.rx}
+						offsetY={el.ry}
+						stroke={el.stroke}
+						strokeWidth={el.strokeWidth}
+						fill={el.fill ?? undefined}
+						rotation={el.rotation}
+						draggable={true}
+						opacity={isSelected(el.id) ? 0.8 : 1}
+						onclick={(e) => onShapeClick(el.id, e)}
+						ondblclick={() => handleDoubleClick(el.id)}
+						ondragend={(e) => onShapeDragEnd(el, e)}
+						onload={(e) => registerShapeRef(el.id, e.target as KonvaNode)}
 					/>
 					{#if el.text}
 						<KonvaText
-							config={{
-								x: el.x,
-								y: el.y,
-								offsetX: el.rx,
-								offsetY: el.ry,
-								width: el.rx * 2,
-								height: el.ry * 2,
-								align: 'center',
-								verticalAlign: 'middle',
-								text: el.text,
-								fontSize: 14,
-								listening: false
-							}}
+							x={el.x}
+							y={el.y}
+							offsetX={el.rx}
+							offsetY={el.ry}
+							width={el.rx * 2}
+							height={el.ry * 2}
+							align="center"
+							verticalAlign="middle"
+							text={el.text}
+							fontSize={14}
+							listening={false}
 						/>
 					{/if}
 				{:else if shape.type === 'text'}
 					{@const t = shape as TextShape}
 					<KonvaText
-						config={{
-							id: t.id,
-							x: t.x,
-							y: t.y,
-							offsetX: (t.width ?? t.text.length * t.fontSize * 0.6) / 2,
-							offsetY: (t.height ?? t.fontSize * 1.2) / 2,
-							text: t.text,
-							fontSize: t.fontSize,
-							fontFamily: t.fontFamily,
-							align: t.align,
-							draggable: true,
-							opacity: isSelected(t.id) ? 0.8 : 1
-						}}
-						on:click={(e) => onShapeClick(t.id, e)}
-						on:dblclick={() => handleDoubleClick(t.id)}
-						on:dragend={(e) => onShapeDragEnd(t, e)}
-						on:load={(e) => registerShapeRef(t.id, e.detail as KonvaNode)}
+						id={t.id}
+						x={t.x}
+						y={t.y}
+						offsetX={(t.width ?? t.text.length * t.fontSize * 0.6) / 2}
+						offsetY={(t.height ?? t.fontSize * 1.2) / 2}
+						text={t.text}
+						fontSize={t.fontSize}
+						fontFamily={t.fontFamily}
+						align={t.align}
+						draggable={true}
+						opacity={isSelected(t.id) ? 0.8 : 1}
+						onclick={(e) => onShapeClick(t.id, e)}
+						ondblclick={() => handleDoubleClick(t.id)}
+						ondragend={(e) => onShapeDragEnd(t, e)}
+						onload={(e) => registerShapeRef(t.id, e.target as KonvaNode)}
 					/>
 				{:else if shape.type === 'arrow'}
 					{@const a = shape as ArrowShape}
 					<Arrow
+						id={a.id}
+						x={a.x}
+						y={a.y}
 						points={renderArrow(a).points}
-						config={{
-							id: a.id,
-							x: a.x,
-							y: a.y,
-							stroke: a.stroke,
-							strokeWidth: a.strokeWidth,
-							fill: a.stroke,
-							lineCap: 'round',
-							lineJoin: 'round',
-							pointerLength: 10,
-							pointerWidth: 10,
-							draggable: true,
-							opacity: isSelected(a.id) ? 0.8 : 1
-						}}
-						on:click={(e) => onShapeClick(a.id, e)}
-						on:dragend={(e) => onArrowDragEnd(a, e)}
-						on:load={(e) => registerShapeRef(a.id, e.detail as KonvaNode)}
+						stroke={a.stroke}
+						strokeWidth={a.strokeWidth}
+						fill={a.stroke}
+						lineCap="round"
+						lineJoin="round"
+						pointerLength={10}
+						pointerWidth={10}
+						draggable={true}
+						opacity={isSelected(a.id) ? 0.8 : 1}
+						onclick={(e) => onShapeClick(a.id, e)}
+						ondragend={(e) => onArrowDragEnd(a, e)}
+						onload={(e) => registerShapeRef(a.id, e.target as KonvaNode)}
 					/>
 				{:else if shape.type === 'group'}
 					{@const g = shape as GroupShape}
 					<Group
-						config={{
-							x: g.x,
-							y: g.y,
-							rotation: g.rotation,
-							scaleX: g.scaleX,
-							scaleY: g.scaleY,
-							draggable: true,
-							opacity: isSelected(g.id) ? 0.8 : 1
-						}}
-						on:click={(e) => onShapeClick(g.id, e)}
-						on:dragend={(e) => onShapeDragEnd(g, e)}
+						x={g.x}
+						y={g.y}
+						rotation={g.rotation}
+						scaleX={g.scaleX}
+						scaleY={g.scaleY}
+						draggable={true}
+						opacity={isSelected(g.id) ? 0.8 : 1}
+						onclick={(e) => onShapeClick(g.id, e)}
+						ondragend={(e) => onShapeDragEnd(g, e)}
 					>
 						<!-- Group children are rendered by looking up child shapes -->
 						{#each g.children as childId}
@@ -1175,18 +1181,16 @@
 							{#if child?.type === 'rect'}
 								{@const rect = child as RectShape}
 								<Rect
-									config={{
-										x: rect.x - g.x,
-										y: rect.y - g.y,
-										width: rect.width,
-										height: rect.height,
-										offsetX: rect.width / 2,
-										offsetY: rect.height / 2,
-										stroke: rect.stroke,
-										strokeWidth: rect.strokeWidth,
-										fill: rect.fill ?? undefined,
-										rotation: rect.rotation
-									}}
+									x={rect.x - g.x}
+									y={rect.y - g.y}
+									width={rect.width}
+									height={rect.height}
+									offsetX={rect.width / 2}
+									offsetY={rect.height / 2}
+									stroke={rect.stroke}
+									strokeWidth={rect.strokeWidth}
+									fill={rect.fill ?? undefined}
+									rotation={rect.rotation}
 								/>
 							{/if}
 						{/each}
@@ -1196,32 +1200,30 @@
 
 			<!-- Transformer for selected shapes -->
 			<Transformer
-				config={{
-					boundBoxFunc: (
-						oldBox: { x: number; y: number; width: number; height: number; rotation: number },
-						newBox: { x: number; y: number; width: number; height: number; rotation: number }
-					) => {
-						// Limit minimum size
-						if (newBox.width < 10 || newBox.height < 10) {
-							return oldBox;
-						}
-						return newBox;
-					},
-					enabledAnchors: [
-						'top-left',
-						'top-center',
-						'top-right',
-						'middle-right',
-						'bottom-right',
-						'bottom-center',
-						'bottom-left',
-						'middle-left'
-					],
-					rotateEnabled: true,
-					keepRatio: false
+				bind:this={transformerComponent}
+				boundBoxFunc={(
+					oldBox: { x: number; y: number; width: number; height: number; rotation: number },
+					newBox: { x: number; y: number; width: number; height: number; rotation: number }
+				) => {
+					// Limit minimum size
+					if (newBox.width < 10 || newBox.height < 10) {
+						return oldBox;
+					}
+					return newBox;
 				}}
-				on:load={(e) => (transformerRef = e.detail as KonvaTransformer)}
-				on:transformend={onTransformEnd}
+				enabledAnchors={[
+					'top-left',
+					'top-center',
+					'top-right',
+					'middle-right',
+					'bottom-right',
+					'bottom-center',
+					'bottom-left',
+					'middle-left'
+				]}
+				rotateEnabled={true}
+				keepRatio={false}
+				ontransformend={onTransformEnd}
 			/>
 
 			<!-- Preview shape while drawing -->
@@ -1229,62 +1231,57 @@
 				{#if previewShape.type === 'rect'}
 					{@const rect = previewShape as RectShape}
 					<Rect
-						config={{
-							...renderRect(rect),
-							offsetX: rect.width / 2,
-							offsetY: rect.height / 2,
-							stroke: rect.stroke,
-							strokeWidth: rect.strokeWidth,
-							opacity: 0.5,
-							dash: [10, 5],
-							listening: false
-						}}
+						x={rect.x}
+						y={rect.y}
+						width={rect.width}
+						height={rect.height}
+						offsetX={rect.width / 2}
+						offsetY={rect.height / 2}
+						stroke={rect.stroke}
+						strokeWidth={rect.strokeWidth}
+						opacity={0.5}
+						dash={[10, 5]}
+						listening={false}
 					/>
 				{:else if previewShape.type === 'ellipse'}
 					{@const el = previewShape as EllipseShape}
 					<Ellipse
+						x={el.x}
+						y={el.y}
 						radiusX={el.rx}
 						radiusY={el.ry}
-						config={{
-							x: el.x,
-							y: el.y,
-							offsetX: el.rx,
-							offsetY: el.ry,
-							stroke: el.stroke,
-							strokeWidth: el.strokeWidth,
-							opacity: 0.5,
-							dash: [10, 5],
-							listening: false
-						}}
+						offsetX={el.rx}
+						offsetY={el.ry}
+						stroke={el.stroke}
+						strokeWidth={el.strokeWidth}
+						opacity={0.5}
+						dash={[10, 5]}
+						listening={false}
 					/>
 				{:else if previewShape.type === 'arrow'}
 					{@const a = previewShape as ArrowShape}
 					<Arrow
+						x={a.x}
+						y={a.y}
 						points={renderArrow(a).points}
-						config={{
-							x: a.x,
-							y: a.y,
-							stroke: a.stroke,
-							strokeWidth: a.strokeWidth,
-							fill: a.stroke,
-							opacity: 0.5,
-							dash: [10, 5],
-							listening: false
-						}}
+						stroke={a.stroke}
+						strokeWidth={a.strokeWidth}
+						fill={a.stroke}
+						opacity={0.5}
+						dash={[10, 5]}
+						listening={false}
 					/>
 				{:else if previewShape.type === 'text'}
 					{@const t = previewShape as TextShape}
 					<KonvaText
-						config={{
-							x: t.x,
-							y: t.y,
-							offsetX: (t.width ?? 50) / 2,
-							offsetY: (t.height ?? 20) / 2,
-							text: t.text,
-							fontSize: t.fontSize,
-							opacity: 0.5,
-							listening: false
-						}}
+						x={t.x}
+						y={t.y}
+						offsetX={(t.width ?? 50) / 2}
+						offsetY={(t.height ?? 20) / 2}
+						text={t.text}
+						fontSize={t.fontSize}
+						opacity={0.5}
+						listening={false}
 					/>
 				{/if}
 			{/if}
@@ -1296,17 +1293,15 @@
 				{@const boxWidth = Math.abs(boxSelectEnd.x - boxSelectStart.x)}
 				{@const boxHeight = Math.abs(boxSelectEnd.y - boxSelectStart.y)}
 				<Rect
-					config={{
-						x: boxX,
-						y: boxY,
-						width: boxWidth,
-						height: boxHeight,
-						stroke: '#2196F3',
-						strokeWidth: 1,
-						fill: 'rgba(33, 150, 243, 0.1)',
-						dash: [5, 3],
-						listening: false
-					}}
+					x={boxX}
+					y={boxY}
+					width={boxWidth}
+					height={boxHeight}
+					stroke="#2196F3"
+					strokeWidth={1}
+					fill="rgba(33, 150, 243, 0.1)"
+					dash={[5, 3]}
+					listening={false}
 				/>
 			{/if}
 
@@ -1317,54 +1312,46 @@
 						{@const color = getUserColor(presence.clientId)}
 						<!-- Cursor pointer -->
 						<Line
-							config={{
-								points: [0, 0, 0, 18, 4, 14, 9, 22, 12, 21, 8, 13, 14, 13],
-								x: presence.cursor.x,
-								y: presence.cursor.y,
-								fill: color,
-								stroke: '#000',
-								strokeWidth: 1,
-								closed: true,
-								listening: false
-							}}
+							points={[0, 0, 0, 18, 4, 14, 9, 22, 12, 21, 8, 13, 14, 13]}
+							x={presence.cursor.x}
+							y={presence.cursor.y}
+							fill={color}
+							stroke="#000"
+							strokeWidth={1}
+							closed={true}
+							listening={false}
 						/>
 						<!-- User name label -->
 						<KonvaText
-							config={{
-								x: presence.cursor.x + 16,
-								y: presence.cursor.y + 10,
-								text: presence.name || `User ${presence.clientId.slice(0, 4)}`,
-								fontSize: 12,
-								fontFamily: 'system-ui',
-								fill: '#fff',
-								padding: 4,
-								listening: false
-							}}
+							x={presence.cursor.x + 16}
+							y={presence.cursor.y + 10}
+							text={presence.name || `User ${presence.clientId.slice(0, 4)}`}
+							fontSize={12}
+							fontFamily="system-ui"
+							fill="#fff"
+							padding={4}
+							listening={false}
 						/>
 						<!-- Name background -->
 						<Rect
-							config={{
-								x: presence.cursor.x + 14,
-								y: presence.cursor.y + 8,
-								width: (presence.name || `User ${presence.clientId.slice(0, 4)}`).length * 7 + 12,
-								height: 20,
-								fill: color,
-								cornerRadius: 4,
-								listening: false
-							}}
+							x={presence.cursor.x + 14}
+							y={presence.cursor.y + 8}
+							width={(presence.name || `User ${presence.clientId.slice(0, 4)}`).length * 7 + 12}
+							height={20}
+							fill={color}
+							cornerRadius={4}
+							listening={false}
 						/>
 						<!-- Re-render text on top -->
 						<KonvaText
-							config={{
-								x: presence.cursor.x + 16,
-								y: presence.cursor.y + 10,
-								text: presence.name || `User ${presence.clientId.slice(0, 4)}`,
-								fontSize: 12,
-								fontFamily: 'system-ui',
-								fill: '#fff',
-								padding: 4,
-								listening: false
-							}}
+							x={presence.cursor.x + 16}
+							y={presence.cursor.y + 10}
+							text={presence.name || `User ${presence.clientId.slice(0, 4)}`}
+							fontSize={12}
+							fontFamily="system-ui"
+							fill="#fff"
+							padding={4}
+							listening={false}
 						/>
 					{/if}
 				{/each}
