@@ -117,6 +117,10 @@ export function createHistoryStore(maxHistory = 50) {
 				case 'delete':
 					shapes = [...shapes, ...last.before];
 					break;
+				case 'set-all':
+					// For reordering operations, restore entire before state
+					shapes = [...last.before];
+					break;
 				default:
 					shapes = shapes.map((s) => {
 						const before = last.before.find((b) => b.id === s.id);
@@ -145,6 +149,10 @@ export function createHistoryStore(maxHistory = 50) {
 					break;
 				case 'delete':
 					shapes = shapes.filter((s) => !last.before.some((b) => b.id === s.id));
+					break;
+				case 'set-all':
+					// For reordering operations, restore entire after state
+					shapes = [...last.after];
 					break;
 				default:
 					shapes = shapes.map((s) => {
@@ -188,6 +196,29 @@ export function createHistoryStore(maxHistory = 50) {
 		}));
 	}
 
+	/**
+	 * Reorder shapes with history tracking
+	 * Used for layer operations (bring to front, send to back, etc.)
+	 */
+	function reorderShapes(newShapes: Shape[]) {
+		update((state) => {
+			// Create history entry
+			const entry: HistoryEntry = {
+				type: 'set-all',
+				before: state.shapes,
+				after: newShapes
+			};
+
+			const undoStack = [...state.undoStack, entry].slice(-maxHistory);
+
+			return {
+				shapes: newShapes,
+				undoStack,
+				redoStack: []
+			};
+		});
+	}
+
 	return {
 		subscribe,
 		setAllShapes,
@@ -198,7 +229,8 @@ export function createHistoryStore(maxHistory = 50) {
 		redo,
 		applyRemoteAdd,
 		applyRemoteUpdate,
-		applyRemoteDelete
+		applyRemoteDelete,
+		reorderShapes
 	};
 }
 

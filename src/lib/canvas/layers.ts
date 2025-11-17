@@ -35,7 +35,7 @@ export function bringToFront(): number {
 	// Move selected shapes to end (front)
 	const newShapes = [...otherShapes, ...selectedShapes];
 
-	shapesHistory.setAllShapes(newShapes);
+	shapesHistory.reorderShapes(newShapes);
 
 	return selectedShapes.length;
 }
@@ -72,7 +72,7 @@ export function sendToBack(): number {
 	// Move selected shapes to beginning (back)
 	const newShapes = [...selectedShapes, ...otherShapes];
 
-	shapesHistory.setAllShapes(newShapes);
+	shapesHistory.reorderShapes(newShapes);
 
 	return selectedShapes.length;
 }
@@ -105,7 +105,7 @@ export function bringForward(): number {
 	}
 
 	if (moved > 0) {
-		shapesHistory.setAllShapes(shapes);
+		shapesHistory.reorderShapes(shapes);
 	}
 
 	return moved;
@@ -139,7 +139,7 @@ export function sendBackward(): number {
 	}
 
 	if (moved > 0) {
-		shapesHistory.setAllShapes(shapes);
+		shapesHistory.reorderShapes(shapes);
 	}
 
 	return moved;
@@ -180,7 +180,7 @@ export function setShapeZIndex(shapeId: string, newIndex: number): boolean {
 	// Insert at new position
 	shapes.splice(clampedIndex, 0, shape);
 
-	shapesHistory.setAllShapes(shapes);
+	shapesHistory.reorderShapes(shapes);
 
 	return true;
 }
@@ -220,7 +220,7 @@ export function reorderShapes(orderedIds: string[]): boolean {
 		newShapes.push(shape);
 	}
 
-	shapesHistory.setAllShapes(newShapes);
+	shapesHistory.reorderShapes(newShapes);
 
 	return true;
 }
@@ -296,7 +296,7 @@ export function swapZIndex(shapeId1: string, shapeId2: string): boolean {
 	shapes[index1] = shapes[index2];
 	shapes[index2] = temp;
 
-	shapesHistory.setAllShapes(shapes);
+	shapesHistory.reorderShapes(shapes);
 
 	return true;
 }
