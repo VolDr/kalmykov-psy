@@ -9,34 +9,44 @@ import * as schema from '../src/db/schema';
 async function seedSurveyCategories() {
 	console.log('Seeding survey categories...');
 
+	const now = new Date().toISOString();
+
 	const categories = [
 		{
 			id: crypto.randomUUID(),
 			name: 'Депрессия и тревога',
 			slug: 'depression-anxiety',
 			description: 'Опросники для оценки депрессивных и тревожных состояний',
-			sortOrder: 1
+			sortOrder: 1,
+			createdAt: now,
+			updatedAt: now
 		},
 		{
 			id: crypto.randomUUID(),
 			name: 'Перфекционизм',
 			slug: 'perfectionism',
 			description: 'Опросники для оценки перфекционизма',
-			sortOrder: 2
+			sortOrder: 2,
+			createdAt: now,
+			updatedAt: now
 		},
 		{
 			id: crypto.randomUUID(),
 			name: 'Прокрастинация',
 			slug: 'procrastination',
 			description: 'Опросники для оценки прокрастинации',
-			sortOrder: 3
+			sortOrder: 3,
+			createdAt: now,
+			updatedAt: now
 		},
 		{
 			id: crypto.randomUUID(),
 			name: 'Выгорание',
 			slug: 'burnout',
 			description: 'Опросники для оценки профессионального выгорания',
-			sortOrder: 4
+			sortOrder: 4,
+			createdAt: now,
+			updatedAt: now
 		}
 	];
 
