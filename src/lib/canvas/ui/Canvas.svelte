@@ -28,7 +28,7 @@
 		type ToolMode
 	} from '../stores';
 	import { attachArrowEndToNearestShape, updateConnectedArrows } from '../engine/magnets';
-	import { isRoughEnabled } from '../engine/rough';
+	import { isRoughEnabled, createDefaultRoughOptions } from '../engine/rough';
 	import RoughShape from './RoughShape.svelte';
 	import type {
 		Shape,
@@ -1002,7 +1002,8 @@
 					x: centerX,
 					y: centerY,
 					width,
-					height
+					height,
+					roughOptions: createDefaultRoughOptions()
 				} as RectShape;
 
 			case 'ellipse':
@@ -1012,7 +1013,8 @@
 					x: centerX,
 					y: centerY,
 					rx: width / 2,
-					ry: height / 2
+					ry: height / 2,
+					roughOptions: createDefaultRoughOptions()
 				} as EllipseShape;
 
 			case 'arrow':
