@@ -113,7 +113,7 @@ export const PUT: RequestHandler = async ({
 	// Validate input with Zod
 	const validation = safeValidateSceneData(body);
 	if (!validation.success) {
-		const errorMessage = validation.error.errors.map((e) => e.message).join(', ');
+		const errorMessage = validation.error.issues.map((e) => e.message).join(', ');
 		throw error(400, `Validation error: ${errorMessage}`);
 	}
 

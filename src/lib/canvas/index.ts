@@ -7,6 +7,7 @@ export * from './model/history';
 
 // Engine
 export * from './engine/magnets';
+export * from './engine/rough';
 
 // Stores
 export * from './stores';
