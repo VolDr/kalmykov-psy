@@ -452,20 +452,31 @@
 			shiftKey: evt.shiftKey,
 			altKey: evt.altKey
 		});
+		// Priority 1: Middle mouse button or Shift+Alt+drag for panning
 		if (evt.button === 1 || (evt.button === 0 && evt.shiftKey && evt.altKey)) {
+			evt.preventDefault?.();
 			isPanning = true;
 			lastPos = { x: evt.clientX, y: evt.clientY };
-		} else if (evt.button === 0 && tool !== 'select' && tool !== 'pan') {
-			// Start drawing for shape tools
+			return; // Early return to prevent other handlers
+		}
+
+		// Priority 2: Pan tool
+		if (evt.button === 0 && tool === 'pan') {
+			isPanning = true;
+			lastPos = { x: evt.clientX, y: evt.clientY };
+			return;
+		}
+
+		// Priority 3: Drawing tools
+		if (evt.button === 0 && tool !== 'select' && tool !== 'pan') {
 			const world = screenToWorld(evt.offsetX, evt.offsetY);
 			console.log('[Canvas] starting drawing', { tool, world });
 			handleDrawingStart(world.x, world.y);
-		} else if (evt.button === 0 && tool === 'pan') {
-			// Pan mode - start panning
-			isPanning = true;
-			lastPos = { x: evt.clientX, y: evt.clientY };
-		} else if (evt.button === 0 && tool === 'select') {
-			// In select mode, clicking on stage starts box selection
+			return;
+		}
+
+		// Priority 4: Box selection in select mode
+		if (evt.button === 0 && tool === 'select') {
 			const stage = stageRef?.getStage ? stageRef.getStage() : stageRef;
 			if (e.target === stage) {
 				const world = screenToWorld(evt.offsetX, evt.offsetY);
