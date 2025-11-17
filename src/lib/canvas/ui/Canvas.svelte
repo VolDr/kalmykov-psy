@@ -27,7 +27,7 @@
 		getToolCursor,
 		type ToolMode
 	} from '../stores';
-	import { attachArrowEndToNearestShape } from '../engine/magnets';
+	import { attachArrowEndToNearestShape, updateConnectedArrows } from '../engine/magnets';
 	import type {
 		Shape,
 		RectShape,
@@ -282,8 +282,26 @@
 		transformerRef.getLayer()?.batchDraw();
 	});
 
-	// Handle arrow endpoint drag
-	function onArrowEndpointDrag(arrow: ArrowShape, endpointIndex: number, e: any) {
+	// Handle arrow endpoint drag (during drag for real-time feedback)
+	function onArrowEndpointDragMove(arrow: ArrowShape, endpointIndex: number, e: any) {
+		const node = e.target;
+		const pos = node.position();
+
+		// Update the arrow points in real-time
+		const newPoints = [...arrow.points];
+		newPoints[endpointIndex] = [pos.x - arrow.x, pos.y - arrow.y];
+
+		const updated: ArrowShape = {
+			...arrow,
+			points: newPoints
+		};
+
+		// Update without history (just visual feedback) - use applyRemoteUpdate which doesn't touch history
+		shapesHistory.applyRemoteUpdate([updated]);
+	}
+
+	// Handle arrow endpoint drag end (commit to history)
+	function onArrowEndpointDragEnd(arrow: ArrowShape, endpointIndex: number, e: any) {
 		const node = e.target;
 		const pos = node.position();
 
@@ -388,7 +406,7 @@
 
 		if (!stageRef) return;
 
-		const scaleBy = 1.05;
+		const scaleBy = 1.15; // Increased from 1.05 for faster zoom
 		const oldScale = cam.scale;
 
 		// Calculate mouse position in world coordinates BEFORE zoom
@@ -551,6 +569,7 @@
 
 		const nodes = transformerRef.nodes();
 		const updatedShapes: Shape[] = [];
+		const movedShapeIds: string[] = [];
 
 		for (const node of nodes) {
 			const shapeId = node.id();
@@ -619,14 +638,27 @@
 			}
 
 			updatedShapes.push(updated);
+			movedShapeIds.push(shapeId);
 		}
 
 		if (updatedShapes.length > 0) {
-			shapesHistory.updateShapes(updatedShapes);
+			// Get current shapes with updates applied
+			const currentShapes = shapes.map((s) => {
+				const updatedShape = updatedShapes.find((u) => u.id === s.id);
+				return updatedShape || s;
+			});
+
+			// Update all arrows connected to transformed shapes
+			const connectedArrowUpdates = updateConnectedArrows(movedShapeIds, currentShapes);
+
+			// Combine updates
+			const allUpdates = [...updatedShapes, ...connectedArrowUpdates];
+
+			shapesHistory.updateShapes(allUpdates);
 
 			// Broadcast to other clients
 			if (syncClient && multiplayer) {
-				const op = createUpdateShapesOp(sceneId, clientId, updatedShapes);
+				const op = createUpdateShapesOp(sceneId, clientId, allUpdates);
 				syncClient.sendOperation(op);
 			}
 		}
@@ -642,11 +674,20 @@
 			y: pos.y
 		};
 
-		shapesHistory.updateShapes([updated]);
+		// Get current shapes and update the moved shape
+		const currentShapes = shapes.map((s) => (s.id === shape.id ? updated : s));
+
+		// Update all arrows connected to this shape
+		const connectedArrowUpdates = updateConnectedArrows([shape.id], currentShapes);
+
+		// Combine updates
+		const allUpdates = [updated, ...connectedArrowUpdates];
+
+		shapesHistory.updateShapes(allUpdates);
 
 		// Broadcast to other clients
 		if (syncClient && multiplayer) {
-			const op = createUpdateShapesOp(sceneId, clientId, [updated]);
+			const op = createUpdateShapesOp(sceneId, clientId, allUpdates);
 			syncClient.sendOperation(op);
 		}
 	}
@@ -730,7 +771,7 @@
 
 	// Handle text input change
 	function handleTextInput(e: Event) {
-		const target = e.target as HTMLInputElement;
+		const target = e.target as HTMLTextAreaElement;
 		updateEditingText(target.value);
 	}
 
@@ -1239,6 +1280,23 @@
 		}
 	}
 
+	function setFillColor(color: string | null) {
+		const selected = getSelectedShapes().filter(s => s.type !== 'arrow');
+		if (selected.length === 0) return;
+
+		const updatedShapes: Shape[] = selected.map(s => ({
+			...s,
+			fill: color
+		}));
+
+		shapesHistory.updateShapes(updatedShapes);
+
+		if (syncClient && multiplayer) {
+			const op = createUpdateShapesOp(sceneId, clientId, updatedShapes);
+			syncClient.sendOperation(op);
+		}
+	}
+
 	function toggleDash() {
 		const selected = getSelectedShapes();
 		if (selected.length === 0) return;
@@ -1655,7 +1713,8 @@
 						stroke="#9333EA"
 						strokeWidth={2}
 						draggable={true}
-						ondragend={(e) => onArrowEndpointDrag(arrow, i, e)}
+						ondragmove={(e) => onArrowEndpointDragMove(arrow, i, e)}
+						ondragend={(e) => onArrowEndpointDragEnd(arrow, i, e)}
 					/>
 				{/each}
 			{/each}
@@ -1795,10 +1854,9 @@
 	{#if editingText && editingShapeId}
 		{@const inputPos = getEditingInputPosition()}
 		{#if inputPos}
-			<input
-				type="text"
-				class="absolute z-50 border-2 border-purple-500 bg-white px-2 py-1 text-center focus:outline-none focus:ring-2 focus:ring-purple-300"
-				style="left: {inputPos.x}px; top: {inputPos.y}px; width: {inputPos.width}px; min-height: {inputPos.height}px;"
+			<textarea
+				class="absolute z-50 resize-none border-2 border-purple-500 bg-white/95 px-2 py-1 text-center focus:outline-none focus:ring-2 focus:ring-purple-300"
+				style="left: {inputPos.x}px; top: {inputPos.y}px; width: {inputPos.width}px; min-height: {inputPos.height}px; font-size: {14 * cam.scale}px; line-height: 1.4;"
 				value={editingTextContent}
 				oninput={handleTextInput}
 				onblur={handleTextBlur}
@@ -1810,9 +1868,14 @@
 						e.preventDefault();
 						commitTextEditing();
 					}
+					// Shift+Enter inserts a new line (default behavior)
 				}}
-				autofocus
-			/>
+				onfocus={(e) => {
+					// Select all text on focus for easy replacement
+					const target = e.target as HTMLTextAreaElement;
+					target.select();
+				}}
+			></textarea>
 		{/if}
 	{/if}
 
@@ -1832,19 +1895,57 @@
 		<div class="absolute left-4 top-20 z-50 flex flex-col gap-2 rounded-lg bg-white p-3 shadow-lg">
 			<div class="text-xs font-semibold text-gray-600">Свойства</div>
 
-			<!-- Fill toggle (not for arrows) -->
+			<!-- Fill color picker (not for arrows) -->
 			{#if hasSelectedNonArrows()}
-				<button
-					type="button"
-					class="flex items-center gap-2 rounded px-2 py-1 text-sm hover:bg-gray-100"
-					onclick={toggleFill}
-				>
-					<div
-						class="h-4 w-4 rounded border-2 border-gray-600"
-						style="background-color: {getCommonFill() ? '#D1D5DB' : 'transparent'}"
-					></div>
-					<span>Заливка</span>
-				</button>
+				<div class="flex flex-col gap-1">
+					<div class="flex items-center gap-1">
+						<span class="text-xs text-gray-500">Заливка:</span>
+						<button
+							type="button"
+							class="h-5 w-5 rounded border-2 border-gray-400"
+							style="background: repeating-conic-gradient(#ccc 0% 25%, transparent 0% 50%) 50% / 8px 8px"
+							onclick={() => setFillColor(null)}
+							aria-label="No fill"
+							title="Без заливки"
+						></button>
+						<button
+							type="button"
+							class="h-5 w-5 rounded border border-gray-300 bg-white"
+							onclick={() => setFillColor('#FFFFFF')}
+							aria-label="White fill"
+						></button>
+						<button
+							type="button"
+							class="h-5 w-5 rounded border border-gray-300 bg-gray-200"
+							onclick={() => setFillColor('#E5E7EB')}
+							aria-label="Light gray fill"
+						></button>
+						<button
+							type="button"
+							class="h-5 w-5 rounded border border-gray-300 bg-yellow-100"
+							onclick={() => setFillColor('#FEF3C7')}
+							aria-label="Yellow fill"
+						></button>
+						<button
+							type="button"
+							class="h-5 w-5 rounded border border-gray-300 bg-blue-100"
+							onclick={() => setFillColor('#DBEAFE')}
+							aria-label="Blue fill"
+						></button>
+						<button
+							type="button"
+							class="h-5 w-5 rounded border border-gray-300 bg-green-100"
+							onclick={() => setFillColor('#DCFCE7')}
+							aria-label="Green fill"
+						></button>
+						<button
+							type="button"
+							class="h-5 w-5 rounded border border-gray-300 bg-red-100"
+							onclick={() => setFillColor('#FEE2E2')}
+							aria-label="Red fill"
+						></button>
+					</div>
+				</div>
 			{/if}
 
 			<!-- Line type toggle -->
