@@ -16,6 +16,7 @@ export interface BaseShape {
 	stroke: string;
 	strokeWidth: number;
 	fill?: string | null;
+	dash?: number[]; // Dash array for dashed lines [dashLength, gapLength]
 
 	// Hook for Rough.js integration
 	// When implementing Rough.js, add rough options here:
@@ -59,6 +60,8 @@ export interface ArrowShape extends BaseShape {
 	points: [number, number][];
 	from?: ArrowEndpoint;
 	to?: ArrowEndpoint;
+	doubleEnded?: boolean; // Arrow head at both ends
+	curved?: boolean; // Use quadratic bezier curve (middle point is control point)
 }
 
 export interface GroupShape extends BaseShape {
