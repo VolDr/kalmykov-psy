@@ -300,12 +300,14 @@
 
 	function handleMouseDown(e: any) {
 		const evt = e.evt as MouseEvent;
+		console.log('[Canvas] mousedown', { button: evt.button, tool, shiftKey: evt.shiftKey, altKey: evt.altKey });
 		if (evt.button === 1 || (evt.button === 0 && evt.shiftKey && evt.altKey)) {
 			isPanning = true;
 			lastPos = { x: evt.clientX, y: evt.clientY };
 		} else if (evt.button === 0 && tool !== 'select' && tool !== 'pan') {
 			// Start drawing for shape tools
 			const world = screenToWorld(evt.offsetX, evt.offsetY);
+			console.log('[Canvas] starting drawing', { tool, world });
 			handleDrawingStart(world.x, world.y);
 		} else if (evt.button === 0 && tool === 'pan') {
 			// Pan mode - start panning
@@ -352,11 +354,13 @@
 
 	function handleMouseUp(e: any) {
 		const evt = e.evt as MouseEvent;
+		console.log('[Canvas] mouseup', { isDrawing, isPanning, isBoxSelecting });
 		isPanning = false;
 
 		// Finish drawing
 		if (isDrawing) {
 			const world = screenToWorld(evt.offsetX, evt.offsetY);
+			console.log('[Canvas] finishing drawing', { world });
 			handleDrawingEnd(world.x, world.y);
 		}
 
@@ -815,11 +819,13 @@
 
 	// Handle drawing end
 	function handleDrawingEnd(worldX: number, worldY: number) {
+		console.log('[Canvas] handleDrawingEnd', { isDrawing, tool, worldX, worldY, drawingStart });
 		if (!isDrawing || tool === 'select' || tool === 'pan') return;
 
 		isDrawing = false;
 
 		const newShape = createShapeFromBounds(tool, drawingStart.x, drawingStart.y, worldX, worldY);
+		console.log('[Canvas] created shape', newShape);
 		if (newShape) {
 			shapesHistory.addShapes([newShape]);
 
