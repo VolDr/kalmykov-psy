@@ -700,10 +700,34 @@
 	): Shape | null {
 		const minX = Math.min(startX, endX);
 		const minY = Math.min(startY, endY);
-		const width = Math.abs(endX - startX);
-		const height = Math.abs(endY - startY);
+		let width = Math.abs(endX - startX);
+		let height = Math.abs(endY - startY);
 
-		if (width < 5 && height < 5) return null; // Too small
+		// If click without drag, create shape with default size
+		const isClick = width < 5 && height < 5;
+		if (isClick) {
+			// Default sizes for different shape types
+			switch (toolType) {
+				case 'rect':
+					width = 100;
+					height = 80;
+					break;
+				case 'ellipse':
+					width = 100;
+					height = 80;
+					break;
+				case 'arrow':
+					width = 100;
+					height = 0;
+					break;
+				case 'text':
+					width = 100;
+					height = 24;
+					break;
+				default:
+					return null;
+			}
+		}
 
 		const baseShape = {
 			id: crypto.randomUUID(),
@@ -714,13 +738,17 @@
 			strokeWidth: 2
 		};
 
+		// For click, center the shape at click position
+		const centerX = isClick ? startX : minX + width / 2;
+		const centerY = isClick ? startY : minY + height / 2;
+
 		switch (toolType) {
 			case 'rect':
 				return {
 					...baseShape,
 					type: 'rect',
-					x: minX + width / 2,
-					y: minY + height / 2,
+					x: centerX,
+					y: centerY,
 					width,
 					height
 				} as RectShape;
@@ -729,8 +757,8 @@
 				return {
 					...baseShape,
 					type: 'ellipse',
-					x: minX + width / 2,
-					y: minY + height / 2,
+					x: centerX,
+					y: centerY,
 					rx: width / 2,
 					ry: height / 2
 				} as EllipseShape;
@@ -743,7 +771,7 @@
 					y: startY,
 					points: [
 						[0, 0],
-						[endX - startX, endY - startY]
+						[isClick ? width : endX - startX, isClick ? height : endY - startY]
 					]
 				} as ArrowShape;
 
@@ -751,8 +779,8 @@
 				return {
 					...baseShape,
 					type: 'text',
-					x: minX + width / 2,
-					y: minY + height / 2,
+					x: centerX,
+					y: centerY,
 					text: 'Text',
 					fontSize: 16,
 					fontFamily: 'Arial',
