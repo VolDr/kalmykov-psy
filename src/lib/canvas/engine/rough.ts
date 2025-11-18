@@ -51,7 +51,7 @@ export function renderRoughRect(rect: RectShape): HTMLCanvasElement {
 	}
 
 	const rc = rough.canvas(canvas);
-	const opts: RoughOptions = rect.roughOptions || {};
+	const opts: RoughOptions = rect.roughOptions || createDefaultRoughOptions();
 
 	// Only pass fill-related options if fill is defined
 	const roughOpts: any = {
@@ -96,7 +96,7 @@ export function renderRoughEllipse(ellipse: EllipseShape): HTMLCanvasElement {
 	}
 
 	const rc = rough.canvas(canvas);
-	const opts: RoughOptions = ellipse.roughOptions || {};
+	const opts: RoughOptions = ellipse.roughOptions || createDefaultRoughOptions();
 
 	// Only pass fill-related options if fill is defined
 	const roughOpts: any = {
@@ -167,7 +167,7 @@ export function renderRoughArrow(arrow: ArrowShape): HTMLCanvasElement {
 	}
 
 	const rc = rough.canvas(canvas);
-	const opts: RoughOptions = arrow.roughOptions || {};
+	const opts: RoughOptions = arrow.roughOptions || createDefaultRoughOptions();
 
 	// Transform points to canvas coordinates
 	const canvasPoints = arrow.points.map((p) => [p[0] - minX + padding, p[1] - minY + padding]) as [
@@ -316,8 +316,9 @@ function drawRoughArrowhead(
 }
 
 // Check if rough mode is enabled for a shape
+// All shapes are now rendered in rough style by default
 export function isRoughEnabled(shape: RectShape | EllipseShape | ArrowShape): boolean {
-	return shape.roughOptions !== undefined && Object.keys(shape.roughOptions).length > 0;
+	return true;
 }
 
 // Create default rough options

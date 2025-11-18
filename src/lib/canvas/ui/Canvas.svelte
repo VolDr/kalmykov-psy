@@ -1221,7 +1221,8 @@
 					y: startY,
 					points: arrowPoints,
 					doubleEnded: toolType === 'doubleArrow' || drawingToolOptions.doubleEnded,
-					curved: toolType === 'curvedArrow' || drawingToolOptions.curved
+					curved: toolType === 'curvedArrow' || drawingToolOptions.curved,
+					roughOptions: createDefaultRoughOptions()
 				} as ArrowShape;
 
 			case 'text':
@@ -1830,31 +1831,15 @@
 						ondragmove={(e) => onShapeDragMove(rect, e)}
 						ondragend={(e) => onShapeDragEnd(rect, e)}
 					>
-						{#if isRoughEnabled(rect)}
-							<RoughShape
-								shape={{ ...rect, x: 0, y: 0, rotation: 0 }}
-								isSelected={isSelected(rect.id)}
-								onclick={(e) => {
-									e.cancelBubble = true;
-								}}
-								ondblclick={() => {}}
-								ondragend={() => {}}
-							/>
-						{:else}
-							<Rect
-								x={0}
-								y={0}
-								width={rect.width}
-								height={effectiveHeight}
-								offsetX={rect.width / 2}
-								offsetY={effectiveHeight / 2}
-								stroke={rect.stroke}
-								strokeWidth={rect.strokeWidth}
-								strokeScaleEnabled={false}
-								fill={rect.fill ?? undefined}
-								dash={rect.dash ?? undefined}
-							/>
-						{/if}
+						<RoughShape
+							shape={{ ...rect, x: 0, y: 0, rotation: 0 }}
+							isSelected={isSelected(rect.id)}
+							onclick={(e) => {
+								e.cancelBubble = true;
+							}}
+							ondblclick={() => {}}
+							ondragend={() => {}}
+						/>
 						{#if rect.text || editingTextState.shapeId === rect.id}
 							<KonvaText
 								x={0}
@@ -1892,29 +1877,15 @@
 						ondragmove={(e) => onShapeDragMove(el, e)}
 						ondragend={(e) => onShapeDragEnd(el, e)}
 					>
-						{#if isRoughEnabled(el)}
-							<RoughShape
-								shape={{ ...el, x: 0, y: 0, rotation: 0 }}
-								isSelected={isSelected(el.id)}
-								onclick={(e) => {
-									e.cancelBubble = true;
-								}}
-								ondblclick={() => {}}
-								ondragend={() => {}}
-							/>
-						{:else}
-							<Ellipse
-								x={0}
-								y={0}
-								radiusX={el.rx}
-								radiusY={effectiveRy}
-								stroke={el.stroke}
-								strokeWidth={el.strokeWidth}
-								strokeScaleEnabled={false}
-								fill={el.fill ?? undefined}
-								dash={el.dash ?? undefined}
-							/>
-						{/if}
+						<RoughShape
+							shape={{ ...el, x: 0, y: 0, rotation: 0 }}
+							isSelected={isSelected(el.id)}
+							onclick={(e) => {
+								e.cancelBubble = true;
+							}}
+							ondblclick={() => {}}
+							ondragend={() => {}}
+						/>
 						{#if el.text || editingTextState.shapeId === el.id}
 							<KonvaText
 								x={0}
@@ -1976,92 +1947,27 @@
 					/>
 				{:else if shape.type === 'arrow'}
 					{@const a = shape as ArrowShape}
-					{#if a.curved && a.points.length === 3}
-						<!-- Curved arrow using quadratic bezier -->
-						{@const controlX = a.points[1][0]}
-						{@const controlY = a.points[1][1]}
-						{@const endX = a.points[2][0]}
-						{@const endY = a.points[2][1]}
-						{@const startX = a.points[0][0]}
-						{@const startY = a.points[0][1]}
-						{@const endDx = endX - controlX}
-						{@const endDy = endY - controlY}
-						{@const endLen = Math.sqrt(endDx * endDx + endDy * endDy)}
-						{@const startDx = startX - controlX}
-						{@const startDy = startY - controlY}
-						{@const startLen = Math.sqrt(startDx * startDx + startDy * startDy)}
-						<Line
-							id={a.id}
-							x={a.x}
-							y={a.y}
-							points={renderArrow(a).points}
-							stroke={a.stroke}
-							strokeWidth={a.strokeWidth}
-							strokeScaleEnabled={false}
-							dash={a.dash ?? undefined}
-							lineCap="round"
-							lineJoin="round"
-							tension={0.5}
-							draggable={true}
-							opacity={isSelected(a.id) ? 0.8 : 1}
-							onclick={(e) => onShapeClick(a.id, e)}
-							ondragmove={(e) => onArrowDragMove(a, e)}
-							ondragend={(e) => onArrowDragEnd(a, e)}
+					<Group
+						id={a.id}
+						x={a.x}
+						y={a.y}
+						rotation={a.rotation}
+						draggable={true}
+						opacity={isSelected(a.id) ? 0.8 : 1}
+						onclick={(e) => onShapeClick(a.id, e)}
+						ondragmove={(e) => onArrowDragMove(a, e)}
+						ondragend={(e) => onArrowDragEnd(a, e)}
+					>
+						<RoughShape
+							shape={{ ...a, x: 0, y: 0, rotation: 0 }}
+							isSelected={isSelected(a.id)}
+							onclick={(e) => {
+								e.cancelBubble = true;
+							}}
+							ondblclick={() => {}}
+							ondragend={() => {}}
 						/>
-						<!-- Arrow head at end - only arrowhead, no line -->
-						<Arrow
-							x={a.x}
-							y={a.y}
-							points={[endX - (endDx / endLen) * 0.1, endY - (endDy / endLen) * 0.1, endX, endY]}
-							stroke={a.stroke}
-							strokeWidth={a.strokeWidth}
-							fill={a.stroke}
-							pointerLength={10}
-							pointerWidth={10}
-							listening={false}
-						/>
-						{#if a.doubleEnded}
-							<!-- Arrow head at beginning for curved -->
-							<Arrow
-								x={a.x}
-								y={a.y}
-								points={[
-									startX - (startDx / startLen) * 0.1,
-									startY - (startDy / startLen) * 0.1,
-									startX,
-									startY
-								]}
-								stroke={a.stroke}
-								strokeWidth={a.strokeWidth}
-								fill={a.stroke}
-								pointerLength={10}
-								pointerWidth={10}
-								listening={false}
-							/>
-						{/if}
-					{:else}
-						<Arrow
-							id={a.id}
-							x={a.x}
-							y={a.y}
-							points={renderArrow(a).points}
-							stroke={a.stroke}
-							strokeWidth={a.strokeWidth}
-							strokeScaleEnabled={false}
-							fill={a.stroke}
-							dash={a.dash ?? undefined}
-							lineCap="round"
-							lineJoin="round"
-							pointerLength={10}
-							pointerWidth={10}
-							pointerAtBeginning={a.doubleEnded ?? false}
-							draggable={true}
-							opacity={isSelected(a.id) ? 0.8 : 1}
-							onclick={(e) => onShapeClick(a.id, e)}
-							ondragmove={(e) => onArrowDragMove(a, e)}
-							ondragend={(e) => onArrowDragEnd(a, e)}
-						/>
-					{/if}
+					</Group>
 				{:else if shape.type === 'group'}
 					{@const g = shape as GroupShape}
 					<Group
