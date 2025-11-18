@@ -112,7 +112,7 @@
 		sceneId = '',
 		userId = undefined,
 		userName = undefined,
-		autoSave = true, // Auto-save enabled by default
+		autoSave = false, // Auto-save disabled by default (conflicts with multiplayer sync)
 		autoSaveDelay = 2000 // Auto-save delay in ms (2 seconds)
 	}: Props = $props();
 
@@ -201,7 +201,8 @@
 
 	// Auto-save function with debounce
 	async function autoSaveScene() {
-		if (!autoSave || !sceneId || isSaving) return;
+		// Disable auto-save when multiplayer is enabled to avoid conflicts
+		if (!autoSave || !sceneId || isSaving || multiplayer) return;
 
 		// Clear existing timer
 		if (autoSaveTimer) {
@@ -2476,8 +2477,8 @@
 		</div>
 	{/if}
 
-	<!-- Auto-save indicator -->
-	{#if autoSave && sceneId}
+	<!-- Auto-save indicator (only shown when multiplayer is disabled) -->
+	{#if autoSave && sceneId && !multiplayer}
 		<div class="fixed right-4 bottom-4 z-50 rounded-lg bg-white px-3 py-2 text-xs shadow-md">
 			{#if isSaving}
 				<div class="flex items-center gap-2 text-gray-600">
