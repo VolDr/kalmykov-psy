@@ -95,8 +95,7 @@
 						</div>
 
 						<div>
-							<label class="mb-1 block text-xs font-medium text-gray-700">Выделенный текст</label
-							>
+							<label class="mb-1 block text-xs font-medium text-gray-700">Выделенный текст</label>
 							<input
 								type="text"
 								value={item.highlight}

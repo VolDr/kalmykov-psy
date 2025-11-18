@@ -95,8 +95,8 @@
 <div class="space-y-4">
 	<div class="rounded bg-blue-50 p-3 text-sm text-blue-700">
 		{#if isUsingDefaults}
-			Используются данные по умолчанию из файла src/lib/data/education.ts. Нажмите "Загрузить
-			данные по умолчанию" для редактирования.
+			Используются данные по умолчанию из файла src/lib/data/education.ts. Нажмите "Загрузить данные
+			по умолчанию" для редактирования.
 		{:else}
 			Используются пользовательские данные. Нажмите "Сбросить" для возврата к данным по умолчанию.
 		{/if}
@@ -112,9 +112,7 @@
 			/>
 			<span class="text-sm font-medium text-gray-700">Открыта по умолчанию</span>
 		</label>
-		<p class="ml-6 mt-1 text-xs text-gray-500">
-			Секция будет раскрыта при загрузке страницы
-		</p>
+		<p class="mt-1 ml-6 text-xs text-gray-500">Секция будет раскрыта при загрузке страницы</p>
 	</div>
 
 	<div class="flex gap-2">
@@ -186,9 +184,7 @@
 							{#each group.items as item, itemIndex (itemIndex)}
 								<div class="rounded border border-gray-200 bg-white p-3">
 									<div class="mb-2 flex items-center justify-between">
-										<span class="text-xs font-medium text-gray-500"
-											>Элемент {itemIndex + 1}</span
-										>
+										<span class="text-xs font-medium text-gray-500">Элемент {itemIndex + 1}</span>
 										<button
 											onclick={() => removeItem(groupIndex, itemIndex)}
 											class="rounded p-1 text-red-600 hover:bg-red-50"

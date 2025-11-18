@@ -177,6 +177,9 @@
 	// Track if shift key is pressed for rotation snapping
 	let isShiftPressed = $state(false);
 
+	// Track if canvas is focused (to prevent hotkeys from affecting other elements)
+	let isCanvasFocused = $state(false);
+
 	// Magnet feedback state
 	let magnetFeedback: { bounds: Bounds; shapeId: string } | null = $state(null);
 
@@ -1058,11 +1061,7 @@
 	 * Handle mousemove on text element during editing - update text selection
 	 */
 	function handleTextMouseMove(shapeId: string, e: any) {
-		if (
-			!editingTextState.isEditing ||
-			editingTextState.shapeId !== shapeId ||
-			!isTextSelecting
-		) {
+		if (!editingTextState.isEditing || editingTextState.shapeId !== shapeId || !isTextSelecting) {
 			return;
 		}
 
@@ -1136,6 +1135,11 @@
 	// === Hotkeys (RU/EN - by code) ===
 
 	function handleKeyDown(e: KeyboardEvent) {
+		// If canvas is not focused, ignore all keyboard events except when editing text
+		if (!isCanvasFocused && !editingTextState.isEditing) {
+			return;
+		}
+
 		// Track shift key for rotation snapping
 		if (e.key === 'Shift') {
 			isShiftPressed = true;
@@ -1415,7 +1419,10 @@
 
 	// Helper to render text with selection highlight
 	// Returns array of text parts: [before, selected, after]
-	function getTextParts(shapeId: string, text: string): { before: string; selected: string; after: string; hasSelection: boolean } {
+	function getTextParts(
+		shapeId: string,
+		text: string
+	): { before: string; selected: string; after: string; hasSelection: boolean } {
 		if (
 			editingTextState.isEditing &&
 			editingTextState.shapeId === shapeId &&
@@ -1644,7 +1651,6 @@
 		return rects;
 	}
 
-
 	onMount(() => {
 		console.log('[Canvas] onMount called', {
 			stageWidth,
@@ -1663,6 +1669,11 @@
 
 	// Track shift key state for rotation snapping
 	function handleKeyUp(e: KeyboardEvent) {
+		// Only handle if canvas is focused or editing text
+		if (!isCanvasFocused && !editingTextState.isEditing) {
+			return;
+		}
+
 		if (e.key === 'Shift') {
 			isShiftPressed = false;
 		}
@@ -2156,8 +2167,7 @@
 		const selected = getSelectedShapes().filter((s) => s.type !== 'arrow');
 		if (selected.length === 0) return undefined;
 		const firstShape = selected[0];
-		const firstFillStyle =
-			(firstShape.roughOptions?.fillStyle as any) || ('hachure' as const);
+		const firstFillStyle = (firstShape.roughOptions?.fillStyle as any) || ('hachure' as const);
 		for (const shape of selected) {
 			const shapeFillStyle = (shape.roughOptions?.fillStyle as any) || ('hachure' as const);
 			if (shapeFillStyle !== firstFillStyle) return undefined; // Mixed values
@@ -2395,7 +2405,18 @@
 	}
 </script>
 
-<div class="relative h-full w-full bg-white" style="cursor: {getToolCursor(tool)}">
+<div
+	class="relative h-full w-full bg-white"
+	style="cursor: {getToolCursor(tool)}"
+	tabindex="0"
+	role="application"
+	aria-label="Canvas workspace"
+	onmouseenter={() => (isCanvasFocused = true)}
+	onmouseleave={() => (isCanvasFocused = false)}
+	onfocus={() => (isCanvasFocused = true)}
+	onblur={() => (isCanvasFocused = false)}
+	onclick={() => (isCanvasFocused = true)}
+>
 	<!-- Toolbar -->
 	<Toolbar />
 
@@ -2456,7 +2477,14 @@
 							ondragend={() => {}}
 						/>
 						{#if rect.text || editingTextState.shapeId === rect.id}
-							{@const selectionRects = getWrappedTextSelectionRects(rect.id, rect.text || '', DEFAULT_FONT_SIZE, CANVAS_FONT_FAMILY, rect.width, effectiveHeight)}
+							{@const selectionRects = getWrappedTextSelectionRects(
+								rect.id,
+								rect.text || '',
+								DEFAULT_FONT_SIZE,
+								CANVAS_FONT_FAMILY,
+								rect.width,
+								effectiveHeight
+							)}
 							<!-- Selection highlight (supports multiline) -->
 							{#each selectionRects as selRect}
 								<Rect
@@ -2518,7 +2546,14 @@
 							ondragend={() => {}}
 						/>
 						{#if el.text || editingTextState.shapeId === el.id}
-							{@const selectionRects = getWrappedTextSelectionRects(el.id, el.text || '', DEFAULT_FONT_SIZE, CANVAS_FONT_FAMILY, el.rx * 2, effectiveRy * 2)}
+							{@const selectionRects = getWrappedTextSelectionRects(
+								el.id,
+								el.text || '',
+								DEFAULT_FONT_SIZE,
+								CANVAS_FONT_FAMILY,
+								el.rx * 2,
+								effectiveRy * 2
+							)}
 							<!-- Selection highlight (supports multiline) -->
 							{#each selectionRects as selRect}
 								<Rect
@@ -2556,7 +2591,15 @@
 					{@const displayText = getDisplayText(t.id, t.text)}
 					{@const textWidth = t.width ?? displayText.length * t.fontSize * 0.6}
 					{@const textHeight = t.height ?? t.fontSize * LINE_HEIGHT_MULTIPLIER}
-					{@const selectionRects = getTextSelectionRects(t.id, t.text, t.fontSize, t.fontFamily, textWidth, textHeight, t.align)}
+					{@const selectionRects = getTextSelectionRects(
+						t.id,
+						t.text,
+						t.fontSize,
+						t.fontFamily,
+						textWidth,
+						textHeight,
+						t.align
+					)}
 					<!-- Invisible rect for transformer support -->
 					<Rect
 						id={t.id}
@@ -2887,7 +2930,6 @@
 			{/if}
 		</Layer>
 	</Stage>
-
 
 	<!-- Return to content button -->
 	{#if isAwayFromContent()}

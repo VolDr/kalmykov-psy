@@ -67,13 +67,13 @@ async function main() {
 				`,
 				[category.name, category.slug, category.description, category.sortOrder]
 			);
-			console.log(
-				`  ✓ ${result.rows[0].slug}: ${result.rows[0].name} (ID: ${result.rows[0].id})`
-			);
+			console.log(`  ✓ ${result.rows[0].slug}: ${result.rows[0].name} (ID: ${result.rows[0].id})`);
 		}
 
 		console.log('\n✅ Successfully populated survey categories!');
-		console.log('📝 To populate surveys, they should already exist from migration 0004_populate_surveys.sql');
+		console.log(
+			'📝 To populate surveys, they should already exist from migration 0004_populate_surveys.sql'
+		);
 		console.log('   If not, run: psql $DATABASE_URL < drizzle/0004_populate_surveys.sql\n');
 
 		await client.query('COMMIT');

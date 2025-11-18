@@ -24,11 +24,7 @@
 		updateConfig('items', items);
 	}
 
-	function updateItemField(
-		index: number,
-		field: 'theme' | 'icon' | 'gridClass',
-		value: string
-	) {
+	function updateItemField(index: number, field: 'theme' | 'icon' | 'gridClass', value: string) {
 		const items = [...block.config.items];
 		items[index] = { ...items[index], [field]: value };
 		updateConfig('items', items);

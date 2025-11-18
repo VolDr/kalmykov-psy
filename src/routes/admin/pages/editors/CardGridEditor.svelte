@@ -185,8 +185,7 @@
 			<select
 				id="grid-cols"
 				value={block.config.cols}
-				onchange={(e) =>
-					updateConfig('cols', e.currentTarget.value as '1' | '2' | '3' | '24')}
+				onchange={(e) => updateConfig('cols', e.currentTarget.value as '1' | '2' | '3' | '24')}
 				class="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
 			>
 				<option value="1">1 колонка</option>
@@ -300,7 +299,7 @@
 									: 'border-orange-200 bg-orange-50'}"
 				>
 					<div class="mb-2 flex items-center justify-between">
-						<span class="text-xs font-medium uppercase text-gray-500">
+						<span class="text-xs font-medium text-gray-500 uppercase">
 							{card.type === 'list-card'
 								? 'Список'
 								: card.type === 'icon-card'
@@ -478,7 +477,8 @@
 										<div class="flex gap-2">
 											<textarea
 												value={text}
-												oninput={(e) => updateIntroText(cardIndex, textIndex, e.currentTarget.value)}
+												oninput={(e) =>
+													updateIntroText(cardIndex, textIndex, e.currentTarget.value)}
 												rows="2"
 												class="flex-1 rounded border border-gray-300 px-2 py-1 text-sm focus:border-blue-500 focus:outline-none"
 												placeholder="Текст параграфа (поддерживает markdown)"
@@ -512,7 +512,9 @@
 									{#each card.contacts as contact, contactIndex}
 										<div class="rounded border border-teal-200 bg-white p-2">
 											<div class="mb-1 flex items-center justify-between">
-												<span class="text-xs font-medium text-gray-600">Контакт #{contactIndex + 1}</span>
+												<span class="text-xs font-medium text-gray-600"
+													>Контакт #{contactIndex + 1}</span
+												>
 												<button
 													onclick={() => removeContact(cardIndex, contactIndex)}
 													class="rounded p-1 text-red-600 hover:bg-red-100"
@@ -563,7 +565,8 @@
 											<input
 												type="text"
 												value={link}
-												oninput={(e) => updateAdditionalLink(cardIndex, linkIndex, e.currentTarget.value)}
+												oninput={(e) =>
+													updateAdditionalLink(cardIndex, linkIndex, e.currentTarget.value)}
 												class="flex-1 rounded border border-gray-300 px-2 py-1 text-sm focus:border-blue-500 focus:outline-none"
 												placeholder="[Текст ссылки](https://...)"
 											/>

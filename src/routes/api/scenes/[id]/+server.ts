@@ -121,7 +121,10 @@ export const PUT: RequestHandler = async ({
 	try {
 		console.log(`[${id}] Step 1: Parsing JSON body...`);
 		body = await request.json();
-		console.log(`[${id}] Step 2: JSON parsed successfully:`, JSON.stringify(body).substring(0, 200));
+		console.log(
+			`[${id}] Step 2: JSON parsed successfully:`,
+			JSON.stringify(body).substring(0, 200)
+		);
 	} catch (err) {
 		console.error(`[${id}] Step 2 FAILED: JSON parse error:`, err);
 		throw error(400, 'Invalid JSON body');
@@ -130,7 +133,10 @@ export const PUT: RequestHandler = async ({
 	// Validate input with Zod
 	console.log(`[${id}] Step 3: Starting Zod validation...`);
 	console.log(`[${id}] Step 3a: Body type:`, typeof body);
-	console.log(`[${id}] Step 3b: Body keys:`, body && typeof body === 'object' ? Object.keys(body) : 'N/A');
+	console.log(
+		`[${id}] Step 3b: Body keys:`,
+		body && typeof body === 'object' ? Object.keys(body) : 'N/A'
+	);
 
 	let validation;
 	try {
@@ -143,7 +149,10 @@ export const PUT: RequestHandler = async ({
 	}
 
 	if (!validation.success) {
-		console.error(`[${id}] Step 5: Validation failed with issues:`, JSON.stringify(validation.error.issues, null, 2));
+		console.error(
+			`[${id}] Step 5: Validation failed with issues:`,
+			JSON.stringify(validation.error.issues, null, 2)
+		);
 		const errorMessage = validation.error.issues.map((e) => e.message).join(', ');
 		throw error(400, `Validation error: ${errorMessage}`);
 	}

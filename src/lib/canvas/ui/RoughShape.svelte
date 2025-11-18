@@ -57,13 +57,5 @@
 </script>
 
 {#if roughCanvas}
-	<KonvaImage
-		x={0}
-		y={0}
-		image={roughCanvas}
-		{offsetX}
-		{offsetY}
-		rotation={0}
-		listening={true}
-	/>
+	<KonvaImage x={0} y={0} image={roughCanvas} {offsetX} {offsetY} rotation={0} listening={true} />
 {/if}

@@ -104,8 +104,8 @@ WS_PORT=3001  # Порт WebSocket сервера
 ```typescript
 // server/websocket.ts
 const syncServer = createSyncServer({
-  maxOperationsPerRoom: 100,     // Макс операций в истории комнаты
-  presenceTimeoutMs: 30000       // Таймаут неактивности (30 сек)
+	maxOperationsPerRoom: 100, // Макс операций в истории комнаты
+	presenceTimeoutMs: 30000 // Таймаут неактивности (30 сек)
 });
 ```
 
@@ -154,7 +154,7 @@ services:
       context: .
       dockerfile: Dockerfile.websocket
     ports:
-      - "3001:3001"
+      - '3001:3001'
     environment:
       - WS_PORT=3001
     restart: unless-stopped
@@ -185,6 +185,7 @@ WantedBy=multi-user.target
 ### "Connection failed" в браузере
 
 1. Проверьте, запущен ли WebSocket сервер:
+
    ```bash
    lsof -i :3001
    ```
@@ -217,11 +218,13 @@ WantedBy=multi-user.target
 ## Мониторинг
 
 Сервер логирует:
+
 - Подключения/отключения клиентов
 - Количество активных комнат (каждую минуту)
 - Ошибки обработки сообщений
 
 Для production рекомендуется настроить:
+
 - Prometheus metrics
 - Централизованное логирование
 - Health checks

@@ -11,10 +11,7 @@
 
 	const isUsingDefaults = $derived(!block.config.items || block.config.items.length === 0);
 
-	function updateConfig<K extends keyof FaqBlock['config']>(
-		key: K,
-		value: FaqBlock['config'][K]
-	) {
+	function updateConfig<K extends keyof FaqBlock['config']>(key: K, value: FaqBlock['config'][K]) {
 		const updated = {
 			...block,
 			config: { ...block.config, [key]: value }
@@ -50,8 +47,8 @@
 <div class="space-y-4">
 	<div class="rounded bg-blue-50 p-3 text-sm text-blue-700">
 		{#if isUsingDefaults}
-			Используются данные по умолчанию из файла src/lib/data/faq.ts. Нажмите "Загрузить данные
-			по умолчанию" для редактирования.
+			Используются данные по умолчанию из файла src/lib/data/faq.ts. Нажмите "Загрузить данные по
+			умолчанию" для редактирования.
 		{:else}
 			Используются пользовательские данные. Нажмите "Сбросить" для возврата к данным по умолчанию.
 		{/if}

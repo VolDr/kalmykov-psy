@@ -20,9 +20,7 @@
 
 	// Split blocks into hero and body sections
 	const heroBlocks = $derived(sortedBlocks.filter((b) => fullWidthBlockTypes.includes(b.type)));
-	const bodyBlocks = $derived(
-		sortedBlocks.filter((b) => !fullWidthBlockTypes.includes(b.type))
-	);
+	const bodyBlocks = $derived(sortedBlocks.filter((b) => !fullWidthBlockTypes.includes(b.type)));
 
 	// Map maxWidth setting to Tailwind classes
 	const maxWidthClasses = {

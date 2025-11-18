@@ -107,14 +107,20 @@ export function safeValidateSceneData(data: unknown) {
 	console.log('[VALIDATION] Starting safeValidateSceneData...');
 	console.log('[VALIDATION] Input data type:', typeof data);
 	console.log('[VALIDATION] Input data is array:', Array.isArray(data));
-	console.log('[VALIDATION] Input data keys:', data && typeof data === 'object' && !Array.isArray(data) ? Object.keys(data) : 'N/A');
+	console.log(
+		'[VALIDATION] Input data keys:',
+		data && typeof data === 'object' && !Array.isArray(data) ? Object.keys(data) : 'N/A'
+	);
 
 	try {
 		console.log('[VALIDATION] Calling sceneDataSchema.safeParse...');
 		const result = sceneDataSchema.safeParse(data);
 		console.log('[VALIDATION] safeParse completed, success:', result.success);
 		if (!result.success) {
-			console.error('[VALIDATION] Validation errors:', JSON.stringify(result.error.issues, null, 2));
+			console.error(
+				'[VALIDATION] Validation errors:',
+				JSON.stringify(result.error.issues, null, 2)
+			);
 		}
 		return result;
 	} catch (err) {

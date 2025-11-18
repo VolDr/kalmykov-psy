@@ -303,9 +303,7 @@
 						class="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
 						placeholder="bg-gray-100 py-8 mb-12"
 					/>
-					<p class="mt-1 text-xs text-gray-500">
-						Эти классы будут применены к обёртке блока
-					</p>
+					<p class="mt-1 text-xs text-gray-500">Эти классы будут применены к обёртке блока</p>
 				</div>
 			{/if}
 		</div>
