@@ -1,5 +1,10 @@
 import { pageContentService, getPageContentWithDefaults } from '$lib/server/page-content.server';
-import { surveyService, surveyCategoryService, serializeSurvey, serializeSurveyCategory } from '$lib/server/survey.server';
+import {
+	surveyService,
+	surveyCategoryService,
+	serializeSurvey,
+	serializeSurveyCategory
+} from '$lib/server/survey.server';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async () => {

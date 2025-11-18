@@ -95,9 +95,7 @@
 			</Button>
 		</div>
 
-		{#each data.pageContent.filter(
-			(s) => s.pageSlug === data.selectedPage && s.sectionKey === 'seo'
-		) as seoSection}
+		{#each data.pageContent.filter((s) => s.pageSlug === data.selectedPage && s.sectionKey === 'seo') as seoSection}
 			<Card class="rounded-lg border bg-white p-6 shadow-sm">
 				<div class="space-y-3">
 					<div>

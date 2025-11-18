@@ -64,15 +64,11 @@ async function main() {
 				`,
 				[category.name, category.slug, category.description, category.sortOrder]
 			);
-			console.log(
-				`  ✓ ${result.rows[0].slug}: ${result.rows[0].name} (ID: ${result.rows[0].id})`
-			);
+			console.log(`  ✓ ${result.rows[0].slug}: ${result.rows[0].name} (ID: ${result.rows[0].id})`);
 		}
 
 		console.log('\n✅ Successfully populated survey categories!');
-		console.log(
-			'📝 Surveys should already exist from migration drizzle/0004_populate_surveys.sql'
-		);
+		console.log('📝 Surveys should already exist from migration drizzle/0004_populate_surveys.sql');
 
 		await client.query('COMMIT');
 	} catch (error) {

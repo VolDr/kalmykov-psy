@@ -17,7 +17,9 @@
 	import { page } from '$app/stores';
 
 	// Get sceneId from URL query parameter or use demo scene UUID
-	let sceneId = $derived($page.url.searchParams.get('id') || '550e8400-e29b-41d4-a716-446655440000');
+	let sceneId = $derived(
+		$page.url.searchParams.get('id') || '550e8400-e29b-41d4-a716-446655440000'
+	);
 
 	let isSaving = $state(false);
 	let isLoading = $state(true);

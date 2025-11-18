@@ -119,8 +119,7 @@
 								<div class="flex gap-2">
 									<textarea
 										value={dataItem}
-										oninput={(e) =>
-											updateBlockData(blockIndex, dataIndex, e.currentTarget.value)}
+										oninput={(e) => updateBlockData(blockIndex, dataIndex, e.currentTarget.value)}
 										rows="2"
 										class="flex-1 rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
 										placeholder="Текст параграфа"

@@ -42,9 +42,7 @@
 			clearTimeout(timeoutId);
 
 			const fetchTime = Date.now() - fetchStartTime;
-			console.log(
-				`[Canvas ${sceneId}] Fetch completed in ${fetchTime}ms, status: ${res.status}`
-			);
+			console.log(`[Canvas ${sceneId}] Fetch completed in ${fetchTime}ms, status: ${res.status}`);
 
 			if (res.ok) {
 				console.log(`[Canvas ${sceneId}] Parsing JSON response...`);
