@@ -324,8 +324,17 @@
 		const worldPos = { x: pos.x, y: pos.y };
 		magnetFeedback = getMagnetFeedbackBounds(worldPos, shapes, arrow.id, 40);
 
-		// Don't update store during drag - let Konva handle the endpoint position
-		// We'll update the arrow points in onArrowEndpointDragEnd
+		// Update the arrow points in real-time so the arrow follows the handle
+		const newPoints = [...arrow.points];
+		newPoints[endpointIndex] = [pos.x - arrow.x, pos.y - arrow.y];
+
+		const updated: ArrowShape = {
+			...arrow,
+			points: newPoints
+		};
+
+		// Update arrow immediately for visual feedback
+		shapesHistory.applyRemoteUpdate([updated]);
 	}
 
 	// Handle arrow endpoint drag end (commit to history)
@@ -753,10 +762,12 @@
 		// Update all arrows connected to this shape in real-time
 		const connectedArrowUpdates = updateConnectedArrows([shape.id], currentShapes);
 
-		// CRITICAL: Only update arrows during drag move, NOT the dragged shape itself
-		// Updating the dragged shape in store causes Svelte to reactively update Group props (x, y)
-		// which conflicts with Konva's internal drag state, causing jittering
-		if (connectedArrowUpdates.length > 0) {
+		// For text shapes, we need to update the shape itself to keep KonvaText in sync
+		// For other shapes (Group-based), only update arrows to avoid jittering with Konva's drag state
+		if (shape.type === 'text') {
+			// Text uses Rect + KonvaText, so we must update the shape position
+			shapesHistory.applyRemoteUpdate([updated, ...connectedArrowUpdates]);
+		} else if (connectedArrowUpdates.length > 0) {
 			shapesHistory.applyRemoteUpdate(connectedArrowUpdates);
 		}
 
@@ -797,8 +808,18 @@
 
 	// Arrow drag move - real-time update for handles to follow
 	function onArrowDragMove(arrow: ArrowShape, e: any) {
-		// Don't update store during drag - let Konva handle it
-		// Updating causes reactive prop changes that conflict with drag state
+		// Update arrow position in real-time so endpoint handles follow
+		const node = e.currentTarget;
+		const pos = node.position();
+
+		const updated: ArrowShape = {
+			...arrow,
+			x: pos.x,
+			y: pos.y
+		};
+
+		// Update the arrow position immediately for visual feedback
+		shapesHistory.applyRemoteUpdate([updated]);
 	}
 
 	// Arrow drag end - snap to nearest shape
