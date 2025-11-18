@@ -356,17 +356,24 @@
 		const newPoints = [...arrow.points];
 		newPoints[endpointIndex] = [pos.x - arrow.x, pos.y - arrow.y];
 
-		const updated: ArrowShape = {
-			...arrow,
-			points: newPoints
-		};
-
 		// Show magnet feedback
 		const worldPos = { x: pos.x, y: pos.y };
 		magnetFeedback = getMagnetFeedbackBounds(worldPos, shapes, arrow.id, 40);
 
-		// Update without history (just visual feedback) - use applyRemoteUpdate which doesn't touch history
-		shapesHistory.applyRemoteUpdate([updated]);
+		// Update arrow visual directly via Konva API (not through store)
+		if (layerRef) {
+			const arrowNode = layerRef.findOne(`#${arrow.id}`);
+			if (arrowNode) {
+				const flat: number[] = [];
+				for (const [px, py] of newPoints) {
+					flat.push(px, py);
+				}
+				arrowNode.points(flat);
+				layerRef.batchDraw();
+			}
+		}
+
+		// Note: We don't update store during drag to avoid conflicts with Konva's internal state
 	}
 
 	// Handle arrow endpoint drag end (commit to history)
@@ -770,26 +777,14 @@
 
 	// Shape drag move - real-time update for smooth movement
 	function onShapeDragMove(shape: Shape, e: any) {
-		const node = e.target;
-		const pos = node.position();
+		// During drag, Konva manages the position internally
+		// We don't update the store here to avoid conflicts with Konva's drag system
+		// Connected arrows will be updated at drag end
 
-		const updated: Shape = {
-			...shape,
-			x: pos.x,
-			y: pos.y
-		};
-
-		// Get current shapes and update the moved shape
-		const currentShapes = shapes.map((s) => (s.id === shape.id ? updated : s));
-
-		// Update all arrows connected to this shape in real-time
-		const connectedArrowUpdates = updateConnectedArrows([shape.id], currentShapes);
-
-		// Combine updates
-		const allUpdates = [updated, ...connectedArrowUpdates];
-
-		// Update without history for visual feedback
-		shapesHistory.applyRemoteUpdate(allUpdates);
+		// Note: Updating store during drag causes "jumping" behavior because:
+		// 1. Konva updates node position
+		// 2. Store update triggers Svelte reactivity
+		// 3. Svelte tries to set x/y props, conflicting with Konva's internal state
 	}
 
 	function onShapeDragEnd(shape: Shape, e: any) {
@@ -822,17 +817,9 @@
 
 	// Arrow drag move - real-time update for handles to follow
 	function onArrowDragMove(arrow: ArrowShape, e: any) {
-		const node = e.target;
-		const pos = node.position();
-
-		const updated: ArrowShape = {
-			...arrow,
-			x: pos.x,
-			y: pos.y
-		};
-
-		// Update without history for visual feedback
-		shapesHistory.applyRemoteUpdate([updated]);
+		// During drag, Konva manages the position internally
+		// We don't update the store here to avoid conflicts with Konva's drag system
+		// Arrow handles will follow automatically as they are positioned relative to arrow.x/arrow.y
 	}
 
 	// Arrow drag end - snap to nearest shape
