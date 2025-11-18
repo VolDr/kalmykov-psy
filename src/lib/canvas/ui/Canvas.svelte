@@ -59,6 +59,7 @@
 		type Presence
 	} from '../sync/types';
 	import Toolbar from './Toolbar.svelte';
+	import StylePanel from './StylePanel.svelte';
 	import { CANVAS_FONT_FAMILY, DEFAULT_FONT_SIZE, LINE_HEIGHT_MULTIPLIER } from '../constants';
 
 	// Import new modules for integration
@@ -134,7 +135,7 @@
 	let shapes: Shape[] = $state([]);
 	let selectedIds: Set<string> = $state(new Set());
 	let cam = $state({ x: 0, y: 0, scale: 1 });
-	let style = $state({ stroke: '#1971c2', strokeWidth: 2, fill: '#a5d8ff', fillStyle: 'hachure' });
+	let style = $state({ stroke: '#000000', strokeWidth: 2, fill: null, fillStyle: 'solid' });
 
 	// Tool state
 	let tool: ToolMode = $state('select');
@@ -1810,6 +1811,9 @@
 <div class="relative h-full w-full bg-white" style="cursor: {getToolCursor(tool)}">
 	<!-- Toolbar -->
 	<Toolbar />
+
+	<!-- Style Panel (shown when shapes are selected) -->
+	<StylePanel />
 
 	<!-- Connection status indicator -->
 	{#if multiplayer}

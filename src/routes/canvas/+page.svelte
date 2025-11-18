@@ -66,9 +66,9 @@
 			rotation: 0,
 			scaleX: 1,
 			scaleY: 1,
-			stroke: '#1971c2',
+			stroke: '#000000',
 			strokeWidth: 2,
-			fill: '#d0ebff',
+			fill: null,
 			text: 'Rectangle',
 			roughOptions: createDefaultRoughOptions()
 		};
@@ -83,9 +83,9 @@
 			rotation: 0,
 			scaleX: 1,
 			scaleY: 1,
-			stroke: '#2f9e44',
+			stroke: '#000000',
 			strokeWidth: 2,
-			fill: '#d8f5a2',
+			fill: null,
 			roughOptions: createDefaultRoughOptions()
 		};
 
@@ -101,8 +101,8 @@
 			rotation: 0,
 			scaleX: 1,
 			scaleY: 1,
-			stroke: '#e8590c',
-			strokeWidth: 3,
+			stroke: '#000000',
+			strokeWidth: 2,
 			doubleEnded: true,
 			from: { shapeId: rect.id, anchor: 'right' },
 			to: { shapeId: ellipse.id, anchor: 'left' }
@@ -120,7 +120,7 @@
 			rotation: 0,
 			scaleX: 1,
 			scaleY: 1,
-			stroke: '#495057',
+			stroke: '#000000',
 			strokeWidth: 1
 		};
 
@@ -168,9 +168,9 @@
 			rotation: 0,
 			scaleX: 1,
 			scaleY: 1,
-			stroke: '#1971c2',
+			stroke: '#000000',
 			strokeWidth: 2,
-			fill: '#d0ebff'
+			fill: null
 		};
 		shapesHistory.addShapes([rect]);
 	}
@@ -186,9 +186,9 @@
 			rotation: 0,
 			scaleX: 1,
 			scaleY: 1,
-			stroke: '#2f9e44',
+			stroke: '#000000',
 			strokeWidth: 2,
-			fill: '#d8f5a2'
+			fill: null
 		};
 		shapesHistory.addShapes([ellipse]);
 	}
