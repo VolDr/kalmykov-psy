@@ -62,7 +62,9 @@ export function startTextEditing(shapeId: string): boolean {
 		shapeId,
 		originalText: text,
 		currentText: text,
-		cursorPosition: text.length // Start with cursor at end
+		cursorPosition: text.length, // Start with cursor at end
+		selectionStart: null,
+		selectionEnd: null
 	});
 
 	// Select the shape being edited

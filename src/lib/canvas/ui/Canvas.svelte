@@ -240,15 +240,19 @@
 	let editingTextState = $state({
 		isEditing: false,
 		shapeId: null as string | null,
-		text: '',
-		cursorPosition: 0
+		currentText: '',
+		cursorPosition: 0,
+		selectionStart: null as number | null,
+		selectionEnd: null as number | null
 	});
 	const unsubscribeTextEditing = textEditingState.subscribe((state) => {
 		editingTextState = {
 			isEditing: state.isEditing,
 			shapeId: state.shapeId,
-			text: state.currentText,
-			cursorPosition: state.cursorPosition
+			currentText: state.currentText,
+			cursorPosition: state.cursorPosition,
+			selectionStart: state.selectionStart,
+			selectionEnd: state.selectionEnd
 		};
 		if (state.isEditing && state.shapeId) {
 			const shape = shapes.find((s) => s.id === state.shapeId);
