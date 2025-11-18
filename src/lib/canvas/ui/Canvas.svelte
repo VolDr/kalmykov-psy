@@ -81,7 +81,6 @@
 		cancelTextEditing,
 		textEditingState
 	} from '../text-editing';
-	import TextEditor from './TextEditor.svelte';
 	import { bringToFront, sendToBack, bringForward, sendBackward } from '../layers';
 	import {
 		alignLeft,
@@ -216,7 +215,13 @@
 	});
 
 	// Subscribe to text editing state
+	let editingTextState = $state({ isEditing: false, shapeId: null as string | null, text: '' });
 	const unsubscribeTextEditing = textEditingState.subscribe((state) => {
+		editingTextState = {
+			isEditing: state.isEditing,
+			shapeId: state.shapeId,
+			text: state.currentText
+		};
 		if (state.isEditing && state.shapeId) {
 			const shape = shapes.find((s) => s.id === state.shapeId);
 			editingShape = shape || null;
@@ -818,9 +823,52 @@
 			isShiftPressed = true;
 		}
 
-		// Don't handle keyboard shortcuts when editing text
-		// The TextEditor component handles its own keys
-		if (editingShape) {
+		// Handle text editing input directly on canvas
+		if (editingTextState.isEditing && editingTextState.shapeId) {
+			const shape = shapes.find((s) => s.id === editingTextState.shapeId);
+			if (!shape) return;
+
+			// Escape - cancel editing
+			if (e.key === 'Escape') {
+				e.preventDefault();
+				cancelTextEditing();
+				return;
+			}
+
+			// Enter without Shift - commit
+			if (e.key === 'Enter' && !e.shiftKey) {
+				e.preventDefault();
+				commitTextEditing();
+				return;
+			}
+
+			// Enter with Shift - new line
+			if (e.key === 'Enter' && e.shiftKey) {
+				e.preventDefault();
+				const newText = editingTextState.text + '\n';
+				updateTextWhileEditing(newText);
+				return;
+			}
+
+			// Backspace
+			if (e.key === 'Backspace') {
+				e.preventDefault();
+				if (editingTextState.text.length > 0) {
+					const newText = editingTextState.text.slice(0, -1);
+					updateTextWhileEditing(newText);
+				}
+				return;
+			}
+
+			// Regular character input
+			if (e.key.length === 1 && !e.ctrlKey && !e.metaKey) {
+				e.preventDefault();
+				const newText = editingTextState.text + e.key;
+				updateTextWhileEditing(newText);
+				return;
+			}
+
+			// Don't propagate other keys during text editing
 			return;
 		}
 
@@ -835,6 +883,39 @@
 		}
 	}
 
+	// Update text while editing (real-time update on canvas)
+	function updateTextWhileEditing(newText: string) {
+		if (!editingTextState.shapeId) return;
+
+		const shape = shapes.find((s) => s.id === editingTextState.shapeId);
+		if (!shape) return;
+
+		let updatedShape: Shape;
+
+		if (shape.type === 'text') {
+			updatedShape = {
+				...shape,
+				text: newText
+			};
+		} else if (shape.type === 'rect' || shape.type === 'ellipse') {
+			updatedShape = {
+				...shape,
+				text: newText || undefined
+			};
+		} else {
+			return;
+		}
+
+		// Update shape immediately (visual feedback)
+		shapesHistory.applyRemoteUpdate([updatedShape]);
+
+		// Update editing state
+		textEditingState.update((state) => ({
+			...state,
+			currentText: newText
+		}));
+	}
+
 	// Handle double-click for text editing
 	function handleDoubleClick(shapeId: string) {
 		const shape = shapes.find((s) => s.id === shapeId);
@@ -846,60 +927,42 @@
 		}
 	}
 
-	// Get text content for editing
-	function getEditingText(): string {
-		if (!editingShape) return '';
+	// Cursor blink state for text editing
+	let showCursor = $state(true);
+	let cursorInterval: ReturnType<typeof setInterval> | null = null;
 
-		if (editingShape.type === 'text') {
-			return editingShape.text;
-		} else if (editingShape.type === 'rect' || editingShape.type === 'ellipse') {
-			return editingShape.text || '';
-		}
-		return '';
-	}
-
-	// Handle text editor submit
-	function handleTextSubmit(text: string) {
-		// Update the text before committing
-		if (editingShape) {
-			const state = get(textEditingState);
-			if (state.isEditing && state.shapeId) {
-				const shape = shapes.find((s) => s.id === state.shapeId);
-				if (shape) {
-					let updatedShape: Shape;
-
-					if (shape.type === 'text') {
-						updatedShape = {
-							...shape,
-							text: text
-						};
-					} else if (shape.type === 'rect' || shape.type === 'ellipse') {
-						updatedShape = {
-							...shape,
-							text: text || undefined
-						};
-					} else {
-						cancelTextEditing();
-						return;
-					}
-
-					shapesHistory.updateShapes([updatedShape]);
-
-					// Broadcast to other clients
-					if (syncClient && multiplayer) {
-						const op = createUpdateShapesOp(sceneId, clientId, [updatedShape]);
-						syncClient.sendOperation(op);
-					}
-				}
+	// Start/stop cursor blinking
+	$effect(() => {
+		if (editingTextState.isEditing) {
+			// Start blinking
+			showCursor = true;
+			cursorInterval = setInterval(() => {
+				showCursor = !showCursor;
+			}, 530); // Standard cursor blink rate
+		} else {
+			// Stop blinking
+			if (cursorInterval) {
+				clearInterval(cursorInterval);
+				cursorInterval = null;
 			}
+			showCursor = false;
 		}
-		cancelTextEditing();
+
+		return () => {
+			if (cursorInterval) {
+				clearInterval(cursorInterval);
+			}
+		};
+	});
+
+	// Get display text with cursor if editing
+	function getDisplayText(shapeId: string, text: string): string {
+		if (editingTextState.isEditing && editingTextState.shapeId === shapeId && showCursor) {
+			return text + '|';
+		}
+		return text;
 	}
 
-	// Handle text editor cancel
-	function handleTextCancel() {
-		cancelTextEditing();
-	}
 
 	onMount(() => {
 		console.log('[Canvas] onMount called', {
@@ -1722,7 +1785,7 @@
 								dash={rect.dash ?? undefined}
 							/>
 						{/if}
-						{#if rect.text}
+						{#if rect.text || editingTextState.shapeId === rect.id}
 							<KonvaText
 								x={0}
 								y={0}
@@ -1732,7 +1795,7 @@
 								height={effectiveHeight}
 								align="center"
 								verticalAlign="middle"
-								text={rect.text}
+								text={getDisplayText(rect.id, rect.text || '')}
 								fontSize={DEFAULT_FONT_SIZE}
 								fontFamily={CANVAS_FONT_FAMILY}
 								wrap="word"
@@ -1782,7 +1845,7 @@
 								dash={el.dash ?? undefined}
 							/>
 						{/if}
-						{#if el.text}
+						{#if el.text || editingTextState.shapeId === el.id}
 							<KonvaText
 								x={0}
 								y={0}
@@ -1792,7 +1855,7 @@
 								height={effectiveRy * 2}
 								align="center"
 								verticalAlign="middle"
-								text={el.text}
+								text={getDisplayText(el.id, el.text || '')}
 								fontSize={DEFAULT_FONT_SIZE}
 								fontFamily={CANVAS_FONT_FAMILY}
 								wrap="word"
@@ -1832,7 +1895,7 @@
 						offsetY={textHeight / 2}
 						width={textWidth}
 						height={textHeight}
-						text={t.text}
+						text={getDisplayText(t.id, t.text)}
 						fontSize={t.fontSize}
 						fontFamily={t.fontFamily}
 						fill={t.fill ?? t.stroke ?? '#000000'}
@@ -2184,15 +2247,6 @@
 		</Layer>
 	</Stage>
 
-	<!-- Text editing overlay -->
-	{#if editingShape}
-		<TextEditor
-			shape={editingShape}
-			text={getEditingText()}
-			onSubmit={handleTextSubmit}
-			onCancel={handleTextCancel}
-		/>
-	{/if}
 
 	<!-- Return to content button -->
 	{#if isAwayFromContent()}
