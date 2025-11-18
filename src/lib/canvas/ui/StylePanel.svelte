@@ -24,8 +24,7 @@
 	];
 
 	let selectedShapes = $derived.by(() => {
-		const state = shapesHistory.getState();
-		return state.shapes.filter((s) => $selection.ids.has(s.id));
+		return $shapesHistory.shapes.filter((s) => $selection.ids.has(s.id));
 	});
 
 	let hasSelection = $derived(selectedShapes.length > 0);
