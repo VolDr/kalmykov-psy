@@ -755,6 +755,9 @@
 
 		// Update without history for visual feedback
 		shapesHistory.applyRemoteUpdate(allUpdates);
+
+		// Reset node position to prevent double offset with Svelte reactive props
+		node.position({ x: updated.x, y: updated.y });
 	}
 
 	function onShapeDragEnd(shape: Shape, e: any) {
@@ -778,6 +781,9 @@
 
 		shapesHistory.updateShapes(allUpdates);
 
+		// Reset node position to prevent double offset with Svelte reactive props
+		node.position({ x: updated.x, y: updated.y });
+
 		// Broadcast to other clients
 		if (syncClient && multiplayer) {
 			const op = createUpdateShapesOp(sceneId, clientId, allUpdates);
@@ -798,6 +804,9 @@
 
 		// Update without history for visual feedback
 		shapesHistory.applyRemoteUpdate([updated]);
+
+		// Reset node position to prevent double offset with Svelte reactive props
+		node.position({ x: updated.x, y: updated.y });
 	}
 
 	// Arrow drag end - snap to nearest shape
@@ -822,6 +831,9 @@
 		);
 
 		shapesHistory.updateShapes([attached]);
+
+		// Reset node position to prevent double offset with Svelte reactive props
+		node.position({ x: attached.x, y: attached.y });
 
 		// Broadcast to other clients
 		if (syncClient && multiplayer) {
