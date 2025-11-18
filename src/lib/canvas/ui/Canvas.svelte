@@ -1394,6 +1394,60 @@
 		return firstDash;
 	}
 
+	function getCommonFillStyle():
+		| 'hachure'
+		| 'solid'
+		| 'zigzag'
+		| 'cross-hatch'
+		| 'dots'
+		| 'dashed'
+		| 'zigzag-line'
+		| undefined {
+		const selected = getSelectedShapes().filter((s) => s.type !== 'arrow');
+		if (selected.length === 0) return undefined;
+		const firstShape = selected[0];
+		const firstFillStyle =
+			(firstShape.roughOptions?.fillStyle as any) || ('hachure' as const);
+		for (const shape of selected) {
+			const shapeFillStyle = (shape.roughOptions?.fillStyle as any) || ('hachure' as const);
+			if (shapeFillStyle !== firstFillStyle) return undefined; // Mixed values
+		}
+		return firstFillStyle;
+	}
+
+	function setFillStyle(
+		fillStyle: 'hachure' | 'solid' | 'zigzag' | 'cross-hatch' | 'dots' | 'dashed' | 'zigzag-line'
+	) {
+		const selected = getSelectedShapes().filter((s) => s.type !== 'arrow');
+		if (selected.length === 0) return;
+
+		const updatedShapes: Shape[] = selected.map((s) => {
+			const updated = { ...s };
+			// Ensure roughOptions exists
+			if (updated.type === 'rect' || updated.type === 'ellipse') {
+				if (!updated.roughOptions) {
+					updated.roughOptions = {
+						roughness: 1,
+						bowing: 1,
+						seed: Math.floor(Math.random() * 2147483647),
+						fillStyle: fillStyle
+					};
+				} else {
+					updated.roughOptions = { ...updated.roughOptions, fillStyle: fillStyle };
+				}
+			}
+			return updated;
+		});
+
+		shapesHistory.updateShapes(updatedShapes);
+		clearRoughCache(); // Invalidate rough cache for rough shapes
+
+		if (syncClient && multiplayer) {
+			const op = createUpdateShapesOp(sceneId, clientId, updatedShapes);
+			syncClient.sendOperation(op);
+		}
+	}
+
 	function toggleFill() {
 		const selected = getSelectedShapes().filter((s) => s.type !== 'arrow');
 		if (selected.length === 0) return;
@@ -2248,6 +2302,36 @@
 							onclick={() => setFillColor('#fce7f3')}
 							aria-label="Light pink fill"
 						></button>
+					</div>
+
+					<!-- Fill style selector -->
+					<div class="flex flex-col gap-1">
+						<span class="text-xs text-gray-500">Стиль заливки:</span>
+						<select
+							value={getCommonFillStyle() || 'hachure'}
+							onchange={(e) =>
+								setFillStyle(
+									e.currentTarget.value as
+										| 'hachure'
+										| 'solid'
+										| 'zigzag'
+										| 'cross-hatch'
+										| 'dots'
+										| 'dashed'
+										| 'zigzag-line'
+								)}
+							class="w-full rounded border border-gray-300 px-2 py-1 text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+							title="Стиль заливки"
+							aria-label="Fill style"
+						>
+							<option value="solid">Сплошная</option>
+							<option value="hachure">Штриховка</option>
+							<option value="zigzag">Зигзаг</option>
+							<option value="cross-hatch">Перекрёстная</option>
+							<option value="dots">Точки</option>
+							<option value="dashed">Пунктир</option>
+							<option value="zigzag-line">Зигзаг-линия</option>
+						</select>
 					</div>
 				</div>
 			{/if}
