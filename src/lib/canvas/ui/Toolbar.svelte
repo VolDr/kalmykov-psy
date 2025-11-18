@@ -137,8 +137,21 @@
 				if (updates.strokeWidth !== undefined) {
 					updated.strokeWidth = updates.strokeWidth;
 				}
-				if (updates.fillStyle !== undefined && updated.roughOptions) {
-					updated.roughOptions = { ...updated.roughOptions, fillStyle: updates.fillStyle };
+				if (updates.fillStyle !== undefined) {
+					// Ensure roughOptions exists for shapes that support it
+					if (updated.type === 'rect' || updated.type === 'ellipse') {
+						if (!updated.roughOptions) {
+							// Create default roughOptions if it doesn't exist
+							updated.roughOptions = {
+								roughness: 1,
+								bowing: 1,
+								seed: Math.floor(Math.random() * 2147483647),
+								fillStyle: updates.fillStyle
+							};
+						} else {
+							updated.roughOptions = { ...updated.roughOptions, fillStyle: updates.fillStyle };
+						}
+					}
 				}
 
 				// Invalidate cache for rough shapes

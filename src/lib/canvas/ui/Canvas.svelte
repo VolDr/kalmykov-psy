@@ -34,7 +34,7 @@
 		getMagnetFeedbackBounds,
 		type Bounds
 	} from '../engine/magnets';
-	import { isRoughEnabled, createDefaultRoughOptions } from '../engine/rough';
+	import { isRoughEnabled, createDefaultRoughOptions, clearRoughCache } from '../engine/rough';
 	import RoughShape from './RoughShape.svelte';
 	import type {
 		Shape,
@@ -1045,7 +1045,7 @@
 					height,
 					roughOptions: {
 						...createDefaultRoughOptions(),
-						fillStyle: style.fillStyle as any
+						fillStyle: (style.fillStyle || 'hachure') as any
 					}
 				} as RectShape;
 
@@ -1059,7 +1059,7 @@
 					ry: height / 2,
 					roughOptions: {
 						...createDefaultRoughOptions(),
-						fillStyle: style.fillStyle as any
+						fillStyle: (style.fillStyle || 'hachure') as any
 					}
 				} as EllipseShape;
 
@@ -1405,6 +1405,7 @@
 		}));
 
 		shapesHistory.updateShapes(updatedShapes);
+		clearRoughCache(); // Invalidate rough cache for rough shapes
 
 		if (syncClient && multiplayer) {
 			const op = createUpdateShapesOp(sceneId, clientId, updatedShapes);
@@ -1422,6 +1423,7 @@
 		}));
 
 		shapesHistory.updateShapes(updatedShapes);
+		clearRoughCache(); // Invalidate rough cache for rough shapes
 
 		if (syncClient && multiplayer) {
 			const op = createUpdateShapesOp(sceneId, clientId, updatedShapes);
@@ -1440,6 +1442,7 @@
 		}));
 
 		shapesHistory.updateShapes(updatedShapes);
+		clearRoughCache(); // Invalidate rough cache for rough shapes
 
 		if (syncClient && multiplayer) {
 			const op = createUpdateShapesOp(sceneId, clientId, updatedShapes);
@@ -1457,6 +1460,7 @@
 		}));
 
 		shapesHistory.updateShapes(updatedShapes);
+		clearRoughCache(); // Invalidate rough cache for rough shapes
 
 		if (syncClient && multiplayer) {
 			const op = createUpdateShapesOp(sceneId, clientId, updatedShapes);
@@ -1475,6 +1479,7 @@
 		}));
 
 		shapesHistory.updateShapes(updatedShapes);
+		clearRoughCache(); // Invalidate rough cache for rough shapes
 
 		if (syncClient && multiplayer) {
 			const op = createUpdateShapesOp(sceneId, clientId, updatedShapes);
