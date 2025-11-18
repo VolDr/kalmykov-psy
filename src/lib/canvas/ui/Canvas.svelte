@@ -2285,63 +2285,65 @@
 					</Group>
 				{:else if shape.type === 'text'}
 					{@const t = shape as TextShape}
-					{@const textWidth = t.width ?? t.text.length * t.fontSize * 0.6}
+					{@const displayText = getDisplayText(t.id, t.text)}
+					{@const textWidth = t.width ?? displayText.length * t.fontSize * 0.6}
 					{@const textHeight = t.height ?? t.fontSize * LINE_HEIGHT_MULTIPLIER}
 					{@const parts = getTextParts(t.id, t.text)}
-					<Group x={t.x} y={t.y} rotation={t.rotation}>
-						<!-- Invisible rect for transformer support -->
+					<!-- Invisible rect for transformer support -->
+					<Rect
+						id={t.id}
+						x={t.x}
+						y={t.y}
+						width={textWidth}
+						height={textHeight}
+						offsetX={textWidth / 2}
+						offsetY={textHeight / 2}
+						rotation={t.rotation}
+						draggable={true}
+						opacity={0}
+						fill="transparent"
+						stroke="transparent"
+						strokeScaleEnabled={false}
+						onclick={(e) => onShapeClick(t.id, e)}
+						ondblclick={() => handleDoubleClick(t.id)}
+						ondragmove={(e) => onShapeDragMove(t, e)}
+						ondragend={(e) => onShapeDragEnd(t, e)}
+					/>
+					<!-- Selection highlight -->
+					{#if parts.hasSelection}
+						{@const beforeWidth = parts.before.length * t.fontSize * 0.6}
+						{@const selectedWidth = parts.selected.length * t.fontSize * 0.6}
 						<Rect
-							id={t.id}
-							x={0}
-							y={0}
-							width={textWidth}
+							x={t.x + beforeWidth - textWidth / 2}
+							y={t.y - textHeight / 2}
+							width={selectedWidth}
 							height={textHeight}
-							offsetX={textWidth / 2}
-							offsetY={textHeight / 2}
-							draggable={true}
-							opacity={0}
-							fill="transparent"
-							stroke="transparent"
-							strokeScaleEnabled={false}
-							onclick={(e) => onShapeClick(t.id, e)}
-							ondblclick={() => handleDoubleClick(t.id)}
-							ondragmove={(e) => onShapeDragMove(t, e)}
-							ondragend={(e) => onShapeDragEnd(t, e)}
+							rotation={t.rotation}
+							fill="#3b82f6"
+							opacity={0.4}
+							listening={false}
 						/>
-						<!-- Selection highlight -->
-						{#if parts.hasSelection}
-							{@const beforeWidth = parts.before.length * t.fontSize * 0.6}
-							{@const selectedWidth = parts.selected.length * t.fontSize * 0.6}
-							<Rect
-								x={beforeWidth - textWidth / 2}
-								y={-textHeight / 2}
-								width={selectedWidth}
-								height={textHeight}
-								fill="#3b82f6"
-								opacity={0.4}
-								listening={false}
-							/>
-						{/if}
-						<!-- Text content -->
-						<KonvaText
-							x={0}
-							y={0}
-							offsetX={textWidth / 2}
-							offsetY={textHeight / 2}
-							width={textWidth}
-							height={textHeight}
-							text={getDisplayText(t.id, t.text)}
-							fontSize={t.fontSize}
-							fontFamily={t.fontFamily}
-							fill={t.fill ?? t.stroke ?? '#000000'}
-							align={t.align}
-							verticalAlign="middle"
-							listening={editingTextState.isEditing && editingTextState.shapeId === t.id}
-							onmousedown={(e) => handleTextMouseDown(t.id, e)}
-							onmousemove={(e) => handleTextMouseMove(t.id, e)}
-							onmouseup={handleTextMouseUp}
-						/>
-					</Group>
+					{/if}
+					<!-- Text content -->
+					<KonvaText
+						x={t.x}
+						y={t.y}
+						offsetX={textWidth / 2}
+						offsetY={textHeight / 2}
+						width={textWidth}
+						height={textHeight}
+						text={displayText}
+						fontSize={t.fontSize}
+						fontFamily={t.fontFamily}
+						fill={t.fill ?? t.stroke ?? '#000000'}
+						align={t.align}
+						verticalAlign="middle"
+						rotation={t.rotation}
+						listening={editingTextState.isEditing && editingTextState.shapeId === t.id}
+						onmousedown={(e) => handleTextMouseDown(t.id, e)}
+						onmousemove={(e) => handleTextMouseMove(t.id, e)}
+						onmouseup={handleTextMouseUp}
+					/>
 				{:else if shape.type === 'arrow'}
 					{@const a = shape as ArrowShape}
 					<Group
