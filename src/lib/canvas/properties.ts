@@ -30,11 +30,11 @@ export interface TextProperties {
 export interface ShapeProperties extends StyleProperties, TextProperties {}
 
 const DEFAULT_STYLE: StyleProperties = {
-	stroke: '#1971c2',
+	stroke: '#000000', // Black by default
 	strokeWidth: 2,
-	fill: '#a5d8ff',
+	fill: null, // No fill by default
 	opacity: 1,
-	fillStyle: 'hachure'
+	fillStyle: 'solid'
 };
 
 const DEFAULT_TEXT: TextProperties = {

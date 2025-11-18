@@ -18,16 +18,17 @@ const roughCache = new Map<string, HTMLCanvasElement>();
 // Generate cache key from shape properties
 function getCacheKey(shape: RectShape | EllipseShape | ArrowShape): string {
 	const opts = shape.roughOptions || {};
+	const dashKey = shape.dash ? JSON.stringify(shape.dash) : 'none';
 	if (shape.type === 'rect') {
 		const rect = shape as RectShape;
-		return `rect:${rect.width}:${rect.height}:${rect.stroke}:${rect.fill ?? 'none'}:${rect.strokeWidth}:${JSON.stringify(opts)}`;
+		return `rect:${rect.width}:${rect.height}:${rect.stroke}:${rect.fill ?? 'none'}:${rect.strokeWidth}:${dashKey}:${JSON.stringify(opts)}`;
 	} else if (shape.type === 'ellipse') {
 		const ellipse = shape as EllipseShape;
-		return `ellipse:${ellipse.rx}:${ellipse.ry}:${ellipse.stroke}:${ellipse.fill ?? 'none'}:${ellipse.strokeWidth}:${JSON.stringify(opts)}`;
+		return `ellipse:${ellipse.rx}:${ellipse.ry}:${ellipse.stroke}:${ellipse.fill ?? 'none'}:${ellipse.strokeWidth}:${dashKey}:${JSON.stringify(opts)}`;
 	} else if (shape.type === 'arrow') {
 		const arrow = shape as ArrowShape;
 		const pointsStr = JSON.stringify(arrow.points);
-		return `arrow:${pointsStr}:${arrow.stroke}:${arrow.strokeWidth}:${arrow.doubleEnded}:${arrow.curved}:${JSON.stringify(opts)}`;
+		return `arrow:${pointsStr}:${arrow.stroke}:${arrow.strokeWidth}:${arrow.doubleEnded}:${arrow.curved}:${dashKey}:${JSON.stringify(opts)}`;
 	}
 	return '';
 }
@@ -61,6 +62,11 @@ export function renderRoughRect(rect: RectShape): HTMLCanvasElement {
 		stroke: rect.stroke,
 		strokeWidth: rect.strokeWidth
 	};
+
+	// Add dash support
+	if (rect.dash && rect.dash.length > 0) {
+		roughOpts.strokeLineDash = rect.dash;
+	}
 
 	// Add fill options only if fill is defined
 	if (rect.fill !== null && rect.fill !== undefined) {
@@ -106,6 +112,11 @@ export function renderRoughEllipse(ellipse: EllipseShape): HTMLCanvasElement {
 		stroke: ellipse.stroke,
 		strokeWidth: ellipse.strokeWidth
 	};
+
+	// Add dash support
+	if (ellipse.dash && ellipse.dash.length > 0) {
+		roughOpts.strokeLineDash = ellipse.dash;
+	}
 
 	// Add fill options only if fill is defined
 	if (ellipse.fill !== null && ellipse.fill !== undefined) {
@@ -179,6 +190,20 @@ export function renderRoughArrow(arrow: ArrowShape): HTMLCanvasElement {
 		// Render curved arrow using quadratic curve
 		const [start, control, end] = canvasPoints;
 
+		// Build curve options
+		const curveOpts: any = {
+			roughness: opts.roughness ?? 1,
+			bowing: opts.bowing ?? 1,
+			seed: opts.seed,
+			stroke: arrow.stroke,
+			strokeWidth: arrow.strokeWidth
+		};
+
+		// Add dash support
+		if (arrow.dash && arrow.dash.length > 0) {
+			curveOpts.strokeLineDash = arrow.dash;
+		}
+
 		// Draw the curved line
 		rc.curve(
 			[
@@ -186,13 +211,7 @@ export function renderRoughArrow(arrow: ArrowShape): HTMLCanvasElement {
 				[control[0], control[1]],
 				[end[0], end[1]]
 			],
-			{
-				roughness: opts.roughness ?? 1,
-				bowing: opts.bowing ?? 1,
-				seed: opts.seed,
-				stroke: arrow.stroke,
-				strokeWidth: arrow.strokeWidth
-			}
+			curveOpts
 		);
 
 		// Draw arrowheads manually (rough.js doesn't have built-in arrowheads)
@@ -228,13 +247,21 @@ export function renderRoughArrow(arrow: ArrowShape): HTMLCanvasElement {
 			flatPoints.push([point[0], point[1]]);
 		}
 
-		rc.linearPath(flatPoints, {
+		// Build linear path options
+		const pathOpts: any = {
 			roughness: opts.roughness ?? 1,
 			bowing: opts.bowing ?? 1,
 			seed: opts.seed,
 			stroke: arrow.stroke,
 			strokeWidth: arrow.strokeWidth
-		});
+		};
+
+		// Add dash support
+		if (arrow.dash && arrow.dash.length > 0) {
+			pathOpts.strokeLineDash = arrow.dash;
+		}
+
+		rc.linearPath(flatPoints, pathOpts);
 
 		// Draw end arrowhead
 		const lastIdx = canvasPoints.length - 1;
