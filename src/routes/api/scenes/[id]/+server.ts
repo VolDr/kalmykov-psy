@@ -119,18 +119,36 @@ export const PUT: RequestHandler = async ({
 
 	let body: unknown;
 	try {
+		console.log(`[${id}] Step 1: Parsing JSON body...`);
 		body = await request.json();
-	} catch {
+		console.log(`[${id}] Step 2: JSON parsed successfully:`, JSON.stringify(body).substring(0, 200));
+	} catch (err) {
+		console.error(`[${id}] Step 2 FAILED: JSON parse error:`, err);
 		throw error(400, 'Invalid JSON body');
 	}
 
 	// Validate input with Zod
-	const validation = safeValidateSceneData(body);
+	console.log(`[${id}] Step 3: Starting Zod validation...`);
+	console.log(`[${id}] Step 3a: Body type:`, typeof body);
+	console.log(`[${id}] Step 3b: Body keys:`, body && typeof body === 'object' ? Object.keys(body) : 'N/A');
+
+	let validation;
+	try {
+		validation = safeValidateSceneData(body);
+		console.log(`[${id}] Step 4: Validation completed, success:`, validation.success);
+	} catch (err) {
+		console.error(`[${id}] Step 4 FAILED: Validation threw error:`, err);
+		console.error(`[${id}] Error stack:`, err instanceof Error ? err.stack : 'No stack');
+		throw error(500, `Validation crashed: ${err instanceof Error ? err.message : String(err)}`);
+	}
+
 	if (!validation.success) {
+		console.error(`[${id}] Step 5: Validation failed with issues:`, JSON.stringify(validation.error.issues, null, 2));
 		const errorMessage = validation.error.issues.map((e) => e.message).join(', ');
 		throw error(400, `Validation error: ${errorMessage}`);
 	}
 
+	console.log(`[${id}] Step 5: Validation successful`);
 	const sceneData = validation.data;
 
 	// Ensure URL param matches body ID
