@@ -56,12 +56,27 @@
 				shapesHistory.setAllShapes(scene.shapes);
 				camera.set(scene.camera);
 				console.log(`[Canvas ${sceneId}] Scene applied to stores successfully`);
+			} else if (res.status === 404) {
+				console.log(`[Canvas ${sceneId}] Scene not found (404), starting with empty canvas`);
+				// Consume the response body to ensure the connection is properly closed
+				try {
+					const errorBody = await res.json();
+					console.log(`[Canvas ${sceneId}] Error response:`, errorBody);
+				} catch (e) {
+					// Ignore JSON parse errors for error responses
+				}
 			} else {
 				console.log(
 					`[Canvas ${sceneId}] Response not OK (status ${res.status}), starting with empty canvas`
 				);
+				// Consume the response body to ensure the connection is properly closed
+				try {
+					const errorBody = await res.text();
+					console.log(`[Canvas ${sceneId}] Error response:`, errorBody);
+				} catch (e) {
+					// Ignore parse errors for error responses
+				}
 			}
-			// If 404, canvas is empty (new canvas)
 		} catch (err) {
 			const fetchTime = Date.now() - fetchStartTime;
 			if (err instanceof Error && err.name === 'AbortError') {
