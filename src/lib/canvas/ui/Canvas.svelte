@@ -1599,102 +1599,120 @@
 					{@const rect = shape as RectShape}
 					{@const textHeight = rect.text ? calculateTextHeight(rect.text, rect.width, 14) : 0}
 					{@const effectiveHeight = Math.max(rect.height, textHeight + 20)}
-					{#if isRoughEnabled(rect)}
-						<RoughShape
-							shape={rect}
-							isSelected={isSelected(rect.id)}
-							onclick={(e) => onShapeClick(rect.id, e)}
-							ondblclick={() => handleDoubleClick(rect.id)}
-							ondragend={(e) => onShapeDragEnd(rect, e)}
-						/>
-					{:else}
-						<Rect
-							id={rect.id}
-							x={rect.x}
-							y={rect.y}
-							width={rect.width}
-							height={effectiveHeight}
-							offsetX={rect.width / 2}
-							offsetY={effectiveHeight / 2}
-							stroke={rect.stroke}
-							strokeWidth={rect.strokeWidth}
-							strokeScaleEnabled={false}
-							fill={rect.fill ?? undefined}
-							dash={rect.dash ?? undefined}
-							rotation={rect.rotation}
-							draggable={true}
-							opacity={isSelected(rect.id) ? 0.8 : 1}
-							onclick={(e) => onShapeClick(rect.id, e)}
-							ondblclick={() => handleDoubleClick(rect.id)}
-							ondragmove={(e) => onShapeDragMove(rect, e)}
-							ondragend={(e) => onShapeDragEnd(rect, e)}
-						/>
-					{/if}
-					{#if rect.text}
-						<KonvaText
-							x={rect.x}
-							y={rect.y}
-							offsetX={rect.width / 2}
-							offsetY={effectiveHeight / 2}
-							width={rect.width}
-							height={effectiveHeight}
-							align="center"
-							verticalAlign="middle"
-							text={rect.text}
-							fontSize={14}
-							wrap="word"
-							listening={false}
-						/>
-					{/if}
+					<!-- Wrap rect and text in Group so they move together -->
+					<Group
+						id={rect.id}
+						x={rect.x}
+						y={rect.y}
+						rotation={rect.rotation}
+						draggable={true}
+						onclick={(e) => onShapeClick(rect.id, e)}
+						ondblclick={() => handleDoubleClick(rect.id)}
+						ondragmove={(e) => onShapeDragMove(rect, e)}
+						ondragend={(e) => onShapeDragEnd(rect, e)}
+					>
+						{#if isRoughEnabled(rect)}
+							<RoughShape
+								shape={{ ...rect, x: 0, y: 0, rotation: 0 }}
+								isSelected={isSelected(rect.id)}
+								onclick={(e) => {
+									e.cancelBubble = true;
+								}}
+								ondblclick={() => {}}
+								ondragend={() => {}}
+							/>
+						{:else}
+							<Rect
+								x={0}
+								y={0}
+								width={rect.width}
+								height={effectiveHeight}
+								offsetX={rect.width / 2}
+								offsetY={effectiveHeight / 2}
+								stroke={rect.stroke}
+								strokeWidth={rect.strokeWidth}
+								strokeScaleEnabled={false}
+								fill={rect.fill ?? undefined}
+								dash={rect.dash ?? undefined}
+								opacity={isSelected(rect.id) ? 0.8 : 1}
+							/>
+						{/if}
+						{#if rect.text}
+							<KonvaText
+								x={0}
+								y={0}
+								offsetX={rect.width / 2}
+								offsetY={effectiveHeight / 2}
+								width={rect.width}
+								height={effectiveHeight}
+								align="center"
+								verticalAlign="middle"
+								text={rect.text}
+								fontSize={14}
+								fontFamily={CANVAS_FONT_FAMILY}
+								wrap="word"
+								listening={false}
+							/>
+						{/if}
+					</Group>
 				{:else if shape.type === 'ellipse'}
 					{@const el = shape as EllipseShape}
 					{@const textHeight = el.text ? calculateTextHeight(el.text, el.rx * 2, 14) : 0}
 					{@const effectiveRy = Math.max(el.ry, (textHeight + 20) / 2)}
-					{#if isRoughEnabled(el)}
-						<RoughShape
-							shape={el}
-							isSelected={isSelected(el.id)}
-							onclick={(e) => onShapeClick(el.id, e)}
-							ondblclick={() => handleDoubleClick(el.id)}
-							ondragend={(e) => onShapeDragEnd(el, e)}
-						/>
-					{:else}
-						<Ellipse
-							id={el.id}
-							x={el.x}
-							y={el.y}
-							radiusX={el.rx}
-							radiusY={effectiveRy}
-							stroke={el.stroke}
-							strokeWidth={el.strokeWidth}
-							strokeScaleEnabled={false}
-							fill={el.fill ?? undefined}
-							dash={el.dash ?? undefined}
-							rotation={el.rotation}
-							draggable={true}
-							opacity={isSelected(el.id) ? 0.8 : 1}
-							onclick={(e) => onShapeClick(el.id, e)}
-							ondblclick={() => handleDoubleClick(el.id)}
-							ondragmove={(e) => onShapeDragMove(el, e)}
-							ondragend={(e) => onShapeDragEnd(el, e)}
-						/>
-					{/if}
-					{#if el.text}
-						<KonvaText
-							x={el.x}
-							y={el.y}
-							offsetX={el.rx}
-							offsetY={effectiveRy}
-							width={el.rx * 2}
-							height={effectiveRy * 2}
-							align="center"
-							verticalAlign="middle"
-							text={el.text}
-							fontSize={14}
-							wrap="word"
-							listening={false}
-						/>
-					{/if}
+					<!-- Wrap ellipse and text in Group so they move together -->
+					<Group
+						id={el.id}
+						x={el.x}
+						y={el.y}
+						rotation={el.rotation}
+						draggable={true}
+						onclick={(e) => onShapeClick(el.id, e)}
+						ondblclick={() => handleDoubleClick(el.id)}
+						ondragmove={(e) => onShapeDragMove(el, e)}
+						ondragend={(e) => onShapeDragEnd(el, e)}
+					>
+						{#if isRoughEnabled(el)}
+							<RoughShape
+								shape={{ ...el, x: 0, y: 0, rotation: 0 }}
+								isSelected={isSelected(el.id)}
+								onclick={(e) => {
+									e.cancelBubble = true;
+								}}
+								ondblclick={() => {}}
+								ondragend={() => {}}
+							/>
+						{:else}
+							<Ellipse
+								x={0}
+								y={0}
+								radiusX={el.rx}
+								radiusY={effectiveRy}
+								stroke={el.stroke}
+								strokeWidth={el.strokeWidth}
+								strokeScaleEnabled={false}
+								fill={el.fill ?? undefined}
+								dash={el.dash ?? undefined}
+								opacity={isSelected(el.id) ? 0.8 : 1}
+							/>
+						{/if}
+						{#if el.text}
+							<KonvaText
+								x={0}
+								y={0}
+								offsetX={el.rx}
+								offsetY={effectiveRy}
+								width={el.rx * 2}
+								height={effectiveRy * 2}
+								align="center"
+								verticalAlign="middle"
+								text={el.text}
+								fontSize={14}
+								fontFamily={CANVAS_FONT_FAMILY}
+								wrap="word"
+								listening={false}
+							/>
+						{/if}
+					</Group>
 				{:else if shape.type === 'text'}
 					{@const t = shape as TextShape}
 					{@const textWidth = t.width ?? t.text.length * t.fontSize * 0.6}
