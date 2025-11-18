@@ -79,7 +79,14 @@
 		cancelTextEditing,
 		isEditingText,
 		textEditingState,
-		updateEditingText
+		updateEditingText,
+		insertTextAtCursor,
+		deleteBeforeCursor,
+		deleteAfterCursor,
+		moveCursorLeft,
+		moveCursorRight,
+		moveCursorToStart,
+		moveCursorToEnd
 	} from '../text-editing';
 	import { bringToFront, sendToBack, bringForward, sendBackward } from '../layers';
 	import {
@@ -151,6 +158,8 @@
 	let editingText = $state(false);
 	let editingShapeId: string | null = $state(null);
 	let editingTextContent = $state('');
+	let editingCursorPosition = $state(0);
+	let cursorVisible = $state(true); // For blinking cursor effect
 
 	// Track if shift key is pressed for rotation snapping
 	let isShiftPressed = $state(false);
@@ -217,6 +226,29 @@
 		editingText = state.isEditing;
 		editingShapeId = state.shapeId;
 		editingTextContent = state.currentText;
+		editingCursorPosition = state.cursorPosition;
+	});
+
+	// Cursor blinking effect
+	let cursorBlinkInterval: ReturnType<typeof setInterval> | null = null;
+	$effect(() => {
+		if (editingText) {
+			cursorVisible = true;
+			cursorBlinkInterval = setInterval(() => {
+				cursorVisible = !cursorVisible;
+			}, 530); // Standard cursor blink rate
+		} else {
+			if (cursorBlinkInterval) {
+				clearInterval(cursorBlinkInterval);
+				cursorBlinkInterval = null;
+			}
+			cursorVisible = true;
+		}
+		return () => {
+			if (cursorBlinkInterval) {
+				clearInterval(cursorBlinkInterval);
+			}
+		};
 	});
 
 	// Sync component refs to node refs
@@ -813,17 +845,69 @@
 
 		// Handle text editing input
 		if (editingText && editingShapeId) {
-			// Let text input handle its own keys
+			// Reset cursor blink on any key
+			cursorVisible = true;
+
+			// Escape - cancel editing
 			if (e.code === 'Escape') {
 				e.preventDefault();
 				cancelTextEditing();
 				return;
 			}
-			if (e.code === 'Enter' && !e.shiftKey) {
+
+			// Enter - commit (unless Shift for new line)
+			if (e.code === 'Enter') {
 				e.preventDefault();
 				commitTextEditing();
 				return;
 			}
+
+			// Backspace - delete before cursor
+			if (e.code === 'Backspace') {
+				e.preventDefault();
+				deleteBeforeCursor();
+				updateShapeTextWidth();
+				return;
+			}
+
+			// Delete - delete after cursor
+			if (e.code === 'Delete') {
+				e.preventDefault();
+				deleteAfterCursor();
+				updateShapeTextWidth();
+				return;
+			}
+
+			// Arrow keys - move cursor
+			if (e.code === 'ArrowLeft') {
+				e.preventDefault();
+				moveCursorLeft();
+				return;
+			}
+			if (e.code === 'ArrowRight') {
+				e.preventDefault();
+				moveCursorRight();
+				return;
+			}
+			if (e.code === 'Home') {
+				e.preventDefault();
+				moveCursorToStart();
+				return;
+			}
+			if (e.code === 'End') {
+				e.preventDefault();
+				moveCursorToEnd();
+				return;
+			}
+
+			// Printable characters - insert at cursor
+			if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+				e.preventDefault();
+				insertTextAtCursor(e.key);
+				updateShapeTextWidth();
+				return;
+			}
+
 			// Don't intercept other keys during text editing
 			return;
 		}
@@ -839,6 +923,31 @@
 		}
 	}
 
+	// Update text shape width based on content
+	function updateShapeTextWidth() {
+		if (!editingShapeId) return;
+
+		const shape = shapes.find((s) => s.id === editingShapeId);
+		if (!shape || shape.type !== 'text') return;
+
+		const textShape = shape as TextShape;
+
+		// Calculate width based on text content
+		const charWidth = textShape.fontSize * 0.6; // Approximate character width
+		const minWidth = 20; // Minimum width
+		const padding = 10; // Extra padding
+		const estimatedWidth = Math.max(minWidth, editingTextContent.length * charWidth + padding);
+
+		// Update the shape
+		const updatedShape: TextShape = {
+			...textShape,
+			text: editingTextContent,
+			width: estimatedWidth
+		};
+
+		shapesHistory.updateShapes([updatedShape]);
+	}
+
 	// Handle double-click for text editing
 	function handleDoubleClick(shapeId: string) {
 		const shape = shapes.find((s) => s.id === shapeId);
@@ -848,47 +957,6 @@
 		if (shape.type === 'text' || shape.type === 'rect' || shape.type === 'ellipse') {
 			startTextEditing(shapeId);
 		}
-	}
-
-	// Handle text input change
-	function handleTextInput(e: Event) {
-		const target = e.target as HTMLTextAreaElement;
-		updateEditingText(target.value);
-	}
-
-	// Commit text editing on blur
-	function handleTextBlur() {
-		if (editingText) {
-			commitTextEditing();
-		}
-	}
-
-	// Get screen position for text editing overlay
-	function getEditingInputPosition(): {
-		x: number;
-		y: number;
-		width: number;
-		height: number;
-	} | null {
-		if (!editingShapeId) return null;
-
-		const shape = shapes.find((s) => s.id === editingShapeId);
-		if (!shape) return null;
-
-		const bounds = getShapeBounds(shape);
-
-		// Convert world coordinates to screen coordinates
-		const screenX = bounds.x * cam.scale + cam.x;
-		const screenY = bounds.y * cam.scale + cam.y;
-		const screenWidth = bounds.width * cam.scale;
-		const screenHeight = bounds.height * cam.scale;
-
-		return {
-			x: screenX,
-			y: screenY,
-			width: Math.max(screenWidth, 100),
-			height: Math.max(screenHeight, 30)
-		};
 	}
 
 	onMount(() => {
@@ -1712,6 +1780,7 @@
 					{@const t = shape as TextShape}
 					{@const textWidth = t.width ?? t.text.length * t.fontSize * 0.6}
 					{@const textHeight = t.height ?? t.fontSize * 1.2}
+					{@const isEditingThisText = editingText && editingShapeId === t.id}
 					<!-- Invisible rect for transformer support -->
 					<Rect
 						id={t.id}
@@ -1722,7 +1791,7 @@
 						offsetX={textWidth / 2}
 						offsetY={textHeight / 2}
 						rotation={t.rotation}
-						draggable={true}
+						draggable={!isEditingThisText}
 						opacity={0}
 						fill="transparent"
 						stroke="transparent"
@@ -1740,7 +1809,7 @@
 						offsetY={textHeight / 2}
 						width={textWidth}
 						height={textHeight}
-						text={t.text}
+						text={isEditingThisText ? editingTextContent : t.text}
 						fontSize={t.fontSize}
 						fontFamily={t.fontFamily}
 						fill={t.fill ?? t.stroke ?? '#000000'}
@@ -1749,6 +1818,22 @@
 						rotation={t.rotation}
 						listening={false}
 					/>
+					<!-- Cursor when editing -->
+					{#if isEditingThisText && cursorVisible}
+						{@const beforeCursor = editingTextContent.substring(0, editingCursorPosition)}
+						{@const charWidth = t.fontSize * 0.6}
+						{@const cursorX = t.x - textWidth / 2 + beforeCursor.length * charWidth + 2}
+						{@const cursorY = t.y - textHeight / 2}
+						<Line
+							x={cursorX}
+							y={cursorY}
+							points={[0, 2, 0, textHeight - 4]}
+							stroke="#9333EA"
+							strokeWidth={2}
+							lineCap="round"
+							listening={false}
+						/>
+					{/if}
 				{:else if shape.type === 'arrow'}
 					{@const a = shape as ArrowShape}
 					{#if a.curved && a.points.length === 3}
@@ -2091,45 +2176,6 @@
 			{/if}
 		</Layer>
 	</Stage>
-
-	<!-- Text editing input overlay -->
-	{#if editingText && editingShapeId}
-		{@const inputPos = getEditingInputPosition()}
-		{#if inputPos}
-			<textarea
-				class="absolute z-50 resize-none rounded border-2 border-purple-500 bg-white/95 px-2 py-1 text-center shadow-lg focus:border-purple-600 focus:ring-2 focus:ring-purple-300 focus:outline-none"
-				style="left: {inputPos.x}px; top: {inputPos.y}px; width: {inputPos.width}px; min-height: {inputPos.height}px; font-size: {DEFAULT_FONT_SIZE *
-					cam.scale}px; line-height: 1.4; font-family: {CANVAS_FONT_FAMILY};"
-				value={editingTextContent}
-				oninput={handleTextInput}
-				onblur={handleTextBlur}
-				onkeydown={(e) => {
-					if (e.key === 'Escape') {
-						e.preventDefault();
-						cancelTextEditing();
-					} else if (e.key === 'Enter' && !e.shiftKey) {
-						e.preventDefault();
-						commitTextEditing();
-					}
-					// Shift+Enter inserts a new line (default behavior)
-				}}
-				onfocus={(e) => {
-					// Select all text on focus for easy replacement
-					const target = e.target as HTMLTextAreaElement;
-					target.select();
-				}}
-				onmount={(e: any) => {
-					// Auto-focus when textarea is mounted
-					const target = e.target as HTMLTextAreaElement;
-					setTimeout(() => {
-						target.focus();
-						target.select();
-					}, 10);
-				}}
-				autofocus
-			></textarea>
-		{/if}
-	{/if}
 
 	<!-- Return to content button -->
 	{#if isAwayFromContent()}

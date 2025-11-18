@@ -13,13 +13,15 @@ export interface TextEditingState {
 	shapeId: string | null;
 	originalText: string;
 	currentText: string;
+	cursorPosition: number; // Position in text where cursor is
 }
 
 const DEFAULT_STATE: TextEditingState = {
 	isEditing: false,
 	shapeId: null,
 	originalText: '',
-	currentText: ''
+	currentText: '',
+	cursorPosition: 0
 };
 
 /**
@@ -55,7 +57,8 @@ export function startTextEditing(shapeId: string): boolean {
 		isEditing: true,
 		shapeId,
 		originalText: text,
-		currentText: text
+		currentText: text,
+		cursorPosition: text.length // Start at end of text
 	});
 
 	// Select the shape being edited
@@ -73,6 +76,123 @@ export function updateEditingText(text: string): void {
 			return state;
 		}
 		return { ...state, currentText: text };
+	});
+}
+
+/**
+ * Set cursor position
+ */
+export function setCursorPosition(position: number): void {
+	textEditingState.update((state) => {
+		if (!state.isEditing) {
+			return state;
+		}
+		const clampedPosition = Math.max(0, Math.min(position, state.currentText.length));
+		return { ...state, cursorPosition: clampedPosition };
+	});
+}
+
+/**
+ * Insert text at cursor position
+ */
+export function insertTextAtCursor(textToInsert: string): void {
+	textEditingState.update((state) => {
+		if (!state.isEditing) {
+			return state;
+		}
+		const before = state.currentText.substring(0, state.cursorPosition);
+		const after = state.currentText.substring(state.cursorPosition);
+		const newText = before + textToInsert + after;
+		return {
+			...state,
+			currentText: newText,
+			cursorPosition: state.cursorPosition + textToInsert.length
+		};
+	});
+}
+
+/**
+ * Delete character before cursor (Backspace)
+ */
+export function deleteBeforeCursor(): void {
+	textEditingState.update((state) => {
+		if (!state.isEditing || state.cursorPosition === 0) {
+			return state;
+		}
+		const before = state.currentText.substring(0, state.cursorPosition - 1);
+		const after = state.currentText.substring(state.cursorPosition);
+		const newText = before + after;
+		return {
+			...state,
+			currentText: newText,
+			cursorPosition: state.cursorPosition - 1
+		};
+	});
+}
+
+/**
+ * Delete character after cursor (Delete)
+ */
+export function deleteAfterCursor(): void {
+	textEditingState.update((state) => {
+		if (!state.isEditing || state.cursorPosition >= state.currentText.length) {
+			return state;
+		}
+		const before = state.currentText.substring(0, state.cursorPosition);
+		const after = state.currentText.substring(state.cursorPosition + 1);
+		const newText = before + after;
+		return {
+			...state,
+			currentText: newText
+		};
+	});
+}
+
+/**
+ * Move cursor left
+ */
+export function moveCursorLeft(): void {
+	textEditingState.update((state) => {
+		if (!state.isEditing || state.cursorPosition === 0) {
+			return state;
+		}
+		return { ...state, cursorPosition: state.cursorPosition - 1 };
+	});
+}
+
+/**
+ * Move cursor right
+ */
+export function moveCursorRight(): void {
+	textEditingState.update((state) => {
+		if (!state.isEditing || state.cursorPosition >= state.currentText.length) {
+			return state;
+		}
+		return { ...state, cursorPosition: state.cursorPosition + 1 };
+	});
+}
+
+/**
+ * Move cursor to start
+ */
+export function moveCursorToStart(): void {
+	textEditingState.update((state) => {
+		if (!state.isEditing) {
+			return state;
+		}
+		return { ...state, cursorPosition: 0 };
+	});
+}
+
+/**
+ * Move cursor to end
+ */
+export function moveCursorToEnd(): void {
+	textEditingState.update((state) => {
+		if (!state.isEditing) {
+			return state;
+		}
+		return { ...state, cursorPosition: state.currentText.length };
 	});
 }
 
