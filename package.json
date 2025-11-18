@@ -20,6 +20,9 @@
 		"db:seed": "npx dotenv -e .env -- npx tsx scripts/seed-all.ts"
 	},
 	"dependencies": {
+		"@excalidraw/excalidraw": "^0.18.0",
+		"@types/react": "^19.2.6",
+		"@types/react-dom": "^19.2.3",
 		"bcrypt": "^6.0.0",
 		"dayjs": "^1.11.19",
 		"drizzle-orm": "^0.44.7",
@@ -28,6 +31,8 @@
 		"marked": "^17.0.0",
 		"node-cron": "^4.2.1",
 		"pg": "^8.16.3",
+		"react": "^18.3.1",
+		"react-dom": "^18.3.1",
 		"roughjs": "^4.6.6",
 		"svelte-konva": "^1.0.1",
 		"ws": "^8.18.3",
