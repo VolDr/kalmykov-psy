@@ -8,8 +8,8 @@ const baseShapeSchema = z.object({
 	x: z.number().finite(),
 	y: z.number().finite(),
 	rotation: z.number().finite(),
-	scaleX: z.number().finite().positive().catch(1), // Default to 1 if invalid
-	scaleY: z.number().finite().positive().catch(1), // Default to 1 if invalid
+	scaleX: z.number().finite().positive().catch(() => 1), // Default to 1 if invalid
+	scaleY: z.number().finite().positive().catch(() => 1), // Default to 1 if invalid
 	stroke: z.string(),
 	strokeWidth: z.number().nonnegative().finite(),
 	fill: z.string().nullable().optional(),
@@ -80,7 +80,7 @@ export const shapeSchema = z.discriminatedUnion('type', [
 export const cameraSchema = z.object({
 	x: z.number().finite(),
 	y: z.number().finite(),
-	scale: z.number().finite().positive().catch(1) // Default to 1 if invalid
+	scale: z.number().finite().positive().catch(() => 1) // Default to 1 if invalid
 });
 
 // Scene data schema
