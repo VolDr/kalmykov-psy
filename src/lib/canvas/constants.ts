@@ -12,6 +12,11 @@ export const CANVAS_FONT_FAMILY = 'Excalifont, Virgil, Segoe Print, Comic Sans M
 export const DEFAULT_FONT_SIZE = 20;
 
 /**
+ * Default line height multiplier for text (fontSize * LINE_HEIGHT_MULTIPLIER)
+ */
+export const LINE_HEIGHT_MULTIPLIER = 1.5;
+
+/**
  * Default stroke width for shapes
  */
 export const DEFAULT_STROKE_WIDTH = 2;

@@ -59,7 +59,7 @@
 		type Presence
 	} from '../sync/types';
 	import Toolbar from './Toolbar.svelte';
-	import { CANVAS_FONT_FAMILY, DEFAULT_FONT_SIZE } from '../constants';
+	import { CANVAS_FONT_FAMILY, DEFAULT_FONT_SIZE, LINE_HEIGHT_MULTIPLIER } from '../constants';
 
 	// Import new modules for integration
 	import { handleKeyboardEvent } from '../keyboard';
@@ -79,7 +79,16 @@
 		startTextEditing,
 		commitTextEditing,
 		cancelTextEditing,
-		textEditingState
+		textEditingState,
+		moveCursorLeft,
+		moveCursorRight,
+		moveCursorToStart,
+		moveCursorToEnd,
+		moveCursorToLineStart,
+		moveCursorToLineEnd,
+		insertTextAtCursor,
+		deleteBeforeCursor,
+		deleteAfterCursor
 	} from '../text-editing';
 	import { bringToFront, sendToBack, bringForward, sendBackward } from '../layers';
 	import {
@@ -215,12 +224,18 @@
 	});
 
 	// Subscribe to text editing state
-	let editingTextState = $state({ isEditing: false, shapeId: null as string | null, text: '' });
+	let editingTextState = $state({
+		isEditing: false,
+		shapeId: null as string | null,
+		text: '',
+		cursorPosition: 0
+	});
 	const unsubscribeTextEditing = textEditingState.subscribe((state) => {
 		editingTextState = {
 			isEditing: state.isEditing,
 			shapeId: state.shapeId,
-			text: state.currentText
+			text: state.currentText,
+			cursorPosition: state.cursorPosition
 		};
 		if (state.isEditing && state.shapeId) {
 			const shape = shapes.find((s) => s.id === state.shapeId);
@@ -665,7 +680,7 @@
 			} else if (shape.type === 'text') {
 				const text = shape as TextShape;
 				const currentWidth = text.width ?? text.text.length * text.fontSize * 0.6;
-				const currentHeight = text.height ?? text.fontSize * 1.2;
+				const currentHeight = text.height ?? text.fontSize * LINE_HEIGHT_MULTIPLIER;
 				updated = {
 					...text,
 					x,
@@ -835,36 +850,68 @@
 				return;
 			}
 
-			// Enter without Shift - commit
-			if (e.key === 'Enter' && !e.shiftKey) {
+			// Enter - commit (no more Shift+Enter for new line, just Enter commits)
+			if (e.key === 'Enter') {
 				e.preventDefault();
 				commitTextEditing();
 				return;
 			}
 
-			// Enter with Shift - new line
-			if (e.key === 'Enter' && e.shiftKey) {
+			// Arrow keys - move cursor
+			if (e.key === 'ArrowLeft') {
 				e.preventDefault();
-				const newText = editingTextState.text + '\n';
-				updateTextWhileEditing(newText);
+				moveCursorLeft();
 				return;
 			}
 
-			// Backspace
+			if (e.key === 'ArrowRight') {
+				e.preventDefault();
+				moveCursorRight();
+				return;
+			}
+
+			// Home/End - move to line start/end
+			if (e.key === 'Home') {
+				e.preventDefault();
+				if (e.ctrlKey || e.metaKey) {
+					moveCursorToStart(); // Ctrl+Home - move to start of text
+				} else {
+					moveCursorToLineStart(); // Home - move to start of line
+				}
+				return;
+			}
+
+			if (e.key === 'End') {
+				e.preventDefault();
+				if (e.ctrlKey || e.metaKey) {
+					moveCursorToEnd(); // Ctrl+End - move to end of text
+				} else {
+					moveCursorToLineEnd(); // End - move to end of line
+				}
+				return;
+			}
+
+			// Backspace - delete before cursor
 			if (e.key === 'Backspace') {
 				e.preventDefault();
-				if (editingTextState.text.length > 0) {
-					const newText = editingTextState.text.slice(0, -1);
-					updateTextWhileEditing(newText);
-				}
+				deleteBeforeCursor();
+				updateShapeWithCurrentText();
+				return;
+			}
+
+			// Delete - delete after cursor
+			if (e.key === 'Delete') {
+				e.preventDefault();
+				deleteAfterCursor();
+				updateShapeWithCurrentText();
 				return;
 			}
 
 			// Regular character input
 			if (e.key.length === 1 && !e.ctrlKey && !e.metaKey) {
 				e.preventDefault();
-				const newText = editingTextState.text + e.key;
-				updateTextWhileEditing(newText);
+				insertTextAtCursor(e.key);
+				updateShapeWithCurrentText();
 				return;
 			}
 
@@ -883,19 +930,34 @@
 		}
 	}
 
-	// Update text while editing (real-time update on canvas)
-	function updateTextWhileEditing(newText: string) {
+	// Update shape with current text from editing state (real-time visual feedback)
+	function updateShapeWithCurrentText() {
 		if (!editingTextState.shapeId) return;
 
 		const shape = shapes.find((s) => s.id === editingTextState.shapeId);
 		if (!shape) return;
 
+		const newText = editingTextState.text;
+
 		let updatedShape: Shape;
 
 		if (shape.type === 'text') {
+			// Calculate required width and height for the text
+			const lines = newText.split('\n');
+			const maxLineLength = Math.max(...lines.map((line) => line.length), 1);
+			const avgCharWidth = shape.fontSize * 0.6;
+			const minWidth = 50; // Minimum width
+			const calculatedWidth = Math.max(minWidth, maxLineLength * avgCharWidth + 20); // Add padding
+			const calculatedHeight = Math.max(
+				shape.fontSize * LINE_HEIGHT_MULTIPLIER,
+				lines.length * shape.fontSize * LINE_HEIGHT_MULTIPLIER
+			);
+
 			updatedShape = {
 				...shape,
-				text: newText
+				text: newText,
+				width: calculatedWidth,
+				height: calculatedHeight
 			};
 		} else if (shape.type === 'rect' || shape.type === 'ellipse') {
 			updatedShape = {
@@ -906,14 +968,8 @@
 			return;
 		}
 
-		// Update shape immediately (visual feedback)
+		// Update shape immediately (visual feedback) without adding to history
 		shapesHistory.applyRemoteUpdate([updatedShape]);
-
-		// Update editing state
-		textEditingState.update((state) => ({
-			...state,
-			currentText: newText
-		}));
 	}
 
 	// Handle double-click for text editing
@@ -957,8 +1013,13 @@
 
 	// Get display text with cursor if editing
 	function getDisplayText(shapeId: string, text: string): string {
-		if (editingTextState.isEditing && editingTextState.shapeId === shapeId && showCursor) {
-			return text + '|';
+		if (editingTextState.isEditing && editingTextState.shapeId === shapeId) {
+			// Always reserve space for cursor to prevent text from jumping
+			// When cursor is visible, show it; when hidden, show thin space to maintain width
+			const before = text.slice(0, editingTextState.cursorPosition);
+			const after = text.slice(editingTextState.cursorPosition);
+			const cursorChar = showCursor ? '|' : '\u2009'; // Thin space when hidden (approximately same width as |)
+			return before + cursorChar + after;
 		}
 		return text;
 	}
@@ -1248,7 +1309,7 @@
 		} else if (shape.type === 'text') {
 			const text = shape as TextShape;
 			const width = text.width ?? text.text.length * text.fontSize * 0.6;
-			const height = text.height ?? text.fontSize * 1.2;
+			const height = text.height ?? text.fontSize * LINE_HEIGHT_MULTIPLIER;
 			return {
 				x: text.x - width / 2,
 				y: text.y - height / 2,
@@ -1693,7 +1754,7 @@
 	function calculateTextHeight(text: string, width: number, fontSize: number): number {
 		const avgCharWidth = fontSize * 0.6;
 		const charsPerLine = Math.floor(width / avgCharWidth);
-		if (charsPerLine <= 0) return fontSize * 1.2;
+		if (charsPerLine <= 0) return fontSize * LINE_HEIGHT_MULTIPLIER;
 
 		const words = text.split(' ');
 		let lines = 1;
@@ -1708,7 +1769,7 @@
 			}
 		}
 
-		return lines * fontSize * 1.2;
+		return lines * fontSize * LINE_HEIGHT_MULTIPLIER;
 	}
 </script>
 
@@ -1866,7 +1927,7 @@
 				{:else if shape.type === 'text'}
 					{@const t = shape as TextShape}
 					{@const textWidth = t.width ?? t.text.length * t.fontSize * 0.6}
-					{@const textHeight = t.height ?? t.fontSize * 1.2}
+					{@const textHeight = t.height ?? t.fontSize * LINE_HEIGHT_MULTIPLIER}
 					<!-- Invisible rect for transformer support -->
 					<Rect
 						id={t.id}
