@@ -1132,6 +1132,13 @@
 
 			// Select the new shape
 			selection.set({ ids: new Set([newShape.id]) });
+
+			// Auto-start text editing for text shapes
+			if (newShape.type === 'text') {
+				setTimeout(() => {
+					startTextEditing(newShape.id);
+				}, 10);
+			}
 		}
 
 		previewShape = null;
@@ -1597,7 +1604,9 @@
 			{#each shapes as shape (shape.id)}
 				{#if shape.type === 'rect'}
 					{@const rect = shape as RectShape}
-					{@const textHeight = rect.text ? calculateTextHeight(rect.text, rect.width, 14) : 0}
+					{@const textHeight = rect.text
+						? calculateTextHeight(rect.text, rect.width, DEFAULT_FONT_SIZE)
+						: 0}
 					{@const effectiveHeight = Math.max(rect.height, textHeight + 20)}
 					{#if isRoughEnabled(rect)}
 						<RoughShape
@@ -1641,14 +1650,17 @@
 							align="center"
 							verticalAlign="middle"
 							text={rect.text}
-							fontSize={14}
+							fontSize={DEFAULT_FONT_SIZE}
+							fontFamily={CANVAS_FONT_FAMILY}
 							wrap="word"
 							listening={false}
 						/>
 					{/if}
 				{:else if shape.type === 'ellipse'}
 					{@const el = shape as EllipseShape}
-					{@const textHeight = el.text ? calculateTextHeight(el.text, el.rx * 2, 14) : 0}
+					{@const textHeight = el.text
+						? calculateTextHeight(el.text, el.rx * 2, DEFAULT_FONT_SIZE)
+						: 0}
 					{@const effectiveRy = Math.max(el.ry, (textHeight + 20) / 2)}
 					{#if isRoughEnabled(el)}
 						<RoughShape
@@ -1690,7 +1702,8 @@
 							align="center"
 							verticalAlign="middle"
 							text={el.text}
-							fontSize={14}
+							fontSize={DEFAULT_FONT_SIZE}
+							fontFamily={CANVAS_FONT_FAMILY}
 							wrap="word"
 							listening={false}
 						/>
@@ -1981,6 +1994,7 @@
 						height={previewHeight}
 						text={t.text}
 						fontSize={t.fontSize}
+						fontFamily={t.fontFamily}
 						fill={t.fill ?? t.stroke ?? '#000000'}
 						align="center"
 						verticalAlign="middle"
@@ -2083,9 +2097,9 @@
 		{@const inputPos = getEditingInputPosition()}
 		{#if inputPos}
 			<textarea
-				class="absolute z-50 resize-none border-2 border-purple-500 bg-white/95 px-2 py-1 text-center focus:ring-2 focus:ring-purple-300 focus:outline-none"
-				style="left: {inputPos.x}px; top: {inputPos.y}px; width: {inputPos.width}px; min-height: {inputPos.height}px; font-size: {14 *
-					cam.scale}px; line-height: 1.4;"
+				class="absolute z-50 resize-none rounded border-2 border-purple-500 bg-white/95 px-2 py-1 text-center shadow-lg focus:border-purple-600 focus:ring-2 focus:ring-purple-300 focus:outline-none"
+				style="left: {inputPos.x}px; top: {inputPos.y}px; width: {inputPos.width}px; min-height: {inputPos.height}px; font-size: {DEFAULT_FONT_SIZE *
+					cam.scale}px; line-height: 1.4; font-family: {CANVAS_FONT_FAMILY};"
 				value={editingTextContent}
 				oninput={handleTextInput}
 				onblur={handleTextBlur}
@@ -2104,6 +2118,15 @@
 					const target = e.target as HTMLTextAreaElement;
 					target.select();
 				}}
+				onmount={(e: any) => {
+					// Auto-focus when textarea is mounted
+					const target = e.target as HTMLTextAreaElement;
+					setTimeout(() => {
+						target.focus();
+						target.select();
+					}, 10);
+				}}
+				autofocus
 			></textarea>
 		{/if}
 	{/if}
