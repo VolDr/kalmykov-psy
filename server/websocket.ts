@@ -17,8 +17,6 @@ const syncServer = createSyncServer({
 console.log(`WebSocket server running on ws://localhost:${PORT}`);
 
 wss.on('connection', (ws: WebSocket) => {
-	console.log('Client connected');
-
 	// Create client wrapper
 	const client: ConnectedClient = {
 		clientId: '',
@@ -40,12 +38,18 @@ wss.on('connection', (ws: WebSocket) => {
 	});
 
 	ws.on('close', () => {
-		console.log(`Client ${client.clientId} disconnected`);
+		// Only log if client actually joined (has a clientId)
+		if (client.clientId) {
+			console.log(`Client disconnected: ${client.name || client.clientId}`);
+		}
 		syncServer.removeClient(client);
 	});
 
 	ws.on('error', (err) => {
-		console.error('WebSocket error:', err);
+		// Only log actual errors, not connection failures
+		if (err.message && !err.message.includes('ECONNRESET')) {
+			console.error('WebSocket error:', err.message);
+		}
 	});
 });
 
