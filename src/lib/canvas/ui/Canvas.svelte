@@ -1856,7 +1856,7 @@
 						ondragend={(e) => onShapeDragEnd(rect, e)}
 					>
 						<RoughShape
-							shape={{ ...rect, x: 0, y: 0, rotation: 0 }}
+							shape={{ ...rect, x: 0, y: 0, rotation: 0, scaleX: 1, scaleY: 1 }}
 							isSelected={isSelected(rect.id)}
 							onclick={(e) => {
 								e.cancelBubble = true;
@@ -1868,8 +1868,8 @@
 							<KonvaText
 								x={0}
 								y={0}
-								offsetX={rect.width / 2 + 20}
-								offsetY={effectiveHeight / 2 + 20}
+								offsetX={rect.width / 2}
+								offsetY={effectiveHeight / 2}
 								width={rect.width}
 								height={effectiveHeight}
 								align="center"
@@ -1902,7 +1902,7 @@
 						ondragend={(e) => onShapeDragEnd(el, e)}
 					>
 						<RoughShape
-							shape={{ ...el, x: 0, y: 0, rotation: 0 }}
+							shape={{ ...el, x: 0, y: 0, rotation: 0, scaleX: 1, scaleY: 1 }}
 							isSelected={isSelected(el.id)}
 							onclick={(e) => {
 								e.cancelBubble = true;
@@ -1914,8 +1914,8 @@
 							<KonvaText
 								x={0}
 								y={0}
-								offsetX={el.rx + 20}
-								offsetY={effectiveRy + 20}
+								offsetX={el.rx}
+								offsetY={effectiveRy}
 								width={el.rx * 2}
 								height={effectiveRy * 2}
 								align="center"
@@ -1983,7 +1983,7 @@
 						ondragend={(e) => onArrowDragEnd(a, e)}
 					>
 						<RoughShape
-							shape={{ ...a, x: 0, y: 0, rotation: 0 }}
+							shape={{ ...a, x: 0, y: 0, rotation: 0, scaleX: 1, scaleY: 1 }}
 							isSelected={isSelected(a.id)}
 							onclick={(e) => {
 								e.cancelBubble = true;
