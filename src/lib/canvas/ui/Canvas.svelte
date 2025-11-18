@@ -737,7 +737,8 @@
 
 	// Shape drag move - real-time update for smooth movement
 	function onShapeDragMove(shape: Shape, e: any) {
-		const node = e.target;
+		// Use currentTarget to get the Group node, not the child Image
+		const node = e.currentTarget;
 		const pos = node.position();
 
 		const updated: Shape = {
@@ -763,7 +764,8 @@
 	}
 
 	function onShapeDragEnd(shape: Shape, e: any) {
-		const node = e.target;
+		// Use currentTarget to get the Group node, not the child Image
+		const node = e.currentTarget;
 		const pos = node.position();
 
 		const updated: Shape = {
@@ -801,7 +803,8 @@
 
 	// Arrow drag end - snap to nearest shape
 	function onArrowDragEnd(arrow: ArrowShape, e: any) {
-		const node = e.target;
+		// Use currentTarget to get the Group node, not the child Image
+		const node = e.currentTarget;
 		const pos = node.position();
 		const points = arrow.points;
 
@@ -1844,8 +1847,8 @@
 							<KonvaText
 								x={0}
 								y={0}
-								offsetX={rect.width / 2}
-								offsetY={effectiveHeight / 2}
+								offsetX={rect.width / 2 + 20}
+								offsetY={effectiveHeight / 2 + 20}
 								width={rect.width}
 								height={effectiveHeight}
 								align="center"
@@ -1890,8 +1893,8 @@
 							<KonvaText
 								x={0}
 								y={0}
-								offsetX={el.rx}
-								offsetY={effectiveRy}
+								offsetX={el.rx + 20}
+								offsetY={effectiveRy + 20}
 								width={el.rx * 2}
 								height={effectiveRy * 2}
 								align="center"

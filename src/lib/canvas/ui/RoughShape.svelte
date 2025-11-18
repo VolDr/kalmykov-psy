@@ -58,7 +58,6 @@
 
 {#if roughCanvas}
 	<KonvaImage
-		id={shape.id}
 		x={0}
 		y={0}
 		image={roughCanvas}
@@ -67,12 +66,6 @@
 		rotation={0}
 		scaleX={shape.scaleX}
 		scaleY={shape.scaleY}
-		draggable={true}
-		opacity={isSelected ? 0.8 : 1}
 		listening={true}
-		{onclick}
-		{ondblclick}
-		{ondragend}
-		{ondragmove}
 	/>
 {/if}
