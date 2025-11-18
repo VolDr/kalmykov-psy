@@ -14,6 +14,8 @@ export interface TextEditingState {
 	originalText: string;
 	currentText: string;
 	cursorPosition: number; // Position of cursor in text (0 = start, text.length = end)
+	selectionStart: number | null; // Start of text selection (null = no selection)
+	selectionEnd: number | null; // End of text selection (null = no selection)
 }
 
 const DEFAULT_STATE: TextEditingState = {
@@ -21,7 +23,9 @@ const DEFAULT_STATE: TextEditingState = {
 	shapeId: null,
 	originalText: '',
 	currentText: '',
-	cursorPosition: 0
+	cursorPosition: 0,
+	selectionStart: null,
+	selectionEnd: null
 };
 
 /**
@@ -394,29 +398,71 @@ export function moveCursorToLineEnd(): void {
 }
 
 /**
- * Insert text at cursor position
+ * Insert text at cursor position (replaces selection if any)
  */
 export function insertTextAtCursor(text: string): void {
 	textEditingState.update((state) => {
 		if (!state.isEditing) {
 			return state;
 		}
-		const before = state.currentText.slice(0, state.cursorPosition);
-		const after = state.currentText.slice(state.cursorPosition);
+
+		let start: number, end: number;
+
+		// If there's a selection, replace it
+		if (
+			state.selectionStart !== null &&
+			state.selectionEnd !== null &&
+			state.selectionStart !== state.selectionEnd
+		) {
+			start = Math.min(state.selectionStart, state.selectionEnd);
+			end = Math.max(state.selectionStart, state.selectionEnd);
+		} else {
+			start = state.cursorPosition;
+			end = state.cursorPosition;
+		}
+
+		const before = state.currentText.slice(0, start);
+		const after = state.currentText.slice(end);
 		return {
 			...state,
 			currentText: before + text + after,
-			cursorPosition: state.cursorPosition + text.length
+			cursorPosition: start + text.length,
+			selectionStart: null,
+			selectionEnd: null
 		};
 	});
 }
 
 /**
- * Delete character before cursor (Backspace)
+ * Delete character before cursor (Backspace) or delete selection
  */
 export function deleteBeforeCursor(): void {
 	textEditingState.update((state) => {
-		if (!state.isEditing || state.cursorPosition === 0) {
+		if (!state.isEditing) {
+			return state;
+		}
+
+		// If there's a selection, delete it
+		if (
+			state.selectionStart !== null &&
+			state.selectionEnd !== null &&
+			state.selectionStart !== state.selectionEnd
+		) {
+			const start = Math.min(state.selectionStart, state.selectionEnd);
+			const end = Math.max(state.selectionStart, state.selectionEnd);
+			const before = state.currentText.slice(0, start);
+			const after = state.currentText.slice(end);
+			return {
+				...state,
+				currentText: before + after,
+				cursorPosition: start,
+				selectionStart: null,
+				selectionEnd: null
+			};
+		}
+
+		// No selection - delete character before cursor
+		if (state.cursorPosition === 0) {
 			return state;
 		}
 		const before = state.currentText.slice(0, state.cursorPosition - 1);
@@ -424,25 +470,300 @@ export function deleteBeforeCursor(): void {
 		return {
 			...state,
 			currentText: before + after,
-			cursorPosition: state.cursorPosition - 1
+			cursorPosition: state.cursorPosition - 1,
+			selectionStart: null,
+			selectionEnd: null
 		};
 	});
 }
 
 /**
- * Delete character after cursor (Delete key)
+ * Delete character after cursor (Delete key) or delete selection
  */
 export function deleteAfterCursor(): void {
 	textEditingState.update((state) => {
-		if (!state.isEditing || state.cursorPosition >= state.currentText.length) {
+		if (!state.isEditing) {
+			return state;
+		}
+
+		// If there's a selection, delete it
+		if (
+			state.selectionStart !== null &&
+			state.selectionEnd !== null &&
+			state.selectionStart !== state.selectionEnd
+		) {
+			const start = Math.min(state.selectionStart, state.selectionEnd);
+			const end = Math.max(state.selectionStart, state.selectionEnd);
+			const before = state.currentText.slice(0, start);
+			const after = state.currentText.slice(end);
+			return {
+				...state,
+				currentText: before + after,
+				cursorPosition: start,
+				selectionStart: null,
+				selectionEnd: null
+			};
+		}
+
+		// No selection - delete character after cursor
+		if (state.cursorPosition >= state.currentText.length) {
 			return state;
 		}
 		const before = state.currentText.slice(0, state.cursorPosition);
 		const after = state.currentText.slice(state.cursorPosition + 1);
 		return {
 			...state,
-			currentText: before + after
+			currentText: before + after,
+			selectionStart: null,
+			selectionEnd: null
 			// cursorPosition stays the same
+		};
+	});
+}
+
+/**
+ * Set text selection range
+ */
+export function setTextSelection(start: number, end: number): void {
+	textEditingState.update((state) => {
+		if (!state.isEditing) {
+			return state;
+		}
+		const selStart = Math.max(0, Math.min(start, state.currentText.length));
+		const selEnd = Math.max(0, Math.min(end, state.currentText.length));
+		return {
+			...state,
+			selectionStart: selStart,
+			selectionEnd: selEnd,
+			cursorPosition: selEnd
+		};
+	});
+}
+
+/**
+ * Clear text selection
+ */
+export function clearTextSelection(): void {
+	textEditingState.update((state) => {
+		if (!state.isEditing) {
+			return state;
+		}
+		return {
+			...state,
+			selectionStart: null,
+			selectionEnd: null
+		};
+	});
+}
+
+/**
+ * Select all text
+ */
+export function selectAllText(): void {
+	textEditingState.update((state) => {
+		if (!state.isEditing) {
+			return state;
+		}
+		return {
+			...state,
+			selectionStart: 0,
+			selectionEnd: state.currentText.length,
+			cursorPosition: state.currentText.length
+		};
+	});
+}
+
+/**
+ * Get selected text
+ */
+export function getSelectedText(): string {
+	const state = get(textEditingState);
+	if (
+		!state.isEditing ||
+		state.selectionStart === null ||
+		state.selectionEnd === null ||
+		state.selectionStart === state.selectionEnd
+	) {
+		return '';
+	}
+	const start = Math.min(state.selectionStart, state.selectionEnd);
+	const end = Math.max(state.selectionStart, state.selectionEnd);
+	return state.currentText.slice(start, end);
+}
+
+/**
+ * Check if there is an active text selection
+ */
+export function hasTextSelection(): boolean {
+	const state = get(textEditingState);
+	return (
+		state.isEditing &&
+		state.selectionStart !== null &&
+		state.selectionEnd !== null &&
+		state.selectionStart !== state.selectionEnd
+	);
+}
+
+/**
+ * Delete selected text
+ */
+export function deleteSelectedText(): void {
+	textEditingState.update((state) => {
+		if (
+			!state.isEditing ||
+			state.selectionStart === null ||
+			state.selectionEnd === null ||
+			state.selectionStart === state.selectionEnd
+		) {
+			return state;
+		}
+		const start = Math.min(state.selectionStart, state.selectionEnd);
+		const end = Math.max(state.selectionStart, state.selectionEnd);
+		const before = state.currentText.slice(0, start);
+		const after = state.currentText.slice(end);
+		return {
+			...state,
+			currentText: before + after,
+			cursorPosition: start,
+			selectionStart: null,
+			selectionEnd: null
+		};
+	});
+}
+
+/**
+ * Replace selected text with new text (or insert at cursor if no selection)
+ */
+export function replaceSelectedText(newText: string): void {
+	textEditingState.update((state) => {
+		if (!state.isEditing) {
+			return state;
+		}
+
+		let start: number, end: number;
+
+		if (
+			state.selectionStart !== null &&
+			state.selectionEnd !== null &&
+			state.selectionStart !== state.selectionEnd
+		) {
+			// Replace selection
+			start = Math.min(state.selectionStart, state.selectionEnd);
+			end = Math.max(state.selectionStart, state.selectionEnd);
+		} else {
+			// Insert at cursor
+			start = state.cursorPosition;
+			end = state.cursorPosition;
+		}
+
+		const before = state.currentText.slice(0, start);
+		const after = state.currentText.slice(end);
+		return {
+			...state,
+			currentText: before + newText + after,
+			cursorPosition: start + newText.length,
+			selectionStart: null,
+			selectionEnd: null
+		};
+	});
+}
+
+/**
+ * Copy selected text to clipboard
+ * Returns the copied text or empty string if nothing selected
+ */
+export async function copySelectedTextToClipboard(): Promise<string> {
+	const selectedText = getSelectedText();
+	if (selectedText && typeof navigator !== 'undefined' && navigator.clipboard) {
+		try {
+			await navigator.clipboard.writeText(selectedText);
+		} catch (err) {
+			console.error('Failed to copy text to clipboard:', err);
+		}
+	}
+	return selectedText;
+}
+
+/**
+ * Cut selected text to clipboard
+ * Returns the cut text or empty string if nothing selected
+ */
+export async function cutSelectedTextToClipboard(): Promise<string> {
+	const selectedText = await copySelectedTextToClipboard();
+	if (selectedText) {
+		deleteSelectedText();
+	}
+	return selectedText;
+}
+
+/**
+ * Paste text from clipboard at cursor position or replace selection
+ */
+export async function pasteTextFromClipboard(): Promise<boolean> {
+	if (typeof navigator === 'undefined' || !navigator.clipboard) {
+		return false;
+	}
+
+	try {
+		const text = await navigator.clipboard.readText();
+		if (text) {
+			replaceSelectedText(text);
+			return true;
+		}
+	} catch (err) {
+		console.error('Failed to paste text from clipboard:', err);
+	}
+
+	return false;
+}
+
+/**
+ * Set cursor position from character index
+ */
+export function setCursorPosition(position: number): void {
+	textEditingState.update((state) => {
+		if (!state.isEditing) {
+			return state;
+		}
+		const pos = Math.max(0, Math.min(position, state.currentText.length));
+		return {
+			...state,
+			cursorPosition: pos,
+			selectionStart: null,
+			selectionEnd: null
+		};
+	});
+}
+
+/**
+ * Start text selection from current cursor position
+ */
+export function startTextSelectionFromCursor(): void {
+	textEditingState.update((state) => {
+		if (!state.isEditing) {
+			return state;
+		}
+		return {
+			...state,
+			selectionStart: state.cursorPosition,
+			selectionEnd: state.cursorPosition
+		};
+	});
+}
+
+/**
+ * Update text selection end to current cursor position
+ */
+export function updateTextSelectionToCursor(newPosition: number): void {
+	textEditingState.update((state) => {
+		if (!state.isEditing || state.selectionStart === null) {
+			return state;
+		}
+		const pos = Math.max(0, Math.min(newPosition, state.currentText.length));
+		return {
+			...state,
+			selectionEnd: pos,
+			cursorPosition: pos
 		};
 	});
 }
