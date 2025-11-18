@@ -12,6 +12,7 @@ export interface StyleProperties {
 	strokeWidth: number;
 	fill: string | null;
 	opacity: number;
+	fillStyle?: 'hachure' | 'solid' | 'zigzag' | 'cross-hatch' | 'dots' | 'dashed' | 'zigzag-line';
 }
 
 /**
@@ -29,10 +30,11 @@ export interface TextProperties {
 export interface ShapeProperties extends StyleProperties, TextProperties {}
 
 const DEFAULT_STYLE: StyleProperties = {
-	stroke: '#000000',
+	stroke: '#1971c2',
 	strokeWidth: 2,
-	fill: null,
-	opacity: 1
+	fill: '#a5d8ff',
+	opacity: 1,
+	fillStyle: 'hachure'
 };
 
 const DEFAULT_TEXT: TextProperties = {
@@ -96,6 +98,15 @@ export function setOpacity(opacity: number): void {
 }
 
 /**
+ * Set fill style for current style (roughjs fill style)
+ */
+export function setFillStyle(
+	fillStyle: 'hachure' | 'solid' | 'zigzag' | 'cross-hatch' | 'dots' | 'dashed' | 'zigzag-line'
+): void {
+	currentStyle.update((s) => ({ ...s, fillStyle }));
+}
+
+/**
  * Set font size for current text properties
  */
 export function setFontSize(size: number): void {
@@ -143,6 +154,18 @@ export function applyStyleToSelection(): number {
 			strokeWidth: style.strokeWidth,
 			fill: style.fill
 		};
+
+		// Apply fillStyle to shapes that support roughOptions
+		if (
+			style.fillStyle &&
+			(shape.type === 'rect' || shape.type === 'ellipse') &&
+			shape.roughOptions
+		) {
+			updated.roughOptions = {
+				...shape.roughOptions,
+				fillStyle: style.fillStyle
+			};
+		}
 
 		shapesToUpdate.push(updated);
 	}

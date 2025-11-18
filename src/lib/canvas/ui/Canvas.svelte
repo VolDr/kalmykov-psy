@@ -27,6 +27,7 @@
 		getToolCursor,
 		type ToolMode
 	} from '../stores';
+	import { currentStyle } from '../properties';
 	import {
 		attachArrowEndToNearestShape,
 		updateConnectedArrows,
@@ -125,6 +126,7 @@
 	let shapes: Shape[] = $state([]);
 	let selectedIds: Set<string> = $state(new Set());
 	let cam = $state({ x: 0, y: 0, scale: 1 });
+	let style = $state({ stroke: '#1971c2', strokeWidth: 2, fill: '#a5d8ff', fillStyle: 'hachure' });
 
 	// Tool state
 	let tool: ToolMode = $state('select');
@@ -203,6 +205,9 @@
 	const unsubscribeCam = camera.subscribe((c) => {
 		console.log('[Canvas] camera updated', c);
 		cam = c;
+	});
+	const unsubscribeStyle = currentStyle.subscribe((s) => {
+		style = s as any;
 	});
 	const unsubscribeTool = currentTool.subscribe((t) => {
 		console.log('[Canvas] tool changed', { tool: t });
@@ -362,6 +367,7 @@
 		unsubscribeShapes();
 		unsubscribeSel();
 		unsubscribeCam();
+		unsubscribeStyle();
 		unsubscribeTool();
 		unsubscribeTextEditing();
 		if (syncClient) {
@@ -1019,8 +1025,9 @@
 			rotation: 0,
 			scaleX: 1,
 			scaleY: 1,
-			stroke: '#000000',
-			strokeWidth: 2
+			stroke: style.stroke,
+			strokeWidth: style.strokeWidth,
+			fill: style.fill
 		};
 
 		// For click, center the shape at click position
@@ -1036,7 +1043,10 @@
 					y: centerY,
 					width,
 					height,
-					roughOptions: createDefaultRoughOptions()
+					roughOptions: {
+						...createDefaultRoughOptions(),
+						fillStyle: style.fillStyle as any
+					}
 				} as RectShape;
 
 			case 'ellipse':
@@ -1047,7 +1057,10 @@
 					y: centerY,
 					rx: width / 2,
 					ry: height / 2,
-					roughOptions: createDefaultRoughOptions()
+					roughOptions: {
+						...createDefaultRoughOptions(),
+						fillStyle: style.fillStyle as any
+					}
 				} as EllipseShape;
 
 			case 'arrow':

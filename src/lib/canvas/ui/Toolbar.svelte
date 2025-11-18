@@ -2,6 +2,13 @@
 	import { onDestroy } from 'svelte';
 	import { currentTool, setTool, selection, shapesHistory, type ToolMode } from '../stores';
 	import {
+		currentStyle,
+		setStrokeColor,
+		setStrokeWidth,
+		setFillColor,
+		setFillStyle
+	} from '../properties';
+	import {
 		groupSelectedShapes,
 		ungroupSelectedShapes,
 		canGroupSelection,
@@ -27,6 +34,8 @@
 		duplicateSelectedShapes
 	} from '../clipboard';
 	import { icons } from './icons';
+	import { clearRoughCache } from '../engine/rough';
+	import type { Shape } from '../model/shapes';
 
 	const tools: { mode: ToolMode; icon: string; svg?: string; label: string; hotkey: string }[] = [
 		{
@@ -51,6 +60,12 @@
 	let hasGroups = $state(false);
 	let canAlignShapes = $state(false);
 	let canDistributeShapes = $state(false);
+	let currentStrokeColor = $state('#1971c2');
+	let currentFillColor = $state('#a5d8ff');
+	let currentStrokeWidth = $state(2);
+	let currentFillStyle = $state<
+		'hachure' | 'solid' | 'zigzag' | 'cross-hatch' | 'dots' | 'dashed' | 'zigzag-line'
+	>('hachure');
 
 	const unsubscribeTool = currentTool.subscribe((tool) => {
 		activeTool = tool;
@@ -64,18 +79,160 @@
 		canDistributeShapes = canDistribute();
 	});
 
+	const unsubscribeStyle = currentStyle.subscribe((style) => {
+		currentStrokeColor = style.stroke;
+		currentFillColor = style.fill || '#a5d8ff';
+		currentStrokeWidth = style.strokeWidth;
+		currentFillStyle = style.fillStyle;
+	});
+
 	function handleToolClick(mode: ToolMode) {
 		setTool(mode);
+	}
+
+	function handleStrokeChange(color: string) {
+		setStrokeColor(color);
+		updateSelectedShapesStyle({ stroke: color });
+	}
+
+	function handleFillChange(color: string) {
+		setFillColor(color);
+		updateSelectedShapesStyle({ fill: color });
+	}
+
+	function handleStrokeWidthChange(width: number) {
+		setStrokeWidth(width);
+		updateSelectedShapesStyle({ strokeWidth: width });
+	}
+
+	function handleFillStyleChange(
+		style: 'hachure' | 'solid' | 'zigzag' | 'cross-hatch' | 'dots' | 'dashed' | 'zigzag-line'
+	) {
+		setFillStyle(style);
+		updateSelectedShapesStyle({ fillStyle: style });
+	}
+
+	function updateSelectedShapesStyle(updates: {
+		stroke?: string;
+		fill?: string | null;
+		strokeWidth?: number;
+		fillStyle?: string;
+	}) {
+		const state = shapesHistory.getState();
+		const selectedIds = Array.from($selection.ids);
+
+		if (selectedIds.length === 0) return;
+
+		const updatedShapes = state.shapes
+			.filter((s) => selectedIds.includes(s.id))
+			.map((shape) => {
+				const updated = { ...shape };
+
+				if (updates.stroke !== undefined) {
+					updated.stroke = updates.stroke;
+				}
+				if (updates.fill !== undefined) {
+					updated.fill = updates.fill;
+				}
+				if (updates.strokeWidth !== undefined) {
+					updated.strokeWidth = updates.strokeWidth;
+				}
+				if (updates.fillStyle !== undefined && updated.roughOptions) {
+					updated.roughOptions = { ...updated.roughOptions, fillStyle: updates.fillStyle };
+				}
+
+				// Invalidate cache for rough shapes
+				if (updated.type === 'rect' || updated.type === 'ellipse' || updated.type === 'arrow') {
+					clearRoughCache();
+				}
+
+				return updated;
+			});
+
+		if (updatedShapes.length > 0) {
+			shapesHistory.updateShapes(updatedShapes);
+		}
 	}
 
 	// Cleanup on destroy
 	onDestroy(() => {
 		unsubscribeTool();
 		unsubscribeSelection();
+		unsubscribeStyle();
 	});
 </script>
 
 <div class="toolbar">
+	<!-- Style controls -->
+	<div class="toolbar-section">
+		<div class="section-label">Stroke</div>
+		<div class="color-control">
+			<input
+				type="color"
+				value={currentStrokeColor}
+				onchange={(e) => handleStrokeChange(e.currentTarget.value)}
+				class="color-picker"
+				title="Stroke color"
+				aria-label="Stroke color"
+			/>
+			<span class="color-label">Color</span>
+		</div>
+		<div class="width-control">
+			<input
+				type="range"
+				min="1"
+				max="10"
+				step="1"
+				value={currentStrokeWidth}
+				oninput={(e) => handleStrokeWidthChange(Number(e.currentTarget.value))}
+				class="width-slider"
+				title="Stroke width"
+				aria-label="Stroke width"
+			/>
+			<span class="width-value">{currentStrokeWidth}px</span>
+		</div>
+	</div>
+
+	<div class="toolbar-section">
+		<div class="section-label">Fill</div>
+		<div class="color-control">
+			<input
+				type="color"
+				value={currentFillColor}
+				onchange={(e) => handleFillChange(e.currentTarget.value)}
+				class="color-picker"
+				title="Fill color"
+				aria-label="Fill color"
+			/>
+			<span class="color-label">Color</span>
+		</div>
+		<select
+			value={currentFillStyle}
+			onchange={(e) =>
+				handleFillStyleChange(
+					e.currentTarget.value as
+						| 'hachure'
+						| 'solid'
+						| 'zigzag'
+						| 'cross-hatch'
+						| 'dots'
+						| 'dashed'
+						| 'zigzag-line'
+				)}
+			class="fill-style-select"
+			title="Fill style"
+			aria-label="Fill style"
+		>
+			<option value="solid">Solid</option>
+			<option value="hachure">Hachure</option>
+			<option value="zigzag">Zigzag</option>
+			<option value="cross-hatch">Cross-hatch</option>
+			<option value="dots">Dots</option>
+			<option value="dashed">Dashed</option>
+			<option value="zigzag-line">Zigzag Line</option>
+		</select>
+	</div>
+
 	<!-- Tool selection -->
 	<div class="toolbar-section">
 		{#each tools as tool}
@@ -335,5 +492,92 @@
 
 	.action-button.small .action-icon {
 		font-size: 12px;
+	}
+
+	.color-control {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		padding: 2px 0;
+	}
+
+	.color-picker {
+		width: 32px;
+		height: 24px;
+		border: 1px solid #e0e0e0;
+		border-radius: 4px;
+		cursor: pointer;
+		background: white;
+	}
+
+	.color-picker:hover {
+		border-color: #ccc;
+	}
+
+	.color-label {
+		font-size: 10px;
+		color: #666;
+	}
+
+	.width-control {
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+		padding: 4px 0;
+	}
+
+	.width-slider {
+		width: 100%;
+		height: 4px;
+		-webkit-appearance: none;
+		appearance: none;
+		background: #e0e0e0;
+		border-radius: 2px;
+		outline: none;
+	}
+
+	.width-slider::-webkit-slider-thumb {
+		-webkit-appearance: none;
+		appearance: none;
+		width: 12px;
+		height: 12px;
+		background: #2196f3;
+		border-radius: 50%;
+		cursor: pointer;
+	}
+
+	.width-slider::-moz-range-thumb {
+		width: 12px;
+		height: 12px;
+		background: #2196f3;
+		border-radius: 50%;
+		border: none;
+		cursor: pointer;
+	}
+
+	.width-value {
+		font-size: 10px;
+		color: #666;
+		text-align: center;
+	}
+
+	.fill-style-select {
+		width: 100%;
+		padding: 4px;
+		font-size: 10px;
+		border: 1px solid #e0e0e0;
+		border-radius: 4px;
+		background: white;
+		cursor: pointer;
+		margin-top: 4px;
+	}
+
+	.fill-style-select:hover {
+		border-color: #ccc;
+	}
+
+	.fill-style-select:focus {
+		outline: 2px solid #2196f3;
+		outline-offset: 1px;
 	}
 </style>
