@@ -773,6 +773,13 @@
 		const node = e.target;
 		const pos = node.position();
 
+		console.log('[onShapeDragMove]', {
+			shapeId: shape.id,
+			shapeOldPos: { x: shape.x, y: shape.y },
+			nodeNewPos: { x: pos.x, y: pos.y },
+			camera: cam
+		});
+
 		const updated: Shape = {
 			...shape,
 			x: pos.x,
@@ -795,6 +802,13 @@
 	function onShapeDragEnd(shape: Shape, e: any) {
 		const node = e.target;
 		const pos = node.position();
+
+		console.log('[onShapeDragEnd]', {
+			shapeId: shape.id,
+			shapeOldPos: { x: shape.x, y: shape.y },
+			nodeFinalPos: { x: pos.x, y: pos.y },
+			camera: cam
+		});
 
 		const updated: Shape = {
 			...shape,
