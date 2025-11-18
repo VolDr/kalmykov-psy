@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
+	import { get } from 'svelte/store';
 	import {
 		Stage,
 		Layer,
@@ -41,7 +42,8 @@
 		EllipseShape,
 		TextShape,
 		ArrowShape,
-		GroupShape
+		GroupShape,
+		SceneData
 	} from '../model/shapes';
 	import {
 		createSyncClient,
@@ -100,14 +102,18 @@
 		sceneId?: string;
 		userId?: string;
 		userName?: string;
+		autoSave?: boolean;
+		autoSaveDelay?: number;
 	}
 
 	let {
-		multiplayer = false,
+		multiplayer = true, // Multiplayer enabled by default
 		wsUrl = '',
 		sceneId = '',
 		userId = undefined,
-		userName = undefined
+		userName = undefined,
+		autoSave = true, // Auto-save enabled by default
+		autoSaveDelay = 2000 // Auto-save delay in ms (2 seconds)
 	}: Props = $props();
 
 	let stageRef: KonvaStage | null = $state(null);
@@ -133,6 +139,7 @@
 	let isDrawing = $state(false);
 	let drawingStart = $state({ x: 0, y: 0 });
 	let previewShape: Shape | null = $state(null);
+	let drawingToolOptions = $state<{ doubleEnded?: boolean; curved?: boolean }>({});
 
 	// Box selection state
 	let isBoxSelecting = $state(false);
@@ -187,9 +194,58 @@
 
 	console.log('[Canvas] Component script initializing');
 
+	// Auto-save state
+	let autoSaveTimer: ReturnType<typeof setTimeout> | null = null;
+	let isSaving = $state(false);
+	let lastSaveTime = $state<number | null>(null);
+
+	// Auto-save function with debounce
+	async function autoSaveScene() {
+		if (!autoSave || !sceneId || isSaving) return;
+
+		// Clear existing timer
+		if (autoSaveTimer) {
+			clearTimeout(autoSaveTimer);
+		}
+
+		// Set new timer
+		autoSaveTimer = setTimeout(async () => {
+			isSaving = true;
+			try {
+				const shapesState = get(shapesHistory);
+				const cameraSnapshot = get(camera);
+
+				const scene: SceneData = {
+					id: sceneId,
+					shapes: shapesState.shapes,
+					camera: cameraSnapshot
+				};
+
+				const res = await fetch(`/api/scenes/${sceneId}`, {
+					method: 'PUT',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify(scene)
+				});
+
+				if (res.ok) {
+					lastSaveTime = Date.now();
+					console.log('[Canvas] Auto-saved successfully');
+				} else {
+					console.error('[Canvas] Auto-save failed:', await res.text());
+				}
+			} catch (err) {
+				console.error('[Canvas] Auto-save error:', err);
+			} finally {
+				isSaving = false;
+			}
+		}, autoSaveDelay);
+	}
+
 	const unsubscribeShapes = shapesHistory.subscribe((state) => {
 		console.log('[Canvas] shapes updated', { count: state.shapes.length, shapes: state.shapes });
 		shapes = state.shapes;
+		// Trigger auto-save on shapes change
+		autoSaveScene();
 	});
 	const unsubscribeSel = selection.subscribe((s) => {
 		console.log('[Canvas] selection updated', { ids: Array.from(s.ids) });
@@ -202,6 +258,8 @@
 	const unsubscribeCam = camera.subscribe((c) => {
 		console.log('[Canvas] camera updated', c);
 		cam = c;
+		// Trigger auto-save on camera change
+		autoSaveScene();
 	});
 	const unsubscribeTool = currentTool.subscribe((t) => {
 		console.log('[Canvas] tool changed', { tool: t });
@@ -363,6 +421,10 @@
 		unsubscribeCam();
 		unsubscribeTool();
 		unsubscribeTextEditing();
+		// Clear auto-save timer
+		if (autoSaveTimer) {
+			clearTimeout(autoSaveTimer);
+		}
 		if (syncClient) {
 			syncClient.destroy();
 		}
@@ -471,6 +533,11 @@
 		if (evt.button === 0 && tool !== 'select' && tool !== 'pan') {
 			const world = screenToWorld(evt.offsetX, evt.offsetY);
 			console.log('[Canvas] starting drawing', { tool, world });
+			// Set drawing options based on tool
+			drawingToolOptions = {
+				doubleEnded: tool === 'doubleArrow',
+				curved: tool === 'curvedArrow'
+			};
 			handleDrawingStart(world.x, world.y);
 			return;
 		}
@@ -907,53 +974,18 @@
 		}
 	}
 
-	// Handle rotation snapping during transform and apply scale to prevent line deformation
+	// Handle rotation snapping during transform
 	function onTransform(e: any) {
-		if (!transformerRef) return;
+		if (!transformerRef || !isShiftPressed) return;
 
 		const nodes = transformerRef.nodes();
 		for (const node of nodes) {
 			// Snap rotation if shift is pressed
-			if (isShiftPressed) {
-				const rotation = node.rotation();
-				// Snap to 22.5 degree increments (0, 22.5, 45, 67.5, 90, etc.)
-				const snapAngle = 22.5;
-				const snappedRotation = Math.round(rotation / snapAngle) * snapAngle;
-				node.rotation(snappedRotation);
-			}
-
-			// Apply scale to dimensions to prevent stroke deformation
-			const shapeId = node.id();
-			const shape = shapes.find((s) => s.id === shapeId);
-			if (!shape) continue;
-
-			const scaleX = node.scaleX();
-			const scaleY = node.scaleY();
-
-			// Only apply if scale changed significantly
-			if (Math.abs(scaleX - 1) < 0.001 && Math.abs(scaleY - 1) < 0.001) continue;
-
-			if (shape.type === 'rect') {
-				const rect = shape as RectShape;
-				node.width(rect.width * scaleX);
-				node.height(rect.height * scaleY);
-				node.scaleX(1);
-				node.scaleY(1);
-			} else if (shape.type === 'ellipse') {
-				const ellipse = shape as EllipseShape;
-				node.setAttr('radiusX', ellipse.rx * scaleX);
-				node.setAttr('radiusY', ellipse.ry * scaleY);
-				node.scaleX(1);
-				node.scaleY(1);
-			} else if (shape.type === 'text') {
-				const text = shape as TextShape;
-				const currentWidth = text.width ?? text.text.length * text.fontSize * 0.6;
-				const currentHeight = text.height ?? text.fontSize * 1.2;
-				node.width(currentWidth * scaleX);
-				node.height(currentHeight * scaleY);
-				node.scaleX(1);
-				node.scaleY(1);
-			}
+			const rotation = node.rotation();
+			// Snap to 15 degree increments (0, 15, 30, 45, 60, 75, 90, etc.)
+			const snapAngle = 15;
+			const snappedRotation = Math.round(rotation / snapAngle) * snapAngle;
+			node.rotation(snappedRotation);
 		}
 	}
 
@@ -1080,15 +1112,27 @@
 				} as EllipseShape;
 
 			case 'arrow':
+			case 'doubleArrow':
+			case 'curvedArrow':
+				const arrowPoints: [number, number][] = [
+					[0, 0],
+					[isClick ? width : endX - startX, isClick ? height : endY - startY]
+				];
+				// If curved arrow, add middle control point
+				if (toolType === 'curvedArrow' || drawingToolOptions.curved) {
+					const midX = arrowPoints[1][0] / 2;
+					const midY = arrowPoints[1][1] / 2;
+					// Add control point offset perpendicular to the line
+					arrowPoints.splice(1, 0, [midX, midY - 50]);
+				}
 				return {
 					...baseShape,
 					type: 'arrow',
 					x: startX,
 					y: startY,
-					points: [
-						[0, 0],
-						[isClick ? width : endX - startX, isClick ? height : endY - startY]
-					]
+					points: arrowPoints,
+					doubleEnded: toolType === 'doubleArrow' || drawingToolOptions.doubleEnded,
+					curved: toolType === 'curvedArrow' || drawingToolOptions.curved
 				} as ArrowShape;
 
 			case 'text':
@@ -1149,6 +1193,13 @@
 
 			// Select the new shape
 			selection.set({ ids: new Set([newShape.id]) });
+
+			// Auto-start text editing for text shapes
+			if (newShape.type === 'text') {
+				setTimeout(() => {
+					startTextEditing(newShape.id);
+				}, 10);
+			}
 		}
 
 		previewShape = null;
@@ -1616,102 +1667,120 @@
 					{@const rect = shape as RectShape}
 					{@const textHeight = rect.text ? calculateTextHeight(rect.text, rect.width, 14) : 0}
 					{@const effectiveHeight = Math.max(rect.height, textHeight + 20)}
-					{#if isRoughEnabled(rect)}
-						<RoughShape
-							shape={rect}
-							isSelected={isSelected(rect.id)}
-							onclick={(e) => onShapeClick(rect.id, e)}
-							ondblclick={() => handleDoubleClick(rect.id)}
-							ondragend={(e) => onShapeDragEnd(rect, e)}
-						/>
-					{:else}
-						<Rect
-							id={rect.id}
-							x={rect.x}
-							y={rect.y}
-							width={rect.width}
-							height={effectiveHeight}
-							offsetX={rect.width / 2}
-							offsetY={effectiveHeight / 2}
-							stroke={rect.stroke}
-							strokeWidth={rect.strokeWidth}
-							strokeScaleEnabled={false}
-							fill={rect.fill ?? undefined}
-							dash={rect.dash ?? undefined}
-							rotation={rect.rotation}
-							draggable={true}
-							opacity={isSelected(rect.id) ? 0.8 : 1}
-							onclick={(e) => onShapeClick(rect.id, e)}
-							ondblclick={() => handleDoubleClick(rect.id)}
-							ondragmove={(e) => onShapeDragMove(rect, e)}
-							ondragend={(e) => onShapeDragEnd(rect, e)}
-						/>
-					{/if}
-					{#if rect.text}
-						<KonvaText
-							x={rect.x}
-							y={rect.y}
-							offsetX={rect.width / 2}
-							offsetY={effectiveHeight / 2}
-							width={rect.width}
-							height={effectiveHeight}
-							align="center"
-							verticalAlign="middle"
-							text={rect.text}
-							fontSize={14}
-							wrap="word"
-							listening={false}
-						/>
-					{/if}
+					<!-- Wrap rect and text in Group so they move together -->
+					<Group
+						id={rect.id}
+						x={rect.x}
+						y={rect.y}
+						rotation={rect.rotation}
+						draggable={true}
+						onclick={(e) => onShapeClick(rect.id, e)}
+						ondblclick={() => handleDoubleClick(rect.id)}
+						ondragmove={(e) => onShapeDragMove(rect, e)}
+						ondragend={(e) => onShapeDragEnd(rect, e)}
+					>
+						{#if isRoughEnabled(rect)}
+							<RoughShape
+								shape={{ ...rect, x: 0, y: 0, rotation: 0 }}
+								isSelected={isSelected(rect.id)}
+								onclick={(e) => {
+									e.cancelBubble = true;
+								}}
+								ondblclick={() => {}}
+								ondragend={() => {}}
+							/>
+						{:else}
+							<Rect
+								x={0}
+								y={0}
+								width={rect.width}
+								height={effectiveHeight}
+								offsetX={rect.width / 2}
+								offsetY={effectiveHeight / 2}
+								stroke={rect.stroke}
+								strokeWidth={rect.strokeWidth}
+								strokeScaleEnabled={false}
+								fill={rect.fill ?? undefined}
+								dash={rect.dash ?? undefined}
+								opacity={isSelected(rect.id) ? 0.8 : 1}
+							/>
+						{/if}
+						{#if rect.text}
+							<KonvaText
+								x={0}
+								y={0}
+								offsetX={rect.width / 2}
+								offsetY={effectiveHeight / 2}
+								width={rect.width}
+								height={effectiveHeight}
+								align="center"
+								verticalAlign="middle"
+								text={rect.text}
+								fontSize={14}
+								fontFamily={CANVAS_FONT_FAMILY}
+								wrap="word"
+								listening={false}
+							/>
+						{/if}
+					</Group>
 				{:else if shape.type === 'ellipse'}
 					{@const el = shape as EllipseShape}
 					{@const textHeight = el.text ? calculateTextHeight(el.text, el.rx * 2, 14) : 0}
 					{@const effectiveRy = Math.max(el.ry, (textHeight + 20) / 2)}
-					{#if isRoughEnabled(el)}
-						<RoughShape
-							shape={el}
-							isSelected={isSelected(el.id)}
-							onclick={(e) => onShapeClick(el.id, e)}
-							ondblclick={() => handleDoubleClick(el.id)}
-							ondragend={(e) => onShapeDragEnd(el, e)}
-						/>
-					{:else}
-						<Ellipse
-							id={el.id}
-							x={el.x}
-							y={el.y}
-							radiusX={el.rx}
-							radiusY={effectiveRy}
-							stroke={el.stroke}
-							strokeWidth={el.strokeWidth}
-							strokeScaleEnabled={false}
-							fill={el.fill ?? undefined}
-							dash={el.dash ?? undefined}
-							rotation={el.rotation}
-							draggable={true}
-							opacity={isSelected(el.id) ? 0.8 : 1}
-							onclick={(e) => onShapeClick(el.id, e)}
-							ondblclick={() => handleDoubleClick(el.id)}
-							ondragmove={(e) => onShapeDragMove(el, e)}
-							ondragend={(e) => onShapeDragEnd(el, e)}
-						/>
-					{/if}
-					{#if el.text}
-						<KonvaText
-							x={el.x}
-							y={el.y}
-							offsetX={el.rx}
-							offsetY={effectiveRy}
-							width={el.rx * 2}
-							height={effectiveRy * 2}
-							align="center"
-							verticalAlign="middle"
-							text={el.text}
-							fontSize={14}
-							wrap="word"
-							listening={false}
-						/>
-					{/if}
+					<!-- Wrap ellipse and text in Group so they move together -->
+					<Group
+						id={el.id}
+						x={el.x}
+						y={el.y}
+						rotation={el.rotation}
+						draggable={true}
+						onclick={(e) => onShapeClick(el.id, e)}
+						ondblclick={() => handleDoubleClick(el.id)}
+						ondragmove={(e) => onShapeDragMove(el, e)}
+						ondragend={(e) => onShapeDragEnd(el, e)}
+					>
+						{#if isRoughEnabled(el)}
+							<RoughShape
+								shape={{ ...el, x: 0, y: 0, rotation: 0 }}
+								isSelected={isSelected(el.id)}
+								onclick={(e) => {
+									e.cancelBubble = true;
+								}}
+								ondblclick={() => {}}
+								ondragend={() => {}}
+							/>
+						{:else}
+							<Ellipse
+								x={0}
+								y={0}
+								radiusX={el.rx}
+								radiusY={effectiveRy}
+								stroke={el.stroke}
+								strokeWidth={el.strokeWidth}
+								strokeScaleEnabled={false}
+								fill={el.fill ?? undefined}
+								dash={el.dash ?? undefined}
+								opacity={isSelected(el.id) ? 0.8 : 1}
+							/>
+						{/if}
+						{#if el.text}
+							<KonvaText
+								x={0}
+								y={0}
+								offsetX={el.rx}
+								offsetY={effectiveRy}
+								width={el.rx * 2}
+								height={effectiveRy * 2}
+								align="center"
+								verticalAlign="middle"
+								text={el.text}
+								fontSize={14}
+								fontFamily={CANVAS_FONT_FAMILY}
+								wrap="word"
+								listening={false}
+							/>
+						{/if}
+					</Group>
 				{:else if shape.type === 'text'}
 					{@const t = shape as TextShape}
 					{@const textWidth = t.width ?? t.text.length * t.fontSize * 0.6}
@@ -2384,6 +2453,50 @@
 						</div>
 						<span>Изогнутая</span>
 					</button>
+				</div>
+			{/if}
+		</div>
+	{/if}
+
+	<!-- Auto-save indicator -->
+	{#if autoSave && sceneId}
+		<div class="fixed bottom-4 right-4 z-50 rounded-lg bg-white px-3 py-2 text-xs shadow-md">
+			{#if isSaving}
+				<div class="flex items-center gap-2 text-gray-600">
+					<svg
+						class="h-3 w-3 animate-spin"
+						xmlns="http://www.w3.org/2000/svg"
+						fill="none"
+						viewBox="0 0 24 24"
+					>
+						<circle
+							class="opacity-25"
+							cx="12"
+							cy="12"
+							r="10"
+							stroke="currentColor"
+							stroke-width="4"
+						></circle>
+						<path
+							class="opacity-75"
+							fill="currentColor"
+							d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+						></path>
+					</svg>
+					<span>Сохранение...</span>
+				</div>
+			{:else if lastSaveTime}
+				<div class="flex items-center gap-2 text-green-600">
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						class="h-3 w-3"
+						fill="none"
+						viewBox="0 0 24 24"
+						stroke="currentColor"
+					>
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+					</svg>
+					<span>Автосохранено</span>
 				</div>
 			{/if}
 		</div>

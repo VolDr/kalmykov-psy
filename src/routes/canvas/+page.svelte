@@ -24,14 +24,15 @@
 	let loadError = $state<string | null>(null);
 
 	// Multiplayer settings
-	let multiplayerEnabled = $state(false);
+	let multiplayerEnabled = $state(true); // Enable multiplayer by default
 	let userName = $state('');
 	let wsUrl = $state('');
 
 	onMount(async () => {
-		// Set WebSocket URL based on current location
+		// Set WebSocket URL - connect to standalone WS server on port 3001
 		const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-		wsUrl = `${protocol}//${window.location.host}/ws`;
+		const host = window.location.hostname;
+		wsUrl = `${protocol}//${host}:3001`;
 
 		// Generate default username
 		userName = `User_${Math.random().toString(36).slice(2, 6)}`;

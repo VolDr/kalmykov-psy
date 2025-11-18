@@ -16,14 +16,15 @@
 	let saveSuccess = $state(false);
 
 	// Multiplayer settings
-	let multiplayerEnabled = $state(false);
+	let multiplayerEnabled = $state(true); // Enable multiplayer by default
 	let userName = $state('Admin');
 	let wsUrl = $state('');
 
 	onMount(async () => {
-		// Set WebSocket URL based on current location
+		// Set WebSocket URL - connect to standalone WS server on port 3001
 		const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-		wsUrl = `${protocol}//${window.location.host}/ws`;
+		const host = window.location.hostname;
+		wsUrl = `${protocol}//${host}:3001`;
 
 		try {
 			const res = await fetch(`/api/scenes/${sceneId}`);
