@@ -1832,12 +1832,16 @@
 						{@const endY = a.points[2][1]}
 						{@const startX = a.points[0][0]}
 						{@const startY = a.points[0][1]}
-						{@const endDx = endX - controlX}
-						{@const endDy = endY - controlY}
+						<!-- Calculate tangent at end point (derivative of quadratic Bezier at t=1): 2*(P2 - P1) -->
+						{@const endDx = 2 * (endX - controlX)}
+						{@const endDy = 2 * (endY - controlY)}
 						{@const endLen = Math.sqrt(endDx * endDx + endDy * endDy)}
-						{@const startDx = startX - controlX}
-						{@const startDy = startY - controlY}
+						<!-- Calculate tangent at start point (derivative at t=0): 2*(P1 - P0) -->
+						{@const startDx = 2 * (controlX - startX)}
+						{@const startDy = 2 * (controlY - startY)}
 						{@const startLen = Math.sqrt(startDx * startDx + startDy * startDy)}
+						<!-- Arrowhead offset distance (in pixels along tangent) -->
+						{@const arrowOffset = 1}
 						<Line
 							id={a.id}
 							x={a.x}
@@ -1856,11 +1860,16 @@
 							ondragmove={(e) => onArrowDragMove(a, e)}
 							ondragend={(e) => onArrowDragEnd(a, e)}
 						/>
-						<!-- Arrow head at end - only arrowhead, no line -->
+						<!-- Arrow head at end - positioned perpendicular to curve tangent -->
 						<Arrow
 							x={a.x}
 							y={a.y}
-							points={[endX - (endDx / endLen) * 0.1, endY - (endDy / endLen) * 0.1, endX, endY]}
+							points={[
+								endX - (endDx / endLen) * arrowOffset,
+								endY - (endDy / endLen) * arrowOffset,
+								endX,
+								endY
+							]}
 							stroke={a.stroke}
 							strokeWidth={a.strokeWidth}
 							fill={a.stroke}
@@ -1869,13 +1878,13 @@
 							listening={false}
 						/>
 						{#if a.doubleEnded}
-							<!-- Arrow head at beginning for curved -->
+							<!-- Arrow head at beginning - positioned perpendicular to curve tangent -->
 							<Arrow
 								x={a.x}
 								y={a.y}
 								points={[
-									startX - (startDx / startLen) * 0.1,
-									startY - (startDy / startLen) * 0.1,
+									startX - (startDx / startLen) * arrowOffset,
+									startY - (startDy / startLen) * arrowOffset,
 									startX,
 									startY
 								]}
@@ -2169,9 +2178,9 @@
 		{@const inputPos = getEditingInputPosition()}
 		{#if inputPos}
 			<textarea
-				class="absolute z-50 resize-none border-2 border-purple-500 bg-white/95 px-2 py-1 text-center focus:ring-2 focus:ring-purple-300 focus:outline-none"
+				class="absolute z-50 resize-none rounded border-2 border-purple-500 bg-white/95 px-2 py-1 text-center shadow-lg focus:border-purple-600 focus:ring-2 focus:ring-purple-300 focus:outline-none"
 				style="left: {inputPos.x}px; top: {inputPos.y}px; width: {inputPos.width}px; min-height: {inputPos.height}px; font-size: {14 *
-					cam.scale}px; line-height: 1.4;"
+					cam.scale}px; line-height: 1.4; font-family: {CANVAS_FONT_FAMILY};"
 				value={editingTextContent}
 				oninput={handleTextInput}
 				onblur={handleTextBlur}
@@ -2190,6 +2199,15 @@
 					const target = e.target as HTMLTextAreaElement;
 					target.select();
 				}}
+				onmount={(e: any) => {
+					// Auto-focus when textarea is mounted
+					const target = e.target as HTMLTextAreaElement;
+					setTimeout(() => {
+						target.focus();
+						target.select();
+					}, 10);
+				}}
+				autofocus
 			></textarea>
 		{/if}
 	{/if}
@@ -2460,7 +2478,7 @@
 
 	<!-- Auto-save indicator -->
 	{#if autoSave && sceneId}
-		<div class="fixed bottom-4 right-4 z-50 rounded-lg bg-white px-3 py-2 text-xs shadow-md">
+		<div class="fixed right-4 bottom-4 z-50 rounded-lg bg-white px-3 py-2 text-xs shadow-md">
 			{#if isSaving}
 				<div class="flex items-center gap-2 text-gray-600">
 					<svg
@@ -2469,13 +2487,7 @@
 						fill="none"
 						viewBox="0 0 24 24"
 					>
-						<circle
-							class="opacity-25"
-							cx="12"
-							cy="12"
-							r="10"
-							stroke="currentColor"
-							stroke-width="4"
+						<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"
 						></circle>
 						<path
 							class="opacity-75"
@@ -2494,7 +2506,12 @@
 						viewBox="0 0 24 24"
 						stroke="currentColor"
 					>
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M5 13l4 4L19 7"
+						/>
 					</svg>
 					<span>Автосохранено</span>
 				</div>

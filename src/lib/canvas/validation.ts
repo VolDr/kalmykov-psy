@@ -1,17 +1,17 @@
 // src/lib/canvas/validation.ts
 import { z } from 'zod';
 
-// Base shape schema
+// Base shape schema with more lenient validation
 const baseShapeSchema = z.object({
 	id: z.string().uuid(),
 	type: z.enum(['rect', 'ellipse', 'arrow', 'text', 'group']),
-	x: z.number(),
-	y: z.number(),
-	rotation: z.number(),
-	scaleX: z.number().positive(),
-	scaleY: z.number().positive(),
+	x: z.number().finite(),
+	y: z.number().finite(),
+	rotation: z.number().finite(),
+	scaleX: z.number().finite().positive().catch(1), // Default to 1 if invalid
+	scaleY: z.number().finite().positive().catch(1), // Default to 1 if invalid
 	stroke: z.string(),
-	strokeWidth: z.number().nonnegative(),
+	strokeWidth: z.number().nonnegative().finite(),
 	fill: z.string().nullable().optional(),
 	dash: z.array(z.number()).optional(),
 	roughOptions: z.record(z.unknown()).optional()
@@ -75,11 +75,11 @@ export const shapeSchema = z.discriminatedUnion('type', [
 	groupShapeSchema
 ]);
 
-// Camera schema
+// Camera schema with lenient validation
 export const cameraSchema = z.object({
-	x: z.number(),
-	y: z.number(),
-	scale: z.number().positive()
+	x: z.number().finite(),
+	y: z.number().finite(),
+	scale: z.number().finite().positive().catch(1) // Default to 1 if invalid
 });
 
 // Scene data schema
