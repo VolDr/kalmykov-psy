@@ -850,10 +850,17 @@
 				return;
 			}
 
-			// Enter - commit (no more Shift+Enter for new line, just Enter commits)
+			// Enter handling
 			if (e.key === 'Enter') {
 				e.preventDefault();
-				commitTextEditing();
+				if (e.shiftKey) {
+					// Shift+Enter - insert new line
+					insertTextAtCursor('\n');
+					updateShapeWithCurrentText();
+				} else {
+					// Enter - commit text
+					commitTextEditing();
+				}
 				return;
 			}
 
