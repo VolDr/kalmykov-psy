@@ -320,21 +320,12 @@
 		const node = e.target;
 		const pos = node.position();
 
-		// Update the arrow points in real-time
-		const newPoints = [...arrow.points];
-		newPoints[endpointIndex] = [pos.x - arrow.x, pos.y - arrow.y];
-
-		const updated: ArrowShape = {
-			...arrow,
-			points: newPoints
-		};
-
 		// Show magnet feedback
 		const worldPos = { x: pos.x, y: pos.y };
 		magnetFeedback = getMagnetFeedbackBounds(worldPos, shapes, arrow.id, 40);
 
-		// Update without history (just visual feedback) - use applyRemoteUpdate which doesn't touch history
-		shapesHistory.applyRemoteUpdate([updated]);
+		// Don't update store during drag - let Konva handle the endpoint position
+		// We'll update the arrow points in onArrowEndpointDragEnd
 	}
 
 	// Handle arrow endpoint drag end (commit to history)
@@ -750,14 +741,14 @@
 		// Update all arrows connected to this shape in real-time
 		const connectedArrowUpdates = updateConnectedArrows([shape.id], currentShapes);
 
-		// Combine updates
-		const allUpdates = [updated, ...connectedArrowUpdates];
+		// CRITICAL: Only update arrows during drag move, NOT the dragged shape itself
+		// Updating the dragged shape in store causes Svelte to reactively update Group props (x, y)
+		// which conflicts with Konva's internal drag state, causing jittering
+		if (connectedArrowUpdates.length > 0) {
+			shapesHistory.applyRemoteUpdate(connectedArrowUpdates);
+		}
 
-		// Update without history for visual feedback
-		shapesHistory.applyRemoteUpdate(allUpdates);
-
-		// Reset node position to prevent double offset with Svelte reactive props
-		node.position({ x: updated.x, y: updated.y });
+		// Let Konva handle the drag - don't interfere with node position during drag
 	}
 
 	function onShapeDragEnd(shape: Shape, e: any) {
@@ -793,20 +784,8 @@
 
 	// Arrow drag move - real-time update for handles to follow
 	function onArrowDragMove(arrow: ArrowShape, e: any) {
-		const node = e.target;
-		const pos = node.position();
-
-		const updated: ArrowShape = {
-			...arrow,
-			x: pos.x,
-			y: pos.y
-		};
-
-		// Update without history for visual feedback
-		shapesHistory.applyRemoteUpdate([updated]);
-
-		// Reset node position to prevent double offset with Svelte reactive props
-		node.position({ x: updated.x, y: updated.y });
+		// Don't update store during drag - let Konva handle it
+		// Updating causes reactive prop changes that conflict with drag state
 	}
 
 	// Arrow drag end - snap to nearest shape
