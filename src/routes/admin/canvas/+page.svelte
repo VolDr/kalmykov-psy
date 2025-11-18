@@ -16,7 +16,7 @@
 	let saveSuccess = $state(false);
 
 	// Multiplayer settings
-	let multiplayerEnabled = $state(true); // Enable multiplayer by default
+	let multiplayerEnabled = $state(false); // Disable multiplayer by default to prevent hanging
 	let userName = $state('Admin');
 	let wsUrl = $state('');
 

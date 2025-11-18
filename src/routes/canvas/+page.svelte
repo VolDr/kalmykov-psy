@@ -24,7 +24,7 @@
 	let loadError = $state<string | null>(null);
 
 	// Multiplayer settings
-	let multiplayerEnabled = $state(true); // Enable multiplayer by default
+	let multiplayerEnabled = $state(false); // Disable multiplayer by default to prevent hanging
 	let userName = $state('');
 	let wsUrl = $state('');
 

@@ -107,7 +107,7 @@
 	}
 
 	let {
-		multiplayer = true, // Multiplayer enabled by default
+		multiplayer = false, // Multiplayer disabled by default to prevent hanging
 		wsUrl = '',
 		sceneId = '',
 		userId = undefined,
