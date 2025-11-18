@@ -33,21 +33,15 @@
 <style>
 	.root {
 		height: 100svh;
+	}
+
+	/* Reset all font sizes and units to prevent global styles from affecting Excalidraw */
+	.root :global(*) {
+		font-size: initial;
+	}
+
+	/* Ensure the root uses a standard base font size */
+	.root :global(.excalidraw) {
 		font-size: 16px;
-	}
-
-	.root :global(.ExcalidrawLogo) {
-		max-width: 150px;
-		max-height: 40px;
-	}
-
-	.root :global(.ExcalidrawLogo.is-small) {
-		max-width: 100px;
-		max-height: 30px;
-	}
-
-	.root :global(.ExcalidrawLogo svg) {
-		max-width: 100%;
-		max-height: 100%;
 	}
 </style>
