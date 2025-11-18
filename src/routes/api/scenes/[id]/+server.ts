@@ -75,9 +75,10 @@ export const GET: RequestHandler = async ({ params, getClientAddress, cookies, l
 		);
 		return json(rows[0].data);
 	} catch (err) {
-		if (err instanceof Error && 'status' in err) {
+		// Check if it's a SvelteKit HttpError (has status property)
+		if (err && typeof err === 'object' && 'status' in err) {
 			console.log(`[GET /api/scenes/${id}] SvelteKit error:`, err);
-			throw err; // Re-throw SvelteKit errors
+			throw err; // Re-throw SvelteKit errors (including 404)
 		}
 		console.error(`[GET /api/scenes/${id}] Database error:`, err);
 		throw error(500, 'Internal server error');
