@@ -216,6 +216,7 @@
 
 	// Subscribe to text editing state
 	let editingTextState = $state({ isEditing: false, shapeId: null as string | null, text: '' });
+	let cursorPosition = $state(0); // Position of cursor in text
 	const unsubscribeTextEditing = textEditingState.subscribe((state) => {
 		editingTextState = {
 			isEditing: state.isEditing,
@@ -225,8 +226,11 @@
 		if (state.isEditing && state.shapeId) {
 			const shape = shapes.find((s) => s.id === state.shapeId);
 			editingShape = shape || null;
+			// Set cursor to end of text when starting edit
+			cursorPosition = state.currentText.length;
 		} else {
 			editingShape = null;
+			cursorPosition = 0;
 		}
 	});
 
@@ -835,40 +839,94 @@
 				return;
 			}
 
-			// Enter without Shift - commit
-			if (e.key === 'Enter' && !e.shiftKey) {
+			// Enter - commit (завершает ввод)
+			if (e.key === 'Enter') {
 				e.preventDefault();
 				commitTextEditing();
 				return;
 			}
 
-			// Enter with Shift - new line
-			if (e.key === 'Enter' && e.shiftKey) {
+			// Arrow Left - move cursor left
+			if (e.key === 'ArrowLeft') {
 				e.preventDefault();
-				const newText = editingTextState.text + '\n';
-				updateTextWhileEditing(newText);
+				cursorPosition = Math.max(0, cursorPosition - 1);
+				return;
+			}
+
+			// Arrow Right - move cursor right
+			if (e.key === 'ArrowRight') {
+				e.preventDefault();
+				cursorPosition = Math.min(editingTextState.text.length, cursorPosition + 1);
+				return;
+			}
+
+			// Home - move cursor to start
+			if (e.key === 'Home') {
+				e.preventDefault();
+				cursorPosition = 0;
+				return;
+			}
+
+			// End - move cursor to end
+			if (e.key === 'End') {
+				e.preventDefault();
+				cursorPosition = editingTextState.text.length;
 				return;
 			}
 
 			// Backspace
 			if (e.key === 'Backspace') {
 				e.preventDefault();
-				if (editingTextState.text.length > 0) {
-					const newText = editingTextState.text.slice(0, -1);
+				if (cursorPosition > 0) {
+					const newText =
+						editingTextState.text.slice(0, cursorPosition - 1) +
+						editingTextState.text.slice(cursorPosition);
+					cursorPosition = cursorPosition - 1;
 					updateTextWhileEditing(newText);
 				}
+				return;
+			}
+
+			// Delete
+			if (e.key === 'Delete') {
+				e.preventDefault();
+				if (cursorPosition < editingTextState.text.length) {
+					const newText =
+						editingTextState.text.slice(0, cursorPosition) +
+						editingTextState.text.slice(cursorPosition + 1);
+					updateTextWhileEditing(newText);
+				}
+				return;
+			}
+
+			// Ctrl+A - select all (move cursor to end)
+			if ((e.ctrlKey || e.metaKey) && e.key === 'a') {
+				e.preventDefault();
+				cursorPosition = editingTextState.text.length;
 				return;
 			}
 
 			// Regular character input
 			if (e.key.length === 1 && !e.ctrlKey && !e.metaKey) {
 				e.preventDefault();
-				const newText = editingTextState.text + e.key;
+				const newText =
+					editingTextState.text.slice(0, cursorPosition) +
+					e.key +
+					editingTextState.text.slice(cursorPosition);
+				cursorPosition = cursorPosition + 1;
 				updateTextWhileEditing(newText);
 				return;
 			}
 
 			// Don't propagate other keys during text editing
+			return;
+		}
+
+		// Ctrl+A - select all shapes (when not editing text)
+		if ((e.ctrlKey || e.metaKey) && e.key === 'a') {
+			e.preventDefault();
+			const allIds = shapes.map((s) => s.id);
+			selection.set({ ids: new Set(allIds) });
 			return;
 		}
 
@@ -893,9 +951,23 @@
 		let updatedShape: Shape;
 
 		if (shape.type === 'text') {
+			const textShape = shape as TextShape;
+			// Auto-resize text shape based on content
+			const lines = newText.split('\n');
+			const maxLineLength = Math.max(...lines.map((line) => line.length), 1);
+			const numLines = lines.length || 1;
+
+			const charWidth = textShape.fontSize * 0.6;
+			const lineHeight = textShape.fontSize * 1.5;
+
+			const newWidth = Math.max(maxLineLength * charWidth, 50);
+			const newHeight = Math.max(numLines * lineHeight, textShape.fontSize * 1.5);
+
 			updatedShape = {
-				...shape,
-				text: newText
+				...textShape,
+				text: newText,
+				width: newWidth,
+				height: newHeight
 			};
 		} else if (shape.type === 'rect' || shape.type === 'ellipse') {
 			updatedShape = {
@@ -955,12 +1027,45 @@
 		};
 	});
 
-	// Get display text with cursor if editing
+	// Get display text with cursor if editing (cursor has fixed width to prevent jumping)
 	function getDisplayText(shapeId: string, text: string): string {
-		if (editingTextState.isEditing && editingTextState.shapeId === shapeId && showCursor) {
-			return text + '|';
+		if (editingTextState.isEditing && editingTextState.shapeId === shapeId) {
+			// Insert invisible character at cursor position to reserve space
+			const beforeCursor = text.slice(0, cursorPosition);
+			const afterCursor = text.slice(cursorPosition);
+			// Use zero-width space to maintain spacing
+			return beforeCursor + '\u200B' + afterCursor;
 		}
 		return text;
+	}
+
+	// Get cursor position for rendering Line
+	function getCursorVisualPosition(
+		shapeId: string,
+		text: string
+	): { x: number; y: number } | null {
+		if (
+			!editingTextState.isEditing ||
+			editingTextState.shapeId !== shapeId ||
+			!showCursor
+		) {
+			return null;
+		}
+
+		const beforeCursor = text.slice(0, cursorPosition);
+		const lines = beforeCursor.split('\n');
+		const currentLine = lines.length - 1;
+		const charInLine = lines[currentLine].length;
+
+		// Approximate character width
+		const fontSize = DEFAULT_FONT_SIZE;
+		const charWidth = fontSize * 0.6;
+		const lineHeight = fontSize * 1.5;
+
+		return {
+			x: charInLine * charWidth,
+			y: currentLine * lineHeight
+		};
 	}
 
 
@@ -1689,11 +1794,11 @@
 		}
 	}
 
-	// Calculate text height based on wrapping
+	// Calculate text height based on wrapping (with increased line height)
 	function calculateTextHeight(text: string, width: number, fontSize: number): number {
 		const avgCharWidth = fontSize * 0.6;
 		const charsPerLine = Math.floor(width / avgCharWidth);
-		if (charsPerLine <= 0) return fontSize * 1.2;
+		if (charsPerLine <= 0) return fontSize * 1.5;
 
 		const words = text.split(' ');
 		let lines = 1;
@@ -1708,7 +1813,8 @@
 			}
 		}
 
-		return lines * fontSize * 1.2;
+		// Increased line height from 1.2 to 1.5
+		return lines * fontSize * 1.5;
 	}
 </script>
 
@@ -1798,9 +1904,23 @@
 								text={getDisplayText(rect.id, rect.text || '')}
 								fontSize={DEFAULT_FONT_SIZE}
 								fontFamily={CANVAS_FONT_FAMILY}
+								lineHeight={1.5}
 								wrap="word"
 								listening={false}
 							/>
+							{#if editingTextState.shapeId === rect.id}
+								{@const cursorPos = getCursorVisualPosition(rect.id, rect.text || '')}
+								{#if cursorPos}
+									<Line
+										x={-rect.width / 2 + cursorPos.x}
+										y={-effectiveHeight / 2 + cursorPos.y}
+										points={[0, 0, 0, DEFAULT_FONT_SIZE * 1.3]}
+										stroke="#000000"
+										strokeWidth={2}
+										listening={false}
+									/>
+								{/if}
+							{/if}
 						{/if}
 					</Group>
 				{:else if shape.type === 'ellipse'}
@@ -1858,9 +1978,23 @@
 								text={getDisplayText(el.id, el.text || '')}
 								fontSize={DEFAULT_FONT_SIZE}
 								fontFamily={CANVAS_FONT_FAMILY}
+								lineHeight={1.5}
 								wrap="word"
 								listening={false}
 							/>
+							{#if editingTextState.shapeId === el.id}
+								{@const cursorPos = getCursorVisualPosition(el.id, el.text || '')}
+								{#if cursorPos}
+									<Line
+										x={-el.rx + cursorPos.x}
+										y={-effectiveRy + cursorPos.y}
+										points={[0, 0, 0, DEFAULT_FONT_SIZE * 1.3]}
+										stroke="#000000"
+										strokeWidth={2}
+										listening={false}
+									/>
+								{/if}
+							{/if}
 						{/if}
 					</Group>
 				{:else if shape.type === 'text'}
@@ -1898,12 +2032,27 @@
 						text={getDisplayText(t.id, t.text)}
 						fontSize={t.fontSize}
 						fontFamily={t.fontFamily}
+						lineHeight={1.5}
 						fill={t.fill ?? t.stroke ?? '#000000'}
 						align={t.align}
 						verticalAlign="middle"
 						rotation={t.rotation}
 						listening={false}
 					/>
+					{#if editingTextState.shapeId === t.id}
+						{@const cursorPos = getCursorVisualPosition(t.id, t.text)}
+						{#if cursorPos}
+							<Line
+								x={t.x - textWidth / 2 + cursorPos.x}
+								y={t.y - textHeight / 2 + cursorPos.y}
+								points={[0, 0, 0, t.fontSize * 1.3]}
+								stroke={t.fill ?? t.stroke ?? '#000000'}
+								strokeWidth={2}
+								rotation={t.rotation}
+								listening={false}
+							/>
+						{/if}
+					{/if}
 				{:else if shape.type === 'arrow'}
 					{@const a = shape as ArrowShape}
 					{#if a.curved && a.points.length === 3}
