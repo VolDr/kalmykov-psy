@@ -20,15 +20,8 @@
 			<a href="/admin/articles" class="text-sm font-medium text-gray-700 hover:text-gray-900">
 				Статьи
 			</a>
-			<a href="/admin/surveys" class="text-sm font-medium text-gray-700 hover:text-gray-900">
-				Опросники
-			</a>
-			<a href="/admin/constructor" class="text-sm font-medium text-gray-700 hover:text-gray-900">
-				Конструктор
-			</a>
-			<a href="/admin/pages" class="text-sm font-medium text-gray-700 hover:text-gray-900">
-				Настройки
-			</a>
+
+
 		</nav>
 		<Button onclick={handleLogout} variant="outline">Выйти</Button>
 	</header>
@@ -36,23 +29,7 @@
 	<div class="flex flex-1">
 		<!-- Sidebar with clients list -->
 		<aside class="w-64 border-r bg-gray-50 p-4">
-			<div class="mb-6">
-				<h2 class="mb-2 text-lg font-semibold">Управление</h2>
-				<nav class="space-y-1">
-					<a href="/admin/articles" class="block rounded-lg px-3 py-2 text-sm hover:bg-gray-100">
-						Статьи
-					</a>
-					<a href="/admin/surveys" class="block rounded-lg px-3 py-2 text-sm hover:bg-gray-100">
-						Опросники
-					</a>
-					<a href="/admin/constructor" class="block rounded-lg px-3 py-2 text-sm hover:bg-gray-100">
-						Конструктор страниц
-					</a>
-					<a href="/admin/pages" class="block rounded-lg px-3 py-2 text-sm hover:bg-gray-100">
-						Настройки страниц
-					</a>
-				</nav>
-			</div>
+
 
 			<div class="mb-4 flex items-center justify-between">
 				<h2 class="text-lg font-semibold">Клиенты</h2>
