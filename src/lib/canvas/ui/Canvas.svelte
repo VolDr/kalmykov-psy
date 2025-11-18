@@ -549,6 +549,63 @@
 			syncClient.sendPresence({ cursor: localCursor });
 		}
 
+		// Handle text selection drag
+		if (isTextSelecting && editingTextState.isEditing && editingTextState.shapeId) {
+			const shape = shapes.find((s) => s.id === editingTextState.shapeId);
+			if (shape) {
+				// Calculate cursor position in the text
+				let cursorPos = 0;
+
+				if (shape.type === 'text') {
+					const textShape = shape as TextShape;
+					const textWidth = textShape.width ?? textShape.text.length * textShape.fontSize * 0.6;
+					const textHeight = textShape.height ?? textShape.fontSize * LINE_HEIGHT_MULTIPLIER;
+
+					// Transform world coords to shape-local coords
+					const localX = world.x - textShape.x + textWidth / 2;
+					const localY = world.y - textShape.y + textHeight / 2;
+
+					cursorPos = getCursorPositionFromClick(
+						editingTextState.currentText,
+						textShape.fontSize,
+						textWidth,
+						textShape.align,
+						localX,
+						localY
+					);
+				} else if (shape.type === 'rect') {
+					const rect = shape as RectShape;
+					const localX = world.x - rect.x + rect.width / 2;
+					const localY = world.y - rect.y + rect.height / 2;
+
+					cursorPos = getCursorPositionFromClick(
+						editingTextState.currentText,
+						DEFAULT_FONT_SIZE,
+						rect.width,
+						'center',
+						localX,
+						localY
+					);
+				} else if (shape.type === 'ellipse') {
+					const ellipse = shape as EllipseShape;
+					const localX = world.x - ellipse.x + ellipse.rx;
+					const localY = world.y - ellipse.y + ellipse.ry;
+
+					cursorPos = getCursorPositionFromClick(
+						editingTextState.currentText,
+						DEFAULT_FONT_SIZE,
+						ellipse.rx * 2,
+						'center',
+						localX,
+						localY
+					);
+				}
+
+				setTextSelection(textSelectionStart, cursorPos);
+			}
+			return;
+		}
+
 		// Handle drawing preview
 		if (isDrawing) {
 			handleDrawingMove(world.x, world.y);
@@ -568,8 +625,14 @@
 
 	function handleMouseUp(e: any) {
 		const evt = e.evt as MouseEvent;
-		console.log('[Canvas] mouseup', { isDrawing, isPanning, isBoxSelecting });
+		console.log('[Canvas] mouseup', { isDrawing, isPanning, isBoxSelecting, isTextSelecting });
 		isPanning = false;
+
+		// Finish text selection
+		if (isTextSelecting) {
+			isTextSelecting = false;
+			return;
+		}
 
 		// Finish drawing
 		if (isDrawing) {
@@ -1250,7 +1313,7 @@
 		const shape = shapes.find((s) => s.id === editingTextState.shapeId);
 		if (!shape) return;
 
-		const newText = editingTextState.text;
+		const newText = editingTextState.currentText;
 
 		let updatedShape: Shape;
 
