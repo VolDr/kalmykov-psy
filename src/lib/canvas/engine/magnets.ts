@@ -39,7 +39,7 @@ export function getShapeBounds(shape: Shape): Bounds | null {
 		case 'text': {
 			const s = shape as TextShape;
 			const width = s.width ?? s.text.length * (s.fontSize * 0.6);
-			const height = s.height ?? s.fontSize * 1.2;
+			const height = s.height ?? s.fontSize * 1.5; // LINE_HEIGHT_MULTIPLIER
 			return {
 				x: s.x - width / 2,
 				y: s.y - height / 2,

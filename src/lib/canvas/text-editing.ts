@@ -13,13 +13,15 @@ export interface TextEditingState {
 	shapeId: string | null;
 	originalText: string;
 	currentText: string;
+	cursorPosition: number; // Position of cursor in text (0 = start, text.length = end)
 }
 
 const DEFAULT_STATE: TextEditingState = {
 	isEditing: false,
 	shapeId: null,
 	originalText: '',
-	currentText: ''
+	currentText: '',
+	cursorPosition: 0
 };
 
 /**
@@ -55,7 +57,8 @@ export function startTextEditing(shapeId: string): boolean {
 		isEditing: true,
 		shapeId,
 		originalText: text,
-		currentText: text
+		currentText: text,
+		cursorPosition: text.length // Start with cursor at end
 	});
 
 	// Select the shape being edited
@@ -307,4 +310,139 @@ export function updateEditingTextProperties(
 	shapesHistory.updateShapes([updatedShape]);
 
 	return true;
+}
+
+/**
+ * Move cursor left by one position
+ */
+export function moveCursorLeft(): void {
+	textEditingState.update((state) => {
+		if (!state.isEditing || state.cursorPosition === 0) {
+			return state;
+		}
+		return { ...state, cursorPosition: state.cursorPosition - 1 };
+	});
+}
+
+/**
+ * Move cursor right by one position
+ */
+export function moveCursorRight(): void {
+	textEditingState.update((state) => {
+		if (!state.isEditing || state.cursorPosition >= state.currentText.length) {
+			return state;
+		}
+		return { ...state, cursorPosition: state.cursorPosition + 1 };
+	});
+}
+
+/**
+ * Move cursor to start of text
+ */
+export function moveCursorToStart(): void {
+	textEditingState.update((state) => {
+		if (!state.isEditing) {
+			return state;
+		}
+		return { ...state, cursorPosition: 0 };
+	});
+}
+
+/**
+ * Move cursor to end of text
+ */
+export function moveCursorToEnd(): void {
+	textEditingState.update((state) => {
+		if (!state.isEditing) {
+			return state;
+		}
+		return { ...state, cursorPosition: state.currentText.length };
+	});
+}
+
+/**
+ * Move cursor to start of current line
+ */
+export function moveCursorToLineStart(): void {
+	textEditingState.update((state) => {
+		if (!state.isEditing) {
+			return state;
+		}
+		const textBeforeCursor = state.currentText.slice(0, state.cursorPosition);
+		const lastNewlineIndex = textBeforeCursor.lastIndexOf('\n');
+		const lineStart = lastNewlineIndex === -1 ? 0 : lastNewlineIndex + 1;
+		return { ...state, cursorPosition: lineStart };
+	});
+}
+
+/**
+ * Move cursor to end of current line
+ */
+export function moveCursorToLineEnd(): void {
+	textEditingState.update((state) => {
+		if (!state.isEditing) {
+			return state;
+		}
+		const textAfterCursor = state.currentText.slice(state.cursorPosition);
+		const nextNewlineIndex = textAfterCursor.indexOf('\n');
+		const lineEnd =
+			nextNewlineIndex === -1
+				? state.currentText.length
+				: state.cursorPosition + nextNewlineIndex;
+		return { ...state, cursorPosition: lineEnd };
+	});
+}
+
+/**
+ * Insert text at cursor position
+ */
+export function insertTextAtCursor(text: string): void {
+	textEditingState.update((state) => {
+		if (!state.isEditing) {
+			return state;
+		}
+		const before = state.currentText.slice(0, state.cursorPosition);
+		const after = state.currentText.slice(state.cursorPosition);
+		return {
+			...state,
+			currentText: before + text + after,
+			cursorPosition: state.cursorPosition + text.length
+		};
+	});
+}
+
+/**
+ * Delete character before cursor (Backspace)
+ */
+export function deleteBeforeCursor(): void {
+	textEditingState.update((state) => {
+		if (!state.isEditing || state.cursorPosition === 0) {
+			return state;
+		}
+		const before = state.currentText.slice(0, state.cursorPosition - 1);
+		const after = state.currentText.slice(state.cursorPosition);
+		return {
+			...state,
+			currentText: before + after,
+			cursorPosition: state.cursorPosition - 1
+		};
+	});
+}
+
+/**
+ * Delete character after cursor (Delete key)
+ */
+export function deleteAfterCursor(): void {
+	textEditingState.update((state) => {
+		if (!state.isEditing || state.cursorPosition >= state.currentText.length) {
+			return state;
+		}
+		const before = state.currentText.slice(0, state.cursorPosition);
+		const after = state.currentText.slice(state.cursorPosition + 1);
+		return {
+			...state,
+			currentText: before + after
+			// cursorPosition stays the same
+		};
+	});
 }

@@ -27,7 +27,7 @@ function getShapeBounds(shape: Shape): { x: number; y: number; width: number; he
 				x: shape.x,
 				y: shape.y,
 				width: (shape.width || 100) * shape.scaleX,
-				height: (shape.height || shape.fontSize * 1.2) * shape.scaleY
+				height: (shape.height || shape.fontSize * 1.5) * shape.scaleY // LINE_HEIGHT_MULTIPLIER
 			};
 		case 'arrow': {
 			const xs = shape.points.map((p) => shape.x + p[0]);

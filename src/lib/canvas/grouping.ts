@@ -33,7 +33,7 @@ function calculateBounds(shapes: Shape[]): { x: number; y: number; width: number
 			case 'text':
 				// Use width/height if available, otherwise estimate
 				shapeWidth = (shape.width || 100) * shape.scaleX;
-				shapeHeight = (shape.height || shape.fontSize * 1.2) * shape.scaleY;
+				shapeHeight = (shape.height || shape.fontSize * 1.5) * shape.scaleY; // LINE_HEIGHT_MULTIPLIER
 				break;
 			case 'arrow': {
 				// Calculate arrow bounds from points
