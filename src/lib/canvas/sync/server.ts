@@ -65,6 +65,9 @@ export function createSyncServer(options: SyncServerOptions = {}) {
 		// Add client to room
 		room.clients.set(client.clientId, client);
 
+		// Log successful join
+		console.log(`Client joined: ${client.name || client.clientId} (room: ${message.sceneId}, clients: ${room.clients.size})`);
+
 		// Send joined confirmation
 		client.send({
 			type: 'joined',

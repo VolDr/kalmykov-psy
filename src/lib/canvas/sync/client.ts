@@ -56,6 +56,7 @@ export function createSyncClient(options: SyncClientOptions): SyncClient {
 	let ws: WebSocket | null = null;
 	let reconnectCount = 0;
 	let reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
+	let hasLoggedError = false; // Track if we've logged an error to avoid spam
 
 	// Offline queue for operations
 	const offlineQueue: Operation[] = [];
@@ -79,6 +80,7 @@ export function createSyncClient(options: SyncClientOptions): SyncClient {
 		ws.onopen = () => {
 			status.set('connected');
 			reconnectCount = 0;
+			hasLoggedError = false; // Reset error flag on successful connection
 
 			// Send join message
 			const joinMessage: ClientMessage = {
@@ -110,7 +112,15 @@ export function createSyncClient(options: SyncClientOptions): SyncClient {
 		};
 
 		ws.onerror = (err) => {
-			console.error('WebSocket error:', err);
+			// Only log error once to avoid console spam during reconnection attempts
+			if (!hasLoggedError) {
+				console.error('WebSocket connection failed:', {
+					url,
+					error: err,
+					message: 'Unable to connect to multiplayer server. Will retry automatically.'
+				});
+				hasLoggedError = true;
+			}
 		};
 	}
 
@@ -141,6 +151,11 @@ export function createSyncClient(options: SyncClientOptions): SyncClient {
 
 	function attemptReconnect() {
 		if (reconnectCount >= reconnectAttempts) {
+			// All reconnection attempts failed
+			if (!hasLoggedError) {
+				console.warn('WebSocket: Maximum reconnection attempts reached. Multiplayer disabled.');
+				hasLoggedError = true;
+			}
 			return;
 		}
 
