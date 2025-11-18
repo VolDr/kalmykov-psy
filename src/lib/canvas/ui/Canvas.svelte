@@ -945,7 +945,7 @@
 			const localY = pointerPos.y + textHeight / 2;
 
 			cursorPos = getCursorPositionFromClick(
-				editingTextState.text,
+				editingTextState.currentText,
 				textShape.fontSize,
 				textWidth,
 				textShape.align,
@@ -958,7 +958,7 @@
 			const localY = pointerPos.y + rect.height / 2;
 
 			cursorPos = getCursorPositionFromClick(
-				editingTextState.text,
+				editingTextState.currentText,
 				DEFAULT_FONT_SIZE,
 				rect.width,
 				'center',
@@ -971,7 +971,7 @@
 			const localY = pointerPos.y + ellipse.ry;
 
 			cursorPos = getCursorPositionFromClick(
-				editingTextState.text,
+				editingTextState.currentText,
 				DEFAULT_FONT_SIZE,
 				ellipse.rx * 2,
 				'center',
@@ -1019,7 +1019,7 @@
 			const localY = pointerPos.y + textHeight / 2;
 
 			cursorPos = getCursorPositionFromClick(
-				editingTextState.text,
+				editingTextState.currentText,
 				textShape.fontSize,
 				textWidth,
 				textShape.align,
@@ -1032,7 +1032,7 @@
 			const localY = pointerPos.y + rect.height / 2;
 
 			cursorPos = getCursorPositionFromClick(
-				editingTextState.text,
+				editingTextState.currentText,
 				DEFAULT_FONT_SIZE,
 				rect.width,
 				'center',
@@ -1045,7 +1045,7 @@
 			const localY = pointerPos.y + ellipse.ry;
 
 			cursorPos = getCursorPositionFromClick(
-				editingTextState.text,
+				editingTextState.currentText,
 				DEFAULT_FONT_SIZE,
 				ellipse.rx * 2,
 				'center',
@@ -1322,14 +1322,57 @@
 	// Get display text with cursor if editing
 	function getDisplayText(shapeId: string, text: string): string {
 		if (editingTextState.isEditing && editingTextState.shapeId === shapeId) {
+			// Use currentText from editing state, not the shape's text
+			const currentText = editingTextState.currentText;
+
+			// Check if there's a selection
+			if (
+				editingTextState.selectionStart !== null &&
+				editingTextState.selectionEnd !== null &&
+				editingTextState.selectionStart !== editingTextState.selectionEnd
+			) {
+				// Just return text without cursor when there's selection
+				return currentText;
+			}
+
 			// Always reserve space for cursor to prevent text from jumping
 			// When cursor is visible, show it; when hidden, show thin space to maintain width
-			const before = text.slice(0, editingTextState.cursorPosition);
-			const after = text.slice(editingTextState.cursorPosition);
+			const before = currentText.slice(0, editingTextState.cursorPosition);
+			const after = currentText.slice(editingTextState.cursorPosition);
 			const cursorChar = showCursor ? '|' : '\u2009'; // Thin space when hidden (approximately same width as |)
 			return before + cursorChar + after;
 		}
 		return text;
+	}
+
+	// Helper to render text with selection highlight
+	// Returns array of text parts: [before, selected, after]
+	function getTextParts(shapeId: string, text: string): { before: string; selected: string; after: string; hasSelection: boolean } {
+		if (
+			editingTextState.isEditing &&
+			editingTextState.shapeId === shapeId &&
+			editingTextState.selectionStart !== null &&
+			editingTextState.selectionEnd !== null &&
+			editingTextState.selectionStart !== editingTextState.selectionEnd
+		) {
+			const currentText = editingTextState.currentText;
+			const start = Math.min(editingTextState.selectionStart, editingTextState.selectionEnd);
+			const end = Math.max(editingTextState.selectionStart, editingTextState.selectionEnd);
+
+			return {
+				before: currentText.slice(0, start),
+				selected: currentText.slice(start, end),
+				after: currentText.slice(end),
+				hasSelection: true
+			};
+		}
+
+		return {
+			before: '',
+			selected: '',
+			after: '',
+			hasSelection: false
+		};
 	}
 
 
@@ -2141,6 +2184,21 @@
 							ondragend={() => {}}
 						/>
 						{#if rect.text || editingTextState.shapeId === rect.id}
+							{@const rectParts = getTextParts(rect.id, rect.text || '')}
+							<!-- Selection highlight -->
+							{#if rectParts.hasSelection}
+								{@const beforeWidth = rectParts.before.length * DEFAULT_FONT_SIZE * 0.6}
+								{@const selectedWidth = rectParts.selected.length * DEFAULT_FONT_SIZE * 0.6}
+								<Rect
+									x={beforeWidth - rect.width / 2}
+									y={-effectiveHeight / 2}
+									width={selectedWidth}
+									height={effectiveHeight}
+									fill="#3b82f6"
+									opacity={0.4}
+									listening={false}
+								/>
+							{/if}
 							<KonvaText
 								x={0}
 								y={0}
@@ -2190,6 +2248,21 @@
 							ondragend={() => {}}
 						/>
 						{#if el.text || editingTextState.shapeId === el.id}
+							{@const ellipseParts = getTextParts(el.id, el.text || '')}
+							<!-- Selection highlight -->
+							{#if ellipseParts.hasSelection}
+								{@const beforeWidth = ellipseParts.before.length * DEFAULT_FONT_SIZE * 0.6}
+								{@const selectedWidth = ellipseParts.selected.length * DEFAULT_FONT_SIZE * 0.6}
+								<Rect
+									x={beforeWidth - el.rx}
+									y={-effectiveRy}
+									width={selectedWidth}
+									height={effectiveRy * 2}
+									fill="#3b82f6"
+									opacity={0.4}
+									listening={false}
+								/>
+							{/if}
 							<KonvaText
 								x={0}
 								y={0}
@@ -2214,46 +2287,61 @@
 					{@const t = shape as TextShape}
 					{@const textWidth = t.width ?? t.text.length * t.fontSize * 0.6}
 					{@const textHeight = t.height ?? t.fontSize * LINE_HEIGHT_MULTIPLIER}
-					<!-- Invisible rect for transformer support -->
-					<Rect
-						id={t.id}
-						x={t.x}
-						y={t.y}
-						width={textWidth}
-						height={textHeight}
-						offsetX={textWidth / 2}
-						offsetY={textHeight / 2}
-						rotation={t.rotation}
-						draggable={true}
-						opacity={0}
-						fill="transparent"
-						stroke="transparent"
-						strokeScaleEnabled={false}
-						onclick={(e) => onShapeClick(t.id, e)}
-						ondblclick={() => handleDoubleClick(t.id)}
-						ondragmove={(e) => onShapeDragMove(t, e)}
-						ondragend={(e) => onShapeDragEnd(t, e)}
-					/>
-					<!-- Text content -->
-					<KonvaText
-						x={t.x}
-						y={t.y}
-						offsetX={textWidth / 2}
-						offsetY={textHeight / 2}
-						width={textWidth}
-						height={textHeight}
-						text={getDisplayText(t.id, t.text)}
-						fontSize={t.fontSize}
-						fontFamily={t.fontFamily}
-						fill={t.fill ?? t.stroke ?? '#000000'}
-						align={t.align}
-						verticalAlign="middle"
-						rotation={t.rotation}
-						listening={editingTextState.isEditing && editingTextState.shapeId === t.id}
-						onmousedown={(e) => handleTextMouseDown(t.id, e)}
-						onmousemove={(e) => handleTextMouseMove(t.id, e)}
-						onmouseup={handleTextMouseUp}
-					/>
+					{@const parts = getTextParts(t.id, t.text)}
+					<Group x={t.x} y={t.y} rotation={t.rotation}>
+						<!-- Invisible rect for transformer support -->
+						<Rect
+							id={t.id}
+							x={0}
+							y={0}
+							width={textWidth}
+							height={textHeight}
+							offsetX={textWidth / 2}
+							offsetY={textHeight / 2}
+							draggable={true}
+							opacity={0}
+							fill="transparent"
+							stroke="transparent"
+							strokeScaleEnabled={false}
+							onclick={(e) => onShapeClick(t.id, e)}
+							ondblclick={() => handleDoubleClick(t.id)}
+							ondragmove={(e) => onShapeDragMove(t, e)}
+							ondragend={(e) => onShapeDragEnd(t, e)}
+						/>
+						<!-- Selection highlight -->
+						{#if parts.hasSelection}
+							{@const beforeWidth = parts.before.length * t.fontSize * 0.6}
+							{@const selectedWidth = parts.selected.length * t.fontSize * 0.6}
+							<Rect
+								x={beforeWidth - textWidth / 2}
+								y={-textHeight / 2}
+								width={selectedWidth}
+								height={textHeight}
+								fill="#3b82f6"
+								opacity={0.4}
+								listening={false}
+							/>
+						{/if}
+						<!-- Text content -->
+						<KonvaText
+							x={0}
+							y={0}
+							offsetX={textWidth / 2}
+							offsetY={textHeight / 2}
+							width={textWidth}
+							height={textHeight}
+							text={getDisplayText(t.id, t.text)}
+							fontSize={t.fontSize}
+							fontFamily={t.fontFamily}
+							fill={t.fill ?? t.stroke ?? '#000000'}
+							align={t.align}
+							verticalAlign="middle"
+							listening={editingTextState.isEditing && editingTextState.shapeId === t.id}
+							onmousedown={(e) => handleTextMouseDown(t.id, e)}
+							onmousemove={(e) => handleTextMouseMove(t.id, e)}
+							onmouseup={handleTextMouseUp}
+						/>
+					</Group>
 				{:else if shape.type === 'arrow'}
 					{@const a = shape as ArrowShape}
 					<Group
