@@ -3,7 +3,15 @@
 	import { createRoot } from 'react-dom/client';
 	import type { ExcalidrawProps } from '@excalidraw/excalidraw/types/types';
 
-	let props: ExcalidrawProps = $props();
+	// Only accept props we actually use, not the entire ExcalidrawProps interface
+	interface Props {
+		theme?: ExcalidrawProps['theme'];
+		excalidrawAPI?: ExcalidrawProps['excalidrawAPI'];
+		initialData?: ExcalidrawProps['initialData'];
+		onChange?: ExcalidrawProps['onChange'];
+	}
+
+	let props: Props = $props();
 	let rootEl: HTMLElement;
 
 	$effect(() => {
@@ -20,9 +28,7 @@
 					key: 'ChangeCanvasBackground'
 				})
 			]);
-			// Remove collaborators from props as it's not used and causes errors
-			const { collaborators, ...excalidrawProps } = props as any;
-			const excalidraw = createElement(Excalidraw, excalidrawProps, [welcome, menu]);
+			const excalidraw = createElement(Excalidraw, props, [welcome, menu]);
 			root.render(excalidraw);
 		});
 
