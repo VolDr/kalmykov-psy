@@ -20,11 +20,8 @@
 					key: 'ChangeCanvasBackground'
 				})
 			]);
-			// Ensure collaborators is always an array to prevent UserList errors
-			const excalidrawProps = {
-				...props,
-				collaborators: Array.isArray(props.collaborators) ? props.collaborators : []
-			};
+			// Remove collaborators from props as it's not used and causes errors
+			const { collaborators, ...excalidrawProps } = props as any;
 			const excalidraw = createElement(Excalidraw, excalidrawProps, [welcome, menu]);
 			root.render(excalidraw);
 		});
