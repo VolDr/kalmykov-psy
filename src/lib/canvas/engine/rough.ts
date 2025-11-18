@@ -53,18 +53,25 @@ export function renderRoughRect(rect: RectShape): HTMLCanvasElement {
 	const rc = rough.canvas(canvas);
 	const opts: RoughOptions = rect.roughOptions || {};
 
-	rc.rectangle(padding, padding, rect.width, rect.height, {
+	// Only pass fill-related options if fill is defined
+	const roughOpts: any = {
 		roughness: opts.roughness ?? 1,
 		bowing: opts.bowing ?? 1,
 		seed: opts.seed,
 		stroke: rect.stroke,
-		strokeWidth: rect.strokeWidth,
-		fill: rect.fill ?? undefined,
-		fillStyle: opts.fillStyle ?? 'hachure',
-		fillWeight: opts.fillWeight,
-		hachureAngle: opts.hachureAngle,
-		hachureGap: opts.hachureGap
-	});
+		strokeWidth: rect.strokeWidth
+	};
+
+	// Add fill options only if fill is defined
+	if (rect.fill !== null && rect.fill !== undefined) {
+		roughOpts.fill = rect.fill;
+		roughOpts.fillStyle = opts.fillStyle ?? 'hachure';
+		if (opts.fillWeight !== undefined) roughOpts.fillWeight = opts.fillWeight;
+		if (opts.hachureAngle !== undefined) roughOpts.hachureAngle = opts.hachureAngle;
+		if (opts.hachureGap !== undefined) roughOpts.hachureGap = opts.hachureGap;
+	}
+
+	rc.rectangle(padding, padding, rect.width, rect.height, roughOpts);
 
 	roughCache.set(cacheKey, canvas);
 	return canvas;
@@ -91,18 +98,25 @@ export function renderRoughEllipse(ellipse: EllipseShape): HTMLCanvasElement {
 	const rc = rough.canvas(canvas);
 	const opts: RoughOptions = ellipse.roughOptions || {};
 
-	rc.ellipse(padding + ellipse.rx, padding + ellipse.ry, ellipse.rx * 2, ellipse.ry * 2, {
+	// Only pass fill-related options if fill is defined
+	const roughOpts: any = {
 		roughness: opts.roughness ?? 1,
 		bowing: opts.bowing ?? 1,
 		seed: opts.seed,
 		stroke: ellipse.stroke,
-		strokeWidth: ellipse.strokeWidth,
-		fill: ellipse.fill ?? undefined,
-		fillStyle: opts.fillStyle ?? 'hachure',
-		fillWeight: opts.fillWeight,
-		hachureAngle: opts.hachureAngle,
-		hachureGap: opts.hachureGap
-	});
+		strokeWidth: ellipse.strokeWidth
+	};
+
+	// Add fill options only if fill is defined
+	if (ellipse.fill !== null && ellipse.fill !== undefined) {
+		roughOpts.fill = ellipse.fill;
+		roughOpts.fillStyle = opts.fillStyle ?? 'hachure';
+		if (opts.fillWeight !== undefined) roughOpts.fillWeight = opts.fillWeight;
+		if (opts.hachureAngle !== undefined) roughOpts.hachureAngle = opts.hachureAngle;
+		if (opts.hachureGap !== undefined) roughOpts.hachureGap = opts.hachureGap;
+	}
+
+	rc.ellipse(padding + ellipse.rx, padding + ellipse.ry, ellipse.rx * 2, ellipse.ry * 2, roughOpts);
 
 	roughCache.set(cacheKey, canvas);
 	return canvas;
