@@ -23,7 +23,7 @@
 			// Ensure collaborators is always an array to prevent UserList errors
 			const excalidrawProps = {
 				...props,
-				collaborators: props.collaborators ?? []
+				collaborators: [],
 			};
 			const excalidraw = createElement(Excalidraw, excalidrawProps, [welcome, menu]);
 			root.render(excalidraw);

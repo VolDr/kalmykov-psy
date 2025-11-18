@@ -21,7 +21,8 @@
 				if (excalidrawAPI && data.elements) {
 					excalidrawAPI.updateScene({
 						elements: data.elements,
-						appState: data.appState
+						appState: data.appState,
+						collaborators: []
 					});
 				}
 			}
@@ -56,7 +57,7 @@
 			// Auto-save every 30 seconds
 			const interval = setInterval(() => {
 				saveCanvasData();
-			}, 30000);
+			}, 3000);
 
 			return () => clearInterval(interval);
 		}
