@@ -33,5 +33,21 @@
 <style>
 	.root {
 		height: 100svh;
+		font-size: 16px;
+	}
+
+	.root :global(.ExcalidrawLogo) {
+		max-width: 150px;
+		max-height: 40px;
+	}
+
+	.root :global(.ExcalidrawLogo.is-small) {
+		max-width: 100px;
+		max-height: 30px;
+	}
+
+	.root :global(.ExcalidrawLogo svg) {
+		max-width: 100%;
+		max-height: 100%;
 	}
 </style>
