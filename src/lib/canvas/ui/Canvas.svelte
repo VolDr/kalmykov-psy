@@ -88,7 +88,15 @@
 		moveCursorToLineEnd,
 		insertTextAtCursor,
 		deleteBeforeCursor,
-		deleteAfterCursor
+		deleteAfterCursor,
+		selectAllText,
+		copySelectedTextToClipboard,
+		cutSelectedTextToClipboard,
+		pasteTextFromClipboard,
+		createTextShapeAt,
+		hasTextSelection,
+		replaceSelectedText,
+		setCursorPosition
 	} from '../text-editing';
 	import { bringToFront, sendToBack, bringForward, sendBackward } from '../layers';
 	import {
@@ -856,6 +864,121 @@
 		}
 	}
 
+	// === Text cursor positioning from mouse click ===
+
+	/**
+	 * Calculate cursor position from mouse click on text
+	 * Returns character index closest to click position
+	 */
+	function getCursorPositionFromClick(
+		text: string,
+		fontSize: number,
+		width: number,
+		align: 'left' | 'center' | 'right',
+		clickX: number,
+		clickY: number
+	): number {
+		const lines = text.split('\n');
+		const lineHeight = fontSize * LINE_HEIGHT_MULTIPLIER;
+		const avgCharWidth = fontSize * 0.6;
+
+		// Determine which line was clicked
+		const lineIndex = Math.max(0, Math.min(lines.length - 1, Math.floor(clickY / lineHeight)));
+		const line = lines[lineIndex];
+
+		// Calculate horizontal offset based on alignment
+		let lineStartX = 0;
+		if (align === 'center') {
+			lineStartX = (width - line.length * avgCharWidth) / 2;
+		} else if (align === 'right') {
+			lineStartX = width - line.length * avgCharWidth;
+		}
+
+		// Calculate character position within the line
+		const relativeX = clickX - lineStartX;
+		const charIndex = Math.max(0, Math.min(line.length, Math.round(relativeX / avgCharWidth)));
+
+		// Calculate absolute cursor position (sum of all previous lines + current line position)
+		let absolutePosition = 0;
+		for (let i = 0; i < lineIndex; i++) {
+			absolutePosition += lines[i].length + 1; // +1 for newline character
+		}
+		absolutePosition += charIndex;
+
+		return Math.max(0, Math.min(text.length, absolutePosition));
+	}
+
+	/**
+	 * Handle click on text element during editing
+	 */
+	function handleTextClick(shapeId: string, e: any) {
+		if (!editingTextState.isEditing || editingTextState.shapeId !== shapeId) {
+			return;
+		}
+
+		const evt = e.evt as MouseEvent;
+		const shape = shapes.find((s) => s.id === shapeId);
+		if (!shape) return;
+
+		// Get local coordinates relative to the text element
+		const konvaNode = e.target;
+		const pointerPos = konvaNode.getRelativePointerPosition();
+
+		if (!pointerPos) return;
+
+		// Calculate cursor position based on click
+		if (shape.type === 'text') {
+			const textShape = shape as TextShape;
+			const textWidth = textShape.width ?? textShape.text.length * textShape.fontSize * 0.6;
+			const textHeight = textShape.height ?? textShape.fontSize * LINE_HEIGHT_MULTIPLIER;
+
+			// Adjust for offset (text is centered)
+			const localX = pointerPos.x + textWidth / 2;
+			const localY = pointerPos.y + textHeight / 2;
+
+			const cursorPos = getCursorPositionFromClick(
+				editingTextState.text,
+				textShape.fontSize,
+				textWidth,
+				textShape.align,
+				localX,
+				localY
+			);
+
+			setCursorPosition(cursorPos);
+		} else if (shape.type === 'rect') {
+			const rect = shape as RectShape;
+			const localX = pointerPos.x + rect.width / 2;
+			const localY = pointerPos.y + rect.height / 2;
+
+			const cursorPos = getCursorPositionFromClick(
+				editingTextState.text,
+				DEFAULT_FONT_SIZE,
+				rect.width,
+				'center',
+				localX,
+				localY
+			);
+
+			setCursorPosition(cursorPos);
+		} else if (shape.type === 'ellipse') {
+			const ellipse = shape as EllipseShape;
+			const localX = pointerPos.x + ellipse.rx;
+			const localY = pointerPos.y + ellipse.ry;
+
+			const cursorPos = getCursorPositionFromClick(
+				editingTextState.text,
+				DEFAULT_FONT_SIZE,
+				ellipse.rx * 2,
+				'center',
+				localX,
+				localY
+			);
+
+			setCursorPosition(cursorPos);
+		}
+	}
+
 	// === Hotkeys (RU/EN - by code) ===
 
 	function handleKeyDown(e: KeyboardEvent) {
@@ -868,6 +991,40 @@
 		if (editingTextState.isEditing && editingTextState.shapeId) {
 			const shape = shapes.find((s) => s.id === editingTextState.shapeId);
 			if (!shape) return;
+
+			// Ctrl+A - select all
+			if ((e.ctrlKey || e.metaKey) && e.key === 'a') {
+				e.preventDefault();
+				selectAllText();
+				return;
+			}
+
+			// Ctrl+C - copy
+			if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
+				e.preventDefault();
+				copySelectedTextToClipboard();
+				return;
+			}
+
+			// Ctrl+X - cut
+			if ((e.ctrlKey || e.metaKey) && e.key === 'x') {
+				e.preventDefault();
+				cutSelectedTextToClipboard().then(() => {
+					updateShapeWithCurrentText();
+				});
+				return;
+			}
+
+			// Ctrl+V - paste
+			if ((e.ctrlKey || e.metaKey) && e.key === 'v') {
+				e.preventDefault();
+				pasteTextFromClipboard().then((success) => {
+					if (success) {
+						updateShapeWithCurrentText();
+					}
+				});
+				return;
+			}
 
 			// Escape - cancel editing
 			if (e.key === 'Escape') {
@@ -949,6 +1106,37 @@
 			}
 
 			// Don't propagate other keys during text editing
+			return;
+		}
+
+		// Handle Ctrl+V when NOT editing text - create new text shape with clipboard content
+		if ((e.ctrlKey || e.metaKey) && e.key === 'v' && !editingTextState.isEditing) {
+			e.preventDefault();
+			if (typeof navigator !== 'undefined' && navigator.clipboard) {
+				navigator.clipboard
+					.readText()
+					.then((text) => {
+						if (text) {
+							// Get center of viewport in world coordinates
+							const centerX = (stageWidth / 2 - cam.x) / cam.scale;
+							const centerY = (stageHeight / 2 - cam.y) / cam.scale;
+							createTextShapeAt(centerX, centerY, text);
+
+							// Broadcast to other clients if multiplayer
+							if (syncClient && multiplayer) {
+								const historyState = get(shapesHistory);
+								const newShape = historyState.shapes[historyState.shapes.length - 1];
+								if (newShape) {
+									const op = createAddShapesOp(sceneId, clientId, [newShape]);
+									syncClient.sendOperation(op);
+								}
+							}
+						}
+					})
+					.catch((err) => {
+						console.error('Failed to read clipboard:', err);
+					});
+			}
 			return;
 		}
 
@@ -1878,7 +2066,8 @@
 								fontSize={DEFAULT_FONT_SIZE}
 								fontFamily={CANVAS_FONT_FAMILY}
 								wrap="word"
-								listening={false}
+								listening={editingTextState.isEditing && editingTextState.shapeId === rect.id}
+								onclick={(e) => handleTextClick(rect.id, e)}
 							/>
 						{/if}
 					</Group>
@@ -1924,7 +2113,8 @@
 								fontSize={DEFAULT_FONT_SIZE}
 								fontFamily={CANVAS_FONT_FAMILY}
 								wrap="word"
-								listening={false}
+								listening={editingTextState.isEditing && editingTextState.shapeId === el.id}
+								onclick={(e) => handleTextClick(el.id, e)}
 							/>
 						{/if}
 					</Group>
@@ -1967,7 +2157,8 @@
 						align={t.align}
 						verticalAlign="middle"
 						rotation={t.rotation}
-						listening={false}
+						listening={editingTextState.isEditing && editingTextState.shapeId === t.id}
+						onclick={(e) => handleTextClick(t.id, e)}
 					/>
 				{:else if shape.type === 'arrow'}
 					{@const a = shape as ArrowShape}
