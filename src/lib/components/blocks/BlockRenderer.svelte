@@ -10,6 +10,7 @@
 	import ListCard from './ListCard.svelte';
 	import IconCard from './IconCard.svelte';
 	import ContactCard from './ContactCard.svelte';
+	import RichContactCard from './RichContactCard.svelte';
 	import AboutIntroDual from './AboutIntroDual.svelte';
 
 	// Unique blocks
@@ -97,6 +98,15 @@
 						title={card.title}
 						phone={card.phone}
 						link={card.link}
+						minHeight={card.minHeight}
+					/>
+				{:else if card.type === 'rich-contact-card'}
+					<RichContactCard
+						title={card.title}
+						introText={card.introText}
+						contacts={card.contacts}
+						additionalLinks={card.additionalLinks}
+						gridClass={card.gridClass}
 						minHeight={card.minHeight}
 					/>
 				{/if}

@@ -19,7 +19,9 @@
 		onUpdate(updated);
 	}
 
-	function addCard(type: 'list-card' | 'icon-card' | 'contact-card' | 'link-card') {
+	function addCard(
+		type: 'list-card' | 'icon-card' | 'contact-card' | 'link-card' | 'rich-contact-card'
+	) {
 		const cards = [...block.config.cards];
 		if (type === 'list-card') {
 			cards.push({ type: 'list-card', title: '', points: [''] });
@@ -29,6 +31,8 @@
 			cards.push({ type: 'contact-card', title: '', phone: '', link: '' });
 		} else if (type === 'link-card') {
 			cards.push({ type: 'link-card', title: '', description: '', link: '' });
+		} else if (type === 'rich-contact-card') {
+			cards.push({ type: 'rich-contact-card', title: '', contacts: [] });
 		}
 		updateConfig('cards', cards);
 	}
@@ -69,6 +73,105 @@
 		const card = cards[cardIndex];
 		if (card.type === 'list-card') {
 			cards[cardIndex] = { ...card, points: card.points.filter((_, i) => i !== pointIndex) };
+			updateConfig('cards', cards);
+		}
+	}
+
+	// Rich Contact Card helpers
+	function addIntroText(cardIndex: number) {
+		const cards = [...block.config.cards];
+		const card = cards[cardIndex];
+		if (card.type === 'rich-contact-card') {
+			const introText = card.introText || [];
+			cards[cardIndex] = { ...card, introText: [...introText, ''] };
+			updateConfig('cards', cards);
+		}
+	}
+
+	function updateIntroText(cardIndex: number, textIndex: number, value: string) {
+		const cards = [...block.config.cards];
+		const card = cards[cardIndex];
+		if (card.type === 'rich-contact-card') {
+			const introText = [...(card.introText || [])];
+			introText[textIndex] = value;
+			cards[cardIndex] = { ...card, introText };
+			updateConfig('cards', cards);
+		}
+	}
+
+	function removeIntroText(cardIndex: number, textIndex: number) {
+		const cards = [...block.config.cards];
+		const card = cards[cardIndex];
+		if (card.type === 'rich-contact-card') {
+			cards[cardIndex] = {
+				...card,
+				introText: (card.introText || []).filter((_, i) => i !== textIndex)
+			};
+			updateConfig('cards', cards);
+		}
+	}
+
+	function addContact(cardIndex: number) {
+		const cards = [...block.config.cards];
+		const card = cards[cardIndex];
+		if (card.type === 'rich-contact-card') {
+			cards[cardIndex] = { ...card, contacts: [...card.contacts, { icon: 'phone', text: '' }] };
+			updateConfig('cards', cards);
+		}
+	}
+
+	function updateContact(cardIndex: number, contactIndex: number, field: string, value: string) {
+		const cards = [...block.config.cards];
+		const card = cards[cardIndex];
+		if (card.type === 'rich-contact-card') {
+			const contacts = [...card.contacts];
+			contacts[contactIndex] = { ...contacts[contactIndex], [field]: value };
+			cards[cardIndex] = { ...card, contacts };
+			updateConfig('cards', cards);
+		}
+	}
+
+	function removeContact(cardIndex: number, contactIndex: number) {
+		const cards = [...block.config.cards];
+		const card = cards[cardIndex];
+		if (card.type === 'rich-contact-card') {
+			cards[cardIndex] = {
+				...card,
+				contacts: card.contacts.filter((_, i) => i !== contactIndex)
+			};
+			updateConfig('cards', cards);
+		}
+	}
+
+	function addAdditionalLink(cardIndex: number) {
+		const cards = [...block.config.cards];
+		const card = cards[cardIndex];
+		if (card.type === 'rich-contact-card') {
+			const additionalLinks = card.additionalLinks || [];
+			cards[cardIndex] = { ...card, additionalLinks: [...additionalLinks, ''] };
+			updateConfig('cards', cards);
+		}
+	}
+
+	function updateAdditionalLink(cardIndex: number, linkIndex: number, value: string) {
+		const cards = [...block.config.cards];
+		const card = cards[cardIndex];
+		if (card.type === 'rich-contact-card') {
+			const additionalLinks = [...(card.additionalLinks || [])];
+			additionalLinks[linkIndex] = value;
+			cards[cardIndex] = { ...card, additionalLinks };
+			updateConfig('cards', cards);
+		}
+	}
+
+	function removeAdditionalLink(cardIndex: number, linkIndex: number) {
+		const cards = [...block.config.cards];
+		const card = cards[cardIndex];
+		if (card.type === 'rich-contact-card') {
+			cards[cardIndex] = {
+				...card,
+				additionalLinks: (card.additionalLinks || []).filter((_, i) => i !== linkIndex)
+			};
 			updateConfig('cards', cards);
 		}
 	}
@@ -172,6 +275,14 @@
 				>
 					+ Ссылка
 				</button>
+				<button
+					onclick={() => addCard('rich-contact-card')}
+					class="rounded bg-teal-600 px-2 py-1 text-xs text-white hover:bg-teal-700"
+					type="button"
+					title="Карточка контактов с иконками"
+				>
+					+ Контакты+
+				</button>
 			</div>
 		</div>
 
@@ -184,7 +295,9 @@
 							? 'border-green-200 bg-green-50'
 							: card.type === 'contact-card'
 								? 'border-purple-200 bg-purple-50'
-								: 'border-orange-200 bg-orange-50'}"
+								: card.type === 'rich-contact-card'
+									? 'border-teal-200 bg-teal-50'
+									: 'border-orange-200 bg-orange-50'}"
 				>
 					<div class="mb-2 flex items-center justify-between">
 						<span class="text-xs font-medium uppercase text-gray-500">
@@ -194,7 +307,9 @@
 									? 'Иконка'
 									: card.type === 'contact-card'
 										? 'Контакт'
-										: 'Ссылка'}
+										: card.type === 'rich-contact-card'
+											? 'Контакты+'
+											: 'Ссылка'}
 							#{cardIndex + 1}
 						</span>
 						<button
@@ -336,6 +451,141 @@
 								oninput={(e) => updateCard(cardIndex, 'cta', e.currentTarget.value)}
 								class="w-full rounded border border-gray-300 px-2 py-1.5 text-sm focus:border-blue-500 focus:outline-none"
 								placeholder="Текст кнопки (опц.)"
+							/>
+						{:else if card.type === 'rich-contact-card'}
+							<input
+								type="text"
+								value={card.title}
+								oninput={(e) => updateCard(cardIndex, 'title', e.currentTarget.value)}
+								class="w-full rounded border border-gray-300 px-2 py-1.5 text-sm focus:border-blue-500 focus:outline-none"
+								placeholder="Заголовок (например: как со мной связаться)"
+							/>
+
+							<!-- Intro Text -->
+							<div>
+								<div class="mb-1 flex items-center justify-between">
+									<label class="text-xs font-medium text-gray-700">Вступительный текст</label>
+									<button
+										onclick={() => addIntroText(cardIndex)}
+										class="rounded bg-teal-100 px-2 py-0.5 text-xs text-teal-700 hover:bg-teal-200"
+										type="button"
+									>
+										+ Параграф
+									</button>
+								</div>
+								<div class="space-y-1">
+									{#each card.introText || [] as text, textIndex}
+										<div class="flex gap-2">
+											<textarea
+												value={text}
+												oninput={(e) => updateIntroText(cardIndex, textIndex, e.currentTarget.value)}
+												rows="2"
+												class="flex-1 rounded border border-gray-300 px-2 py-1 text-sm focus:border-blue-500 focus:outline-none"
+												placeholder="Текст параграфа (поддерживает markdown)"
+											></textarea>
+											<button
+												onclick={() => removeIntroText(cardIndex, textIndex)}
+												class="rounded p-1 text-red-600 hover:bg-red-100"
+												type="button"
+												aria-label="Удалить параграф"
+											>
+												<span class="icon-[lucide--x] h-3 w-3"></span>
+											</button>
+										</div>
+									{/each}
+								</div>
+							</div>
+
+							<!-- Contacts -->
+							<div>
+								<div class="mb-1 flex items-center justify-between">
+									<label class="text-xs font-medium text-gray-700">Контакты</label>
+									<button
+										onclick={() => addContact(cardIndex)}
+										class="rounded bg-teal-100 px-2 py-0.5 text-xs text-teal-700 hover:bg-teal-200"
+										type="button"
+									>
+										+ Контакт
+									</button>
+								</div>
+								<div class="space-y-2">
+									{#each card.contacts as contact, contactIndex}
+										<div class="rounded border border-teal-200 bg-white p-2">
+											<div class="mb-1 flex items-center justify-between">
+												<span class="text-xs font-medium text-gray-600">Контакт #{contactIndex + 1}</span>
+												<button
+													onclick={() => removeContact(cardIndex, contactIndex)}
+													class="rounded p-1 text-red-600 hover:bg-red-100"
+													type="button"
+													aria-label="Удалить контакт"
+												>
+													<span class="icon-[lucide--trash-2] h-3 w-3"></span>
+												</button>
+											</div>
+											<div class="space-y-1">
+												<input
+													type="text"
+													value={contact.icon}
+													oninput={(e) =>
+														updateContact(cardIndex, contactIndex, 'icon', e.currentTarget.value)}
+													class="w-full rounded border border-gray-300 px-2 py-1 text-sm focus:border-blue-500 focus:outline-none"
+													placeholder="Иконка (phone, message-circle, mail)"
+												/>
+												<textarea
+													value={contact.text}
+													oninput={(e) =>
+														updateContact(cardIndex, contactIndex, 'text', e.currentTarget.value)}
+													rows="2"
+													class="w-full rounded border border-gray-300 px-2 py-1 text-sm focus:border-blue-500 focus:outline-none"
+													placeholder="Текст с ссылкой: [+7 906 537-82-41](https://...)"
+												></textarea>
+											</div>
+										</div>
+									{/each}
+								</div>
+							</div>
+
+							<!-- Additional Links -->
+							<div>
+								<div class="mb-1 flex items-center justify-between">
+									<label class="text-xs font-medium text-gray-700">Дополнительные ссылки</label>
+									<button
+										onclick={() => addAdditionalLink(cardIndex)}
+										class="rounded bg-teal-100 px-2 py-0.5 text-xs text-teal-700 hover:bg-teal-200"
+										type="button"
+									>
+										+ Ссылка
+									</button>
+								</div>
+								<div class="space-y-1">
+									{#each card.additionalLinks || [] as link, linkIndex}
+										<div class="flex gap-2">
+											<input
+												type="text"
+												value={link}
+												oninput={(e) => updateAdditionalLink(cardIndex, linkIndex, e.currentTarget.value)}
+												class="flex-1 rounded border border-gray-300 px-2 py-1 text-sm focus:border-blue-500 focus:outline-none"
+												placeholder="[Текст ссылки](https://...)"
+											/>
+											<button
+												onclick={() => removeAdditionalLink(cardIndex, linkIndex)}
+												class="rounded p-1 text-red-600 hover:bg-red-100"
+												type="button"
+												aria-label="Удалить ссылку"
+											>
+												<span class="icon-[lucide--x] h-3 w-3"></span>
+											</button>
+										</div>
+									{/each}
+								</div>
+							</div>
+
+							<input
+								type="text"
+								value={card.gridClass || ''}
+								oninput={(e) => updateCard(cardIndex, 'gridClass', e.currentTarget.value)}
+								class="w-full rounded border border-gray-300 px-2 py-1.5 text-sm focus:border-blue-500 focus:outline-none"
+								placeholder="Grid классы (опц.)"
 							/>
 						{/if}
 					</div>
