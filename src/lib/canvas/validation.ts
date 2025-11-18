@@ -1,6 +1,9 @@
 // src/lib/canvas/validation.ts
 import { z } from 'zod';
 
+console.log('[SCHEMA INIT] Loading validation schemas...');
+console.log('[SCHEMA INIT] Zod version:', z.version || 'unknown');
+
 // Base shape schema with more lenient validation
 const baseShapeSchema = z.object({
 	id: z.string().uuid(),
@@ -90,6 +93,10 @@ export const sceneDataSchema = z.object({
 	camera: cameraSchema
 });
 
+console.log('[SCHEMA INIT] All schemas initialized successfully');
+console.log('[SCHEMA INIT] sceneDataSchema type:', typeof sceneDataSchema);
+console.log('[SCHEMA INIT] sceneDataSchema._def:', sceneDataSchema._def ? 'exists' : 'MISSING');
+
 // Validate scene data - returns result or throws
 export function validateSceneData(data: unknown) {
 	return sceneDataSchema.parse(data);
@@ -97,7 +104,24 @@ export function validateSceneData(data: unknown) {
 
 // Safe validation - returns result with success/error
 export function safeValidateSceneData(data: unknown) {
-	return sceneDataSchema.safeParse(data);
+	console.log('[VALIDATION] Starting safeValidateSceneData...');
+	console.log('[VALIDATION] Input data type:', typeof data);
+	console.log('[VALIDATION] Input data is array:', Array.isArray(data));
+	console.log('[VALIDATION] Input data keys:', data && typeof data === 'object' && !Array.isArray(data) ? Object.keys(data) : 'N/A');
+
+	try {
+		console.log('[VALIDATION] Calling sceneDataSchema.safeParse...');
+		const result = sceneDataSchema.safeParse(data);
+		console.log('[VALIDATION] safeParse completed, success:', result.success);
+		if (!result.success) {
+			console.error('[VALIDATION] Validation errors:', JSON.stringify(result.error.issues, null, 2));
+		}
+		return result;
+	} catch (err) {
+		console.error('[VALIDATION] CRASH during safeParse:', err);
+		console.error('[VALIDATION] CRASH stack:', err instanceof Error ? err.stack : 'No stack');
+		throw err;
+	}
 }
 
 export type ValidatedSceneData = z.infer<typeof sceneDataSchema>;
