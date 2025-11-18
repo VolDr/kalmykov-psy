@@ -64,8 +64,6 @@
 		{offsetX}
 		{offsetY}
 		rotation={0}
-		scaleX={shape.scaleX}
-		scaleY={shape.scaleY}
 		listening={true}
 	/>
 {/if}
