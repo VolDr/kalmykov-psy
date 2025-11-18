@@ -26,17 +26,57 @@
 		const host = window.location.hostname;
 		wsUrl = `${protocol}//${host}:3001`;
 
+		const fetchStartTime = Date.now();
+		console.log(`[Canvas ${sceneId}] Starting to load scene...`);
+
 		try {
-			const res = await fetch(`/api/scenes/${sceneId}`);
+			// Add timeout to prevent hanging forever
+			const controller = new AbortController();
+			const timeoutId = setTimeout(() => {
+				console.error(`[Canvas ${sceneId}] Fetch timeout after 10 seconds`);
+				controller.abort();
+			}, 10000); // 10 second timeout
+
+			console.log(`[Canvas ${sceneId}] Fetching from /api/scenes/${sceneId}...`);
+			const res = await fetch(`/api/scenes/${sceneId}`, { signal: controller.signal });
+			clearTimeout(timeoutId);
+
+			const fetchTime = Date.now() - fetchStartTime;
+			console.log(
+				`[Canvas ${sceneId}] Fetch completed in ${fetchTime}ms, status: ${res.status}`
+			);
+
 			if (res.ok) {
+				console.log(`[Canvas ${sceneId}] Parsing JSON response...`);
 				const scene = (await res.json()) as SceneData;
+				console.log(
+					`[Canvas ${sceneId}] Scene loaded, ${scene.shapes.length} shapes, camera:`,
+					scene.camera
+				);
 				shapesHistory.setAllShapes(scene.shapes);
 				camera.set(scene.camera);
+				console.log(`[Canvas ${sceneId}] Scene applied to stores successfully`);
+			} else {
+				console.log(
+					`[Canvas ${sceneId}] Response not OK (status ${res.status}), starting with empty canvas`
+				);
 			}
 			// If 404, canvas is empty (new canvas)
 		} catch (err) {
-			console.error('Failed to load canvas:', err);
+			const fetchTime = Date.now() - fetchStartTime;
+			if (err instanceof Error && err.name === 'AbortError') {
+				console.error(
+					`[Canvas ${sceneId}] Request was aborted after ${fetchTime}ms (timeout or manual abort)`
+				);
+				loadError =
+					'Не удалось загрузить канвас: превышено время ожидания. Проверьте подключение к базе данных.';
+			} else {
+				console.error(`[Canvas ${sceneId}] Failed to load canvas after ${fetchTime}ms:`, err);
+				loadError = 'Не удалось загрузить канвас. Проверьте консоль для деталей.';
+			}
 		} finally {
+			const totalTime = Date.now() - fetchStartTime;
+			console.log(`[Canvas ${sceneId}] Loading finished, total time: ${totalTime}ms`);
 			isLoading = false;
 		}
 	});
