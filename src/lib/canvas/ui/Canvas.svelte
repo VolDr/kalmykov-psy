@@ -772,8 +772,8 @@
 
 		shapesHistory.updateShapes(allUpdates);
 
-		// Reset node position to prevent double offset with Svelte reactive props
-		node.position({ x: updated.x, y: updated.y });
+		// Don't manually reset position - let Svelte reactivity handle it
+		// Manually calling node.position() conflicts with reactive props causing shapes to "fly away"
 
 		// Broadcast to other clients
 		if (syncClient && multiplayer) {
@@ -811,8 +811,8 @@
 
 		shapesHistory.updateShapes([attached]);
 
-		// Reset node position to prevent double offset with Svelte reactive props
-		node.position({ x: attached.x, y: attached.y });
+		// Don't manually reset position - let Svelte reactivity handle it
+		// Manually calling node.position() conflicts with reactive props causing shapes to "fly away"
 
 		// Broadcast to other clients
 		if (syncClient && multiplayer) {
