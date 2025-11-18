@@ -1380,6 +1380,207 @@
 		};
 	}
 
+	// Canvas context for measuring text width
+	let textMeasureCanvas: HTMLCanvasElement | null = null;
+	let textMeasureContext: CanvasRenderingContext2D | null = null;
+
+	// Helper to measure actual text width using Canvas API
+	function measureTextWidth(text: string, fontSize: number, fontFamily: string): number {
+		if (typeof window === 'undefined') return text.length * fontSize * 0.6; // Fallback for SSR
+
+		if (!textMeasureCanvas) {
+			textMeasureCanvas = document.createElement('canvas');
+			textMeasureContext = textMeasureCanvas.getContext('2d');
+		}
+
+		if (!textMeasureContext) return text.length * fontSize * 0.6;
+
+		textMeasureContext.font = `${fontSize}px ${fontFamily}`;
+		return textMeasureContext.measureText(text).width;
+	}
+
+	// Helper to calculate selection rectangles for multiline text
+	// Returns array of rectangles, one per line
+	interface SelectionRect {
+		x: number;
+		y: number;
+		width: number;
+		height: number;
+	}
+
+	function getTextSelectionRects(
+		shapeId: string,
+		text: string,
+		fontSize: number,
+		fontFamily: string,
+		textWidth: number,
+		textHeight: number,
+		align: 'left' | 'center' | 'right' = 'left'
+	): SelectionRect[] {
+		if (
+			!editingTextState.isEditing ||
+			editingTextState.shapeId !== shapeId ||
+			editingTextState.selectionStart === null ||
+			editingTextState.selectionEnd === null ||
+			editingTextState.selectionStart === editingTextState.selectionEnd
+		) {
+			return [];
+		}
+
+		const currentText = editingTextState.currentText;
+		const start = Math.min(editingTextState.selectionStart, editingTextState.selectionEnd);
+		const end = Math.max(editingTextState.selectionStart, editingTextState.selectionEnd);
+
+		// Split text into lines
+		const lines = currentText.split('\n');
+		const lineHeight = fontSize * LINE_HEIGHT_MULTIPLIER;
+		const rects: SelectionRect[] = [];
+
+		let charIndex = 0;
+		for (let lineIdx = 0; lineIdx < lines.length; lineIdx++) {
+			const line = lines[lineIdx];
+			const lineStart = charIndex;
+			const lineEnd = charIndex + line.length;
+
+			// Check if selection intersects with this line
+			if (end > lineStart && start < lineEnd) {
+				// Calculate selection range within this line
+				const selStart = Math.max(0, start - lineStart);
+				const selEnd = Math.min(line.length, end - lineStart);
+
+				// Measure text widths
+				const beforeText = line.slice(0, selStart);
+				const selectedText = line.slice(selStart, selEnd);
+
+				const beforeWidth = measureTextWidth(beforeText, fontSize, fontFamily);
+				const selectedWidth = measureTextWidth(selectedText, fontSize, fontFamily);
+				const lineWidth = measureTextWidth(line, fontSize, fontFamily);
+
+				// Calculate x position based on alignment
+				let lineOffsetX = 0;
+				if (align === 'center') {
+					lineOffsetX = (textWidth - lineWidth) / 2;
+				} else if (align === 'right') {
+					lineOffsetX = textWidth - lineWidth;
+				}
+
+				// Calculate y position for this line
+				const yOffset = lineIdx * lineHeight;
+
+				rects.push({
+					x: lineOffsetX + beforeWidth - textWidth / 2,
+					y: yOffset - textHeight / 2,
+					width: selectedWidth,
+					height: lineHeight
+				});
+			}
+
+			// Move to next line (account for newline character)
+			charIndex = lineEnd + 1;
+		}
+
+		return rects;
+	}
+
+	// Helper for wrapped text selection in Rect/Ellipse (always centered)
+	function getWrappedTextSelectionRects(
+		shapeId: string,
+		text: string,
+		fontSize: number,
+		fontFamily: string,
+		containerWidth: number,
+		containerHeight: number
+	): SelectionRect[] {
+		if (
+			!editingTextState.isEditing ||
+			editingTextState.shapeId !== shapeId ||
+			editingTextState.selectionStart === null ||
+			editingTextState.selectionEnd === null ||
+			editingTextState.selectionStart === editingTextState.selectionEnd
+		) {
+			return [];
+		}
+
+		const currentText = editingTextState.currentText;
+		const start = Math.min(editingTextState.selectionStart, editingTextState.selectionEnd);
+		const end = Math.max(editingTextState.selectionStart, editingTextState.selectionEnd);
+
+		// For wrapped text, we need to simulate Konva's word wrapping
+		// Split by explicit newlines first
+		const paragraphs = currentText.split('\n');
+		const lineHeight = fontSize * LINE_HEIGHT_MULTIPLIER;
+		const rects: SelectionRect[] = [];
+
+		let charIndex = 0;
+		let lineIdx = 0;
+
+		for (const paragraph of paragraphs) {
+			// Word wrap this paragraph
+			const words = paragraph.split(' ');
+			let currentLine = '';
+			let lineStartCharIdx = charIndex;
+
+			for (let i = 0; i < words.length; i++) {
+				const word = words[i];
+				const testLine = currentLine ? currentLine + ' ' + word : word;
+				const testWidth = measureTextWidth(testLine, fontSize, fontFamily);
+
+				if (testWidth > containerWidth && currentLine) {
+					// Process current line
+					processLine(currentLine, lineStartCharIdx, lineIdx);
+					lineIdx++;
+					currentLine = word;
+					lineStartCharIdx = charIndex;
+				} else {
+					currentLine = testLine;
+				}
+
+				charIndex += word.length;
+				if (i < words.length - 1) {
+					charIndex++; // Space
+				}
+			}
+
+			// Process last line of paragraph
+			if (currentLine) {
+				processLine(currentLine, lineStartCharIdx, lineIdx);
+				lineIdx++;
+			}
+
+			charIndex++; // Newline character
+		}
+
+		function processLine(line: string, lineStartChar: number, lineIndex: number) {
+			const lineEndChar = lineStartChar + line.length;
+
+			// Check if selection intersects with this line
+			if (end > lineStartChar && start < lineEndChar) {
+				const selStart = Math.max(0, start - lineStartChar);
+				const selEnd = Math.min(line.length, end - lineStartChar);
+
+				const beforeText = line.slice(0, selStart);
+				const selectedText = line.slice(selStart, selEnd);
+
+				const beforeWidth = measureTextWidth(beforeText, fontSize, fontFamily);
+				const selectedWidth = measureTextWidth(selectedText, fontSize, fontFamily);
+				const lineWidth = measureTextWidth(line, fontSize, fontFamily);
+
+				// Always centered for rect/ellipse
+				const lineOffsetX = (containerWidth - lineWidth) / 2;
+				const yOffset = lineIndex * lineHeight;
+
+				rects.push({
+					x: lineOffsetX + beforeWidth - containerWidth / 2,
+					y: yOffset - containerHeight / 2,
+					width: selectedWidth,
+					height: lineHeight
+				});
+			}
+		}
+
+		return rects;
+	}
+
 
 	onMount(() => {
 		console.log('[Canvas] onMount called', {
@@ -2192,21 +2393,19 @@
 							ondragend={() => {}}
 						/>
 						{#if rect.text || editingTextState.shapeId === rect.id}
-							{@const rectParts = getTextParts(rect.id, rect.text || '')}
-							<!-- Selection highlight -->
-							{#if rectParts.hasSelection}
-								{@const beforeWidth = rectParts.before.length * DEFAULT_FONT_SIZE * 0.6}
-								{@const selectedWidth = rectParts.selected.length * DEFAULT_FONT_SIZE * 0.6}
+							{@const selectionRects = getWrappedTextSelectionRects(rect.id, rect.text || '', DEFAULT_FONT_SIZE, CANVAS_FONT_FAMILY, rect.width, effectiveHeight)}
+							<!-- Selection highlight (supports multiline) -->
+							{#each selectionRects as selRect}
 								<Rect
-									x={beforeWidth - rect.width / 2}
-									y={-effectiveHeight / 2}
-									width={selectedWidth}
-									height={effectiveHeight}
+									x={selRect.x}
+									y={selRect.y}
+									width={selRect.width}
+									height={selRect.height}
 									fill="#3b82f6"
 									opacity={0.4}
 									listening={false}
 								/>
-							{/if}
+							{/each}
 							<KonvaText
 								x={0}
 								y={0}
@@ -2256,21 +2455,19 @@
 							ondragend={() => {}}
 						/>
 						{#if el.text || editingTextState.shapeId === el.id}
-							{@const ellipseParts = getTextParts(el.id, el.text || '')}
-							<!-- Selection highlight -->
-							{#if ellipseParts.hasSelection}
-								{@const beforeWidth = ellipseParts.before.length * DEFAULT_FONT_SIZE * 0.6}
-								{@const selectedWidth = ellipseParts.selected.length * DEFAULT_FONT_SIZE * 0.6}
+							{@const selectionRects = getWrappedTextSelectionRects(el.id, el.text || '', DEFAULT_FONT_SIZE, CANVAS_FONT_FAMILY, el.rx * 2, effectiveRy * 2)}
+							<!-- Selection highlight (supports multiline) -->
+							{#each selectionRects as selRect}
 								<Rect
-									x={beforeWidth - el.rx}
-									y={-effectiveRy}
-									width={selectedWidth}
-									height={effectiveRy * 2}
+									x={selRect.x}
+									y={selRect.y}
+									width={selRect.width}
+									height={selRect.height}
 									fill="#3b82f6"
 									opacity={0.4}
 									listening={false}
 								/>
-							{/if}
+							{/each}
 							<KonvaText
 								x={0}
 								y={0}
@@ -2296,7 +2493,7 @@
 					{@const displayText = getDisplayText(t.id, t.text)}
 					{@const textWidth = t.width ?? displayText.length * t.fontSize * 0.6}
 					{@const textHeight = t.height ?? t.fontSize * LINE_HEIGHT_MULTIPLIER}
-					{@const parts = getTextParts(t.id, t.text)}
+					{@const selectionRects = getTextSelectionRects(t.id, t.text, t.fontSize, t.fontFamily, textWidth, textHeight, t.align)}
 					<!-- Invisible rect for transformer support -->
 					<Rect
 						id={t.id}
@@ -2317,21 +2514,19 @@
 						ondragmove={(e) => onShapeDragMove(t, e)}
 						ondragend={(e) => onShapeDragEnd(t, e)}
 					/>
-					<!-- Selection highlight -->
-					{#if parts.hasSelection}
-						{@const beforeWidth = parts.before.length * t.fontSize * 0.6}
-						{@const selectedWidth = parts.selected.length * t.fontSize * 0.6}
+					<!-- Selection highlight (supports multiline) -->
+					{#each selectionRects as selRect}
 						<Rect
-							x={t.x + beforeWidth - textWidth / 2}
-							y={t.y - textHeight / 2}
-							width={selectedWidth}
-							height={textHeight}
+							x={t.x + selRect.x}
+							y={t.y + selRect.y}
+							width={selRect.width}
+							height={selRect.height}
 							rotation={t.rotation}
 							fill="#3b82f6"
 							opacity={0.4}
 							listening={false}
 						/>
-					{/if}
+					{/each}
 					<!-- Text content -->
 					<KonvaText
 						x={t.x}
