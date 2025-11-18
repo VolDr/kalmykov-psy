@@ -37,15 +37,20 @@ function validateUUID(id: string): boolean {
 
 export const GET: RequestHandler = async ({ params, getClientAddress, cookies, locals }) => {
 	const id = params.id;
+	const startTime = Date.now();
+
+	console.log(`[GET /api/scenes/${id}] Request started`);
 
 	// Validate UUID format
 	if (!validateUUID(id)) {
+		console.log(`[GET /api/scenes/${id}] Invalid UUID format`);
 		throw error(400, 'Invalid scene ID format');
 	}
 
 	// Rate limiting
 	const clientId = getClientAddress();
 	if (!checkRateLimit(clientId)) {
+		console.log(`[GET /api/scenes/${id}] Rate limit exceeded for ${clientId}`);
 		throw error(429, 'Too many requests. Please try again later.');
 	}
 
@@ -55,18 +60,26 @@ export const GET: RequestHandler = async ({ params, getClientAddress, cookies, l
 	// }
 
 	try {
+		console.log(`[GET /api/scenes/${id}] Querying database...`);
 		const rows = await query<{ data: SceneData }>('SELECT data FROM scenes WHERE id = $1', [id]);
+		const queryTime = Date.now() - startTime;
+		console.log(`[GET /api/scenes/${id}] Database query completed in ${queryTime}ms`);
 
 		if (!rows.length) {
+			console.log(`[GET /api/scenes/${id}] Scene not found in database`);
 			throw error(404, 'Scene not found');
 		}
 
+		console.log(
+			`[GET /api/scenes/${id}] Success, returning data (${JSON.stringify(rows[0].data).length} bytes)`
+		);
 		return json(rows[0].data);
 	} catch (err) {
 		if (err instanceof Error && 'status' in err) {
+			console.log(`[GET /api/scenes/${id}] SvelteKit error:`, err);
 			throw err; // Re-throw SvelteKit errors
 		}
-		console.error('Database error in GET /api/scenes:', err);
+		console.error(`[GET /api/scenes/${id}] Database error:`, err);
 		throw error(500, 'Internal server error');
 	}
 };
