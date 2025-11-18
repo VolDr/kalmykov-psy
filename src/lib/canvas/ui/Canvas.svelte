@@ -96,7 +96,8 @@
 		createTextShapeAt,
 		hasTextSelection,
 		replaceSelectedText,
-		setCursorPosition
+		setCursorPosition,
+		setTextSelection
 	} from '../text-editing';
 	import { bringToFront, sendToBack, bringForward, sendBackward } from '../layers';
 	import {
@@ -167,6 +168,10 @@
 
 	// Text editing state
 	let editingShape: Shape | null = $state(null);
+
+	// Text selection with mouse state
+	let isTextSelecting = $state(false);
+	let textSelectionStart = $state(0);
 
 	// Track if shift key is pressed for rotation snapping
 	let isShiftPressed = $state(false);
@@ -406,6 +411,7 @@
 			window.removeEventListener('keydown', handleKeyDown);
 			window.removeEventListener('keyup', handleKeyUp);
 			window.removeEventListener('resize', updateDimensions);
+			window.removeEventListener('mouseup', handleTextMouseUp);
 		}
 	});
 
@@ -909,9 +915,9 @@
 	}
 
 	/**
-	 * Handle click on text element during editing
+	 * Handle mousedown on text element during editing - start text selection
 	 */
-	function handleTextClick(shapeId: string, e: any) {
+	function handleTextMouseDown(shapeId: string, e: any) {
 		if (!editingTextState.isEditing || editingTextState.shapeId !== shapeId) {
 			return;
 		}
@@ -926,6 +932,8 @@
 
 		if (!pointerPos) return;
 
+		let cursorPos = 0;
+
 		// Calculate cursor position based on click
 		if (shape.type === 'text') {
 			const textShape = shape as TextShape;
@@ -936,7 +944,7 @@
 			const localX = pointerPos.x + textWidth / 2;
 			const localY = pointerPos.y + textHeight / 2;
 
-			const cursorPos = getCursorPositionFromClick(
+			cursorPos = getCursorPositionFromClick(
 				editingTextState.text,
 				textShape.fontSize,
 				textWidth,
@@ -944,14 +952,12 @@
 				localX,
 				localY
 			);
-
-			setCursorPosition(cursorPos);
 		} else if (shape.type === 'rect') {
 			const rect = shape as RectShape;
 			const localX = pointerPos.x + rect.width / 2;
 			const localY = pointerPos.y + rect.height / 2;
 
-			const cursorPos = getCursorPositionFromClick(
+			cursorPos = getCursorPositionFromClick(
 				editingTextState.text,
 				DEFAULT_FONT_SIZE,
 				rect.width,
@@ -959,14 +965,12 @@
 				localX,
 				localY
 			);
-
-			setCursorPosition(cursorPos);
 		} else if (shape.type === 'ellipse') {
 			const ellipse = shape as EllipseShape;
 			const localX = pointerPos.x + ellipse.rx;
 			const localY = pointerPos.y + ellipse.ry;
 
-			const cursorPos = getCursorPositionFromClick(
+			cursorPos = getCursorPositionFromClick(
 				editingTextState.text,
 				DEFAULT_FONT_SIZE,
 				ellipse.rx * 2,
@@ -974,9 +978,91 @@
 				localX,
 				localY
 			);
-
-			setCursorPosition(cursorPos);
 		}
+
+		// Set cursor position and start text selection tracking
+		setCursorPosition(cursorPos);
+		isTextSelecting = true;
+		textSelectionStart = cursorPos;
+	}
+
+	/**
+	 * Handle mousemove on text element during editing - update text selection
+	 */
+	function handleTextMouseMove(shapeId: string, e: any) {
+		if (
+			!editingTextState.isEditing ||
+			editingTextState.shapeId !== shapeId ||
+			!isTextSelecting
+		) {
+			return;
+		}
+
+		const shape = shapes.find((s) => s.id === shapeId);
+		if (!shape) return;
+
+		// Get local coordinates relative to the text element
+		const konvaNode = e.target;
+		const pointerPos = konvaNode.getRelativePointerPosition();
+
+		if (!pointerPos) return;
+
+		let cursorPos = 0;
+
+		// Calculate cursor position based on current mouse position
+		if (shape.type === 'text') {
+			const textShape = shape as TextShape;
+			const textWidth = textShape.width ?? textShape.text.length * textShape.fontSize * 0.6;
+			const textHeight = textShape.height ?? textShape.fontSize * LINE_HEIGHT_MULTIPLIER;
+
+			const localX = pointerPos.x + textWidth / 2;
+			const localY = pointerPos.y + textHeight / 2;
+
+			cursorPos = getCursorPositionFromClick(
+				editingTextState.text,
+				textShape.fontSize,
+				textWidth,
+				textShape.align,
+				localX,
+				localY
+			);
+		} else if (shape.type === 'rect') {
+			const rect = shape as RectShape;
+			const localX = pointerPos.x + rect.width / 2;
+			const localY = pointerPos.y + rect.height / 2;
+
+			cursorPos = getCursorPositionFromClick(
+				editingTextState.text,
+				DEFAULT_FONT_SIZE,
+				rect.width,
+				'center',
+				localX,
+				localY
+			);
+		} else if (shape.type === 'ellipse') {
+			const ellipse = shape as EllipseShape;
+			const localX = pointerPos.x + ellipse.rx;
+			const localY = pointerPos.y + ellipse.ry;
+
+			cursorPos = getCursorPositionFromClick(
+				editingTextState.text,
+				DEFAULT_FONT_SIZE,
+				ellipse.rx * 2,
+				'center',
+				localX,
+				localY
+			);
+		}
+
+		// Update selection
+		setTextSelection(textSelectionStart, cursorPos);
+	}
+
+	/**
+	 * Handle mouseup on text element during editing - finish text selection
+	 */
+	function handleTextMouseUp() {
+		isTextSelecting = false;
 	}
 
 	// === Hotkeys (RU/EN - by code) ===
@@ -992,9 +1078,10 @@
 			const shape = shapes.find((s) => s.id === editingTextState.shapeId);
 			if (!shape) return;
 
-			// Ctrl+A - select all
+			// Ctrl+A - select all (MUST be before other handlers)
 			if ((e.ctrlKey || e.metaKey) && e.key === 'a') {
 				e.preventDefault();
+				e.stopPropagation();
 				selectAllText();
 				return;
 			}
@@ -1047,26 +1134,26 @@
 				return;
 			}
 
-			// Arrow keys - move cursor
+			// Arrow keys - move cursor (with Shift for selection)
 			if (e.key === 'ArrowLeft') {
 				e.preventDefault();
-				moveCursorLeft();
+				moveCursorLeft(e.shiftKey);
 				return;
 			}
 
 			if (e.key === 'ArrowRight') {
 				e.preventDefault();
-				moveCursorRight();
+				moveCursorRight(e.shiftKey);
 				return;
 			}
 
-			// Home/End - move to line start/end
+			// Home/End - move to line start/end (with Shift for selection)
 			if (e.key === 'Home') {
 				e.preventDefault();
 				if (e.ctrlKey || e.metaKey) {
-					moveCursorToStart(); // Ctrl+Home - move to start of text
+					moveCursorToStart(e.shiftKey); // Ctrl+Home - move to start of text
 				} else {
-					moveCursorToLineStart(); // Home - move to start of line
+					moveCursorToLineStart(e.shiftKey); // Home - move to start of line
 				}
 				return;
 			}
@@ -1074,9 +1161,9 @@
 			if (e.key === 'End') {
 				e.preventDefault();
 				if (e.ctrlKey || e.metaKey) {
-					moveCursorToEnd(); // Ctrl+End - move to end of text
+					moveCursorToEnd(e.shiftKey); // Ctrl+End - move to end of text
 				} else {
-					moveCursorToLineEnd(); // End - move to end of line
+					moveCursorToLineEnd(e.shiftKey); // End - move to end of line
 				}
 				return;
 			}
@@ -1258,6 +1345,7 @@
 			window.addEventListener('keydown', handleKeyDown);
 			window.addEventListener('keyup', handleKeyUp);
 			window.addEventListener('resize', updateDimensions);
+			window.addEventListener('mouseup', handleTextMouseUp);
 		}
 	});
 
@@ -2067,7 +2155,9 @@
 								fontFamily={CANVAS_FONT_FAMILY}
 								wrap="word"
 								listening={editingTextState.isEditing && editingTextState.shapeId === rect.id}
-								onclick={(e) => handleTextClick(rect.id, e)}
+								onmousedown={(e) => handleTextMouseDown(rect.id, e)}
+								onmousemove={(e) => handleTextMouseMove(rect.id, e)}
+								onmouseup={handleTextMouseUp}
 							/>
 						{/if}
 					</Group>
@@ -2114,7 +2204,9 @@
 								fontFamily={CANVAS_FONT_FAMILY}
 								wrap="word"
 								listening={editingTextState.isEditing && editingTextState.shapeId === el.id}
-								onclick={(e) => handleTextClick(el.id, e)}
+								onmousedown={(e) => handleTextMouseDown(el.id, e)}
+								onmousemove={(e) => handleTextMouseMove(el.id, e)}
+								onmouseup={handleTextMouseUp}
 							/>
 						{/if}
 					</Group>
@@ -2158,7 +2250,9 @@
 						verticalAlign="middle"
 						rotation={t.rotation}
 						listening={editingTextState.isEditing && editingTextState.shapeId === t.id}
-						onclick={(e) => handleTextClick(t.id, e)}
+						onmousedown={(e) => handleTextMouseDown(t.id, e)}
+						onmousemove={(e) => handleTextMouseMove(t.id, e)}
+						onmouseup={handleTextMouseUp}
 					/>
 				{:else if shape.type === 'arrow'}
 					{@const a = shape as ArrowShape}

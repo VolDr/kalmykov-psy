@@ -318,82 +318,232 @@ export function updateEditingTextProperties(
 
 /**
  * Move cursor left by one position
+ * If withSelection is true, extends or starts selection
  */
-export function moveCursorLeft(): void {
+export function moveCursorLeft(withSelection = false): void {
 	textEditingState.update((state) => {
 		if (!state.isEditing || state.cursorPosition === 0) {
 			return state;
 		}
-		return { ...state, cursorPosition: state.cursorPosition - 1 };
+
+		const newPosition = state.cursorPosition - 1;
+
+		if (withSelection) {
+			// If no selection exists, start one
+			if (state.selectionStart === null) {
+				return {
+					...state,
+					cursorPosition: newPosition,
+					selectionStart: state.cursorPosition,
+					selectionEnd: newPosition
+				};
+			}
+			// Extend existing selection
+			return {
+				...state,
+				cursorPosition: newPosition,
+				selectionEnd: newPosition
+			};
+		}
+
+		// No selection - clear any existing selection
+		return {
+			...state,
+			cursorPosition: newPosition,
+			selectionStart: null,
+			selectionEnd: null
+		};
 	});
 }
 
 /**
  * Move cursor right by one position
+ * If withSelection is true, extends or starts selection
  */
-export function moveCursorRight(): void {
+export function moveCursorRight(withSelection = false): void {
 	textEditingState.update((state) => {
 		if (!state.isEditing || state.cursorPosition >= state.currentText.length) {
 			return state;
 		}
-		return { ...state, cursorPosition: state.cursorPosition + 1 };
+
+		const newPosition = state.cursorPosition + 1;
+
+		if (withSelection) {
+			// If no selection exists, start one
+			if (state.selectionStart === null) {
+				return {
+					...state,
+					cursorPosition: newPosition,
+					selectionStart: state.cursorPosition,
+					selectionEnd: newPosition
+				};
+			}
+			// Extend existing selection
+			return {
+				...state,
+				cursorPosition: newPosition,
+				selectionEnd: newPosition
+			};
+		}
+
+		// No selection - clear any existing selection
+		return {
+			...state,
+			cursorPosition: newPosition,
+			selectionStart: null,
+			selectionEnd: null
+		};
 	});
 }
 
 /**
  * Move cursor to start of text
+ * If withSelection is true, extends or starts selection
  */
-export function moveCursorToStart(): void {
+export function moveCursorToStart(withSelection = false): void {
 	textEditingState.update((state) => {
 		if (!state.isEditing) {
 			return state;
 		}
-		return { ...state, cursorPosition: 0 };
+
+		const newPosition = 0;
+
+		if (withSelection) {
+			if (state.selectionStart === null) {
+				return {
+					...state,
+					cursorPosition: newPosition,
+					selectionStart: state.cursorPosition,
+					selectionEnd: newPosition
+				};
+			}
+			return {
+				...state,
+				cursorPosition: newPosition,
+				selectionEnd: newPosition
+			};
+		}
+
+		return {
+			...state,
+			cursorPosition: newPosition,
+			selectionStart: null,
+			selectionEnd: null
+		};
 	});
 }
 
 /**
  * Move cursor to end of text
+ * If withSelection is true, extends or starts selection
  */
-export function moveCursorToEnd(): void {
+export function moveCursorToEnd(withSelection = false): void {
 	textEditingState.update((state) => {
 		if (!state.isEditing) {
 			return state;
 		}
-		return { ...state, cursorPosition: state.currentText.length };
+
+		const newPosition = state.currentText.length;
+
+		if (withSelection) {
+			if (state.selectionStart === null) {
+				return {
+					...state,
+					cursorPosition: newPosition,
+					selectionStart: state.cursorPosition,
+					selectionEnd: newPosition
+				};
+			}
+			return {
+				...state,
+				cursorPosition: newPosition,
+				selectionEnd: newPosition
+			};
+		}
+
+		return {
+			...state,
+			cursorPosition: newPosition,
+			selectionStart: null,
+			selectionEnd: null
+		};
 	});
 }
 
 /**
  * Move cursor to start of current line
+ * If withSelection is true, extends or starts selection
  */
-export function moveCursorToLineStart(): void {
+export function moveCursorToLineStart(withSelection = false): void {
 	textEditingState.update((state) => {
 		if (!state.isEditing) {
 			return state;
 		}
 		const textBeforeCursor = state.currentText.slice(0, state.cursorPosition);
 		const lastNewlineIndex = textBeforeCursor.lastIndexOf('\n');
-		const lineStart = lastNewlineIndex === -1 ? 0 : lastNewlineIndex + 1;
-		return { ...state, cursorPosition: lineStart };
+		const newPosition = lastNewlineIndex === -1 ? 0 : lastNewlineIndex + 1;
+
+		if (withSelection) {
+			if (state.selectionStart === null) {
+				return {
+					...state,
+					cursorPosition: newPosition,
+					selectionStart: state.cursorPosition,
+					selectionEnd: newPosition
+				};
+			}
+			return {
+				...state,
+				cursorPosition: newPosition,
+				selectionEnd: newPosition
+			};
+		}
+
+		return {
+			...state,
+			cursorPosition: newPosition,
+			selectionStart: null,
+			selectionEnd: null
+		};
 	});
 }
 
 /**
  * Move cursor to end of current line
+ * If withSelection is true, extends or starts selection
  */
-export function moveCursorToLineEnd(): void {
+export function moveCursorToLineEnd(withSelection = false): void {
 	textEditingState.update((state) => {
 		if (!state.isEditing) {
 			return state;
 		}
 		const textAfterCursor = state.currentText.slice(state.cursorPosition);
 		const nextNewlineIndex = textAfterCursor.indexOf('\n');
-		const lineEnd =
-			nextNewlineIndex === -1
-				? state.currentText.length
-				: state.cursorPosition + nextNewlineIndex;
-		return { ...state, cursorPosition: lineEnd };
+		const newPosition =
+			nextNewlineIndex === -1 ? state.currentText.length : state.cursorPosition + nextNewlineIndex;
+
+		if (withSelection) {
+			if (state.selectionStart === null) {
+				return {
+					...state,
+					cursorPosition: newPosition,
+					selectionStart: state.cursorPosition,
+					selectionEnd: newPosition
+				};
+			}
+			return {
+				...state,
+				cursorPosition: newPosition,
+				selectionEnd: newPosition
+			};
+		}
+
+		return {
+			...state,
+			cursorPosition: newPosition,
+			selectionStart: null,
+			selectionEnd: null
+		};
 	});
 }
 
