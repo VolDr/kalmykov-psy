@@ -47,7 +47,8 @@ const textShapeSchema = baseShapeSchema.extend({
 // Arrow endpoint schema
 const arrowEndpointSchema = z.object({
 	shapeId: z.string().uuid(),
-	anchor: z.enum(['top', 'bottom', 'left', 'right'])
+	anchor: z.enum(['top', 'bottom', 'left', 'right']),
+	offset: z.number().optional()
 });
 
 // Arrow shape schema
