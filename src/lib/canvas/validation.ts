@@ -4,15 +4,15 @@ import { z } from 'zod';
 console.log('[SCHEMA INIT] Loading validation schemas...');
 console.log('[SCHEMA INIT] Zod version:', z.version || 'unknown');
 
-// Base shape schema with more lenient validation
+// Base shape schema
 const baseShapeSchema = z.object({
 	id: z.string().uuid(),
 	type: z.enum(['rect', 'ellipse', 'arrow', 'text', 'group']),
 	x: z.number().finite(),
 	y: z.number().finite(),
 	rotation: z.number().finite(),
-	scaleX: z.number().finite().positive().catch(() => 1), // Default to 1 if invalid
-	scaleY: z.number().finite().positive().catch(() => 1), // Default to 1 if invalid
+	scaleX: z.number().finite().positive(),
+	scaleY: z.number().finite().positive(),
 	stroke: z.string(),
 	strokeWidth: z.number().nonnegative().finite(),
 	fill: z.string().nullable().optional(),
@@ -79,11 +79,11 @@ export const shapeSchema = z.discriminatedUnion('type', [
 	groupShapeSchema
 ]);
 
-// Camera schema with lenient validation
+// Camera schema
 export const cameraSchema = z.object({
 	x: z.number().finite(),
 	y: z.number().finite(),
-	scale: z.number().finite().positive().catch(() => 1) // Default to 1 if invalid
+	scale: z.number().finite().positive()
 });
 
 // Scene data schema
