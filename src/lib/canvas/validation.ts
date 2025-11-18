@@ -70,8 +70,9 @@ const groupShapeSchema = baseShapeSchema.extend({
 	children: z.array(z.string().uuid())
 });
 
-// Union of all shapes
-export const shapeSchema = z.discriminatedUnion('type', [
+// Union of all shapes - using regular union instead of discriminatedUnion
+// to avoid Zod v4 bug with discriminatedUnion causing '_zod' undefined error
+export const shapeSchema = z.union([
 	rectShapeSchema,
 	ellipseShapeSchema,
 	textShapeSchema,
