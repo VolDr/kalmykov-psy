@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
+	import { get } from 'svelte/store';
 	import {
 		Stage,
 		Layer,
@@ -78,10 +79,9 @@
 		startTextEditing,
 		commitTextEditing,
 		cancelTextEditing,
-		isEditingText,
-		textEditingState,
-		updateEditingText
+		textEditingState
 	} from '../text-editing';
+	import TextEditor from './TextEditor.svelte';
 	import { bringToFront, sendToBack, bringForward, sendBackward } from '../layers';
 	import {
 		alignLeft,
@@ -150,9 +150,7 @@
 	let localCursor = $state({ x: 0, y: 0 });
 
 	// Text editing state
-	let editingText = $state(false);
-	let editingShapeId: string | null = $state(null);
-	let editingTextContent = $state('');
+	let editingShape: Shape | null = $state(null);
 
 	// Track if shift key is pressed for rotation snapping
 	let isShiftPressed = $state(false);
@@ -219,9 +217,12 @@
 
 	// Subscribe to text editing state
 	const unsubscribeTextEditing = textEditingState.subscribe((state) => {
-		editingText = state.isEditing;
-		editingShapeId = state.shapeId;
-		editingTextContent = state.currentText;
+		if (state.isEditing && state.shapeId) {
+			const shape = shapes.find((s) => s.id === state.shapeId);
+			editingShape = shape || null;
+		} else {
+			editingShape = null;
+		}
 	});
 
 	// Sync component refs to node refs
@@ -817,20 +818,9 @@
 			isShiftPressed = true;
 		}
 
-		// Handle text editing input
-		if (editingText && editingShapeId) {
-			// Let text input handle its own keys
-			if (e.code === 'Escape') {
-				e.preventDefault();
-				cancelTextEditing();
-				return;
-			}
-			if (e.code === 'Enter' && !e.shiftKey) {
-				e.preventDefault();
-				commitTextEditing();
-				return;
-			}
-			// Don't intercept other keys during text editing
+		// Don't handle keyboard shortcuts when editing text
+		// The TextEditor component handles its own keys
+		if (editingShape) {
 			return;
 		}
 
@@ -856,45 +846,59 @@
 		}
 	}
 
-	// Handle text input change
-	function handleTextInput(e: Event) {
-		const target = e.target as HTMLTextAreaElement;
-		updateEditingText(target.value);
-	}
+	// Get text content for editing
+	function getEditingText(): string {
+		if (!editingShape) return '';
 
-	// Commit text editing on blur
-	function handleTextBlur() {
-		if (editingText) {
-			commitTextEditing();
+		if (editingShape.type === 'text') {
+			return editingShape.text;
+		} else if (editingShape.type === 'rect' || editingShape.type === 'ellipse') {
+			return editingShape.text || '';
 		}
+		return '';
 	}
 
-	// Get screen position for text editing overlay
-	function getEditingInputPosition(): {
-		x: number;
-		y: number;
-		width: number;
-		height: number;
-	} | null {
-		if (!editingShapeId) return null;
+	// Handle text editor submit
+	function handleTextSubmit(text: string) {
+		// Update the text before committing
+		if (editingShape) {
+			const state = get(textEditingState);
+			if (state.isEditing && state.shapeId) {
+				const shape = shapes.find((s) => s.id === state.shapeId);
+				if (shape) {
+					let updatedShape: Shape;
 
-		const shape = shapes.find((s) => s.id === editingShapeId);
-		if (!shape) return null;
+					if (shape.type === 'text') {
+						updatedShape = {
+							...shape,
+							text: text
+						};
+					} else if (shape.type === 'rect' || shape.type === 'ellipse') {
+						updatedShape = {
+							...shape,
+							text: text || undefined
+						};
+					} else {
+						cancelTextEditing();
+						return;
+					}
 
-		const bounds = getShapeBounds(shape);
+					shapesHistory.updateShapes([updatedShape]);
 
-		// Convert world coordinates to screen coordinates
-		const screenX = bounds.x * cam.scale + cam.x;
-		const screenY = bounds.y * cam.scale + cam.y;
-		const screenWidth = bounds.width * cam.scale;
-		const screenHeight = bounds.height * cam.scale;
+					// Broadcast to other clients
+					if (syncClient && multiplayer) {
+						const op = createUpdateShapesOp(sceneId, clientId, [updatedShape]);
+						syncClient.sendOperation(op);
+					}
+				}
+			}
+		}
+		cancelTextEditing();
+	}
 
-		return {
-			x: screenX,
-			y: screenY,
-			width: Math.max(screenWidth, 100),
-			height: Math.max(screenHeight, 30)
-		};
+	// Handle text editor cancel
+	function handleTextCancel() {
+		cancelTextEditing();
 	}
 
 	onMount(() => {
@@ -2180,43 +2184,14 @@
 		</Layer>
 	</Stage>
 
-	<!-- Text editing input overlay -->
-	{#if editingText && editingShapeId}
-		{@const inputPos = getEditingInputPosition()}
-		{#if inputPos}
-			<textarea
-				class="absolute z-50 resize-none rounded border-2 border-purple-500 bg-white/95 px-2 py-1 text-center shadow-lg focus:border-purple-600 focus:ring-2 focus:ring-purple-300 focus:outline-none"
-				style="left: {inputPos.x}px; top: {inputPos.y}px; width: {inputPos.width}px; min-height: {inputPos.height}px; font-size: {DEFAULT_FONT_SIZE *
-					cam.scale}px; line-height: 1.4; font-family: {CANVAS_FONT_FAMILY};"
-				value={editingTextContent}
-				oninput={handleTextInput}
-				onblur={handleTextBlur}
-				onkeydown={(e) => {
-					if (e.key === 'Escape') {
-						e.preventDefault();
-						cancelTextEditing();
-					} else if (e.key === 'Enter' && !e.shiftKey) {
-						e.preventDefault();
-						commitTextEditing();
-					}
-					// Shift+Enter inserts a new line (default behavior)
-				}}
-				onfocus={(e) => {
-					// Select all text on focus for easy replacement
-					const target = e.target as HTMLTextAreaElement;
-					target.select();
-				}}
-				onmount={(e: any) => {
-					// Auto-focus when textarea is mounted
-					const target = e.target as HTMLTextAreaElement;
-					setTimeout(() => {
-						target.focus();
-						target.select();
-					}, 10);
-				}}
-				autofocus
-			></textarea>
-		{/if}
+	<!-- Text editing overlay -->
+	{#if editingShape}
+		<TextEditor
+			shape={editingShape}
+			text={getEditingText()}
+			onSubmit={handleTextSubmit}
+			onCancel={handleTextCancel}
+		/>
 	{/if}
 
 	<!-- Return to content button -->
