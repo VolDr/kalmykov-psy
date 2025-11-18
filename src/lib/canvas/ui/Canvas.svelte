@@ -598,6 +598,11 @@
 		// Don't handle click if box selection was just performed
 		// Box selection handles selection in handleMouseUp
 		// This prevents double handling of selection
+
+		// If editing text, commit changes when clicking outside shapes
+		if (editingTextState.isEditing) {
+			commitTextEditing();
+		}
 	}
 
 	function isSelected(id: string) {
@@ -612,6 +617,12 @@
 		if (evt.button === 1) {
 			return;
 		}
+
+		// If editing text on a different shape, commit changes first
+		if (editingTextState.isEditing && editingTextState.shapeId !== shapeId) {
+			commitTextEditing();
+		}
+
 		toggleSelection(shapeId, evt.ctrlKey || evt.metaKey);
 		e.cancelBubble = true;
 	}

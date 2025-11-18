@@ -162,7 +162,7 @@ export function isShapeBeingEdited(shapeId: string): boolean {
 export function createTextShapeAt(
 	x: number,
 	y: number,
-	initialText = 'Text',
+	initialText = '',
 	options: Partial<Omit<TextShape, 'id' | 'type' | 'x' | 'y' | 'text'>> = {}
 ): string {
 	const textShape: TextShape = {
