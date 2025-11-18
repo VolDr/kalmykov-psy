@@ -25,7 +25,6 @@ export interface SyncClientOptions {
 	reconnectDelay?: number;
 	presenceDebounceMs?: number;
 	maxOfflineQueueSize?: number;
-	connectionTimeout?: number;
 }
 
 export interface SyncClient {
@@ -51,14 +50,12 @@ export function createSyncClient(options: SyncClientOptions): SyncClient {
 		reconnectAttempts = 5,
 		reconnectDelay = 1000,
 		presenceDebounceMs = 50,
-		maxOfflineQueueSize = 100,
-		connectionTimeout = 5000
+		maxOfflineQueueSize = 100
 	} = options;
 
 	let ws: WebSocket | null = null;
 	let reconnectCount = 0;
 	let reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
-	let connectionTimeoutId: ReturnType<typeof setTimeout> | null = null;
 	let hasLoggedError = false; // Track if we've logged an error to avoid spam
 
 	// Offline queue for operations
@@ -78,34 +75,9 @@ export function createSyncClient(options: SyncClientOptions): SyncClient {
 
 		status.set('connecting');
 
-		// Clear any existing connection timeout
-		if (connectionTimeoutId) {
-			clearTimeout(connectionTimeoutId);
-		}
-
 		ws = new WebSocket(url);
 
-		// Set connection timeout to prevent hanging
-		connectionTimeoutId = setTimeout(() => {
-			if (ws && ws.readyState === WebSocket.CONNECTING) {
-				if (!hasLoggedError) {
-					console.warn('WebSocket connection timeout - server not responding', { url });
-					hasLoggedError = true;
-				}
-				ws.close();
-				ws = null;
-				status.set('disconnected');
-				attemptReconnect();
-			}
-		}, connectionTimeout);
-
 		ws.onopen = () => {
-			// Clear connection timeout on successful connection
-			if (connectionTimeoutId) {
-				clearTimeout(connectionTimeoutId);
-				connectionTimeoutId = null;
-			}
-
 			status.set('connected');
 			reconnectCount = 0;
 			hasLoggedError = false; // Reset error flag on successful connection
@@ -134,12 +106,6 @@ export function createSyncClient(options: SyncClientOptions): SyncClient {
 		};
 
 		ws.onclose = () => {
-			// Clear connection timeout
-			if (connectionTimeoutId) {
-				clearTimeout(connectionTimeoutId);
-				connectionTimeoutId = null;
-			}
-
 			ws = null;
 			status.set('disconnected');
 			attemptReconnect();
@@ -162,10 +128,6 @@ export function createSyncClient(options: SyncClientOptions): SyncClient {
 		if (reconnectTimeout) {
 			clearTimeout(reconnectTimeout);
 			reconnectTimeout = null;
-		}
-		if (connectionTimeoutId) {
-			clearTimeout(connectionTimeoutId);
-			connectionTimeoutId = null;
 		}
 		reconnectCount = reconnectAttempts; // Prevent auto-reconnect
 
@@ -364,10 +326,6 @@ export function createSyncClient(options: SyncClientOptions): SyncClient {
 	function destroy() {
 		if (presenceDebounceTimeout) {
 			clearTimeout(presenceDebounceTimeout);
-		}
-		if (connectionTimeoutId) {
-			clearTimeout(connectionTimeoutId);
-			connectionTimeoutId = null;
 		}
 		disconnect();
 	}
