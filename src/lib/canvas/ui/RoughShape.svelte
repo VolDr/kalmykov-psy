@@ -67,8 +67,12 @@
 		rotation={0}
 		scaleX={shape.scaleX}
 		scaleY={shape.scaleY}
-		draggable={false}
+		draggable={true}
 		opacity={isSelected ? 0.8 : 1}
-		listening={false}
+		listening={true}
+		{onclick}
+		{ondblclick}
+		{ondragend}
+		{ondragmove}
 	/>
 {/if}

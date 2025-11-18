@@ -17,7 +17,7 @@ const baseShapeSchema = z.object({
 	strokeWidth: z.number().nonnegative().finite(),
 	fill: z.string().nullable().optional(),
 	dash: z.array(z.number()).optional(),
-	roughOptions: z.record(z.unknown()).optional()
+	roughOptions: z.record(z.string(), z.unknown()).optional()
 });
 
 // Rect shape schema
