@@ -60,9 +60,6 @@
 		</div>
 	</div>
 {:else}
-	<Excalidraw
-		theme="light"
-		excalidrawAPI={(api) => (excalidrawAPI = api)}
-		viewModeEnabled={true}
-	/>
+<Excalidraw theme="light" excalidrawAPI={(api) => (excalidrawAPI = api)} />
+
 {/if}
