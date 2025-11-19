@@ -69,28 +69,21 @@
 		if (!wrapperElement) return;
 
 		const handleWheel = (e: WheelEvent) => {
-			// Если Ctrl не нажат, эмулируем Ctrl+wheel для зума
+			// Если Ctrl не нажат, добавляем ctrlKey к событию
 			if (!e.ctrlKey && !e.metaKey) {
-				e.preventDefault();
-				e.stopPropagation();
-
-				// Создаем новое событие с ctrlKey = true
-				const newEvent = new WheelEvent('wheel', {
-					...e,
-					ctrlKey: true,
-					bubbles: true,
-					cancelable: true,
-					deltaY: e.deltaY
+				// Используем Object.defineProperty чтобы переопределить ctrlKey
+				Object.defineProperty(e, 'ctrlKey', {
+					writable: false,
+					value: true
 				});
-
-				e.target?.dispatchEvent(newEvent);
 			}
 		};
 
-		wrapperElement.addEventListener('wheel', handleWheel, { passive: false });
+		// Используем capture phase чтобы перехватить событие ДО того как его получит Excalidraw
+		wrapperElement.addEventListener('wheel', handleWheel, { passive: false, capture: true });
 
 		return () => {
-			wrapperElement.removeEventListener('wheel', handleWheel);
+			wrapperElement.removeEventListener('wheel', handleWheel, { capture: true });
 		};
 	});
 </script>
