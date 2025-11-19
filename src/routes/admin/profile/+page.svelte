@@ -133,41 +133,7 @@
 					</div>
 				{/if}
 
-				<div class="space-y-2">
-					<p class="text-sm font-medium text-muted-foreground">Канвас</p>
-					<a href="/admin/canvas?id={data.clientData?.id}" target="_blank">
-						<Button variant="outline" size="sm" class="w-full">
-							<span class="icon-[lucide--pen-tool] h-4 w-4"></span>
-							Открыть канвас клиента
-						</Button>
-					</a>
-					<div class="flex items-center justify-between rounded-md border p-3">
-						<div class="flex-1">
-							<p class="text-sm font-medium">Публичный доступ к канвасу</p>
-							<p class="text-xs text-muted-foreground">
-								{#if canvasIsPublic}
-									Доступен по ссылке: /canvas?id={data.clientData?.id}
-								{:else}
-									Доступен только администратору
-								{/if}
-							</p>
-						</div>
-						<button
-							onclick={toggleCanvasPublic}
-							class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors {canvasIsPublic
-								? 'bg-primary'
-								: 'bg-gray-200'}"
-							role="switch"
-							aria-checked={canvasIsPublic}
-						>
-							<span
-								class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform {canvasIsPublic
-									? 'translate-x-6'
-									: 'translate-x-1'}"
-							></span>
-						</button>
-					</div>
-				</div>
+				
 
 				{#if data.clientData?.source}
 					<div class="space-y-1">
