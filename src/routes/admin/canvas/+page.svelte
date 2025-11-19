@@ -1,10 +1,23 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import Excalidraw from '$lib/components/excalidraw/Excalidraw.svelte';
-	import type { ExcalidrawImperativeAPI } from '@excalidraw/excalidraw/types/types';
 
-	let excalidrawAPI: ExcalidrawImperativeAPI | undefined = $state();
+	// Типы для Excalidraw v0.17 (импорт не работает корректно, используем any)
+	let excalidrawAPI: any | undefined = $state();
 	let clientId = $derived($page.url.searchParams.get('id'));
+
+	// Настройка UI для зума без Ctrl
+	const uiOptions: any = {
+		canvasActions: {
+			changeViewBackgroundColor: true,
+			clearCanvas: true,
+			export: true,
+			loadScene: true,
+			saveToActiveFile: true,
+			theme: true,
+			saveAsImage: true
+		}
+	};
 
 	$effect(() => {
 		if (excalidrawAPI && clientId) {
@@ -62,6 +75,37 @@
 			return () => clearInterval(interval);
 		}
 	});
+
+	// Обработчик для зума без Ctrl (просто колесико)
+	let wrapperElement: HTMLDivElement;
+	$effect(() => {
+		if (!wrapperElement) return;
+
+		const handleWheel = (e: WheelEvent) => {
+			// Если Ctrl не нажат, эмулируем Ctrl+wheel для зума
+			if (!e.ctrlKey && !e.metaKey) {
+				e.preventDefault();
+				e.stopPropagation();
+
+				// Создаем новое событие с ctrlKey = true
+				const newEvent = new WheelEvent('wheel', {
+					...e,
+					ctrlKey: true,
+					bubbles: true,
+					cancelable: true,
+					deltaY: e.deltaY
+				});
+
+				e.target?.dispatchEvent(newEvent);
+			}
+		};
+
+		wrapperElement.addEventListener('wheel', handleWheel, { passive: false });
+
+		return () => {
+			wrapperElement.removeEventListener('wheel', handleWheel);
+		};
+	});
 </script>
 
 <svelte:head>
@@ -69,4 +113,16 @@
 	<meta name="robots" content="noindex, nofollow" />
 </svelte:head>
 
-<Excalidraw theme="light" excalidrawAPI={(api) => (excalidrawAPI = api)} />
+<div class="excalidraw-wrapper" bind:this={wrapperElement}>
+	<Excalidraw
+		theme="light"
+		excalidrawAPI={(api: any) => (excalidrawAPI = api)}
+		UIOptions={uiOptions}
+	/>
+</div>
+
+<style>
+	.excalidraw-wrapper {
+		height: 100svh;
+	}
+</style>
