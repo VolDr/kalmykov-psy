@@ -6,19 +6,6 @@
 	let excalidrawAPI: any | undefined = $state();
 	let clientId = $derived($page.url.searchParams.get('id'));
 
-	// Настройка UI для зума без Ctrl
-	const uiOptions: any = {
-		canvasActions: {
-			changeViewBackgroundColor: true,
-			clearCanvas: true,
-			export: true,
-			loadScene: true,
-			saveToActiveFile: true,
-			theme: true,
-			saveAsImage: true
-		}
-	};
-
 	$effect(() => {
 		if (excalidrawAPI && clientId) {
 			// Load canvas data for this client
@@ -114,11 +101,7 @@
 </svelte:head>
 
 <div class="excalidraw-wrapper" bind:this={wrapperElement}>
-	<Excalidraw
-		theme="light"
-		excalidrawAPI={(api: any) => (excalidrawAPI = api)}
-		UIOptions={uiOptions}
-	/>
+	<Excalidraw theme="light" excalidrawAPI={(api: any) => (excalidrawAPI = api)} />
 </div>
 
 <style>
