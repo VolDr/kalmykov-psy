@@ -11,6 +11,44 @@
 
 	let { data }: { data: PageData } = $props();
 	console.log(data);
+
+	let canvasIsPublic = $state(false);
+
+	// Load canvas public status on mount
+	$effect(() => {
+		if (data.clientData?.id) {
+			loadCanvasStatus();
+		}
+	});
+
+	async function loadCanvasStatus() {
+		try {
+			const response = await fetch(`/api/canvas/${data.clientData?.id}/status`);
+			if (response.ok) {
+				const status = await response.json();
+				canvasIsPublic = status.isPublic;
+			}
+		} catch (error) {
+			console.error('Failed to load canvas status:', error);
+		}
+	}
+
+	async function toggleCanvasPublic() {
+		try {
+			const response = await fetch(`/api/canvas/${data.clientData?.id}/toggle-public`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ isPublic: !canvasIsPublic })
+			});
+
+			if (response.ok) {
+				const result = await response.json();
+				canvasIsPublic = result.isPublic;
+			}
+		} catch (error) {
+			console.error('Failed to toggle canvas public status:', error);
+		}
+	}
 </script>
 
 <svelte:head>
@@ -103,6 +141,32 @@
 							Открыть канвас клиента
 						</Button>
 					</a>
+					<div class="flex items-center justify-between rounded-md border p-3">
+						<div class="flex-1">
+							<p class="text-sm font-medium">Публичный доступ к канвасу</p>
+							<p class="text-xs text-muted-foreground">
+								{#if canvasIsPublic}
+									Доступен по ссылке: /canvas?id={data.clientData?.id}
+								{:else}
+									Доступен только администратору
+								{/if}
+							</p>
+						</div>
+						<button
+							onclick={toggleCanvasPublic}
+							class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors {canvasIsPublic
+								? 'bg-primary'
+								: 'bg-gray-200'}"
+							role="switch"
+							aria-checked={canvasIsPublic}
+						>
+							<span
+								class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform {canvasIsPublic
+									? 'translate-x-6'
+									: 'translate-x-1'}"
+							></span>
+						</button>
+					</div>
 				</div>
 
 				{#if data.clientData?.source}
