@@ -1,9 +1,11 @@
 <script lang="ts">
 	import { createElement } from 'react';
 	import { createRoot } from 'react-dom/client';
-	import type { ExcalidrawProps } from '@excalidraw/excalidraw/types/types';
 
-	let props: ExcalidrawProps = $props();
+	// @ts-ignore - types path for excalidraw v0.17
+	import type { ExcalidrawProps } from '@excalidraw/excalidraw/types/excalidraw/types';
+
+	let props: ExcalidrawProps & { detectScroll?: boolean } = $props();
 	let rootEl: HTMLElement;
 
 	$effect(() => {
