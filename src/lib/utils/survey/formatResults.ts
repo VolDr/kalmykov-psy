@@ -24,10 +24,13 @@ export function formatResultsForClipboard(
 
 	const subscalesText = currentScore.subscales
 		? `\n\nРезультаты по шкалам:\n${currentScore.subscales
-				.map(
-					(subscale) =>
-						`${subscale.name}: ${subscale.averageScore.toFixed(2)} / 5.00 — ${subscale.interpretation.severity}`
-				)
+				.map((subscale) => {
+					if (subscale.displayMethod === 'sum') {
+						return `${subscale.name}: ${subscale.score} / ${subscale.maxScore} — ${subscale.interpretation.severity}`;
+					} else {
+						return `${subscale.name}: ${subscale.averageScore.toFixed(2)} / 5.00 — ${subscale.interpretation.severity}`;
+					}
+				})
 				.join('\n')}`
 		: '';
 

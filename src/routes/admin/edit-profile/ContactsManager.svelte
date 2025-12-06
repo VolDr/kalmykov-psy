@@ -170,18 +170,13 @@
 								id="value-{index}"
 								bind:value={contact.value}
 								placeholder="Введите контакт"
-								oninput={(e) =>
-									handleContactChange(index, 'value', e.currentTarget.value)}
+								oninput={(e) => handleContactChange(index, 'value', e.currentTarget.value)}
 							/>
-							<div class="absolute right-3 top-1/2 -translate-y-1/2">
+							<div class="absolute top-1/2 right-3 -translate-y-1/2">
 								{#if contact.isDirty}
-									<Badge variant="outline" class="bg-yellow-50 text-yellow-700">
-										Не сохранено
-									</Badge>
+									<Badge variant="outline" class="bg-yellow-50 text-yellow-700">Не сохранено</Badge>
 								{:else if !contact.isNew}
-									<Badge variant="outline" class="bg-green-50 text-green-700">
-										Сохранено
-									</Badge>
+									<Badge variant="outline" class="bg-green-50 text-green-700">Сохранено</Badge>
 								{/if}
 							</div>
 						</div>
@@ -226,7 +221,7 @@
 						size="icon"
 						onclick={() => handleRemoveContact(index)}
 						disabled={isSubmitting}
-						class="text-destructive hover:bg-destructive hover:text-destructive-foreground"
+						class="hover:text-destructive-foreground text-destructive hover:bg-destructive"
 					>
 						<svg
 							xmlns="http://www.w3.org/2000/svg"
@@ -254,9 +249,7 @@
 	<Dialog.Content>
 		<Dialog.Header>
 			<Dialog.Title>Подтверждение удаления</Dialog.Title>
-			<Dialog.Description>
-				Вы уверены, что хотите удалить этот контакт?
-			</Dialog.Description>
+			<Dialog.Description>Вы уверены, что хотите удалить этот контакт?</Dialog.Description>
 		</Dialog.Header>
 		<Dialog.Footer>
 			<Button variant="outline" onclick={() => (deleteModalOpen = false)}>Отмена</Button>

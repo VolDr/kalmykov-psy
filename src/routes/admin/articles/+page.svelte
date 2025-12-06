@@ -103,7 +103,9 @@
 	{:else}
 		<div class="space-y-4">
 			{#each data.articles as article (article.id)}
-				<Card class="rounded-lg border bg-white shadow-sm transition-shadow duration-200 hover:shadow-lg">
+				<Card
+					class="rounded-lg border bg-white shadow-sm transition-shadow duration-200 hover:shadow-lg"
+				>
 					<div class="flex items-start justify-between p-6">
 						<div class="flex-1">
 							<h2 class="mb-2 text-xl font-semibold text-gray-800">{article.title}</h2>
@@ -176,7 +178,7 @@
 
 {#if showEditor}
 	<div
-		class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+		class="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black"
 		onclick={closeEditor}
 		role="dialog"
 		aria-modal="true"
@@ -237,7 +239,7 @@
 							name="title"
 							bind:value={articleContent.title}
 							required
-							class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+							class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
 						/>
 					</div>
 
@@ -250,7 +252,7 @@
 							bind:value={articleContent.uri}
 							required
 							placeholder="my-article"
-							class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+							class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
 						/>
 						<p class="mt-1 text-xs text-gray-500">
 							Используется в URL: /articles/{articleContent.uri || 'your-uri'}
@@ -266,7 +268,7 @@
 							name="description"
 							bind:value={articleContent.description}
 							rows="2"
-							class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+							class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
 						></textarea>
 					</div>
 
@@ -280,7 +282,7 @@
 							name="imageUrl"
 							bind:value={articleContent.imageUrl}
 							placeholder="https://example.com/image.jpg"
-							class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+							class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
 						/>
 					</div>
 
@@ -293,7 +295,7 @@
 							name="descriptionMeta"
 							bind:value={articleContent.descriptionMeta}
 							rows="2"
-							class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+							class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
 							placeholder="Краткое описание для поисковых систем"
 						></textarea>
 					</div>
@@ -308,7 +310,7 @@
 							bind:value={articleContent.content}
 							required
 							rows="15"
-							class="font-mono w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+							class="w-full rounded-lg border border-gray-300 px-4 py-2 font-mono text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
 							placeholder="# Заголовок&#10;&#10;Ваш текст здесь..."
 						></textarea>
 						<p class="mt-1 text-xs text-gray-500">

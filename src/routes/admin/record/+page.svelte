@@ -9,10 +9,12 @@
 	import InvocationInput from './InvocationInput.svelte';
 	import GenderInput from './GenderInput.svelte';
 	import DateTimePicker from './DateTimePicker.svelte';
+	import ClientInput from './ClientInput.svelte';
+	import PhoneInput from './PhoneInput.svelte';
 
 	let { data }: { data: PageData } = $props();
 
-	let isNewClient = $state(data.initialClientId === undefined);
+	let isNewClient = $state(false);
 	let notPhone = $state(false);
 	let isSubmitting = $state(false);
 
@@ -31,6 +33,9 @@
 	let source = $state('');
 	let invocation = $state(initialInvocation || '');
 	let gender = $state(initialGender || '');
+	let clientId = $state<number | undefined>(initialClientId);
+	let clientName = $state('');
+	let phoneValue = $state('');
 
 	let dateTimeValue = $state(
 		initialDate
@@ -39,8 +44,8 @@
 	);
 </script>
 
-<div class="container mx-auto p-4 max-w-2xl">
-	<Card class="p-6 mb-4">
+<div class="container mx-auto max-w-2xl p-4">
+	<Card class="mb-4 p-6">
 		<form
 			method="POST"
 			use:enhance={() => {
@@ -59,28 +64,21 @@
 			{/if}
 
 			<div class="mb-4">
-				<label for="name" class="block mb-2">Имя *</label>
 				{#if isNewClient}
+					<label for="name" class="mb-2 block">Имя *</label>
 					<input
 						type="text"
 						id="name"
 						name="name"
-						class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
+						class="w-full rounded border px-3 py-2 focus:border-primary focus:ring-2 focus:ring-primary/50 focus:outline-none"
 						required
 					/>
 				{:else}
-					<select id="name" name="clientId" class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary" required>
-						<option value="">Выберите клиента</option>
-						{#each suggestedNames as client}
-							<option value={client.id} selected={client.id === initialClientId}>
-								{client.value}
-							</option>
-						{/each}
-					</select>
-					{#if initialClientId && contact}
+					<ClientInput bind:clientId bind:clientName clients={suggestedNames} {initialClientId} />
+					{#if clientId && contact}
 						<p class="mt-2 text-sm text-gray-600">
-							{suggestedNames.find((n) => n.id === initialClientId)?.nick ||
-								suggestedNames.find((n) => n.id === initialClientId)?.value}
+							{suggestedNames.find((n) => n.id === clientId)?.nick ||
+								suggestedNames.find((n) => n.id === clientId)?.value}
 							{contact}
 						</p>
 					{/if}
@@ -88,7 +86,7 @@
 			</div>
 
 			<div class="mb-4">
-				<label for="timestamp" class="block mb-2">Дата и время *</label>
+				<label for="timestamp" class="mb-2 block">Дата и время *</label>
 				<DateTimePicker bind:value={dateTimeValue} />
 				<input type="hidden" name="timestamp" value={dateTimeValue} required />
 			</div>
@@ -99,21 +97,30 @@
 				</div>
 
 				<div class="mb-4 flex items-center space-x-2">
-					<Switch id="notPhone" bind:checked={notPhone} />
-					<Label for="notPhone" class="cursor-pointer">Не знаю номер</Label>
+					<Switch id="notPhone" name="notPhone" bind:checked={notPhone} />
+					<Label for="notPhone" class="cursor-pointer">Не знаю телеграм</Label>
 				</div>
 
 				<div class="mb-4">
-					<label for="phone" class="block mb-2">{notPhone ? 'Телеграм' : 'Номер телефона'} *</label>
-					<input
-						type="text"
-						id="phone"
-						name="phone"
-						placeholder={notPhone ? 'Телеграм' : '+7 (900) 000-0000'}
-						class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
-						required
-					/>
+					{#if notPhone}
+						<PhoneInput bind:value={phoneValue} />
+					{:else}
+						<Label for="phone">
+							Телеграм
+							<span class="text-destructive">*</span>
+						</Label>
+						<input
+							type="text"
+							id="phone"
+							name="phone"
+							placeholder="Телеграм"
+							class="w-full rounded border px-3 py-2 focus:border-primary focus:ring-2 focus:ring-primary/50 focus:outline-none"
+							required
+						/>
+					{/if}
 				</div>
+
+				<input type="hidden" name="contactType" value={notPhone ? 'phone' : 'telegram'} />
 
 				<div class="mb-4">
 					<InvocationInput bind:invocation />
@@ -125,12 +132,12 @@
 			{/if}
 
 			<div class="mb-4">
-				<label for="description" class="block mb-2">Информация</label>
+				<label for="description" class="mb-2 block">Информация</label>
 				<textarea
 					id="description"
 					name="description"
 					value={description || ''}
-					class="w-full border rounded px-3 py-2 min-h-[100px] focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
+					class="min-h-[100px] w-full rounded border px-3 py-2 focus:border-primary focus:ring-2 focus:ring-primary/50 focus:outline-none"
 				></textarea>
 			</div>
 
@@ -138,14 +145,11 @@
 				<input type="hidden" name="editActivityId" value={editActivityId} />
 			{/if}
 
-			<div class="flex gap-3">
+			<div class="flex w-full gap-3">
 				<Button type="submit" disabled={isSubmitting}>
-					{isSubmitting
-						? 'Подождите...'
-						: editActivityId
-							? 'Обновить запись'
-							: 'Добавить запись'}
+					{isSubmitting ? 'Подождите...' : editActivityId ? 'Обновить запись' : 'Добавить запись'}
 				</Button>
+				<Button onclick={() => (window.location.href = '/admin/manage-records')}>Назад</Button>
 
 				{#if editActivityId}
 					<Button
@@ -165,9 +169,5 @@
 				{/if}
 			</div>
 		</form>
-	</Card>
-
-	<Card class="p-6">
-		<Button onclick={() => (window.location.href = '/admin/manage-records')}>Назад</Button>
 	</Card>
 </div>

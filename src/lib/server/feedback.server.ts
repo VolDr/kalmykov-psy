@@ -29,7 +29,8 @@ class FeedbackService {
 				method: payload.method,
 				generally: payload.generally,
 				clientId: payload.clientId,
-				datetime: typeof payload.datetime === 'string' ? payload.datetime : payload.datetime.toISOString(),
+				datetime:
+					typeof payload.datetime === 'string' ? payload.datetime : payload.datetime.toISOString(),
 				disabled: payload.disabled ?? false,
 				editable: payload.editable ?? true,
 				createdAt: now,
@@ -54,7 +55,8 @@ class FeedbackService {
 		if (payload.editable !== undefined) updateData.editable = payload.editable;
 		if (payload.disabled !== undefined) updateData.disabled = payload.disabled;
 		if (payload.datetime !== undefined) {
-			updateData.datetime = typeof payload.datetime === 'string' ? payload.datetime : payload.datetime.toISOString();
+			updateData.datetime =
+				typeof payload.datetime === 'string' ? payload.datetime : payload.datetime.toISOString();
 		}
 
 		const [feedback] = await db
@@ -173,9 +175,7 @@ function serializeDate(date: string | Date | null | undefined): string | undefin
 	return typeof date === 'string' ? date : date.toISOString();
 }
 
-export function serializeFeedback(
-	feedback: Awaited<ReturnType<(typeof feedbackService)['get']>>
-) {
+export function serializeFeedback(feedback: Awaited<ReturnType<(typeof feedbackService)['get']>>) {
 	if (!feedback) {
 		return undefined;
 	}

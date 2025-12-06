@@ -2,7 +2,7 @@ import type { SurveyConfig } from '$lib/data/surveys/types';
 
 export const ipsConfig: SurveyConfig = {
 	id: 'ips',
-	title: 'ИПШ (IPS)',
+	title: 'Шкала иррациональной прокрастинации',
 	description: 'Шкала иррациональной прокрастинации П. Стила',
 
 	infoSections: {
@@ -10,7 +10,7 @@ export const ipsConfig: SurveyConfig = {
 			title: 'О шкале иррациональной прокрастинации',
 			type: 'info',
 			content:
-				'Шкала иррациональной прокрастинации (ИПШ/IPS) — это короткая версия опросника для оценки склонности откладывать дела вопреки осознанию негативных последствий.\n\nОпросник помогает выявить чистую иррациональную прокрастинацию — когда человек добровольно откладывает дела, хотя полностью осознает вредность такого поведения.\n\n',
+				'Шкала иррациональной прокрастинации — это короткая версия опросника для оценки склонности откладывать дела вопреки осознанию негативных последствий.\n\nОпросник помогает выявить чистую иррациональную прокрастинацию — когда человек добровольно откладывает дела, хотя полностью осознает вредность такого поведения.\n\n',
 			expanded: true
 		}
 	},
@@ -28,9 +28,9 @@ export const ipsConfig: SurveyConfig = {
 			required: true,
 			options: [
 				{ label: 'Не согласен', value: 1, points: 1 },
-				{ label: 'Скорее нет', value: 2, points: 2 },
-				{ label: 'Иногда', value: 3, points: 3 },
-				{ label: 'Скорее да', value: 4, points: 4 },
+				{ label: 'Скорее не согласен', value: 2, points: 2 },
+				{ label: 'Нейтрально', value: 3, points: 3 },
+				{ label: 'Скорее согласен', value: 4, points: 4 },
 				{ label: 'Согласен', value: 5, points: 5 }
 			],
 			showPoints: false,
@@ -43,9 +43,9 @@ export const ipsConfig: SurveyConfig = {
 			required: true,
 			options: [
 				{ label: 'Не согласен', value: 1, points: 5 },
-				{ label: 'Скорее нет', value: 2, points: 4 },
-				{ label: 'Иногда', value: 3, points: 3 },
-				{ label: 'Скорее да', value: 4, points: 2 },
+				{ label: 'Скорее не согласен', value: 2, points: 4 },
+				{ label: 'Нейтрально', value: 3, points: 3 },
+				{ label: 'Скорее согласен', value: 4, points: 2 },
 				{ label: 'Согласен', value: 5, points: 1 }
 			],
 			showPoints: false,
@@ -58,9 +58,9 @@ export const ipsConfig: SurveyConfig = {
 			required: true,
 			options: [
 				{ label: 'Не согласен', value: 1, points: 1 },
-				{ label: 'Скорее нет', value: 2, points: 2 },
-				{ label: 'Иногда', value: 3, points: 3 },
-				{ label: 'Скорее да', value: 4, points: 4 },
+				{ label: 'Скорее не согласен', value: 2, points: 2 },
+				{ label: 'Нейтрально', value: 3, points: 3 },
+				{ label: 'Скорее согласен', value: 4, points: 4 },
 				{ label: 'Согласен', value: 5, points: 5 }
 			],
 			showPoints: false,
@@ -73,9 +73,9 @@ export const ipsConfig: SurveyConfig = {
 			required: true,
 			options: [
 				{ label: 'Не согласен', value: 1, points: 1 },
-				{ label: 'Скорее нет', value: 2, points: 2 },
-				{ label: 'Иногда', value: 3, points: 3 },
-				{ label: 'Скорее да', value: 4, points: 4 },
+				{ label: 'Скорее не согласен', value: 2, points: 2 },
+				{ label: 'Нейтрально', value: 3, points: 3 },
+				{ label: 'Скорее согласен', value: 4, points: 4 },
 				{ label: 'Согласен', value: 5, points: 5 }
 			],
 			showPoints: false,
@@ -88,9 +88,9 @@ export const ipsConfig: SurveyConfig = {
 			required: true,
 			options: [
 				{ label: 'Не согласен', value: 1, points: 5 },
-				{ label: 'Скорее нет', value: 2, points: 4 },
-				{ label: 'Иногда', value: 3, points: 3 },
-				{ label: 'Скорее да', value: 4, points: 2 },
+				{ label: 'Скорее не согласен', value: 2, points: 4 },
+				{ label: 'Нейтрально', value: 3, points: 3 },
+				{ label: 'Скорее согласен', value: 4, points: 2 },
 				{ label: 'Согласен', value: 5, points: 1 }
 			],
 			showPoints: false,
@@ -103,9 +103,9 @@ export const ipsConfig: SurveyConfig = {
 			required: true,
 			options: [
 				{ label: 'Не согласен', value: 1, points: 1 },
-				{ label: 'Скорее нет', value: 2, points: 2 },
-				{ label: 'Иногда', value: 3, points: 3 },
-				{ label: 'Скорее да', value: 4, points: 4 },
+				{ label: 'Скорее не согласен', value: 2, points: 2 },
+				{ label: 'Нейтрально', value: 3, points: 3 },
+				{ label: 'Скорее согласен', value: 4, points: 4 },
 				{ label: 'Согласен', value: 5, points: 5 }
 			],
 			showPoints: false,
@@ -118,9 +118,9 @@ export const ipsConfig: SurveyConfig = {
 			required: true,
 			options: [
 				{ label: 'Не согласен', value: 1, points: 1 },
-				{ label: 'Скорее нет', value: 2, points: 2 },
-				{ label: 'Иногда', value: 3, points: 3 },
-				{ label: 'Скорее да', value: 4, points: 4 },
+				{ label: 'Скорее не согласен', value: 2, points: 2 },
+				{ label: 'Нейтрально', value: 3, points: 3 },
+				{ label: 'Скорее согласен', value: 4, points: 4 },
 				{ label: 'Согласен', value: 5, points: 5 }
 			],
 			showPoints: false,
@@ -133,9 +133,9 @@ export const ipsConfig: SurveyConfig = {
 			required: true,
 			options: [
 				{ label: 'Не согласен', value: 1, points: 5 },
-				{ label: 'Скорее нет', value: 2, points: 4 },
-				{ label: 'Иногда', value: 3, points: 3 },
-				{ label: 'Скорее да', value: 4, points: 2 },
+				{ label: 'Скорее не согласен', value: 2, points: 4 },
+				{ label: 'Нейтрально', value: 3, points: 3 },
+				{ label: 'Скорее согласен', value: 4, points: 2 },
 				{ label: 'Согласен', value: 5, points: 1 }
 			],
 			showPoints: false,
@@ -148,9 +148,9 @@ export const ipsConfig: SurveyConfig = {
 			required: true,
 			options: [
 				{ label: 'Не согласен', value: 1, points: 1 },
-				{ label: 'Скорее нет', value: 2, points: 2 },
-				{ label: 'Иногда', value: 3, points: 3 },
-				{ label: 'Скорее да', value: 4, points: 4 },
+				{ label: 'Скорее не согласен', value: 2, points: 2 },
+				{ label: 'Нейтрально', value: 3, points: 3 },
+				{ label: 'Скорее согласен', value: 4, points: 4 },
 				{ label: 'Согласен', value: 5, points: 5 }
 			],
 			showPoints: false,
@@ -163,7 +163,7 @@ export const ipsConfig: SurveyConfig = {
 		maxScore: 45,
 		interpretation: [
 			{
-				min: 11,
+				min: 9,
 				max: 22,
 				severity: 'Низкий уровень иррациональной прокрастинации',
 				recommendation:
@@ -175,7 +175,7 @@ export const ipsConfig: SurveyConfig = {
 				max: 37,
 				severity: 'Средний уровень иррациональной прокрастинации',
 				recommendation:
-					'У вас периодическое иррациональное откладывание задач.\n\nВы иногда понимаете нежелательность откладывания, но все же откладываете. Это ситуационное поведение, которое проявляется в определенных условиях.\n\nРекомендации:\n— Определите триггеры, когда вы чаще всего откладываете дела\n— Используйте техники самоконтроля (напоминания, планирование)\n— Работайте над осознанностью и отслеживанием своих действий',
+					'Вы периодически иррационально откладываете задачи.\n\nВы иногда понимаете нежелательность откладывания, но все же откладываете. Это ситуационное поведение, которое проявляется в определенных условиях.\n\nРекомендуется [консультация с психологом](/online-therapy).',
 				color: 'yellow'
 			},
 			{
@@ -183,7 +183,7 @@ export const ipsConfig: SurveyConfig = {
 				max: 45,
 				severity: 'Высокий уровень иррациональной прокрастинации',
 				recommendation:
-					'У вас выражена чистая иррациональная прокрастинация.\n\nВы добровольно откладываете дела, хотя полностью осознаете негативные последствия. Это указывает на дефицит волевой регуляции, высокую импульсивность и слабую дисциплину.\n\nРекомендуется [консультация с психологом](/online-therapy) для работы над волевой регуляцией.',
+					'У вас выражена чистая иррациональная прокрастинация.\n\nВы откладываете дела, хотя полностью осознаете негативные последствия. \n\nРекомендуется [консультация с психологом](/online-therapy).',
 				color: 'red'
 			}
 		]

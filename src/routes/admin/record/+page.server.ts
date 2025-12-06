@@ -56,26 +56,47 @@ export const load: PageServerLoad = async ({ url }) => {
 		value: string;
 		numOfActivities: number;
 		nick: string | undefined;
+		lastActivityDate: Date | null;
 	}> = [];
 
 	clients.forEach((c) => {
 		const nick = c.nick ?? undefined;
+		const lastActivityDate =
+			c.activities.length > 0
+				? new Date(
+						Math.max(
+							...c.activities.map((a) => {
+								const date = a.scheduledDate;
+								return typeof date === 'string'
+									? new Date(date).getTime()
+									: new Date(date).getTime();
+							})
+						)
+					)
+				: null;
+
 		names.push({
 			id: c.id,
 			value: c.name,
 			numOfActivities: c.activities.length,
-			nick
+			nick,
+			lastActivityDate
 		});
-		if (nick !== undefined) {
-			names.push({
-				id: c.id,
-				value: nick,
-				numOfActivities: c.activities.length,
-				nick
-			});
-		}
 	});
-	names.sort((a, b) => b.numOfActivities - a.numOfActivities);
+
+	// Sort: clients with activities by last activity date (desc), then clients without activities
+	names.sort((a, b) => {
+		if (a.lastActivityDate && b.lastActivityDate) {
+			return b.lastActivityDate.getTime() - a.lastActivityDate.getTime();
+		}
+		if (a.lastActivityDate && !b.lastActivityDate) {
+			return -1;
+		}
+		if (!a.lastActivityDate && b.lastActivityDate) {
+			return 1;
+		}
+		return 0;
+	});
 
 	const suggestedSources = (await sourceService.getAll()).map((c) => c.name);
 
@@ -109,7 +130,12 @@ function formatPhone(phone: string) {
 	}
 }
 
-function checkContactIsPhone(phone: string) {
+function checkContactIsPhone(phone: string, explicitType?: string) {
+	// If explicit type is provided, use it
+	if (explicitType === 'phone' || explicitType === 'telegram') {
+		return explicitType === 'phone';
+	}
+	// Otherwise, fallback to checking the format
 	return phone.startsWith('+');
 }
 
@@ -118,10 +144,7 @@ async function createFeedback(clientId: string, datetime: Date | string) {
 		const smallId = [...uuid().slice(-7, -1).toLocaleLowerCase()]
 			.map((c) => (Math.random() < 0.3 ? c : c.toUpperCase()))
 			.join('');
-		if (
-			(await feedbackService.get(smallId, {})) ||
-			(await currentStateService.get(smallId, {}))
-		) {
+		if ((await feedbackService.get(smallId, {})) || (await currentStateService.get(smallId, {}))) {
 			throw new Error('Already exists');
 		}
 		return await feedbackService.create({
@@ -152,10 +175,7 @@ async function createCurrentState(clientId: string, datetime: Date | string) {
 		const smallId = [...uuid().slice(-7, -1).toLocaleLowerCase()]
 			.map((c) => (Math.random() < 0.3 ? c : c.toUpperCase()))
 			.join('');
-		if (
-			(await feedbackService.get(smallId, {})) ||
-			(await currentStateService.get(smallId, {}))
-		) {
+		if ((await feedbackService.get(smallId, {})) || (await currentStateService.get(smallId, {}))) {
 			throw new Error('Already exists');
 		}
 		return await currentStateService.create({
@@ -230,9 +250,7 @@ export const actions = {
 
 		const timestamp = formData.get('timestamp');
 		const formattedTimestamp =
-			timestamp && typeof timestamp === 'string'
-				? dayjs(timestamp).format('DD-MM-YYYY-HH-mm')
-				: '';
+			timestamp && typeof timestamp === 'string' ? dayjs(timestamp).format('DD-MM-YYYY-HH-mm') : '';
 
 		const data = Object.fromEntries(formData);
 		data.timestamp = formattedTimestamp;
@@ -256,7 +274,8 @@ export const actions = {
 				invocation: validData.invocation
 			};
 
-			const contactIsPhone = checkContactIsPhone(validData.phone);
+			const explicitContactType = validData.contactType;
+			const contactIsPhone = checkContactIsPhone(validData.phone, explicitContactType);
 			const contactType: ContactType = contactIsPhone ? 'phone' : 'telegram';
 
 			const contact = await contactService.get({

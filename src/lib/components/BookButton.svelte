@@ -6,7 +6,7 @@
 	href="https://t.me/m/hSP1SM5sYjcy"
 	target="_blank"
 	rel="noopener noreferrer"
-	class="max-w-[250px] block mx-auto"
+	class="mx-auto block max-w-[250px]"
 >
 	ЗАПИСАТЬСЯ
 </Button>

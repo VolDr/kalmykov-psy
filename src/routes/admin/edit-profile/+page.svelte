@@ -44,6 +44,9 @@
 				if (result.type === 'success') {
 					toast.success(`Профиль ${formData.nick || formData.name} обновлен`);
 					await update();
+					// Close the page and navigate back to profile
+					const clientId = result.data?.clientId || data.client.id;
+					goto(`/admin/profile?clientId=${clientId}`);
 				} else if (result.type === 'failure') {
 					toast.error(result.data?.error || 'Ошибка при сохранении');
 					errors = result.data?.errors || {};

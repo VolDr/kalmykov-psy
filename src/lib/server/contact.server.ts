@@ -55,10 +55,7 @@ class ContactService {
 			.select()
 			.from(schema.contact)
 			.where(
-				and(
-					eq(schema.contact.value, data.value),
-					eq(schema.contact.contactTypeId, contactType.id)
-				)
+				and(eq(schema.contact.value, data.value), eq(schema.contact.contactTypeId, contactType.id))
 			)
 			.limit(1);
 

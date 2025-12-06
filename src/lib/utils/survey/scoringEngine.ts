@@ -6,6 +6,8 @@ export interface SubscaleResult {
 	description?: string;
 	score: number;
 	averageScore: number;
+	displayMethod?: 'sum' | 'average'; // How to display the score
+	maxScore?: number; // Maximum possible score for this subscale (for sum display)
 	interpretation: {
 		min: number;
 		max: number;
@@ -132,18 +134,23 @@ function calculateSubscales(
 			subscale.alternativeInterpretation && subscale.interpretationCondition?.(answers)
 				? subscale.alternativeInterpretation
 				: subscale.interpretation;
-
+		const value = subscale.displayMethod === 'sum' ? subscaleScore : averageScore;
+		// Use subscaleScore (sum) for interpretation instead of averageScore
 		const interpretation =
-			interpretationArray.find(
-				(interp) => averageScore >= interp.min && averageScore <= interp.max
-			) || interpretationArray[interpretationArray.length - 1];
+			interpretationArray.find((interp) => value >= interp.min && value <= interp.max) ||
+			interpretationArray[interpretationArray.length - 1];
 
 		return {
 			id: subscale.id,
 			name: subscale.name,
 			description: subscale.description,
 			score: subscaleScore,
-			averageScore: Math.round(averageScore * 100) / 100,
+			averageScore: averageScore,
+			displayMethod: subscale.displayMethod || 'average',
+			maxScore:
+				subscale.displayMethod === 'sum'
+					? subscale.interpretation[subscale.interpretation.length - 1].max
+					: undefined,
 			interpretation
 		};
 	});

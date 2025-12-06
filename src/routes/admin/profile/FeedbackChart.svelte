@@ -37,7 +37,7 @@
 	);
 </script>
 
-<div class="h-96 w-full border rounded-sm">
+<div class="h-96 w-full rounded-sm border">
 	<LineChart
 		data={chartData}
 		x="date"
@@ -50,7 +50,6 @@
 		]}
 		yDomain={[0, 40]}
 		annotations={[
-
 			{
 				type: 'line',
 				y: 36,

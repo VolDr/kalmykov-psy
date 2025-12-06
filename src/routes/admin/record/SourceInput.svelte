@@ -17,6 +17,7 @@
 		source = selectedSource;
 		showSuggestions = false;
 	}
+	console.log(filteredSources);
 </script>
 
 <div class="relative space-y-2">

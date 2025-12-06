@@ -31,14 +31,14 @@
 	<AccordionItem {isOpen}>
 		{#snippet header()}
 			<Reveal width="full" axis="x">
-				<h3 id="education" class="subtitle">где я учился</h3>
+				<h2 id="education" class="subtitle">где я учился</h2>
 			</Reveal>
 		{/snippet}
 		{#snippet children()}
 			<div class="pl-4 lg:pl-32">
 				{#each educationGroups as group, groupIndex}
 					<div class={groupIndex > 0 ? 'mt-10' : ''}>
-						<h4 class="mb-6 text-xl font-semibold text-[#191919]/90">{group.category}</h4>
+						<h3 class="mb-6 text-xl font-semibold text-[#191919]/90">{group.category}</h3>
 						<div class="relative pl-8">
 							{#each group.items as item}
 								<div class="relative mb-8">

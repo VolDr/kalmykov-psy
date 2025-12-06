@@ -58,10 +58,7 @@ class ArticleService {
 	}
 
 	async delete(id: string) {
-		const [article] = await db
-			.delete(schema.article)
-			.where(eq(schema.article.id, id))
-			.returning();
+		const [article] = await db.delete(schema.article).where(eq(schema.article.id, id)).returning();
 
 		return article;
 	}

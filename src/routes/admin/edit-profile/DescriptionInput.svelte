@@ -2,10 +2,7 @@
 	import { Textarea } from '$lib/components/ui/textarea';
 	import { Label } from '$lib/components/ui/label';
 
-	let {
-		description = $bindable(''),
-		error
-	}: { description?: string; error?: string } = $props();
+	let { description = $bindable(''), error }: { description?: string; error?: string } = $props();
 </script>
 
 <div class="space-y-2">
@@ -16,7 +13,7 @@
 		bind:value={description}
 		placeholder="Введите описание клиента"
 		aria-invalid={!!error}
-		class="min-h-24 max-h-48"
+		class="max-h-48 min-h-24"
 	/>
 	{#if error}
 		<p class="text-sm text-destructive">{error}</p>

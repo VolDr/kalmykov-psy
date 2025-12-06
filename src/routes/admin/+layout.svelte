@@ -13,14 +13,39 @@
 <div class="flex min-h-screen flex-col">
 	<!-- Header with navigation and logout -->
 	<header class="flex items-center justify-between border-b bg-white px-6 py-3">
-		<nav class="flex gap-6">
-			<a href="/admin/manage-records" class="text-sm font-medium text-gray-700 hover:text-gray-900">
-				Записи
+		<div class="flex items-center gap-6">
+			<nav class="flex gap-6">
+				<a
+					href="/admin/manage-records"
+					class="text-sm font-medium text-gray-700 hover:text-gray-900"
+				>
+					Записи
+				</a>
+				<a href="/admin/articles" class="text-sm font-medium text-gray-700 hover:text-gray-900">
+					Статьи
+				</a>
+			</nav>
+			<a
+				href="/admin/record"
+				class="inline-flex items-center gap-1 rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+			>
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					width="16"
+					height="16"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+				>
+					<path d="M5 12h14" />
+					<path d="M12 5v14" />
+				</svg>
+				Добавить запись
 			</a>
-			<a href="/admin/articles" class="text-sm font-medium text-gray-700 hover:text-gray-900">
-				Статьи
-			</a>
-		</nav>
+		</div>
 		<Button onclick={handleLogout} variant="outline">Выйти</Button>
 	</header>
 
@@ -30,10 +55,7 @@
 			<div class="mb-6">
 				<h2 class="mb-2 text-lg font-semibold">Управление</h2>
 				<nav class="space-y-1">
-					<a
-						href="/admin/articles"
-						class="block rounded-lg px-3 py-2 text-sm hover:bg-gray-100"
-					>
+					<a href="/admin/articles" class="block rounded-lg px-3 py-2 text-sm hover:bg-gray-100">
 						Статьи
 					</a>
 				</nav>
@@ -49,7 +71,7 @@
 						href="/admin/profile?clientId={client.id}"
 						class="block rounded-lg px-3 py-2 text-sm hover:bg-gray-100"
 					>
-						{client.name}
+						{client.nick || client.name}
 					</a>
 				{/each}
 			</nav>

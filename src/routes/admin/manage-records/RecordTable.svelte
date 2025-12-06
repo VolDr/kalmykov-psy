@@ -1,5 +1,12 @@
 <script lang="ts">
-	import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '$lib/components/ui/table';
+	import {
+		Table,
+		TableBody,
+		TableCell,
+		TableHead,
+		TableHeader,
+		TableRow
+	} from '$lib/components/ui/table';
 	import { Button } from '$lib/components/ui/button';
 	import { ScrollArea } from '$lib/components/ui/scroll-area';
 	import RecordCard from './RecordCard.svelte';
@@ -38,13 +45,13 @@
 </script>
 
 <!-- Desktop Table View -->
-<div class="hidden md:block mx-auto max-w-[1000px]">
+<div class="mx-auto hidden max-w-[1000px] md:block">
 	<div class="rounded-md border">
 		<Table>
 			<TableHeader>
 				<TableRow>
 					{#if showName}
-					<TableHead class="w-32">Имя</TableHead>
+						<TableHead class="w-32">Имя</TableHead>
 					{/if}
 					<TableHead class="w-24">Дата</TableHead>
 					<TableHead class="w-40">Обращение</TableHead>
@@ -58,9 +65,9 @@
 					{@const isPast = dayjs(activity.scheduledDate).isBefore(dayjs().startOf('day'))}
 
 					<TableRow class={cn(isPast && 'opacity-60')}>
-							{#if showName}
-						<TableCell>{activity.client?.nick ?? activity.client?.name}</TableCell>
-							{/if}
+						{#if showName}
+							<TableCell>{activity.client?.nick ?? activity.client?.name}</TableCell>
+						{/if}
 						<TableCell>
 							{dayjs(activity.scheduledDate).format('HH:mm DD.MM')}
 						</TableCell>
@@ -112,7 +119,7 @@
 </div>
 
 <!-- Mobile Card View -->
-<div class="md:hidden space-y-4">
+<div class="space-y-4 md:hidden">
 	{#each filteredActivities as activity}
 		<RecordCard {activity} />
 	{/each}

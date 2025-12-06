@@ -1,8 +1,35 @@
 <script lang="ts">
 	import { cn } from '$lib/utils';
-	import { onlineTherapyBlocks } from '$lib/data/online-therapy';
+	import { onlineTherapyBlocks, type BlockProps } from '$lib/data/online-therapy';
 	import MarkdownLink from '$lib/components/MarkdownLink.svelte';
-	import HeroBackground from '$lib/components/HeroBackground.svelte';
+	import PageHero from '$lib/components/PageHero.svelte';
+	import { page } from '$app/state';
+
+	// Модификации блоков для разных источников
+	const priceOverrides: Record<string, string[]> = {
+		avito: ['3000₽ за сессию первые три сессии, далее 5000₽.']
+	};
+
+	function getModifiedBlocks(source: string | null): BlockProps[] {
+		if (!source || !priceOverrides[source]) {
+			return onlineTherapyBlocks;
+		}
+
+		return onlineTherapyBlocks.map((block) => {
+			if (block.title === 'Оплата и стоимость') {
+				const override = priceOverrides[source];
+				return {
+					...block,
+					data: [...override, ...block.data.slice(1)]
+				};
+			}
+			return block;
+		});
+	}
+
+	// Получаем источник из query параметров (например, ?avito или ?special)
+	const source = $derived(page.url.searchParams.keys().next().value ?? null);
+	const blocks = $derived(getModifiedBlocks(source));
 </script>
 
 <svelte:head>
@@ -17,71 +44,39 @@
 		content="Условия и принципы работы с психологом. Правила сотрудничества для комфортного взаимодействия."
 	/>
 	<meta property="og:type" content="website" />
-	<meta property="og:image" content="/header.webp" />
+	<meta property="og:url" content="{import.meta.env.VITE_URL}/online-therapy" />
+	<meta property="og:site_name" content="Андрей Калмыков — Психолог" />
+	<meta property="og:image" content="{import.meta.env.VITE_URL}/header.webp" />
+	<meta property="og:image:width" content="1200" />
+	<meta property="og:image:height" content="630" />
 	<meta name="twitter:card" content="summary_large_image" />
 	<meta name="twitter:title" content="Процесс консультирования | Андрей Калмыков" />
 	<meta
 		name="twitter:description"
 		content="Условия и принципы работы с психологом. Правила сотрудничества для комфортного взаимодействия."
 	/>
-	<meta name="twitter:image" content="/header.webp" />
+	<meta name="twitter:image" content="{import.meta.env.VITE_URL}/header.webp" />
 </svelte:head>
 
-<section
-	data-hero
-	class="relative text-gray-100 overflow-hidden bg-cover bg-center min-h-[30vh]"
->
-	<HeroBackground />
-	<div
-		class="absolute w-full h-full z-0 bg-gradient-to-b from-black/25 from-0% via-black/65 via-40% to-black/65"
-	></div>
-	<!-- Mobile layout -->
-	<div class="container mx-auto mt-10 max-w-[720px] lg:max-w-[960px] px-5 lg:px-0">
-		<div class="pt-[63px] lg:hidden z-10 relative min-h-[100px] mb-4 mt-[10vh] max-w-[960px] mx-auto">
-			<h1 class="text-3xl font-circe self-end">Как мы будем работать</h1>
-		</div>
-		<div class="lg:hidden z-10 relative -mt-2 mb-5 flex flex-col gap-2">
-			<p class="row-start-5 row-end-7 col-start-1 col-end-6 text-left">
-				Психотерапия — это регулярные встречи, во время которых мы работаем с вашими мыслями,
-				чувствами и поведением для достижения желаемых изменений.
-			</p>
-			<p class="row-start-5 row-end-7 col-start-1 col-end-6 text-left">
-				Если какие-то пункты вызывают у вас вопросы, вы можете обсудить их со мной.
-			</p>
-		</div>
-	</div>
+<PageHero title="Как мы будем работать" maxWidth="md">
+	{#snippet description()}
+		<p class="leading-relaxed">
+			Психотерапия — это регулярные встречи, во время которых мы работаем с вашими мыслями,
+			чувствами и поведением для достижения желаемых изменений.
+		</p>
+		<p class="leading-relaxed">
+			Если какие-то пункты вызывают у вас вопросы, вы можете обсудить их со мной.
+		</p>
+	{/snippet}
+</PageHero>
 
-	<!-- Desktop layout -->
-	<div
-		class="hidden lg:grid grid-cols-12 grid-rows-12 gap-4 max-w-[720px] lg:max-w-[960px] gap-x-0 mx-auto z-10 pt-14 relative aspect-[1.51]"
-	>
-		<!-- Title text -->
-		<div class="col-start-1 col-end-12 row-start-5 row-end-12">
-			<h1 class="text-3xl lg:text-5xl leading-tight font-circe">Как мы будем работать</h1>
-		</div>
-
-		<!-- Description text -->
-		<div
-			class="col-start-1 col-end-12 text-base lg:text-md row-start-8 row-end-11 flex flex-col gap-4  leading-relaxed"
-		>
-			<p class="mx-auto lg:mx-0 text-center lg:text-left">
-				Психотерапия — это регулярные встречи, во время которых мы работаем с вашими мыслями,
-				чувствами и поведением для достижения желаемых изменений.
-			</p>
-			<p class="mx-auto lg:mx-0 text-center lg:text-left">
-				Если какие-то пункты вызывают у вас вопросы, вы можете обсудить их со мной.
-			</p>
-		</div>
-	</div>
-</section>
-
-<div class="container mx-auto mt-10 max-w-[720px] lg:max-w-[960px] px-5 lg:px-0">
+<div class="container mx-auto mt-10 max-w-[720px] px-5 lg:max-w-[960px] lg:px-0">
 	<div class="grid grid-cols-1 gap-10 leading-relaxed">
-		{#each onlineTherapyBlocks as block}
+		{#each blocks as block}
 			<div class="col-span-full">
-				<section class="flex flex-col gap-2 items-start">
-					<div class="subtitle">{block.title.toLowerCase()}</div>
-					<div class="flex flex-col gap-1 items-start">
+				<section class="flex flex-col items-start gap-2">
+					<h2 class="subtitle">{block.title.toLowerCase()}</h2>
+					<div class="flex flex-col items-start gap-1">
 						{#each block.data as item}
 							<p>
 								<MarkdownLink text={item} />
@@ -94,13 +89,13 @@
 
 		<a
 			class={cn(
-				'text-center text-[#191919] max-w-[250px]',
+				'max-w-[250px] text-center text-[#191919]',
 				'font-light tracking-wide',
-				'py-[10px] px-[30px]',
-				'border border-solid rounded-[10px] border-black bg-opacity-0 block mx-auto',
+				'px-[30px] py-2.5',
+				'bg-opacity-0 mx-auto block rounded-[10px] border border-solid border-black',
 				'transition-all duration-200 ease-out',
-				'hover:bg-[#cfc1a3] hover:border-[#cfc1a3] hover:text-white hover:shadow-md hover:-translate-y-0.5',
-				'active:transform active:scale-95'
+				'hover:-translate-y-0.5 hover:border-[#cfc1a3] hover:bg-[#cfc1a3] hover:text-white hover:shadow-md',
+				'active:scale-95 active:transform'
 			)}
 			href="https://t.me/m/hSP1SM5sYjcy"
 			target="_blank"

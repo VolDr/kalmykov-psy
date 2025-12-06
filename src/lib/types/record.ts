@@ -11,7 +11,8 @@ export const schemaRecordNewClient = z.object({
 	description: z.string().optional(),
 	editActivityId: z.undefined(),
 	gender: z.string().optional(),
-	invocation: z.string().optional()
+	invocation: z.string().optional(),
+	contactType: z.enum(['phone', 'telegram']).optional()
 });
 
 export const schemaRecordExistingClient = z.object({

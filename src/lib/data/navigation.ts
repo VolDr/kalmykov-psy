@@ -11,7 +11,7 @@ export const navigationLinks: NavigationLink[] = [
 	{ link: '/articles', label: 'Статьи' },
 	{ link: '/surveys', label: 'Опросники' },
 	{ link: '/sos', label: 'Экстренная помощь' },
-		{ link: '/for-doctors', label: 'Врачам' }
+	{ link: '/for-doctors', label: 'Врачам' }
 ];
 
 export interface SocialLink {

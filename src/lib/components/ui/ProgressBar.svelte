@@ -15,9 +15,10 @@
 </script>
 
 <div
-	class="fixed inset-x-0 top-0 z-[202] h-[5px] origin-[0%] bg-[#cfc1a3] "
+	class="fixed inset-x-0 top-0 z-[202] h-[5px] origin-[0%] bg-[#cfc1a3]"
 	style="
     transform: scaleX({progress});
     transition: transform 100ms ease-out;
     opacity: {fading ? 0.8 : 1};
-  "></div>
+  "
+></div>

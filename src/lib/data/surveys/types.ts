@@ -47,6 +47,7 @@ export interface SubscaleScoring {
 	name: string;
 	description?: string;
 	questionIds: string[];
+	displayMethod?: 'sum' | 'average'; // How to display the score (default: 'average')
 	interpretation: Array<{
 		min: number;
 		max: number;

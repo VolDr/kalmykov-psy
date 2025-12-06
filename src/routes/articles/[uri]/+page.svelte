@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { marked } from 'marked';
-	import HeroBackground from '$lib/components/HeroBackground.svelte';
+	import PageHero from '$lib/components/PageHero.svelte';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
@@ -46,7 +46,17 @@
 	<meta property="og:site_name" content="Андрей Калмыков — Психолог" />
 	{#if article.imageUrl}
 		<meta property="og:image" content={article.imageUrl} />
+		<meta property="og:image:width" content="1200" />
+		<meta property="og:image:height" content="630" />
 	{/if}
+	<meta property="article:author" content="Андрей Калмыков" />
+	{#if article.createdAt}
+		<meta property="article:published_time" content={article.createdAt} />
+	{/if}
+	{#if article.updatedAt}
+		<meta property="article:modified_time" content={article.updatedAt} />
+	{/if}
+	<meta name="author" content="Андрей Калмыков" />
 
 	<!-- Twitter Card -->
 	<meta name="twitter:card" content="summary_large_image" />
@@ -55,52 +65,68 @@
 	{#if article.imageUrl}
 		<meta name="twitter:image" content={article.imageUrl} />
 	{/if}
+
+	<!-- Schema.org structured data for Article -->
+	{@html `<script type="application/ld+json">
+	{
+		"@context": "https://schema.org",
+		"@type": "Article",
+		"headline": "${article.title.replace(/"/g, '\\"')}",
+		"description": "${description.replace(/"/g, '\\"')}",
+		"image": "${article.imageUrl || import.meta.env.VITE_URL + '/header.webp'}",
+		"datePublished": "${article.createdAt}",
+		${article.updatedAt ? `"dateModified": "${article.updatedAt}",` : ''}
+		"author": {
+			"@type": "Person",
+			"name": "Андрей Калмыков",
+			"jobTitle": "Психолог",
+			"url": "${import.meta.env.VITE_URL}"
+		},
+		"publisher": {
+			"@type": "Organization",
+			"name": "Андрей Калмыков — Психолог",
+			"logo": {
+				"@type": "ImageObject",
+				"url": "${import.meta.env.VITE_URL}/logo.svg"
+			}
+		},
+		"mainEntityOfPage": {
+			"@type": "WebPage",
+			"@id": "${url}"
+		}
+	}
+	</script>`}
+
+	<!-- BreadcrumbList for better navigation in search results -->
+	{@html `<script type="application/ld+json">
+	{
+		"@context": "https://schema.org",
+		"@type": "BreadcrumbList",
+		"itemListElement": [
+			{
+				"@type": "ListItem",
+				"position": 1,
+				"name": "Главная",
+				"item": "${import.meta.env.VITE_URL}/"
+			},
+			{
+				"@type": "ListItem",
+				"position": 2,
+				"name": "Статьи",
+				"item": "${import.meta.env.VITE_URL}/articles"
+			},
+			{
+				"@type": "ListItem",
+				"position": 3,
+				"name": "${article.title.replace(/"/g, '\\"')}",
+				"item": "${url}"
+			}
+		]
+	}
+	</script>`}
 </svelte:head>
 
-<section
-	data-hero
-	class="relative min-h-[30vh] overflow-hidden text-gray-100"
->
-	<HeroBackground />
-	<div
-		class="absolute z-0 h-full w-full bg-gradient-to-b from-black/25 from-0% via-black/65 via-40% to-black/65"
-	></div>
-
-	<!-- Mobile layout -->
-	<div class="container mx-auto mt-10 max-w-[720px] px-5 lg:max-w-[960px] lg:px-0">
-		<div
-			class="relative z-10 mx-auto mt-[10vh] mb-4 min-h-[100px] max-w-[960px] pt-[63px] lg:hidden"
-		>
-			<h1 class="self-end font-circe text-3xl">{article.title}</h1>
-		</div>
-		{#if article.description}
-			<div class="relative z-10 -mt-2 mb-5 flex flex-col gap-2 lg:hidden">
-				<p class="col-start-1 col-end-6 row-start-5 row-end-7 text-left">
-					{article.description}
-				</p>
-			</div>
-		{/if}
-	</div>
-
-	<!-- Desktop layout -->
-	<div
-		class="relative z-10 mx-auto hidden aspect-[1.51] max-w-[720px] grid-cols-12 grid-rows-12 gap-4 gap-x-0 pt-14 leading-relaxed lg:grid lg:max-w-[960px]"
-	>
-		<div class="col-start-1 col-end-12 row-start-5 row-end-12">
-			<h1 class="font-circe text-3xl leading-tight lg:text-5xl">{article.title}</h1>
-		</div>
-
-		{#if article.description}
-			<div
-				class="col-start-1 col-end-12 row-start-8 row-end-11 flex flex-col gap-4 text-base leading-relaxed lg:text-md"
-			>
-				<p class="mx-auto text-center lg:mx-0 lg:text-left">
-					{article.description}
-				</p>
-			</div>
-		{/if}
-	</div>
-</section>
+<PageHero title={article.title} description={article.description} maxWidth="md" />
 
 <article class="container mx-auto mt-10 max-w-[720px] px-5 lg:max-w-[960px] lg:px-0">
 	{#if article.imageUrl}
@@ -108,6 +134,8 @@
 			src={article.imageUrl}
 			alt={article.title}
 			class="mb-8 w-full rounded-lg shadow-lg"
+			width="1200"
+			height="630"
 			loading="lazy"
 		/>
 	{/if}

@@ -124,7 +124,7 @@
 		aria-label="Закрыть модальное окно"
 	>
 		<!-- Content wrapper - centered -->
-		<div class="flex items-center justify-center min-h-screen p-4">
+		<div class="flex min-h-screen items-center justify-center p-4">
 			<!-- Modal content -->
 			<div
 				class="relative flex flex-col gap-6"
@@ -136,10 +136,10 @@
 				<!-- Close button -->
 				<button
 					onclick={close}
-					class="absolute -top-10 right-0 p-2 text-white hover:text-[#cfc1a3] transition-colors z-10 cursor-pointer"
+					class="absolute -top-10 right-0 z-10 cursor-pointer p-2 text-white transition-colors hover:text-[#cfc1a3]"
 					aria-label="Закрыть"
 				>
-					<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path
 							stroke-linecap="round"
 							stroke-linejoin="round"
@@ -158,10 +158,10 @@
 								e.stopPropagation();
 								goToPrevious();
 							}}
-							class="cursor-pointer hidden md:flex p-2 rounded-lg border border-[#cfc1a3] bg-white/90 hover:bg-[#cfc1a3] hover:text-white transition-all"
+							class="hidden cursor-pointer rounded-lg border border-[#cfc1a3] bg-white/90 p-2 transition-all hover:bg-[#cfc1a3] hover:text-white md:flex"
 							aria-label="Предыдущий диплом"
 						>
-							<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 								<path
 									stroke-linecap="round"
 									stroke-linejoin="round"
@@ -174,7 +174,7 @@
 
 					<!-- Image -->
 					<div
-						class="relative h-[50vh] md:h-[70vh] w-[min(90vw,1200px)] flex items-center justify-center overflow-hidden"
+						class="relative flex h-[50vh] w-[min(90vw,1200px)] items-center justify-center overflow-hidden md:h-[70vh]"
 						onclick={(e) => e.stopPropagation()}
 						onkeydown={(e) => e.stopPropagation()}
 						role="img"
@@ -198,7 +198,7 @@
 									src={currentDiploma.imageUrl}
 									alt={currentDiploma.title}
 									class={cn(
-										'max-h-full max-w-full w-auto h-auto transition-opacity',
+										'h-auto max-h-full w-auto max-w-full transition-opacity',
 										loadedImages.has(currentDiploma.imageUrl) ? 'opacity-100' : 'opacity-0'
 									)}
 									onload={() => handleImageLoad(currentDiploma.imageUrl)}
@@ -209,8 +209,8 @@
 
 						<!-- Loading spinner -->
 						{#if !loadedImages.has(currentDiploma.imageUrl)}
-							<div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-								<div class="animate-spin rounded-full h-12 w-12 border-b-2 border-[#cfc1a3]"></div>
+							<div class="pointer-events-none absolute inset-0 flex items-center justify-center">
+								<div class="h-12 w-12 animate-spin rounded-full border-b-2 border-[#cfc1a3]"></div>
 							</div>
 						{/if}
 					</div>
@@ -222,10 +222,10 @@
 								e.stopPropagation();
 								goToNext();
 							}}
-							class="cursor-pointer hidden md:flex p-2 rounded-lg border border-[#cfc1a3] bg-white/90 hover:bg-[#cfc1a3] hover:text-white transition-all"
+							class="hidden cursor-pointer rounded-lg border border-[#cfc1a3] bg-white/90 p-2 transition-all hover:bg-[#cfc1a3] hover:text-white md:flex"
 							aria-label="Следующий диплом"
 						>
-							<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 								<path
 									stroke-linecap="round"
 									stroke-linejoin="round"
@@ -240,7 +240,7 @@
 				<!-- Indicators -->
 				{#if diplomas.length > 1}
 					<div
-						class="flex justify-center items-center gap-2"
+						class="flex items-center justify-center gap-2"
 						onclick={(e) => e.stopPropagation()}
 						onkeydown={(e) => e.stopPropagation()}
 						role="group"
@@ -250,10 +250,10 @@
 							<button
 								onclick={() => goToIndex(index)}
 								class={cn(
-									'transition-all duration-200 rounded-full cursor-pointer',
+									'cursor-pointer rounded-full transition-all duration-200',
 									index === currentIndex
-										? 'bg-[#cfc1a3] w-8 h-2'
-										: 'bg-gray-300 hover:bg-gray-400 w-2 h-2'
+										? 'h-2 w-8 bg-[#cfc1a3]'
+										: 'h-2 w-2 bg-gray-300 hover:bg-gray-400'
 								)}
 								aria-label="Перейти к диплому {index + 1}"
 							></button>

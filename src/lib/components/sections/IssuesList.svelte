@@ -17,7 +17,7 @@
 		</div>
 	</Reveal>
 
-	<h3 class="subtitle">c чем ко мне обращаются</h3>
+	<h2 class="subtitle">c чем ко мне обращаются</h2>
 	<div class="grid w-full grid-cols-1 gap-4 px-5 md:grid-cols-2 md:px-0">
 		{#each items as group}
 			<div class="{group.gridClass} min-h-[220px]">
@@ -27,7 +27,7 @@
 					>
 						<!-- Заголовок карточки -->
 						<div class="mb-4 flex items-center gap-3">
-							<h4 class="text-lg font-semibold text-[#191919]">{group.theme}</h4>
+							<h3 class="text-lg font-semibold text-[#191919]">{group.theme}</h3>
 						</div>
 
 						<!-- Список пунктов -->

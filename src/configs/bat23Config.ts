@@ -478,7 +478,8 @@ export const bat23Config: SurveyConfig = {
 					{ min: 3.31, max: 3.8, severity: 'Риск выгорания', color: 'orange' },
 					{ min: 3.81, max: 5.0, severity: 'Выгорание', color: 'red' }
 				],
-				interpretationCondition: (answers) => answers.hasWork === 0
+				interpretationCondition: (answers) => answers.hasWork === 0,
+				displayMethod: 'average'
 			},
 			{
 				id: 'distancing',
@@ -496,7 +497,8 @@ export const bat23Config: SurveyConfig = {
 					{ min: 2.5, max: 3.09, severity: 'Риск выгорания', color: 'orange' },
 					{ min: 3.1, max: 5.0, severity: 'Выгорание', color: 'red' }
 				],
-				interpretationCondition: (answers) => answers.hasWork === 0
+				interpretationCondition: (answers) => answers.hasWork === 0,
+				displayMethod: 'average'
 			},
 			{
 				id: 'cognitive',
@@ -514,7 +516,8 @@ export const bat23Config: SurveyConfig = {
 					{ min: 2.7, max: 3.49, severity: 'Риск выгорания', color: 'orange' },
 					{ min: 3.5, max: 5.0, severity: 'Выгорание', color: 'red' }
 				],
-				interpretationCondition: (answers) => answers.hasWork === 0
+				interpretationCondition: (answers) => answers.hasWork === 0,
+				displayMethod: 'average'
 			},
 			{
 				id: 'emotional',
@@ -532,7 +535,8 @@ export const bat23Config: SurveyConfig = {
 					{ min: 2.1, max: 3.49, severity: 'Риск выгорания', color: 'orange' },
 					{ min: 3.5, max: 5.0, severity: 'Выгорание', color: 'red' }
 				],
-				interpretationCondition: (answers) => answers.hasWork === 0
+				interpretationCondition: (answers) => answers.hasWork === 0,
+				displayMethod: 'average'
 			}
 		]
 	}

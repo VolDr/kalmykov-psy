@@ -54,7 +54,7 @@ class ClientService {
 			return null;
 		}
 
-		let result: any = { ...client };
+		const result: any = { ...client };
 
 		if (include?.source) {
 			const [sourceData] = await db

@@ -136,6 +136,6 @@ export const actions: Actions = {
 			description
 		});
 
-		redirect(302, `/admin/profile?clientId=${clientId}`);
+		return { success: true, clientId };
 	}
 };

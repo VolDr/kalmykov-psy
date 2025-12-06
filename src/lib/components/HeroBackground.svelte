@@ -12,8 +12,11 @@
 	<img
 		src="/header.webp"
 		{alt}
-		class="w-full h-full object-cover"
+		class="h-full w-full object-cover"
+		width="1200"
+		height="630"
 		loading="eager"
 		fetchpriority="high"
+		style="position: absolute; top: 0; left: 0;"
 	/>
 </picture>

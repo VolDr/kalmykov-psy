@@ -1,7 +1,4 @@
-export type MarkdownPart =
-	| string
-	| { text: string; href: string }
-	| { text: string; bold: true };
+export type MarkdownPart = string | { text: string; href: string } | { text: string; bold: true };
 
 /**
  * Parse markdown-style links [text](url) and bold text **text** from a string

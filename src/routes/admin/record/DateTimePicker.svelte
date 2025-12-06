@@ -77,12 +77,15 @@
 
 	<Card class="flex-1 p-4">
 		<div class="mb-3 text-sm font-medium">Выберите время</div>
-		<div class="grid grid-cols-2 gap-2 max-h-[320px] overflow-y-auto pr-2">
+		<div class="grid max-h-[320px] grid-cols-2 gap-2 overflow-y-auto pr-2">
 			{#each timeSlots as time}
 				<Button
 					type="button"
 					variant={selectedTime === time ? 'default' : 'outline'}
-					class={cn('w-full justify-center', selectedTime === time && 'bg-primary text-primary-foreground')}
+					class={cn(
+						'w-full justify-center',
+						selectedTime === time && 'bg-primary text-primary-foreground'
+					)}
 					onclick={() => handleTimeClick(time)}
 				>
 					{time}
