@@ -12,7 +12,7 @@
 	const warningStyles = {
 		critical: {
 			iconClass: 'icon-[lucide--alert-triangle]',
-			className: 'border-none bg-[#F2F0EF]'
+			className: 'border-none bg-[#f7f5f0]'
 		},
 		warning: {
 			iconClass: 'icon-[lucide--alert-circle]',
@@ -20,7 +20,7 @@
 		},
 		info: {
 			iconClass: 'icon-[lucide--info]',
-			className: 'border-none bg-[#F2F0EF]'
+			className: 'border-none bg-[#f7f5f0]'
 		}
 	};
 

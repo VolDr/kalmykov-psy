@@ -2,7 +2,7 @@
 	import { socialLinks, footerInfo } from '$lib/data/navigation';
 
 	const iconMap: Record<string, string> = {
-		WhatsApp: 'icon-[ri--whatsapp-line]',
+		// Instagram: 'icon-[ri--instagram-line]',
 		Telegram: 'icon-[ri--telegram-line]'
 	};
 </script>

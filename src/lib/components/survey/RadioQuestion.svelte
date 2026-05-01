@@ -33,7 +33,7 @@
 		</label>
 		{#if question.tipText}
 			<div
-				class="mt-2 flex items-start gap-3 rounded-lg bg-[#F2F0EF]/60 p-4 text-sm text-gray-700 md:text-base"
+				class="mt-2 flex items-start gap-3 rounded-lg bg-[#f7f5f0]/60 p-4 text-sm text-gray-700 md:text-base"
 			>
 				<span class="mt-0.5 icon-[lucide--info] h-5 w-5 flex-shrink-0 text-[#B8A98A]"></span>
 				<span>{question.tipText}</span>
@@ -75,7 +75,7 @@
 				</span>
 				{#if question.showPoints && option.points !== undefined}
 					<span
-						class="pointer-events-none bg-[#F2F0EF] px-2 py-1 text-xs font-medium text-black opacity-70 md:px-3 md:text-sm"
+						class="pointer-events-none bg-[#f7f5f0] px-2 py-1 text-xs font-medium text-black opacity-70 md:px-3 md:text-sm"
 					>
 						{option.points}
 						{option.points === 1 ? 'балл' : 'балла'}

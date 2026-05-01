@@ -155,7 +155,7 @@
 						поведения и мотивации пациента, помогая сфокусироваться на подборе схемы лечения и
 						клинических задачах.
 					</p>
-							<div class="flex flex-col gap-2 rounded-lg bg-[#F2F0EF] p-4 text-sm md:p-6 md:text-base">
+							<div class="flex flex-col gap-2 rounded-lg bg-[#f7f5f0] p-4 text-sm md:p-6 md:text-base">
 						<p class="font-semibold text-[#191919]">Организационные моменты:</p>
 						<ul class="ml-4 list-disc space-y-1 list-none ">
 							<li>Работаю со взрослыми клиентами (18+).</li>
@@ -179,7 +179,7 @@
 		</h2>
 
 		<div class="grid w-full grid-cols-1 gap-4 px-5 md:grid-cols-2 md:px-0 lg:gap-8">
-			<div class="rounded-lg bg-[#F2F0EF] p-6 md:p-8">
+			<div class="rounded-lg bg-[#f7f5f0] p-6 md:p-8">
 				<h3 class="mb-4 text-lg font-semibold text-[#191919]">Позиция по фармакотерапии</h3>
 				<p class="leading-relaxed">
 					Я строго придерживаюсь профессиональных границ: <b>не назначаю, не отменяю и не корректирую
@@ -188,7 +188,7 @@
 					процессу лечения.
 				</p>
 			</div>
-			<div class="rounded-lg bg-[#F2F0EF] p-6 md:p-8">
+			<div class="rounded-lg bg-[#f7f5f0] p-6 md:p-8">
 				<h3 class="mb-4 text-lg font-semibold text-[#191919]">Коммуникация и мониторинг</h3>
 				<p class="leading-relaxed">
 					Эффективная помощь — это командная работа. По согласованию с пациентом я готов
@@ -212,7 +212,7 @@
 			{#each items as item}
 				<div class={item.gridClass}>
 					<div
-						class="flex h-full min-h-[180px] flex-col justify-start rounded-lg bg-[#F2F0EF] p-6"
+						class="flex h-full min-h-[180px] flex-col justify-start rounded-lg bg-[#f7f5f0] p-6"
 					>
 						<div>
 							<h3 class="text-lg font-semibold text-[#191919]">{item.highlight}</h3>
@@ -238,7 +238,7 @@
 			{#each requestGroups as group}
 				<div class="{group.gridClass} min-h-[220px]">
 					<div
-						class="flex h-full min-h-[180px] flex-col justify-start rounded-lg bg-[#F2F0EF] p-6"
+						class="flex h-full min-h-[180px] flex-col justify-start rounded-lg bg-[#f7f5f0] p-6"
 					>
 						<div class="mb-4 flex items-center gap-3">
 							<h3 class="text-lg font-semibold text-[#191919]">{group.theme}</h3>
@@ -271,7 +271,7 @@
 
 		<div class="grid w-full grid-cols-1 gap-4 px-5 md:grid-cols-1 md:px-0">
 			<div
-				class="w-full max-w-[720px] rounded-lg bg-[#F2F0EF] px-5 py-6 md:max-w-[960px] md:px-8 md:py-8 lg:max-w-[600px]"
+				class="w-full max-w-[720px] rounded-lg bg-[#f7f5f0] px-5 py-6 md:max-w-[960px] md:px-8 md:py-8 lg:max-w-[600px]"
 			>
 				<ul class="flex flex-col gap-2.5">
 					<li>— Расстройства пищевого поведения</li>
@@ -294,7 +294,7 @@
 			<h2 class="subtitle">Как со мной связаться</h2>
 
 			<div
-				class="mx-auto flex w-full max-w-[600px] flex-col gap-4 rounded-lg bg-[#F2F0EF] px-6 py-6 md:px-8 md:py-8"
+				class="mx-auto flex w-full max-w-[600px] flex-col gap-4 rounded-lg bg-[#f7f5f0] px-6 py-6 md:px-8 md:py-8"
 			>
 				<div class="flex flex-col gap-3">
 					<p>

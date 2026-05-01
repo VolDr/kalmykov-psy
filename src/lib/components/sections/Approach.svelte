@@ -12,7 +12,7 @@
 	<div class="grid w-full grid-cols-1 gap-4 px-5 md:grid-cols-24 md:px-0 lg:grid-cols-24">
 		<div class="col-span-1 md:col-span-14">
 			<Reveal class="h-full w-full">
-				<div class="flex h-full min-h-[180px] flex-col justify-between rounded-lg bg-[#F2F0EF] p-6">
+				<div class="flex h-full min-h-[180px] flex-col justify-between rounded-lg bg-[#f7f5f0] p-6">
 					<div>
 						<span class="icon-[lucide--route] mb-4 h-6 w-6 text-right text-[#B8A98A]"></span>
 						<h3 class="text-lg font-semibold text-[#191919]">последовательная работа</h3>
@@ -28,7 +28,7 @@
 
 		<div class="col-span-1 md:col-span-10">
 			<Reveal class="h-full w-full">
-				<div class="flex h-full min-h-[180px] flex-col justify-between rounded-lg bg-[#F2F0EF] p-6">
+				<div class="flex h-full min-h-[180px] flex-col justify-between rounded-lg bg-[#f7f5f0] p-6">
 					<div>
 						<span class="icon-[lucide--signpost] mb-4 h-6 w-6 text-right text-[#B8A98A]"></span>
 						<h3 class="text-lg font-semibold text-[#191919]">понятная структура</h3>
@@ -43,7 +43,7 @@
 
 		<div class="col-span-1 md:col-span-10">
 			<Reveal class="h-full w-full">
-				<div class="flex h-full min-h-[180px] flex-col justify-between rounded-lg bg-[#F2F0EF] p-6">
+				<div class="flex h-full min-h-[180px] flex-col justify-between rounded-lg bg-[#f7f5f0] p-6">
 					<div>
 						<span class="icon-[lucide--flask-conical] mb-4 h-6 w-6 text-right text-[#B8A98A]"></span>
 						<h3 class="text-lg font-semibold text-[#191919]">научный подход</h3>
@@ -58,7 +58,7 @@
 
 		<div class="col-span-1 md:col-span-14">
 			<Reveal class="h-full w-full">
-				<div class="flex h-full min-h-[180px] flex-col justify-between rounded-lg bg-[#F2F0EF] p-6">
+				<div class="flex h-full min-h-[180px] flex-col justify-between rounded-lg bg-[#f7f5f0] p-6">
 					<div>
 						<span class="icon-[lucide--trending-up] mb-4 h-6 w-6 text-right text-[#B8A98A]"></span>
 						<h3 class="text-lg font-semibold text-[#191919]">измеримый результат</h3>
@@ -73,7 +73,7 @@
 
 		<div class="col-span-1 md:col-span-12">
 			<Reveal class="h-full w-full">
-				<div class="flex h-full min-h-[180px] flex-col justify-between rounded-lg bg-[#F2F0EF] p-6">
+				<div class="flex h-full min-h-[180px] flex-col justify-between rounded-lg bg-[#f7f5f0] p-6">
 					<div>
 						<span class="icon-[lucide--lightbulb] mb-4 h-6 w-6 text-right text-[#B8A98A]"></span>
 						<h3 class="text-lg font-semibold text-[#191919]">практика</h3>
@@ -88,7 +88,7 @@
 
 		<div class="col-span-1 md:col-span-12">
 			<Reveal class="h-full w-full">
-				<div class="flex h-full min-h-[180px] flex-col justify-between rounded-lg bg-[#F2F0EF] p-6">
+				<div class="flex h-full min-h-[180px] flex-col justify-between rounded-lg bg-[#f7f5f0] p-6">
 					<div>
 						<span class="icon-[lucide--briefcase] mb-4 h-6 w-6 text-right text-[#B8A98A]"></span>
 						<h3 class="text-lg font-semibold text-[#191919]">опыт в IT</h3>

@@ -12,7 +12,7 @@
 
 <a href={link} class="group block h-full rounded-lg transition-all duration-200">
 	<div
-		class="flex h-full flex-col justify-between rounded-lg bg-[#F2F0EF] p-6 transition-all duration-200 group-hover:brightness-95"
+		class="flex h-full flex-col justify-between rounded-lg bg-[#f7f5f0] p-6 transition-all duration-200 group-hover:brightness-95"
 	>
 		<div>
 			<h3 class="mb-2 text-xl font-semibold text-[#191919]">{title}</h3>

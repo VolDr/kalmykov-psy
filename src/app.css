@@ -199,7 +199,6 @@
 		margin: 0;
 		padding: 0;
 		vertical-align: middle;
-		background-color: #fafafa;
 		color: #191919;
 		font-family: 'Aeonik', system-ui;
 		line-height: 1.35;
@@ -229,7 +228,6 @@
 	}
 
 	article {
-		background-color: #fafafa;
 		color: #191919;
 	}
 }

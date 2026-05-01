@@ -44,7 +44,7 @@
 </script>
 
 <div class="space-y-6">
-	<div class={cn('overflow-hidden rounded-lg border-0 border-t-4 bg-[#F2F0EF]/40', borderClass)}>
+	<div class={cn('overflow-hidden rounded-lg border-0 border-t-4 bg-[#f7f5f0]/40', borderClass)}>
 		<div class="space-y-4 p-6 md:p-8">
 			<div class="flex flex-col gap-4 pb-4 md:flex-row md:items-center md:justify-between">
 				<h3 class="text-base font-semibold text-[#191919] md:text-lg">Общий результат</h3>
@@ -81,7 +81,7 @@
 	</div>
 
 	{#if subscales && subscales.length > 0}
-		<div class="border-0 bg-[#F2F0EF] shadow-md">
+		<div class="border-0 bg-[#f7f5f0] shadow-md">
 			<div class="space-y-4 p-6 md:p-8">
 				<div class="pb-4">
 					<h3 class="text-base font-semibold text-black md:text-lg">Результаты по шкалам</h3>
@@ -109,7 +109,7 @@
 								</h5>
 								<span
 									class={cn(
-										'mt-2 inline-block rounded bg-[#F2F0EF] px-2 py-1 text-sm',
+										'mt-2 inline-block rounded bg-[#f7f5f0] px-2 py-1 text-sm',
 										colorClasses[subscale.interpretation.color]
 									)}
 								>

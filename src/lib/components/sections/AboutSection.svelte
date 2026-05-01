@@ -52,7 +52,7 @@
 			<div class={item.gridClass}>
 				<Reveal axis="x" class="h-full">
 					<div
-						class="flex h-full min-h-[180px] flex-col justify-between rounded-lg bg-[#F2F0EF] p-6"
+						class="flex h-full min-h-[180px] flex-col justify-between rounded-lg bg-[#f7f5f0] p-6"
 					>
 						<div>
 							<span class="{iconMap[item.icon]} mb-4 h-6 w-6 text-right text-[#B8A98A]"></span>

@@ -20,9 +20,9 @@
 	};
 
 	const typeStyles = {
-		warning: 'bg-[#F2F0EF]',
-		info: 'bg-[#F2F0EF]',
-		alert: 'bg-[#F2F0EF]'
+		warning: 'bg-[#f7f5f0]',
+		info: 'bg-[#f7f5f0]',
+		alert: 'bg-[#f7f5f0]'
 	};
 
 	let isExpanded = $state(
@@ -38,7 +38,7 @@
 	});
 
 	const iconClass = section.icon ? iconMap[section.icon as keyof typeof iconMap] : null;
-	const styleClass = section.type ? typeStyles[section.type] : 'border-[#F2F0EF] bg-white';
+	const styleClass = section.type ? typeStyles[section.type] : 'border-[#f7f5f0] bg-white';
 </script>
 
 <AccordionItem isOpen={isExpanded} class={cn(styleClass)}>

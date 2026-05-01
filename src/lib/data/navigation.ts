@@ -1,46 +1,46 @@
 export const navigationLinks = [
 	{
-		label: 'Обо мне',
+		label: 'Терапия выгорания',
 		link: '/'
 	},
 	{
-		label: 'Процесс консультирования',
+		label: 'Как строится работа',
 		link: '/online-therapy'
 	},
-	{
-		label: 'Тест на уровень выгорания',
-		link: 'https://t.me/kalmykov_psy_bot',
-		external: true
-	},
+	// {
+	// 	label: 'Тест на уровень выгорания',
+	// 	link: 'https://t.me/kalmykov_psy_bot',
+	// 	external: true
+	// },
 	{
 		label: 'Опросники',
 		link: '/surveys'
 	},
-	{
-		label: 'Экстренная помощь',
-		link: '/sos'
-	},
-	{
-		label: 'Врачам',
-		link: '/for-doctors'
-	}
+	// {
+	// 	label: 'Экстренная помощь',
+	// 	link: '/sos'
+	// },
+	// {
+	// 	label: 'Врачам',
+	// 	link: '/for-doctors'
+	// }
 ];
 
 
 export const anchorLinks = [
 	{ label: 'запросы', link: '/#requests' },
 	{ label: 'подход', link: '/#approach' },
-	{ label: 'образование', link: '/#education' },
-	{ label: 'сми', link: '/#media' },
+	{ label: 'обо мне', link: '/#about' },
+		{ label: 'стоимость', link: '/#pricing' },
 	{ label: 'вопрос-ответ', link: '/#faq' }
 ];
 
 export const socialLinks = [
-	{
-		label: 'WhatsApp',
-		link: 'https://api.whatsapp.com/send?phone=79065378241',
-		ariaLabel: 'Написать в WhatsApp'
-	},
+	// {
+	// 	label: 'WhatsApp',
+	// 	link: 'https://api.whatsapp.com/send?phone=79065378241',
+	// 	ariaLabel: 'Написать в WhatsApp'
+	// },
 	{
 		label: 'Telegram',
 		link: 'https://t.me/psy_kalmykov',

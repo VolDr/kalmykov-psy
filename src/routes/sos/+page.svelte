@@ -38,7 +38,7 @@
 	<div class="grid w-full grid-cols-1 gap-4 sm:grid-cols-2 md:px-0 lg:grid-cols-3">
 		{#each contacts as group}
 			<div class=" min-h-[220px]">
-				<div class="flex h-full min-h-[180px] flex-col justify-end rounded-lg bg-[#F2F0EF] p-6">
+				<div class="flex h-full min-h-[180px] flex-col justify-end rounded-lg bg-[#f7f5f0] p-6">
 					<!-- Заголовок карточки -->
 					<div class="mb-4 flex items-center gap-3">
 						<h2 class="text-[#191919]">{group.title}</h2>

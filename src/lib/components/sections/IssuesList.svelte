@@ -23,7 +23,7 @@
 			<div class="{group.gridClass} min-h-[220px]">
 				<Reveal axis="x" class="h-full">
 					<div
-						class="flex h-full min-h-[180px] flex-col justify-between rounded-lg bg-[#F2F0EF] p-6"
+						class="flex h-full min-h-[180px] flex-col justify-between rounded-lg bg-[#f7f5f0] p-6"
 					>
 						<!-- Заголовок карточки -->
 						<div class="mb-4 flex items-center gap-3">

@@ -3,7 +3,7 @@
 	import { page } from '$app/state';
 	import { cn } from '$lib/utils';
 	import { onMount } from 'svelte';
-
+	import Button from '$lib/components/ui/Button.svelte';
 	let {
 		initialMenuColor = 'white',
 		heroSelector = '[data-hero]'
@@ -91,10 +91,12 @@
 
 <div
 	bind:this={headerElement}
-	class={cn('fixed z-20 hidden w-full md:flex', menuColor === 'black' && 'bg-[#F2F0EF]')}
+	class={cn('fixed z-20 hidden w-full md:flex', menuColor === 'black' && 'bg-[#f7f5f0]')}
 >
-	<div class="relative mx-auto flex h-12 max-w-full items-center">
-		<nav aria-label="Главная навигация">
+	<div
+		class="relative mx-auto flex h-12 w-full max-w-full items-center md:max-w-[960px] lg:max-w-[1200px]"
+	>
+		<nav aria-label="Главная навигация" class="ml-auto">
 			<ul class="m-0 flex list-none items-center p-0">
 				{#each navigationLinks as link}
 					<li>
@@ -113,10 +115,18 @@
 						</a>
 					</li>
 				{/each}
+				<Button
+					href="https://t.me/psy_kalmykov"
+					target="_blank"
+					rel="noopener noreferrer"
+					variant="primary"
+					class="block rounded-3xl bg-[#B8A98A] px-3 py-0 text-[22px] text-white transition-colors duration-200 hover:brightness-95"
+					>Записаться</Button
+				>
 			</ul>
 
 			{#if page.url.pathname === '/'}
-				<ul class="absolute right-0 ml-6 mt-3 flex list-none items-center gap-4 p-0">
+				<ul class="absolute right-0 mt-3 ml-6 flex list-none items-center gap-4 p-0">
 					{#each anchorLinks as anchor}
 						{@const isActive = activeAnchor === anchor.link.replace('/#', '')}
 						<li>
@@ -125,7 +135,9 @@
 								class={cn(
 									'block rounded-3xl px-3 py-0 text-[22px] transition-colors duration-200',
 									isActive && 'bg-white text-[#191919]',
-									!isActive && menuColor === 'black' && 'bg-[#B8A98A] text-white hover:brightness-95',
+									!isActive &&
+										menuColor === 'black' &&
+										'bg-[#B8A98A] text-white hover:brightness-95',
 									!isActive && menuColor === 'white' && 'text-white hover:opacity-80'
 								)}
 							>
@@ -139,7 +151,7 @@
 	</div>
 </div>
 
-<div class="fixed left-0 top-0 z-50 flex h-12 w-full items-center justify-between px-4 md:hidden">
+<div class="fixed top-0 left-0 z-50 flex h-12 w-full items-center justify-between px-4 md:hidden">
 	<span
 		class={cn(
 			'text-xl font-medium transition-colors duration-200',
@@ -159,7 +171,7 @@
 	>
 		<span
 			class={cn(
-				'absolute left-0 top-0 h-0.5 w-6 transition-all duration-200',
+				'absolute top-0 left-0 h-0.5 w-6 transition-all duration-200',
 				(opened || menuColor === 'black') && 'bg-black',
 				!opened && menuColor !== 'black' && 'bg-white',
 				opened && 'translate-y-2 rotate-45'
@@ -167,7 +179,7 @@
 		></span>
 		<span
 			class={cn(
-				'absolute left-0 top-2 h-0.5 w-6 transition-all duration-200',
+				'absolute top-2 left-0 h-0.5 w-6 transition-all duration-200',
 				(opened || menuColor === 'black') && 'bg-black',
 				!opened && menuColor !== 'black' && 'bg-white',
 				opened && 'opacity-0'
@@ -175,7 +187,7 @@
 		></span>
 		<span
 			class={cn(
-				'absolute left-0 top-4 h-0.5 w-6 transition-all duration-200',
+				'absolute top-4 left-0 h-0.5 w-6 transition-all duration-200',
 				(opened || menuColor === 'black') && 'bg-black',
 				!opened && menuColor !== 'black' && 'bg-white',
 				opened && '-translate-y-2 -rotate-45'
@@ -189,7 +201,7 @@
 		aria-label="Закрыть меню"
 		onclick={closeMenu}
 		onkeydown={handleKeydown}
-		class="fade-in fixed inset-0 z-30 animate-in bg-black/40 transition-opacity duration-200 sm:hidden"
+		class="fixed inset-0 z-30 animate-in bg-black/40 transition-opacity duration-200 fade-in sm:hidden"
 	></button>
 {/if}
 
@@ -198,7 +210,7 @@
 	aria-modal="true"
 	aria-label="Мобильное меню"
 	class={cn(
-		'fixed right-0 top-0 z-40 h-full w-[80%] max-w-[300px] bg-white shadow-xl transition-transform duration-200 ease-out sm:hidden',
+		'fixed top-0 right-0 z-40 h-full w-[80%] max-w-[300px] bg-white shadow-xl transition-transform duration-200 ease-out sm:hidden',
 		opened ? 'translate-x-0' : 'translate-x-full'
 	)}
 >
@@ -235,6 +247,14 @@
 					{/if}
 				</li>
 			{/each}
+
+				<Button
+					href="https://t.me/psy_kalmykov"
+					target="_blank"
+					rel="noopener noreferrer"
+					variant="primary"
+					class="max-w-[180px]">Записаться</Button
+				>
 		</ul>
 	</nav>
 </div>
@@ -257,7 +277,7 @@
 		transform-origin: bottom left;
 	}
 	.nav-link.active {
-		font-weight: 600;
+		font-weight: 500;
 	}
 	.nav-link.active::after {
 		transform: scaleX(1);

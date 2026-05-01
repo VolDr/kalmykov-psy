@@ -10,7 +10,7 @@
 
 <div class="space-y-6">
 	{#if nextSteps.advice}
-		<div class="border-2 border-[#F2F0EF] bg-[#F2F0EF] shadow-sm">
+		<div class="border-2 border-[#f7f5f0] bg-[#f7f5f0] shadow-sm">
 			<div class="space-y-4 p-6 md:p-8">
 				<h3 class="flex items-center gap-2 text-base font-semibold text-[#191919] md:text-lg">
 					<span class="icon-[lucide--alert-circle] h-5 w-5"></span>
@@ -24,7 +24,7 @@
 	{/if}
 
 	{#if nextSteps.criticalActions && nextSteps.criticalActions.length > 0}
-		<div class="border-2 border-[#F2F0EF] shadow-sm">
+		<div class="border-2 border-[#f7f5f0] shadow-sm">
 			<div class="space-y-4 p-6 md:p-8">
 				<h3 class="flex items-center gap-2 text-base font-semibold text-[#191919] md:text-lg">
 					<span class="icon-[lucide--check-circle] h-5 w-5 text-emerald-600"></span>
@@ -49,7 +49,7 @@
 	{/if}
 
 	{#if nextSteps.management}
-		<div class="border-2 border-[#F2F0EF] shadow-sm">
+		<div class="border-2 border-[#f7f5f0] shadow-sm">
 			<div class="space-y-4 p-6 md:p-8">
 				<h3 class="text-base font-semibold text-[#191919] md:text-lg">
 					{nextSteps.management.title}

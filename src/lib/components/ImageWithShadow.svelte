@@ -28,7 +28,7 @@
 
 <div class="mx-5 flex h-[360px] items-center justify-center lg:mx-0 lg:h-auto">
 	<picture class="relative">
-		<div class="absolute z-0 w-full rounded-xl bg-[#F2F0EF] {shadowClasses} {shadowClass}"></div>
+		<div class="absolute z-0 w-full rounded-xl bg-[#f7f5f0] {shadowClasses} {shadowClass}"></div>
 		<img
 			loading="lazy"
 			{src}

@@ -45,7 +45,7 @@
 									this={item.diploma ? 'button' : 'div'}
 									onclick={item.diploma ? () => openDiplomaModal(item.diploma!) : undefined}
 									class={cn(
-										'group relative rounded-lg bg-[#F2F0EF] p-4 text-left transition-all',
+										'group relative rounded-lg bg-[#f7f5f0] p-4 text-left transition-all',
 										{
 											// Ховер эффекты только если есть диплом
 											'hover:cursor-pointer hover:bg-[#E8E6E5]': item.diploma,

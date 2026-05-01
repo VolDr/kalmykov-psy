@@ -140,7 +140,7 @@
 	<title>Консультации для выгорающих профессионалов | Андрей Калмыков</title>
 </svelte:head>
 
-<section class="relative overflow-hidden text-gray-100 xl:min-h-[max(50vh,800px)]">
+<section data-hero class="relative overflow-hidden text-gray-100 xl:min-h-[max(50vh,800px)]">
 	<HeroBackground />
 	<div
 		class="absolute z-0 h-full w-full bg-linear-to-b from-black/25 from-0% via-black/65 via-40% to-black/65"
@@ -168,9 +168,15 @@
 		</Reveal>
 		<Reveal width="full">
 			<div class="mt-8 flex flex-wrap items-center gap-6">
-				<Button href="#pricing" variant="primary" class="px-8 py-4 text-lg">
-					Записаться на диагностическую сессию
+				<Button href="#pricing" variant="primary" class="hidden px-8 py-4 text-lg md:inline">
+					<span>Записаться на диагностическую сессию</span>
 				</Button>
+				<Button
+					href="https://t.me/psy_kalmykov"
+					target="_blank"
+					rel="noopener noreferrer"
+					variant="primary">Записаться</Button
+				>
 			</div>
 		</Reveal>
 	</div>
@@ -191,9 +197,10 @@
 					>
 				</p>
 				<p>
-					Открываете рабочий чат в 23:00 — <strong class="font-semibold">«просто проверить»</strong>. Просыпаетесь в
-					воскресенье с тревогой, что <strong class="font-semibold">что-то упустили</strong>. Берёте ноутбук в отпуск «на
-					всякий случай».
+					Открываете рабочий чат в 23:00 — <strong class="font-semibold">«просто проверить»</strong
+					>. Просыпаетесь в воскресенье с тревогой, что
+					<strong class="font-semibold">что-то упустили</strong>. Берёте ноутбук в отпуск «на всякий
+					случай».
 				</p>
 				<p>
 					Пробовали взять отпуск — не помогло. Пробовали «просто меньше работать» — чувство вины
@@ -209,7 +216,7 @@
 	</div>
 </section>
 
-<section class="bg-[#f7f5f0] py-16 md:py-24">
+<section class="bg-[#f7f5f0] py-16 md:py-24" id="requests">
 	<div class="mx-auto px-5 md:max-w-[960px] lg:max-w-[1200px]">
 		<Reveal
 			><h2 class="mb-8 mb-12 font-circe text-3xl font-semibold text-[#191919] md:text-4xl">
@@ -220,14 +227,14 @@
 			{#each problems as cat}
 				<Reveal class="h-full w-full">
 					<div
-						class="group flex h-full flex-col rounded-2xl bg-white p-8 shadow-[0_2px_10px_rgb(0,0,0,0.02)] transition-all duration-300 md:p-10"
+						class="group flex h-full flex-col rounded-2xl bg-white px-6 py-6 shadow-[0_2px_10px_rgb(0,0,0,0.02)] transition-all duration-300 md:p-8 md:p-10"
 					>
 						<div class="mb-6 flex items-center gap-4">
 							<div
-								class="flex h-12 w-12 min-w-[72px] items-center justify-center rounded-full bg-[#f7f5f0] transition-colors group-hover:bg-[#B8A98A]"
+								class="flex h-12 min-h-[55px] w-12 min-w-[55px] items-center justify-center rounded-full bg-[#f7f5f0] transition-colors group-hover:bg-[#B8A98A] md:min-w-[72px]"
 							>
 								<span
-									class="text-2xl text-[#B8A98A] transition-colors group-hover:text-white {cat.icon}"
+									class="text-xl text-[#B8A98A] transition-colors group-hover:text-white md:text-2xl {cat.icon}"
 								></span>
 							</div>
 							<h3 class="text-xl font-semibold text-[#191919]">{cat.title}</h3>
@@ -237,7 +244,7 @@
 								<li
 									class="relative pl-6 leading-relaxed text-[#191919] before:absolute before:top-2.5 before:left-0 before:h-1.5 before:w-1.5 before:rounded-full before:bg-[#B8A98A]/50 before:content-['']"
 								>
-										<MarkdownLink text={item}/>
+									<MarkdownLink text={item} />
 								</li>
 							{/each}
 						</ul>
@@ -290,8 +297,9 @@
 				<p class="leading-relaxed text-[#191919]">
 					Исследования дают однозначные ответ: отпуск умеренно улучшает самочувствие — снижает
 					стресс, улучшает настроение, снимает усталость. Но эффект невелик, и в большинстве
-					продольных исследований он <strong class="font-semibold">полностью гаснет в течение одной-двух недель</strong> после
-					возвращения на работу.
+					продольных исследований он <strong class="font-semibold"
+						>полностью гаснет в течение одной-двух недель</strong
+					> после возвращения на работу.
 				</p>
 				<p class="leading-relaxed text-[#191919]">
 					Причём — и это особенно интересно — <strong
@@ -301,10 +309,12 @@
 				</p>
 				<p class="leading-relaxed text-[#191919]">
 					Почему? Пока вы в отпуске, стрессовая среда временно исчезает. Но за это время не
-					происходит ничего, что изменило бы то, как вы в ней работаете: <strong class="font-semibold">не меняются убеждения, не
-					появляются новые способы реагирования, не становятся другими поведенческие паттерны</strong>. А
-					когда вы возвращаетесь — вас встречают те же требования, та же организационная среда, и
-					плюс к этому — накопившийся хвост задач, который стирает послевкусие отдыха за несколько
+					происходит ничего, что изменило бы то, как вы в ней работаете: <strong
+						class="font-semibold"
+						>не меняются убеждения, не появляются новые способы реагирования, не становятся другими
+						поведенческие паттерны</strong
+					>. А когда вы возвращаетесь — вас встречают те же требования, та же организационная среда,
+					и плюс к этому — накопившийся хвост задач, который стирает послевкусие отдыха за несколько
 					дней.
 				</p>
 			</div>
@@ -317,7 +327,9 @@
 					Логика кажется убедительной: если проблема в перегрузке — научись лучше организовывать
 					время, расставлять приоритеты, работать эффективнее, и станет легче. Иногда — да, временно
 					помогает. Но у этого подхода есть принципиальное ограничение: тайм-менеджмент — это
-					<strong class="font-semibold">инструмент для работы внутри системы, а не для её изменения</strong>.
+					<strong class="font-semibold"
+						>инструмент для работы внутри системы, а не для её изменения</strong
+					>.
 				</p>
 				<p class="leading-relaxed text-[#191919]">
 					Исследования в рамках модели Job Demands–Resources показывают: выгорание снижается, когда
@@ -326,12 +338,12 @@
 					соответствует вашим ценностям). Тайм-менеджмент сам по себе ни того, ни другого не даёт.
 				</p>
 				<p class="leading-relaxed text-[#191919]">
-					Хуже того — если его используют для того, чтобы впихнуть больше задач в тот же день, <strong class="font-semibold">он не
-					снижает выгорание, а поддерживает его</strong>. Вы работаете эффективнее, но в той же
-					дисфункциональной системе, с теми же несоответствиями. Просто быстрее к ней адаптируетесь
-					— на какое-то время. Обзоры по выгоранию подчёркивают прямо: программы, которые нацелены
-					только на индивидуальные навыки без изменения организационной среды, дают меньший и менее
-					устойчивый эффект.
+					Хуже того — если его используют для того, чтобы впихнуть больше задач в тот же день, <strong
+						class="font-semibold">он не снижает выгорание, а поддерживает его</strong
+					>. Вы работаете эффективнее, но в той же дисфункциональной системе, с теми же
+					несоответствиями. Просто быстрее к ней адаптируетесь — на какое-то время. Обзоры по
+					выгоранию подчёркивают прямо: программы, которые нацелены только на индивидуальные навыки
+					без изменения организационной среды, дают меньший и менее устойчивый эффект.
 				</p>
 			</div>
 
@@ -347,10 +359,12 @@
 				</p>
 				<p class="leading-relaxed text-[#191919]">
 					При выгорании ваш организм уже работает на пределе. Восстановительные механизмы ослаблены.
-					В этой точке требование «собраться и работать» означает одно:  <strong class="font-semibold">усилить давление на систему,
-					которая уже истощена</strong>. Это не путь к восстановлению — это  <strong class="font-semibold">путь к более глубокому выгоранию</strong>.
-					Мотивация и способность к самоорганизации возвращаются сами, когда система снова
-					становится устойчивой.
+					В этой точке требование «собраться и работать» означает одно: <strong
+						class="font-semibold">усилить давление на систему, которая уже истощена</strong
+					>. Это не путь к восстановлению — это
+					<strong class="font-semibold">путь к более глубокому выгоранию</strong>. Мотивация и
+					способность к самоорганизации возвращаются сами, когда система снова становится
+					устойчивой.
 				</p>
 			</div>
 
@@ -373,7 +387,7 @@
 				</div>
 			</Reveal>
 			<div
-				class="flex h-full flex-col justify-between space-y-6 rounded-2xl bg-[#f7f5f0] p-8 md:p-12"
+				class="flex h-full flex-col justify-between space-y-6 rounded-2xl bg-[#f7f5f0] px-4 py-6 md:p-12"
 			>
 				<h3 class="font-circe text-xl font-semibold text-[#191919] md:text-3xl">
 					Что мы делаем в терапии принципиально иначе
@@ -383,42 +397,49 @@
 					производит — с <strong class="font-semibold">архитектурой</strong> выгорания.
 				</p>
 				<ul class="space-y-6 pt-4">
-					<li class="flex gap-4 md:gap-6">
+					<!-- flex-col для мобилки (цифра сверху), md:flex-row для десктопа (цифра слева) -->
+					<li class="flex flex-col gap-1 md:flex-row md:gap-6">
 						<span class="text-xl font-bold text-[#B8A98A]">01</span>
-						<span class="text-md leading-relaxed text-[#191919]/80"
-							>Мы в первую очередь выявляем ваши убеждения, которые поддерживают истощение:
-							<strong class="font-semibold">перфекционизм</strong>, установку «я должен всегда быть доступен», катастрофизацию ошибок, и
-							делаем так, чтобы они перестали влиять на ваше поведение. Параллельно — обучаем
-							конкретным стратегиям: как принимать решения в условиях перегрузки, как выстраивать
-							поведение в рабочем контексте, а не только «думать правильно». Клинические данные
-							подтверждают значимое снижение всех трёх компонентов выгорания.</span
-						>
+						<span class="text-md leading-relaxed text-[#191919]/80">
+							Мы в первую очередь выявляем ваши убеждения, которые поддерживают истощение:
+							<strong class="font-semibold">перфекционизм</strong>, установку «я должен всегда быть
+							доступен», катастрофизацию ошибок, и делаем так, чтобы они перестали влиять на ваше
+							поведение. Параллельно — обучаем конкретным стратегиям: как принимать решения в
+							условиях перегрузки, как выстраивать поведение в рабочем контексте, а не только
+							«думать правильно». Клинические данные подтверждают значимое снижение всех трёх
+							компонентов выгорания.
+						</span>
 					</li>
-					<li class="flex gap-4 md:gap-6">
+					<li class="flex flex-col gap-1 md:flex-row md:gap-6">
 						<span class="text-xl font-bold text-[#B8A98A]">02</span>
-						<span class="text-lmdg leading-relaxed text-[#191919]/80"
-							>Мы смещаем фокус с попытки контролировать симптомы на развитие <strong class="font-semibold">психологической
-							гибкости</strong>: контакт с настоящим моментом, принятие трудных эмоций без борьбы с ними, и —
-							что особенно важно — действия в направлении личных ценностей даже в условиях стресса.
-							Согласно накопленным научным данным, именно рост осознанности и
-							ценностно-ориентированного поведения является ключевым механизмом снижения выгорания.</span
-						>
+						<span class="text-md leading-relaxed text-[#191919]/80">
+							Мы смещаем фокус с попытки контролировать симптомы на развитие
+							<strong class="font-semibold">психологической гибкости</strong>: контакт с настоящим
+							моментом, принятие трудных эмоций без борьбы с ними, и — что особенно важно — действия
+							в направлении личных ценностей даже в условиях стресса. Согласно накопленным научным
+							данным, именно рост осознанности и ценностно-ориентированного поведения является
+							ключевым механизмом снижения выгорания.
+						</span>
 					</li>
-					<li class="flex gap-4 md:gap-6">
+					<li class="flex flex-col gap-1 md:flex-row md:gap-6">
 						<span class="text-xl font-bold text-[#B8A98A]">03</span>
-						<span class="text-md leading-relaxed text-[#191919]/80"
-							>Мы тренируем новые способы реагирования <strong class="font-semibold">в реальных или смоделированных рабочих
-							ситуациях</strong> — через поведенческие эксперименты, ролевые игры, домашние задания. Это
-							принципиально отличает нашу работу от отпуска: навык формируется именно там, где
-							возникает проблема.</span
-						>
+						<span class="text-md leading-relaxed text-[#191919]/80">
+							Мы тренируем новые способы реагирования
+							<strong class="font-semibold">в реальных или смоделированных рабочих ситуациях</strong
+							>
+							— через поведенческие эксперименты, ролевые игры, домашние задания. Это принципиально отличает
+							нашу работу от отпуска: навык формируется именно там, где возникает проблема.
+						</span>
 					</li>
 				</ul>
 				<div class="mt-6 border-t border-[#E5E5E5] pt-6">
 					<p class="text-md leading-relaxed text-[#191919]">
 						<strong class="font-semibold">Результат:</strong> исследования показывают, что эффект по
-						снижению выгорания и стресса <strong class="font-semibold">не только сохраняется, но и усиливается на 6–12-месячном горизонте</strong>.
-						Человек продолжает применять освоенные способы реагирования <strong class="font-semibold">уже без терапевта</strong>.
+						снижению выгорания и стресса
+						<strong class="font-semibold"
+							>не только сохраняется, но и усиливается на 6–12-месячном горизонте</strong
+						>. Человек продолжает применять освоенные способы реагирования
+						<strong class="font-semibold">уже без терапевта</strong>.
 					</p>
 				</div>
 			</div>
@@ -426,7 +447,7 @@
 	</div>
 </section>
 
-<section class="bg-[#f7f5f0] py-16 md:py-24">
+<section class="bg-[#f7f5f0] py-16 md:py-24" id="approach">
 	<div class="mx-auto px-5 md:max-w-[960px] lg:max-w-[1200px]">
 		<Reveal
 			><h2
@@ -519,7 +540,7 @@
 	</div>
 </section>
 
-<section class="bg-white py-16 md:py-24">
+<section class="bg-white py-16 md:py-24" id="about">
 	<div class="mx-auto px-5 md:max-w-[960px] lg:max-w-[1200px]">
 		<Reveal
 			><h2
@@ -580,7 +601,7 @@
 		</div>
 	</div>
 	<div class="mx-auto px-5 md:max-w-[960px] lg:max-w-[1200px]"><EducationNew /></div>
-		<div class="mx-auto px-5 md:max-w-[960px] lg:max-w-[1200px]"><Media /></div>
+	<div class="mx-auto px-5 md:max-w-[960px] lg:max-w-[1200px]"><Media /></div>
 	<div class="mx-auto mt-16 px-5 md:mt-24 md:max-w-[960px] lg:max-w-[1200px]">
 		<Reveal width="full">
 			<div>
@@ -592,13 +613,15 @@
 				>
 					<p>
 						Вы не найдёте здесь отзывов клиентов — и это осознанный выбор. Я строго отношусь к
-						конфиденциальности, поэтому <strong class="font-semibold">не собираю и не публикую отзывы</strong> ни в каком виде, даже
-						обезличенном.
+						конфиденциальности, поэтому <strong class="font-semibold"
+							>не собираю и не публикую отзывы</strong
+						> ни в каком виде, даже обезличенном.
 					</p>
 					<p>
 						Кроме того, в терапии мы находимся в неравной позиции: просить отзыв у человека, который
-						пришёл в уязвимом состоянии, — значит эксплуатировать его доверие. <strong class="font-semibold">Я не использую
-						клиентов в маркетинговых целях</strong>.
+						пришёл в уязвимом состоянии, — значит эксплуатировать его доверие. <strong
+							class="font-semibold">Я не использую клиентов в маркетинговых целях</strong
+						>.
 					</p>
 				</div>
 			</div>
@@ -619,13 +642,16 @@
 		</Reveal>
 		<div class="grid grid-cols-1 gap-8 md:grid-cols-2">
 			<Reveal class="h-full w-full">
-				<div class="flex h-full flex-col rounded-lg border border-[#B8A98A] bg-white p-8 shadow-sm">
-					<h3 class="mb-2 pt-[58px] font-circe text-2xl font-semibold text-[#191919]">
+				<div
+					class="flex h-full flex-col rounded-lg border border-[#B8A98A] bg-white p-6 shadow-sm md:p-8"
+				>
+					<h3 class="mb-2 font-circe text-2xl font-semibold text-[#191919] md:pt-[58px]">
 						Диагностическая сессия
 					</h3>
 					<div class="mb-8 text-3xl font-semibold text-[#191919]">4 000 ₽</div>
 					<p class="mb-6 text-[#191919]/70">
-						Если хотите разобраться в конкретной ситуации, познакомиться с подходом или понять, нужна ли вам терапия вообще.
+						Если хотите разобраться в конкретной ситуации, познакомиться с подходом или понять,
+						нужна ли вам терапия вообще.
 					</p>
 
 					<ul class="mb-10 space-y-3 leading-relaxed text-[#191919]">
@@ -648,9 +674,7 @@
 			</Reveal>
 			<Reveal class="h-full w-full">
 				<div class="flex h-full flex-col rounded-lg bg-[#191919] p-8 text-white shadow-xl">
-					<div
-						class="mb-4 w-fit rounded-full bg-[#B8A98A] px-3 py-1 text-xs  text-white uppercase"
-					>
+					<div class="mb-4 w-fit rounded-full bg-[#B8A98A] px-3 py-1 text-xs text-white uppercase">
 						Популярный формат
 					</div>
 					<h3 class="mb-2 font-circe text-2xl font-semibold">Регулярные встречи</h3>
@@ -684,23 +708,28 @@
 
 <section class="bg-white py-16 md:py-24">
 	<div class="mx-auto px-5 md:max-w-[960px] lg:max-w-[960px]">
-		<Reveal
-			><h2 class="mb-8 mb-12 font-circe text-3xl font-semibold text-[#191919] md:text-4xl">
+		<Reveal>
+			<h2 class="mb-8 font-circe text-3xl font-semibold text-[#191919] md:mb-12 md:text-4xl">
 				как мы придём к результату
-			</h2></Reveal
-		>
+			</h2>
+		</Reveal>
+
 		<div class="w-full">
 			{#each steps as step, i}
 				<Reveal width="full">
-					<div class="flex gap-6 border-b border-[#B8A98A] py-8 last:border-0">
+					<div
+						class="flex flex-col gap-2 border-b border-[#B8A98A] py-8 last:border-0 md:flex-row md:gap-6"
+					>
 						<div class="font-circe text-3xl font-bold text-[#B8A98A] opacity-40 md:text-4xl">
 							0{i + 1}
 						</div>
 						<div class="space-y-2">
-							<h3 class="text-xl font-semibold text-[#191919]">
-								{step.title}
-								<span class="ml-2 text-sm font-normal text-[#191919]/50">{step.time}</span>
-							</h3>
+							<div class="md:flex md:flex-row md:items-baseline">
+								<h3 class="text-xl font-semibold text-[#191919]">
+									{step.title}
+								</h3>
+								<span class="md:ml-2 text-sm font-normal text-[#191919]/50">{step.time}</span>
+							</div>
 							<p class="leading-relaxed text-[#191919]">{step.desc}</p>
 						</div>
 					</div>
@@ -723,9 +752,9 @@
 					</h3>
 					<p class="mb-6 leading-relaxed text-[#191919]">
 						Большинство людей отдыхают неправильно — и дело не в количестве часов. Дело в том, что
-						<strong class="font-semibold">тип отдыха не совпадает с типом усталости</strong>. Гайд объясняет: какие бывают виды усталости,
-						почему телефон и сериалы не восстанавливают, и что на самом деле помогает — с
-						конкретными примерами на 5, 15, 30 и 60+ минут.
+						<strong class="font-semibold">тип отдыха не совпадает с типом усталости</strong>. Гайд
+						объясняет: какие бывают виды усталости, почему телефон и сериалы не восстанавливают, и
+						что на самом деле помогает — с конкретными примерами на 5, 15, 30 и 60+ минут.
 					</p>
 					<Button
 						href="https://t.me/psy_kalmykov"
@@ -754,9 +783,15 @@
 		</Reveal>
 		<Reveal width="full">
 			<div class="flex flex-col items-center justify-center gap-6 pt-6 md:flex-row">
-				<Button href="#pricing" variant="primary" class="px-8 py-4 text-lg">
-					Записаться на диагностическую сессию
+				<Button href="#pricing" variant="primary" class="hidden px-8 py-4 text-lg md:inline">
+					<span>Записаться на диагностическую сессию</span>
 				</Button>
+				<Button
+					href="https://t.me/psy_kalmykov"
+					target="_blank"
+					rel="noopener noreferrer"
+					variant="primary">Записаться</Button
+				>
 			</div>
 		</Reveal>
 	</div>
@@ -778,7 +813,7 @@
 						<h3 class="pr-4 text-lg font-medium">{item.q}</h3>
 					{/snippet}
 					{#snippet children()}
-						<p class="leading-relaxed text-[#191919]"><MarkdownLink text={item.a}/></p>
+						<p class="leading-relaxed text-[#191919]"><MarkdownLink text={item.a} /></p>
 					{/snippet}
 				</AccordionItem>
 			{/each}

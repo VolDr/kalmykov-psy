@@ -197,7 +197,7 @@
 
 				<!-- Current Score Display (optional, can be hidden) -->
 				{#if Object.keys(state.answers).length > 0 && !state.showResults}
-					<div class="border-t border-[#F2F0EF] pt-4">
+					<div class="border-t border-[#f7f5f0] pt-4">
 						<div class="flex items-center justify-between text-base md:text-lg">
 							<!-- <span class="text-black opacity-70">Текущий балл:</span> -->
 							<!-- Uncomment to show current score
@@ -220,7 +220,7 @@
 
 				<!-- Validation Error Message -->
 				{#if state.attemptedSubmit && !validation.isValid}
-					<div class="bg-[#F2F0EF] p-4">
+					<div class="bg-[#f7f5f0] p-4">
 						<p class="text-sm text-black">
 							Пожалуйста, ответьте на все обязательные вопросы перед отправкой.
 						</p>
@@ -233,7 +233,7 @@
 	<!-- Results Section -->
 	{#if state.showResults}
 		<div bind:this={resultsSection} id="survey-results" class="scroll-mt-6 space-y-6 px-5">
-			<div class="h-px bg-[#F2F0EF]"></div>
+			<div class="h-px bg-[#f7f5f0]"></div>
 
 			<h2 class="text-[24px] font-semibold text-[#191919] md:text-[28px] lg:text-[32px]">
 				Результаты оценки
