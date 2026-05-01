@@ -87,6 +87,6 @@
 				</section>
 			</div>
 		{/each}
-	<BookButton margin="mx-0" />
+		<div class="col-span-full"><BookButton margin="my-0 mx-auto" /></div>
 	</div>
 </div>

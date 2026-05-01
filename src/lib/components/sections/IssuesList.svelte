@@ -11,7 +11,7 @@
 	class="m-auto flex max-w-[720px] flex-col items-center gap-10 md:max-w-[960px] lg:max-w-[1200px]  scroll-mt-24" id="requests"
 >
 	<Reveal>
-		<div class="text-center subtitle">
+		<div class="text-center subtitle mx-5">
 			Помогаю справляться с тревогой, выгоранием, прокрастинацией и найти путь к жизни, которую вам
 			хочется жить
 		</div>

@@ -49,7 +49,7 @@
 				};
 			}
 		} catch (err) {
-			console.error('Failed to load survey state:', err);
+			console.error(err);
 		}
 
 		return {
@@ -64,6 +64,7 @@
 	let state = $state(loadState());
 
 	let resultsSection: HTMLElement;
+	let hasInitialScrolled = false;
 
 	// Save state to localStorage whenever answers or showResults change
 	$effect(() => {
@@ -78,7 +79,13 @@
 		}
 	});
 
-	// Derived state
+	$effect(() => {
+		if (state.showResults && resultsSection && !hasInitialScrolled) {
+			resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+			hasInitialScrolled = true;
+		}
+	});
+
 	let currentScore = $derived(calculateScore(state.answers, config));
 	let activeWarnings = $derived(evaluateWarnings(state.answers, config));
 	let validation = $derived(validateAnswers(state.answers, config));
@@ -98,6 +105,19 @@
 			state.showResults = true;
 			await tick();
 			resultsSection?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+		} else {
+			await tick();
+			const firstMissing = config.questions.find(q => 
+				q.required && 
+				q.type !== 'subheading' && 
+				state.answers[q.id] === undefined &&
+				shouldDisplayQuestion(q, state.answers)
+			);
+
+			if (firstMissing) {
+				const element = document.getElementById(`question-${firstMissing.id}`);
+				element?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+			}
 		}
 	}
 
@@ -128,7 +148,7 @@
 			state.copied = true;
 			setTimeout(() => (state.copied = false), 2000);
 		} catch (err) {
-			console.error('Failed to copy results:', err);
+			console.error(err);
 		}
 	}
 </script>
@@ -149,7 +169,8 @@
 					{@const shouldShow = shouldDisplayQuestion(question, state.answers)}
 
 					<div>
-						<QuestionRenderer
+						<div id="question-{question.id}">
+							<QuestionRenderer
 							{question}
 							value={state.answers[question.id]}
 							onChange={(value) => handleAnswerChange(question.id, value)}
@@ -157,7 +178,7 @@
 							disabled={state.showResults}
 							answers={state.answers}
 						/>
-
+						</div>
 						<!-- Show error if required question not answered after submit attempt -->
 						{#if state.attemptedSubmit && question.required && question.type !== 'subheading' && state.answers[question.id] === undefined && shouldShow}
 							<p class="mt-2 text-sm text-red-600">Пожалуйста, ответьте на этот вопрос</p>
@@ -178,7 +199,7 @@
 				{#if Object.keys(state.answers).length > 0 && !state.showResults}
 					<div class="border-t border-[#F2F0EF] pt-4">
 						<div class="flex items-center justify-between text-base md:text-lg">
-							<span class="text-black opacity-70">Текущий балл:</span>
+							<!-- <span class="text-black opacity-70">Текущий балл:</span> -->
 							<!-- Uncomment to show current score
 							<span class="font-semibold text-[#191919]">
 								{#if currentScore.averageScore !== undefined}
@@ -243,18 +264,36 @@
 			{/if}
 
 			<!-- Action Buttons -->
-			<div class="flex flex-col gap-4 sm:flex-row">
-				<Button onclick={handleReset} class="flex-1 bg-white  ">Пройти опрос заново</Button>
-				<Button onclick={handleCopyResults} class="flex-1 gap-2 bg-white   ">
-					{#if state.copied}
-						<span class="icon-[lucide--check] h-4 w-4"></span>
-						Скопировано
-					{:else}
-						<span class="icon-[lucide--copy] h-4 w-4"></span>
-						Скопировать результаты
-					{/if}
-				</Button>
-			</div>
+<div class="flex flex-col gap-4 sm:flex-row sm:justify-center sm:items-stretch">
+	
+	<Button variant="primary" onclick={handleReset} class="w-full sm:w-auto">
+		Пройти опрос заново
+	</Button>
+
+	<Button variant="primary" onclick={handleCopyResults} class="relative w-full sm:w-auto overflow-hidden">
+		<div class="invisible flex items-center justify-center gap-2" aria-hidden="true">
+			<span class="icon-[lucide--copy] h-4 w-4"></span>
+			<span>Скопировать результаты</span>
+		</div>
+
+		<div class="absolute inset-0 flex items-center justify-center gap-2">
+			{#if state.copied}
+				<span class="icon-[lucide--check] h-4 w-4"></span>
+				<span>Скопировано</span>
+			{:else}
+				<span class="icon-[lucide--copy] h-4 w-4"></span>
+				<span>Скопировать результаты</span>
+			{/if}
+		</div>
+	</Button>
+
+	<a href="https://t.me/m/UJBYiSocNzE6" target="_blank" rel="noopener noreferrer" class="flex w-full sm:w-auto">
+		<Button variant="primary" class="w-full h-full">
+			Консультация со специалистом
+		</Button>
+	</a>
+
+</div>
 		</div>
 	{/if}
 </div>

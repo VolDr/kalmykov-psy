@@ -157,7 +157,7 @@
 
 <style>
 	:global(.article-content h1) {
-		font-family: 'Circe', sans-serif;
+		font-family: 'Circe', system-ui;
 		font-size: 2.25rem;
 		font-weight: 700;
 		margin-top: 2rem;
@@ -167,7 +167,7 @@
 	}
 
 	:global(.article-content h2) {
-		font-family: 'Circe', sans-serif;
+		font-family: 'Circe', system-ui;
 		font-size: 1.875rem;
 		font-weight: 600;
 		margin-top: 2rem;
@@ -177,7 +177,7 @@
 	}
 
 	:global(.article-content h3) {
-		font-family: 'Circe', sans-serif;
+		font-family: 'Circe', system-ui;
 		font-size: 1.5rem;
 		font-weight: 600;
 		margin-top: 1.5rem;

@@ -9,7 +9,7 @@
 	import { Toaster } from '$lib/components/ui/sonner';
 	import TelegramBanner from '$lib/components/TelegramBanner.svelte';
 	import { telegramChannel } from '$lib/data/navigation.js';
-
+	import { page } from '$app/state';
 	let { children, data } = $props();
 	let { progress, action } = createProgress();
 
@@ -65,6 +65,8 @@
 		type="font/woff2"
 		crossorigin="anonymous"
 	/>
+	<link rel="preload" href="/Aeonik.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
+	<link rel="preload" href="/Verdana.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
 	<link
 		rel="preload"
 		href="/Circle Light.woff2"
@@ -125,7 +127,10 @@
 </svelte:head>
 
 {#if !isAdminRoute && !isCodeRoute && !isLoginRoute}
-	<Header initialMenuColor="white" />
+	{#if page.url.pathname !== '/test-landing'}
+		<Header initialMenuColor="white" />
+	{/if}
+
 	<Affix />
 {/if}
 {#if !isAdminRoute && !isCodeRoute && !isLoginRoute && !isSurveys && !isArticles}

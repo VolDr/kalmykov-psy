@@ -6,13 +6,15 @@
 		shadowPosition = 'bottom-left',
 		imgClass = '',
 		width,
-		height
+		height,
+		shadowClass = ""
 	}: {
 		src: string;
 		srcSmall?: string;
 		alt: string;
 		shadowPosition?: 'bottom-left' | 'bottom-right';
 		imgClass?: string;
+		shadowClass?: string;
 		width?: number;
 		height?: number;
 	} = $props();
@@ -26,7 +28,7 @@
 
 <div class="mx-5 flex h-[360px] items-center justify-center lg:mx-0 lg:h-auto">
 	<picture class="relative">
-		<div class="absolute z-0 w-full rounded-xl bg-[#F2F0EF] {shadowClasses}"></div>
+		<div class="absolute z-0 w-full rounded-xl bg-[#F2F0EF] {shadowClasses} {shadowClass}"></div>
 		<img
 			loading="lazy"
 			{src}

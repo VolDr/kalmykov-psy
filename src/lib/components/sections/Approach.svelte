@@ -93,10 +93,7 @@
 						<span class="icon-[lucide--briefcase] mb-4 h-6 w-6 text-right text-[#B8A98A]"></span>
 						<h3 class="text-lg font-semibold text-[#191919]">опыт в IT</h3>
 					</div>
-					<p class="leading-relaxed text-[#191919]">
-						Знаю специфику цифровых профессий изнутри: сам проходил через выгорание и перфекционизм и
-						говорю с вами на одном языке.
-					</p>
+
 				</div>
 			</Reveal>
 		</div>

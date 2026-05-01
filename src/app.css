@@ -7,8 +7,10 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
-	--font-tilda-sans: 'Tilda-Sans', 'sans-serif';
-	--font-circe: 'Circe', 'sans-serif';
+	--font-tilda-sans: 'Tilda-Sans', 'system-ui';
+	--font-circe: 'Circe', 'system-ui';
+	--font-verdana: 'Verdana', 'system-ui';
+	--font-aeonik: 'Aeonik', 'system-ui'; 
 	--breakpoint-3xl: 121rem;
 }
 
@@ -157,6 +159,26 @@
 		font-weight: 100 900;
 	}
 
+
+	@font-face {
+		font-family: 'Verdana';
+		src:
+			url('/Verdana.woff2') format('woff2');
+		font-display: swap;
+		font-weight: 100 900;
+		font-style: normal;
+	}
+
+		@font-face {
+		font-family: 'Aeonik';
+		src:
+			url('/Aeonik.woff2') format('woff2');
+		font-display: swap;
+		font-weight: 100 900;
+		font-style: normal;
+	}
+
+
 	@font-face {
 		font-family: 'Circe';
 		src:
@@ -164,7 +186,7 @@
 			url('/Circle Light.woff') format('woff'),
 			url('/Circle Light.ttf') format('truetype');
 		font-display: swap;
-		font-weight: normal;
+		font-weight: 100 900;
 		font-style: normal;
 	}
 
@@ -179,7 +201,7 @@
 		vertical-align: middle;
 		background-color: #fafafa;
 		color: #191919;
-		font-family: 'Tilda-Sans', Arial, sans-serif;
+		font-family: 'Aeonik', system-ui;
 		line-height: 1.35;
 		font-weight: 400;
 		background-position: center center;
@@ -251,4 +273,12 @@
 	from {
 		opacity: 0;
 	}
+}
+:focus {
+  outline: none !important;
+}
+
+:focus-visible {
+  box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px #B8A98A;
+  transition: box-shadow 0.2s ease-in-out;
 }

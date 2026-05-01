@@ -47,7 +47,7 @@
 			{#if iconClass}
 				<span class={cn(iconClass, 'h-5 w-5 flex-shrink-0 text-[#191919] opacity-70')}></span>
 			{/if}
-			<span class="text-base text-[#191919] md:text-lg">{section.title}</span>
+			<h4 class="text-base text-[#191919] md:text-lg">{section.title}</h4>
 		</div>
 	{/snippet}
 
