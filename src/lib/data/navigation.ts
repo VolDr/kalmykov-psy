@@ -43,7 +43,7 @@ export const socialLinks = [
 	// },
 	{
 		label: 'Telegram',
-		link: 'https://t.me/psy_kalmykov',
+		link: 'https://t.me/m/VigSFNAqZGIy',
 		ariaLabel: 'Написать в Telegram'
 	}
 ];
@@ -55,5 +55,5 @@ export const footerInfo = {
 
 export const telegramChannel = {
 	text: 'Мой тг-канал со всяким полезным —',
-	link: 'https://t.me/psy_kalmykov'
+	link: 'https://t.me/kalmykov_psy'
 };

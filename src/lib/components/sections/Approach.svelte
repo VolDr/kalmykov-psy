@@ -3,13 +3,13 @@
 </script>
 
 <div
-	id="approach" class="mx-auto flex max-w-[720px] flex-col items-center gap-10 md:max-w-[960px] lg:max-w-[1200px] scroll-mt-24"
+	id="approach" class="mx-auto flex max-w-[720px] flex-col items-center gap-10 md:max-w-[760px] lg:max-w-[960px] scroll-mt-24"
 >
 	<Reveal>
 		<h2 class="subtitle">подход к работе</h2>
 	</Reveal>
 
-	<div class="grid w-full grid-cols-1 gap-4 px-5 md:grid-cols-24 md:px-0 lg:grid-cols-24">
+	<div class="grid w-full grid-cols-1 gap-4 px-5 md:grid-cols-24 xl:px-0 lg:grid-cols-24">
 		<div class="col-span-1 md:col-span-14">
 			<Reveal class="h-full w-full">
 				<div class="flex h-full min-h-[180px] flex-col justify-between rounded-lg bg-[#f7f5f0] p-6">

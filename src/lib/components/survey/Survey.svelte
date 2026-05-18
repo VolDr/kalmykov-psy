@@ -162,8 +162,8 @@
 	</div>
 
 	<!-- Survey Form -->
-	<div class="px-5">
-		<div class="p-6 md:p-8">
+	<div class="px-5 xl:px-0">
+		<div class="">
 			<form onsubmit={handleSubmit} class="space-y-8">
 				{#each config.questions as question}
 					{@const shouldShow = shouldDisplayQuestion(question, state.answers)}
@@ -232,7 +232,7 @@
 
 	<!-- Results Section -->
 	{#if state.showResults}
-		<div bind:this={resultsSection} id="survey-results" class="scroll-mt-6 space-y-6 px-5">
+		<div bind:this={resultsSection} id="survey-results" class="scroll-mt-6 space-y-6 px-5 md:px-0">
 			<div class="h-px bg-[#f7f5f0]"></div>
 
 			<h2 class="text-[24px] font-semibold text-[#191919] md:text-[28px] lg:text-[32px]">
@@ -267,13 +267,13 @@
 <div class="flex flex-col gap-4 sm:flex-row sm:justify-center sm:items-stretch">
 	
 	<Button variant="primary" onclick={handleReset} class="w-full sm:w-auto">
-		Пройти опрос заново
+		Пройти заново
 	</Button>
 
 	<Button variant="primary" onclick={handleCopyResults} class="relative w-full sm:w-auto overflow-hidden">
 		<div class="invisible flex items-center justify-center gap-2" aria-hidden="true">
 			<span class="icon-[lucide--copy] h-4 w-4"></span>
-			<span>Скопировать результаты</span>
+			<span>Скопировать</span>
 		</div>
 
 		<div class="absolute inset-0 flex items-center justify-center gap-2">
@@ -282,14 +282,14 @@
 				<span>Скопировано</span>
 			{:else}
 				<span class="icon-[lucide--copy] h-4 w-4"></span>
-				<span>Скопировать результаты</span>
+				<span>Скопировать</span>
 			{/if}
 		</div>
 	</Button>
 
 	<a href="https://t.me/m/UJBYiSocNzE6" target="_blank" rel="noopener noreferrer" class="flex w-full sm:w-auto">
 		<Button variant="primary" class="w-full h-full">
-			Консультация со специалистом
+			Получить консультацию
 		</Button>
 	</a>
 

@@ -51,7 +51,7 @@
 
 <div class="relative mt-8 flex w-full flex-col gap-14.5 overflow-x-hidden md:gap-24.5 lg:mt-0">
 	<div
-		class="mx-auto grid max-w-[720px] grid-cols-1 items-center gap-y-8.5 md:max-w-[960px] md:grid-cols-12 lg:my-10 lg:max-w-[1200px] lg:gap-y-0"
+		class="mx-auto grid max-w-[720px] grid-cols-1 items-center gap-y-8.5 md:max-w-[760px] md:grid-cols-12 lg:my-10 lg:max-w-[960px] lg:gap-y-0"
 	>
 		<div class="col-span-1 mx-5 md:col-span-6 lg:col-span-6 lg:mx-0">
 			<ImageWithShadow
@@ -168,19 +168,19 @@
 	/>
 
 	<div
-		class="col-span-1 mx-auto flex w-full max-w-[720px] flex-col items-stretch gap-14.5 px-5 md:col-span-1 md:max-w-[960px] md:gap-3.5 lg:max-w-[1200px]"
+		class="col-span-1 mx-auto flex w-full max-w-[720px] flex-col items-stretch gap-14.5 px-5 md:col-span-1 md:max-w-[760px] md:gap-3.5 lg:max-w-[960px]"
 	>
 		<Education isOpen={isEducationOpen} />
 	</div>
 	
 	<div
-		class="col-span-1 mx-auto flex w-full max-w-[720px] flex-col items-stretch gap-14.5 px-5 md:col-span-1 md:max-w-[960px] md:gap-3.5 lg:max-w-[1200px]"
+		class="col-span-1 mx-auto flex w-full max-w-[720px] flex-col items-stretch gap-14.5 px-5 md:col-span-1 md:max-w-[760px] md:gap-3.5 lg:max-w-[960px]"
 	>
 		<Media />
 	</div>
 	
 	<div
-		class="col-span-1 mx-auto flex w-full max-w-[720px] flex-col items-stretch gap-14.5 px-5 md:col-span-1 md:max-w-[960px] md:gap-3.5 lg:max-w-[1200px]"
+		class="col-span-1 mx-auto flex w-full max-w-[720px] flex-col items-stretch gap-14.5 px-5 md:col-span-1 md:max-w-[760px] md:gap-3.5 lg:max-w-[960px]"
 	>
 		<Faq />
 	</div>

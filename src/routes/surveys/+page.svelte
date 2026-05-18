@@ -46,9 +46,9 @@
 	description="Психологические тесты и опросники для самодиагностики. Оцените своё состояние с помощью валидизированных инструментов."
 />
 
-<div class="container mx-auto mt-10 max-w-[720px] px-5 lg:max-w-[1200px] lg:px-0">
-	<div class="grid w-full grid-cols-1 gap-4 md:px-0">
-		<div class="mt-[40px] space-y-12 sm:mt-[60px] lg:px-0">
+<div class="container mx-auto mt-10 max-w-[720px] px-5 lg:max-w-[960px] xl:px-0">
+	<div class="grid w-full grid-cols-1 gap-4 xl:px-0">
+		<div class="mt-[40px] space-y-12 sm:mt-[60px] xl:px-0">
 			{#each surveyCategories as category}
 				<div class="space-y-6">
 					<h2 class="text-2xl font-semibold text-[#191919]">{category.category}</h2>

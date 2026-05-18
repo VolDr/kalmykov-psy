@@ -119,7 +119,7 @@
 
 <div class="relative mt-8 flex w-full flex-col gap-14.5 overflow-x-hidden md:gap-24.5 lg:mt-0">
 	<div
-		class="mx-auto grid max-w-[720px] grid-cols-1 items-center gap-y-8.5 md:max-w-[960px] md:grid-cols-12 lg:mt-10 lg:max-w-[1200px] lg:gap-y-0"
+		class="mx-auto grid max-w-[720px] grid-cols-1 items-center gap-y-8.5 md:max-w-[760px] md:grid-cols-12 lg:mt-10 lg:max-w-[960px] lg:gap-y-0"
 	>
 		<div class="col-span-1 mx-5 md:col-span-6 lg:col-span-6 lg:mx-0">
 			<ImageWithShadow
@@ -172,13 +172,13 @@
 	</div>
 
 	<div
-		class="mx-auto flex max-w-[720px] flex-col items-center gap-10 md:max-w-[960px] lg:max-w-[1200px]"
+		class="mx-auto flex max-w-[720px] flex-col items-center gap-10 md:max-w-[760px] lg:max-w-[960px]"
 	>
-		<h2 class="px-6 text-center subtitle md:px-0 md:text-left">
+		<h2 class="px-6 text-center subtitle xl:px-0 md:text-left">
 			Принципы взаимодействия и границы компетенций
 		</h2>
 
-		<div class="grid w-full grid-cols-1 gap-4 px-5 md:grid-cols-2 md:px-0 lg:gap-8">
+		<div class="grid w-full grid-cols-1 gap-4 px-5 md:grid-cols-2 xl:px-0 lg:gap-8">
 			<div class="rounded-lg bg-[#f7f5f0] p-6 md:p-8">
 				<h3 class="mb-4 text-lg font-semibold text-[#191919]">Позиция по фармакотерапии</h3>
 				<p class="leading-relaxed">
@@ -200,14 +200,14 @@
 	</div>
 
 	<div
-		class="mx-auto flex max-w-[720px] flex-col items-center gap-10 md:max-w-[960px] lg:max-w-[1200px]"
+		class="mx-auto flex max-w-[720px] flex-col items-center gap-10 md:max-w-[760px] lg:max-w-[960px]"
 	>
-		<h2 class="px-6 text-center subtitle md:px-0 md:text-left">
+		<h2 class="px-6 text-center subtitle xl:px-0 md:text-left">
 			какие проблемы я помогаю решить врачу
 		</h2>
 
 		<div
-			class="grid w-full grid-cols-1 gap-4 px-5 md:grid-cols-24 md:px-0 lg:grid-cols-24"
+			class="grid w-full grid-cols-1 gap-4 px-5 md:grid-cols-24 xl:px-0 lg:grid-cols-24"
 		>
 			{#each items as item}
 				<div class={item.gridClass}>
@@ -225,16 +225,16 @@
 	</div>
 
 	<div
-		class="m-auto flex max-w-[720px] flex-col items-center gap-6 md:max-w-[960px] lg:max-w-[1200px]"
+		class="m-auto flex max-w-[720px] flex-col items-center gap-6 md:max-w-[760px] lg:max-w-[960px]"
 	>
-		<div class="flex flex-col items-center gap-4 px-6 md:items-start md:px-0">
+		<div class="flex flex-col items-center gap-4 px-6 md:items-start xl:px-0">
 			<h2 class="text-center subtitle md:text-left">
 				Основные группы запросов для совместной работы
 			</h2>
 
 		</div>
 
-		<div class="grid w-full grid-cols-1 gap-4 px-5 md:grid-cols-2 md:px-0">
+		<div class="grid w-full grid-cols-1 gap-4 px-5 md:grid-cols-2 xl:px-0">
 			{#each requestGroups as group}
 				<div class="{group.gridClass} min-h-[220px]">
 					<div
@@ -265,13 +265,13 @@
 	</div>
 
 	<div
-		class="mx-auto mt-6 flex max-w-[720px] flex-col items-center gap-6 md:max-w-[960px] lg:max-w-[1200px]"
+		class="mx-auto mt-6 flex max-w-[720px] flex-col items-center gap-6 md:max-w-[760px] lg:max-w-[960px]"
 	>
 		<h2 class="subtitle">С чем я не работаю</h2>
 
-		<div class="grid w-full grid-cols-1 gap-4 px-5 md:grid-cols-1 md:px-0">
+		<div class="grid w-full grid-cols-1 gap-4 px-5 md:grid-cols-1 xl:px-0">
 			<div
-				class="w-full max-w-[720px] rounded-lg bg-[#f7f5f0] px-5 py-6 md:max-w-[960px] md:px-8 md:py-8 lg:max-w-[600px]"
+				class="w-full max-w-[720px] rounded-lg bg-[#f7f5f0] px-5 py-6 md:max-w-[760px] md:px-8 md:py-8 lg:max-w-[600px]"
 			>
 				<ul class="flex flex-col gap-2.5">
 					<li>— Расстройства пищевого поведения</li>
@@ -284,7 +284,7 @@
 	</div>
 
 	<div
-		class="col-span-1 mx-auto mt-8 flex w-full max-w-[720px] flex-col items-stretch gap-2.5 px-5 md:col-span-1 md:max-w-[960px] md:gap-14.5 lg:max-w-[1200px]"
+		class="col-span-1 mx-auto mt-8 flex w-full max-w-[720px] flex-col items-stretch gap-2.5 px-5 md:col-span-1 md:max-w-[760px] md:gap-14.5 lg:max-w-[960px]"
 	>
 		<div class="w-full">
 			<Education isOpen={true} />
@@ -318,7 +318,7 @@
 						<span
 							><MarkdownLink
 								text=" 
-						[t.me/psy_kalmykov](https://t.me/psy_kalmykov)."
+						[t.me/psy_kalmykov](https://t.me/m/OL7386DXMjIy)."
 							/></span
 						>
 					</li>

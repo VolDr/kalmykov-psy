@@ -12,7 +12,8 @@ import {
 	index,
 	doublePrecision,
 	integer,
-	jsonb
+	jsonb,
+	pgEnum
 } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
 
@@ -263,3 +264,54 @@ export const article = pgTable(
 		uniqueIndex('Article_uri_key').using('btree', table.uri.asc().nullsLast().op('text_ops'))
 	]
 );
+
+
+
+
+
+export const emailSubscription = pgTable(
+	'EmailSubscription',
+	{
+		id: text().primaryKey().notNull(),
+		createdAt: timestamp({ precision: 3, withTimezone: true, mode: 'string' })
+			.default(sql`CURRENT_TIMESTAMP`)
+			.notNull(),
+		updatedAt: timestamp({ precision: 3, withTimezone: true, mode: 'string' }).notNull(),
+		disabled: boolean().default(false).notNull(),
+		email: text().notNull(),
+		name: text(),
+		unsubscribeKey: text().notNull(),
+		status: text().default('active').notNull()
+	},
+	(table) => [
+		uniqueIndex('EmailSubscription_email_key').using(
+			'btree',
+			table.email.asc().nullsLast().op('text_ops')
+		),
+		uniqueIndex('EmailSubscription_unsubscribeKey_key').using(
+			'btree',
+			table.unsubscribeKey.asc().nullsLast().op('text_ops')
+		),
+		index('EmailSubscription_status_idx').using(
+			'btree',
+			table.status.asc().nullsLast().op('text_ops')
+		)
+	]
+);
+
+
+
+export const subscriberStatusEnum = pgEnum('subscriber_status', ['pending', 'active', 'unsubscribed']);
+
+export const subscriber = pgTable('Subscriber', {
+    id: text().primaryKey().notNull(),
+    email: text().notNull().unique(),
+    status: subscriberStatusEnum().default('pending').notNull(),
+    token: text().unique(),
+    createdAt: timestamp({ precision: 3, mode: 'string' })
+        .default(sql`CURRENT_TIMESTAMP`)
+        .notNull(),
+    updatedAt: timestamp({ precision: 3, mode: 'string' })
+        .default(sql`CURRENT_TIMESTAMP`)
+        .notNull()
+});

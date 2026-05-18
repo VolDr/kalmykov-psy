@@ -7,7 +7,10 @@
 	import MarkdownLink from '$lib/components/MarkdownLink.svelte';
 	import EducationNew from '$lib/components/sections/EducationNew.svelte';
 	import Media from '$lib/components/sections/Media.svelte';
+import { fade } from 'svelte/transition';
 
+
+    let isIntroModalOpen = $state(false);
 	const problems = [
 		{
 			icon: 'icon-[lucide--zap]',
@@ -25,7 +28,7 @@
 			items: [
 				'**Не можете отдыхать без чувства вины** — даже в выходные мозг продолжает «жевать» задачи',
 				'Тревога в нерабочее время: маниакально проверяете чаты и не можете выключить режим «спасателя»',
-				'Просыпаетесь разбитым **даже после выходных**',
+				'Просыпаетесь разбитым/разбитой **даже после выходных**',
 				'Всё кажется бессмысленным — работа, которую когда-то любили, **стала просто функцией**'
 			]
 		},
@@ -131,7 +134,7 @@
 		},
 		{
 			q: 'как понять, нужна ли мне вообще терапия?',
-			a: 'Если проблемы не решаются самостоятельно длительное время, или вы чувствуете, что что-то идёт не так — терапия может помочь. Для того чтобы понять, подойдёт ли вам мой подход — именно **для этого существует диагностическая встреча**.'
+			a: 'Если проблемы не решаются самостоятельно длительное время, или вы чувствуете, что что-то идёт не так — терапия может помочь. Для того чтобы понять, подойдёт ли вам мой подход можно записаться на встречу-знакомство.'
 		}
 	];
 </script>
@@ -146,54 +149,54 @@
 		class="absolute z-0 h-full w-full bg-linear-to-b from-black/25 from-0% via-black/65 via-40% to-black/65"
 	></div>
 
-	<div class="relative z-10 mx-auto px-5 pt-32 pb-16 md:max-w-[960px] lg:max-w-[1200px] xl:pt-48">
+	<div class="relative z-10 mx-auto px-5 xl:px-0 pt-8 pb-8 md:max-w-[760px] lg:max-w-[960px] xl:pt-40 flex flex-col gap-5">
 		<Reveal width="full">
-			<h1 class="mb-6 font-circe text-3xl leading-tight md:text-5xl">
+			<h1 class=" font-circe text-3xl leading-tight md:text-5xl">
 				Живёте в режиме «дотянуть до пятницы», но выходные уже не восстанавливают?
 			</h1>
 		</Reveal>
 		<Reveal width="full">
-			<p class="mb-8 text-lg leading-relaxed text-gray-200 md:text-xl">
+			<p class="leading-relaxed text-gray-200 md:text-xl">
 				Разберитесь, что происходит — и начните это менять. С доказательным подходом, без
 				бесконечного копания в детстве и размытых советов.
 			</p>
 		</Reveal>
 		<Reveal width="full">
 			<p
-				class="mb-10 border-l-2 border-[#B8A98A] pl-5 text-base leading-relaxed text-gray-300 md:text-lg"
+				class=" border-l-2 border-[#B8A98A] pl-5 text-base leading-relaxed text-gray-300 md:text-lg"
 			>
-				Научитесь отключаться от работы без чувства вины и верните себе энергию — не застревая в
+				Верните себе энергию не застревая в
 				терапии на годы.
 			</p>
 		</Reveal>
 		<Reveal width="full">
-			<div class="mt-8 flex flex-wrap items-center gap-6">
-				<Button href="#pricing" variant="primary" class="hidden px-8 py-4 text-lg md:inline">
-					<span>Записаться на диагностическую сессию</span>
-				</Button>
-				<Button
-					href="https://t.me/psy_kalmykov"
-					target="_blank"
-					rel="noopener noreferrer"
-					variant="primary">Записаться</Button
-				>
+			<div class="flex flex-wrap items-center gap-6  w-full max-w-[388px] ">
+            <Button
+                href="https://t.me/m/cRvQa0zAMTJi"
+                target="_blank"
+                rel="noopener noreferrer"
+                variant="primary"
+                class="self-start rounded-3xl bg-[#B8A98A] px-5 py-2 text-base text-white transition-colors duration-200 hover:brightness-95 sm:self-auto"
+            >
+                Записаться
+            </Button>
 			</div>
 		</Reveal>
 	</div>
 </section>
 
 <section class="bg-white py-16 md:py-24">
-	<div class="mx-auto px-5 md:max-w-[960px] lg:max-w-[1200px]">
+	<div class="mx-auto px-5 xl:px-0 md:max-w-[760px] lg:max-w-[960px]">
 		<Reveal
-			><h2 class="mb-8 mb-12 font-circe text-3xl font-semibold text-[#191919] md:text-4xl">
+			><h2 class="mb-6 mb-8 font-circe text-3xl font-semibold text-[#191919] md:text-3xl">
 				узнаёте себя?
 			</h2></Reveal
 		>
 		<Reveal width="full">
-			<div class="grid gap-6 text-lg leading-relaxed text-[#191919]">
+			<div class="grid gap-6 leading-relaxed text-[#191919]">
 				<p>
 					Вы работаете в IT, маркетинге или управлении. <strong class="font-medium"
-						>Умный, продуктивный, привыкли справляться сами.</strong
+						>Вы умны, продуктивны, привыкли справляться сами.</strong
 					>
 				</p>
 				<p>
@@ -217,9 +220,9 @@
 </section>
 
 <section class="bg-[#f7f5f0] py-16 md:py-24" id="requests">
-	<div class="mx-auto px-5 md:max-w-[960px] lg:max-w-[1200px]">
+	<div class="mx-auto px-5 xl:px-0 md:max-w-[960px] lg:max-w-[1200px]">
 		<Reveal
-			><h2 class="mb-8 mb-12 font-circe text-3xl font-semibold text-[#191919] md:text-4xl">
+			><h2 class="mb-6 mb-8 font-circe text-3xl font-semibold text-[#191919] md:text-3xl xl:pl-[120px] xl:pl-[120px]">
 				вам ко мне, если...
 			</h2></Reveal
 		>
@@ -227,7 +230,7 @@
 			{#each problems as cat}
 				<Reveal class="h-full w-full">
 					<div
-						class="group flex h-full flex-col rounded-2xl bg-white px-6 py-6 shadow-[0_2px_10px_rgb(0,0,0,0.02)] transition-all duration-300 md:p-8 md:p-10"
+						class="group flex h-full flex-col rounded-2xl bg-white px-6 py-6 shadow-[0_2px_10px_rgb(0,0,0,0.02)] transition-all duration-300 md:p-8"
 					>
 						<div class="mb-6 flex items-center gap-4">
 							<div
@@ -262,9 +265,9 @@
 </section>
 
 <section class="bg-white py-16 md:py-24">
-	<div class="mx-auto px-5 md:max-w-[960px] lg:max-w-[960px]">
+	<div class="mx-auto px-5 xl:px-0 md:max-w-[760px] lg:max-w-[760px]">
 		<Reveal
-			><h2 class="mb-8 mb-12 font-circe text-3xl font-semibold text-[#191919] md:text-4xl">
+			><h2 class="mb-6 mb-8 font-circe text-3xl font-semibold text-[#191919] md:text-3xl ">
 				почему отпуск, тайм-менеджмент и «просто взять себя в руки» не работают
 			</h2></Reveal
 		>
@@ -324,7 +327,7 @@
 					Почему тайм-менеджмент не спасает
 				</h3>
 				<p class="leading-relaxed text-[#191919]">
-					Логика кажется убедительной: если проблема в перегрузке — научись лучше организовывать
+					Логика кажется убедительной: если проблема в перегрузке — нужно научиться лучше организовывать
 					время, расставлять приоритеты, работать эффективнее, и станет легче. Иногда — да, временно
 					помогает. Но у этого подхода есть принципиальное ограничение: тайм-менеджмент — это
 					<strong class="font-semibold"
@@ -371,14 +374,14 @@
 			<Reveal width="full">
 				<div class="relative my-4 flex flex-col justify-center gap-3">
 					<p
-						class="relative z-10 max-w-[800px] text-center font-circe text-xl leading-relaxed text-[#191919] md:text-3xl"
+						class="relative z-10 max-w-[800px] text-center font-circe text-xl leading-relaxed text-[#191919] md:text-3xl  mx-auto"
 					>
-						Отпуск убирает стресс временно. Тайм-менеджмент помогает работать быстрее в той же
-						сломанной системе. «Взять себя в руки» при истощении — это давление на истощённый
+						Отпуск убирает стресс временно. <br/>Тайм-менеджмент помогает работать быстрее в той же
+						сломанной системе.<br/> «Взять себя в руки» при истощении — это давление на иссякший
 						ресурс.
 					</p>
 					<p
-						class="relative z-10 max-w-[800px] text-center font-circe text-xl leading-relaxed text-[#191919] md:text-3xl"
+						class="relative z-10 max-w-[800px] text-center font-circe text-xl leading-relaxed text-[#191919] md:text-3xl mx-auto"
 					>
 						<span class="font-semibold text-[#B8A98A]"
 							>Психотерапия меняет то, как вы функционируете в среде, которая никуда не делась.</span
@@ -387,9 +390,9 @@
 				</div>
 			</Reveal>
 			<div
-				class="flex h-full flex-col justify-between space-y-6 rounded-2xl bg-[#f7f5f0] px-4 py-6 md:p-12"
+				class="flex h-full flex-col justify-between space-y-6 rounded-2xl bg-[#f7f5f0] px-4 py-6 md:p-10 "
 			>
-				<h3 class="font-circe text-xl font-semibold text-[#191919] md:text-3xl">
+				<h3 class="font-circe text-2xl font-semibold text-[#191919] md:text-3xl">
 					Что мы делаем в терапии принципиально иначе
 				</h3>
 				<p class="text-md leading-relaxed text-[#191919]/80">
@@ -402,8 +405,7 @@
 						<span class="text-xl font-bold text-[#B8A98A]">01</span>
 						<span class="text-md leading-relaxed text-[#191919]/80">
 							Мы в первую очередь выявляем ваши убеждения, которые поддерживают истощение:
-							<strong class="font-semibold">перфекционизм</strong>, установку «я должен всегда быть
-							доступен», катастрофизацию ошибок, и делаем так, чтобы они перестали влиять на ваше
+							<strong class="font-semibold">перфекционизм</strong>, убеждение «мне нужно всегда быть на связи», катастрофизацию ошибок, и делаем так, чтобы они перестали влиять на ваше
 							поведение. Параллельно — обучаем конкретным стратегиям: как принимать решения в
 							условиях перегрузки, как выстраивать поведение в рабочем контексте, а не только
 							«думать правильно». Клинические данные подтверждают значимое снижение всех трёх
@@ -448,10 +450,10 @@
 </section>
 
 <section class="bg-[#f7f5f0] py-16 md:py-24" id="approach">
-	<div class="mx-auto px-5 md:max-w-[960px] lg:max-w-[1200px]">
+	<div class="mx-auto px-5 xl:px-0 md:max-w-[960px] lg:max-w-[1200px]">
 		<Reveal
 			><h2
-				class="mb-8 mb-16 text-center font-circe text-3xl font-semibold text-[#191919] md:text-4xl"
+				class="mb-8 md:mb-16 text-center font-circe text-3xl font-semibold text-[#191919] md:text-3xl xl:pl-[120px]"
 			>
 				как я работаю
 			</h2></Reveal
@@ -541,10 +543,10 @@
 </section>
 
 <section class="bg-white py-16 md:py-24" id="about">
-	<div class="mx-auto px-5 md:max-w-[960px] lg:max-w-[1200px]">
+	<div class="mx-auto px-5 xl:px-0 md:max-w-[960px] lg:max-w-[1200px]">
 		<Reveal
 			><h2
-				class="mb-8 mb-16 text-center font-circe text-3xl font-semibold text-[#191919] md:text-4xl"
+				class="mb-8 mb-16 text-center font-circe text-3xl font-semibold text-[#191919] md:text-3xl xl:pl-[120px]"
 			>
 				обо мне
 			</h2></Reveal
@@ -600,12 +602,12 @@
 			</Reveal>
 		</div>
 	</div>
-	<div class="mx-auto px-5 md:max-w-[960px] lg:max-w-[1200px]"><EducationNew /></div>
-	<div class="mx-auto px-5 md:max-w-[960px] lg:max-w-[1200px]"><Media /></div>
-	<div class="mx-auto mt-16 px-5 md:mt-24 md:max-w-[960px] lg:max-w-[1200px]">
+	<div class="mx-auto px-5 xl:px-0 md:max-w-[960px] lg:max-w-[1200px]"><EducationNew /></div>
+	<div class="mx-auto px-5 xl:px-0 md:max-w-[960px] lg:max-w-[1200px]"><Media /></div>
+	<div class="mx-auto mt-16 px-5 xl:px-0 md:mt-24 md:max-w-[760px] lg:max-w-[960px]">
 		<Reveal width="full">
 			<div>
-				<h3 class="mb-8 font-circe text-3xl font-semibold text-[#191919] md:text-4xl">
+				<h3 class="mb-8 font-circe text-3xl font-semibold text-[#191919] md:text-3xl ">
 					Почему здесь нет отзывов?
 				</h3>
 				<div
@@ -630,86 +632,98 @@
 </section>
 
 <section id="pricing" class="bg-[#f7f5f0] py-16 md:py-24">
-	<div class="mx-auto px-5 md:max-w-[960px] lg:max-w-[1200px]">
-		<Reveal>
-			<h2 class="mb-6 mb-8 font-circe text-3xl font-semibold text-[#191919] md:text-4xl">
-				формат и стоимость
-			</h2>
-			<p class="mb-12 text-lg text-[#191919]/70">
-				Индивидуальные психологические консультации. Одна встреча — 50 минут, онлайн, в удобное для
-				вас время.
-			</p>
-		</Reveal>
-		<div class="grid grid-cols-1 gap-8 md:grid-cols-2">
-			<Reveal class="h-full w-full">
-				<div
-					class="flex h-full flex-col rounded-lg border border-[#B8A98A] bg-white p-6 shadow-sm md:p-8"
-				>
-					<h3 class="mb-2 font-circe text-2xl font-semibold text-[#191919] md:pt-[58px]">
-						Диагностическая сессия
-					</h3>
-					<div class="mb-8 text-3xl font-semibold text-[#191919]">4 000 ₽</div>
-					<p class="mb-6 text-[#191919]/70">
-						Если хотите разобраться в конкретной ситуации, познакомиться с подходом или понять,
-						нужна ли вам терапия вообще.
-					</p>
+    <div class="mx-auto px-5 xl:px-0 md:max-w-[760px] lg:max-w-[960px]">
+        <Reveal>
+            <h2 class="mb-6 mb-8 font-circe text-3xl font-semibold text-[#191919] md:text-3xl ">
+                формат и стоимость
+            </h2>
+            <p class="mb-12 text-lg text-[#191919]/70">
+                Индивидуальные психологические консультации. Одна встреча — 50 минут, онлайн, в удобное для
+                вас время.
+            </p>
+        </Reveal>
+        <div class="grid grid-cols-1 gap-8 md:grid-cols-2">
+            <Reveal class="h-full w-full">
+                <div
+                    class="flex h-full flex-col rounded-lg border border-[#B8A98A] bg-white p-6 shadow-sm md:p-8"
+                >
+                    <h3 class="mb-2 font-circe text-2xl font-semibold text-[#191919] md:pt-[58px]">
+                        Разовая сессия
+                    </h3>
+                    <div class="mb-8 text-3xl font-semibold text-[#191919]">4 000 ₽</div>
+                    <p class="mb-6 text-[#191919]/70">
+                        Если хотите разобраться в конкретной ситуации, познакомиться с подходом или понять,
+                        нужна ли вам терапия вообще.
+                    </p>
 
-					<ul class="mb-10 space-y-3 leading-relaxed text-[#191919]">
-						<li>— 1 сессия (50 минут)</li>
-						<li>— Онлайн</li>
-						<li>— Ни к чему не обязывает</li>
-					</ul>
-					<div class="mt-auto flex">
-						<Button
-							href="https://t.me/psy_kalmykov"
-							target="_blank"
-							rel="noopener noreferrer"
-							variant="primary"
-							class="w-full justify-center"
-						>
-							Записаться
-						</Button>
-					</div>
-				</div>
-			</Reveal>
-			<Reveal class="h-full w-full">
-				<div class="flex h-full flex-col rounded-lg bg-[#191919] p-8 text-white shadow-xl">
-					<div class="mb-4 w-fit rounded-full bg-[#B8A98A] px-3 py-1 text-xs text-white uppercase">
-						Популярный формат
-					</div>
-					<h3 class="mb-2 font-circe text-2xl font-semibold">Регулярные встречи</h3>
-					<div class="mb-8 text-3xl font-semibold">
-						14 000 ₽ <span class="text-lg font-normal text-white/50">/ месяц</span>
-					</div>
-					<p class="mb-6 text-white/70">Для устойчивых изменений, а не временного облегчения.</p>
+                    <ul class="mb-10 space-y-3 leading-relaxed text-[#191919]">
+                        <li>— 50 минут</li>
+                        <li>— Онлайн</li>
+                    </ul>
+                    <div class="mt-auto flex flex-col gap-4">
+                        <Button
+                            href="https://t.me/m/HK_tu_dOMDli"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            variant="primary"
+                            class="w-full self-start rounded-3xl bg-[#B8A98A] px-5 py-2 text-base text-white transition-colors duration-200 hover:brightness-95 sm:self-auto"
+                        >
+                            Записаться
+                        </Button>
+                        <button
+                            onclick={() => isIntroModalOpen = true}
+                            class="cursor-pointer w-full text-center text-sm font-medium text-[#191919]/60 underline decoration-[#191919]/30 underline-offset-4 transition-colors hover:text-[#191919] hover:decoration-[#191919]"
+                        >
+                            Хочу познакомиться
+                        </button>
+                    </div>
+                </div>
+            </Reveal>
+            <Reveal class="h-full w-full">
+                <div class="flex h-full flex-col rounded-lg bg-[#191919] p-8 text-white shadow-xl">
+                    <div class="mb-4 w-fit rounded-full bg-[#B8A98A] px-3 py-1 text-xs text-white uppercase leading-[14px]">
+                        Рекомендуемый формат
+                    </div>
+                    <h3 class="mb-2 font-circe text-2xl font-semibold">Регулярные встречи</h3>
+                    <div class="mb-8 text-3xl font-semibold">
+                        14 000 ₽ <span class="text-lg font-normal text-white/50">/ 4 сессии</span>
+                    </div>
+                    <p class="mb-6 text-white/70">Для устойчивых изменений, а не временного облегчения.</p>
 
-					<ul class="mb-10 space-y-3 leading-relaxed text-white/90">
-						<li>— 4 сессии в месяц</li>
-						<li>— Система трекинга прогресса</li>
-						<li>— Обратная связь по сессиям</li>
-						<li>— Онлайн, гибкое расписание</li>
-					</ul>
-					<div class="mt-auto flex">
+                    <ul class="mb-10 space-y-3 leading-relaxed text-white/90">
+                        <li>— Система трекинга прогресса</li>
+                        <li>— Обратная связь по сессиям</li>
+                        <li>— Онлайн, гибкое расписание</li>
+                    </ul>
+                    <div class="mt-auto flex flex-col gap-4">
+     <div class="mt-auto flex">
 						<Button
-							href="https://t.me/psy_kalmykov"
+							href="https://t.me/m/gUIhb0xPODli"
 							target="_blank"
 							rel="noopener noreferrer"
 							variant="secondary"
-							class="w-full justify-center"
+					   class="w-full self-start rounded-3xl px-5 py-2 text-base text-white transition-colors duration-200  sm:self-auto"
 						>
 							Начать работу
 						</Button>
 					</div>
-				</div>
-			</Reveal>
-		</div>
-	</div>
+                        <button
+                            onclick={() => isIntroModalOpen = true}
+                            class="w-full text-center text-sm font-medium text-white/60 underline decoration-white/30 underline-offset-4 transition-colors hover:text-white hover:decoration-white"
+                        >
+                            Хочу познакомиться
+                        </button>
+                    </div>
+                </div>
+            </Reveal>
+        </div>
+    </div>
 </section>
 
 <section class="bg-white py-16 md:py-24">
-	<div class="mx-auto px-5 md:max-w-[960px] lg:max-w-[960px]">
+	<div class="mx-auto px-5 xl:px-0 md:max-w-[760px] lg:max-w-[760px]">
 		<Reveal>
-			<h2 class="mb-8 font-circe text-3xl font-semibold text-[#191919] md:mb-12 md:text-4xl">
+			<h2 class="mb-8 font-circe text-3xl font-semibold text-[#191919] md:mb-12 md:text-3xl">
 				как мы придём к результату
 			</h2>
 		</Reveal>
@@ -720,7 +734,7 @@
 					<div
 						class="flex flex-col gap-2 border-b border-[#B8A98A] py-8 last:border-0 md:flex-row md:gap-6"
 					>
-						<div class="font-circe text-3xl font-bold text-[#B8A98A] opacity-40 md:text-4xl">
+						<div class="font-circe text-3xl font-bold text-[#B8A98A] opacity-40 md:text-3xl">
 							0{i + 1}
 						</div>
 						<div class="space-y-2">
@@ -739,8 +753,8 @@
 	</div>
 </section>
 
-<section class="bg-[#f7f5f0] py-16 md:py-24">
-	<div class="mx-auto px-5 md:max-w-[960px] lg:max-w-[1200px]">
+<!-- <section class="bg-[#f7f5f0] py-16 md:py-24">
+	<div class="mx-auto px-5 xl:px-0 md:max-w-[760px] lg:max-w-[960px]">
 		<Reveal width="full">
 			<div
 				class="flex flex-col items-center gap-8 rounded-lg border border-[#B8A98A] bg-white p-8 shadow-sm md:flex-row"
@@ -768,12 +782,12 @@
 			</div>
 		</Reveal>
 	</div>
-</section>
+</section> -->
 
 <section class="bg-[#191919] py-20 text-center text-white">
-	<div class="mx-auto space-y-8 px-5 md:max-w-[960px] lg:max-w-[1200px]">
+	<div class="mx-auto space-y-8 px-5 xl:px-0 md:max-w-[760px] lg:max-w-[960px]">
 		<Reveal width="full">
-			<h2 class="font-circe text-3xl leading-tight font-semibold md:text-4xl">
+			<h2 class="font-circe text-3xl leading-tight font-semibold md:text-3xl">
 				Вы уже достаточно долго живёте в режиме «потерплю ещё немного»
 			</h2>
 			<p class="mx-auto mt-4 max-w-[800px] text-lg text-white/80">
@@ -782,26 +796,24 @@
 			</p>
 		</Reveal>
 		<Reveal width="full">
-			<div class="flex flex-col items-center justify-center gap-6 pt-6 md:flex-row">
-				<Button href="#pricing" variant="primary" class="hidden px-8 py-4 text-lg md:inline">
-					<span>Записаться на диагностическую сессию</span>
-				</Button>
-				<Button
-					href="https://t.me/psy_kalmykov"
-					target="_blank"
-					rel="noopener noreferrer"
-					variant="primary">Записаться</Button
-				>
+			<div class="flex flex-col items-center justify-center gap-6 md:flex-row">
+						<Button
+							href="#pricing"
+							variant="primary"
+				   class="self-start rounded-3xl bg-[#B8A98A] px-5 py-2 text-base text-white transition-colors duration-200 hover:brightness-95 sm:self-auto w-full justify-center max-w-[388px]" 
+						>
+							Записаться
+						</Button>
 			</div>
 		</Reveal>
 	</div>
 </section>
 
 <section class="bg-white py-16 md:py-24" id="faq">
-	<div class="mx-auto px-5 md:max-w-[960px] lg:max-w-[960px]">
+	<div class="mx-auto px-5 xl:px-0 md:max-w-[760px] lg:max-w-[760px]">
 		<Reveal
 			><h2
-				class="mb-8 mb-12 text-center font-circe text-3xl font-semibold text-[#191919] md:text-4xl"
+				class="mb-6 mb-8 text-center font-circe text-3xl font-semibold text-[#191919] md:text-3xl"
 			>
 				вопросы и ответы
 			</h2></Reveal
@@ -820,3 +832,66 @@
 		</div>
 	</div>
 </section>
+{#if isIntroModalOpen}
+    <div
+        transition:fade={{ duration: 200 }}
+        class="fixed inset-0 z-50 flex items-center justify-center bg-[#000000ab] p-4"
+        onclick={() => isIntroModalOpen = false}
+        onkeydown={(e) => {
+            if (e.key === 'Escape' || e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                isIntroModalOpen = false;
+            }
+        }}
+        role="button"
+        tabindex="0"
+        aria-label="Закрыть модальное окно"
+    >
+        <div
+            class="relative flex w-full max-w-[480px] flex-col gap-6 rounded-2xl bg-white p-8 shadow-2xl md:p-9"
+            onclick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+        >
+            <button
+                onclick={() => isIntroModalOpen = false}
+                class="absolute right-4 top-4 z-10 cursor-pointer p-2 text-[#191919]/50 transition-colors hover:text-[#191919]"
+                aria-label="Закрыть"
+            >
+                <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+
+            <div class="space-y-2 pt-2">
+                <h3 class="font-circe text-xl font-semibold text-[#191919] md:text-2xl">
+                    Запишитесь на встречу-знакомство
+                </h3>
+
+<ul class="space-y-1 leading-relaxed text-[#191919] list-none">
+    <li class="relative pl-6 before:content-['—'] before:absolute before:left-0">
+        вы расскажете, что вас беспокоит, а я расскажу, что мы можем с этим сделать
+    </li>
+    <li class="relative pl-6 before:content-['—'] before:absolute before:left-0">
+        20–25 минут
+    </li>
+    <li class="relative pl-6 before:content-['—'] before:absolute before:left-0">
+        встреча бесплатная и ни к чему не обязывает
+    </li>
+</ul>
+            </div>
+
+            <div class="mt-2 flex">
+                <Button
+                    href="https://t.me/m/_KpBREAfOGMy"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    variant="primary"
+                    class="w-full self-start rounded-3xl bg-[#B8A98A] px-5 py-2 text-base text-white transition-colors duration-200 hover:brightness-95 sm:self-auto"
+                >
+                    Записаться
+                </Button>
+            </div>
+        </div>
+    </div>
+{/if}

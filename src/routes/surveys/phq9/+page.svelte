@@ -38,6 +38,6 @@
 
 <PageHero title={phq9Config.title} description={phq9Config.description} />
 
-<div class="container mx-auto max-w-[720px] lg:max-w-[1200px]">
+<div class="container mx-auto max-w-[720px] lg:max-w-[760px]">
 	<Survey config={phq9Config} />
 </div>

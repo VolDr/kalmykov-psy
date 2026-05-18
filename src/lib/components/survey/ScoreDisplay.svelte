@@ -1,6 +1,5 @@
 <script lang="ts">
 	import MarkdownLink from '$lib/components/MarkdownLink.svelte';
-	import Card from '$lib/components/ui/Card.svelte';
 	import type { ScoringInterpretation } from '$lib/data/surveys/types';
 	import type { SubscaleResult } from '$lib/utils/survey/scoringEngine';
 	import { cn } from '$lib/utils';
@@ -23,129 +22,115 @@
 		subscales
 	}: Props = $props();
 
-	const colorClasses = {
+	const textColorClasses = {
 		green: 'text-green-600',
 		yellow: 'text-yellow-600',
 		orange: 'text-orange-500',
 		red: 'text-red-500',
 		darkred: 'text-red-700'
-	};
+	} as const;
 
-	const borderColorClasses = {
-		green: 'border-t-green-500',
-		yellow: 'border-t-yellow-500',
-		orange: 'border-t-orange-500',
-		red: 'border-t-red-500',
-		darkred: 'border-t-red-700'
-	};
+	const accentBgClasses = {
+		green: 'before:bg-green-500',
+		yellow: 'before:bg-yellow-500',
+		orange: 'before:bg-orange-500',
+		red: 'before:bg-red-500',
+		darkred: 'before:bg-red-700'
+	} as const;
 
-	const badgeClass = colorClasses[interpretation.color];
-	const borderClass = borderColorClasses[interpretation.color];
+	type ResultColor = keyof typeof textColorClasses;
+
+	const getTextColor = (color: string) =>
+		textColorClasses[color as ResultColor] ?? textColorClasses.green;
+
+	const getAccentBg = (color: string) =>
+		accentBgClasses[color as ResultColor] ?? accentBgClasses.green;
+
+	const mainTextClass = $derived(getTextColor(interpretation.color));
+	const mainAccentClass = $derived(getAccentBg(interpretation.color));
 </script>
 
-<div class="space-y-6">
-	<div class={cn('overflow-hidden rounded-lg border-0 border-t-4 bg-[#f7f5f0]/40', borderClass)}>
-		<div class="space-y-4 p-6 md:p-8">
-			<div class="flex flex-col gap-4 pb-4 md:flex-row md:items-center md:justify-between">
-				<h3 class="text-base font-semibold text-[#191919] md:text-lg">Общий результат</h3>
-				<div class="text-left md:text-right">
-					<div class="text-2xl font-bold text-[#191919] md:text-3xl">
-						{#if averageScore !== undefined}
-							{averageScore.toFixed(2)}
-							<span class="text-base text-[#191919] opacity-60 md:text-xl">
-								/ {maxAverageScore.toFixed(2)}
-							</span>
-						{:else}
-							{score}
-							<span class="text-base text-[#191919] opacity-60 md:text-xl">
-								/ {maxScore}
-							</span>
-						{/if}
-					</div>
-				</div>
-			</div>
+<div class="space-y-8 font- md:space-y-10">
+	<section
+		class={cn(
+			"relative overflow-hidden rounded-xl border border-[#f0f0f0] bg-[#fcfcfc] p-4 pl-5 before:absolute before:inset-y-0 before:left-0 before:w-1 before:content-[''] md:p-5 md:pl-6",
+			mainAccentClass
+		)}
+	>
+		<div class="mb-2 text-sm text-[#666666]">Общий показатель</div>
 
-			<div>
-				<span class={cn('inline-block text-xl font-semibold', badgeClass)}>
-					{interpretation.severity}
+		<div class={cn('mb-1 text-[30px] font-bold leading-none md:text-4xl', mainTextClass)}>
+			{#if averageScore !== undefined}
+				{averageScore.toFixed(2)}
+				<span class=" font-semibold text-[#191919]/50 md:text-xl">
+					/ {maxAverageScore.toFixed(2)}
 				</span>
-			</div>
-
-			<div class="space-y-2">
-				<h4 class="text-base font-semibold text-black md:text-lg">Рекомендации:</h4>
-				<div class="text-base leading-relaxed whitespace-pre-line text-black opacity-80 md:text-lg">
-					<MarkdownLink text={interpretation.recommendation} />
-				</div>
-			</div>
+			{:else}
+				{score}
+				<span class=" font-semibold text-[#191919]/50 md:text-xl"> / {maxScore} </span>
+			{/if}
 		</div>
-	</div>
+
+		<div class="text-lg font-semibold leading-snug text-[#191919]">
+			{interpretation.severity}
+		</div>
+	</section>
 
 	{#if subscales && subscales.length > 0}
-		<div class="border-0 bg-[#f7f5f0] shadow-md">
-			<div class="space-y-4 p-6 md:p-8">
-				<div class="pb-4">
-					<h3 class="text-base font-semibold text-black md:text-lg">Результаты по шкалам</h3>
-					{#if subscales.length > 0 && subscales[0].description}
-						<p class="mt-2 text-sm text-black opacity-70">
-							{subscales[0].displayMethod === 'sum'
-								? 'Сумма баллов по каждой из шкал'
-								: 'Средний балл по каждой из шкал'}
-						</p>
-					{/if}
-				</div>
+		<section>
+			<h3 class="mb-4 text-xl font-semibold leading-tight text-[#191919]">Что значат эти цифры?</h3>
 
+			<div class="space-y-5 md:space-y-[30px]">
 				{#each subscales as subscale}
-					{@const subscaleBorderClass = borderColorClasses[subscale.interpretation.color]}
-					<div
+					{@const subscaleTextClass = getTextColor(subscale.interpretation.color)}
+					{@const subscaleAccentClass = getAccentBg(subscale.interpretation.color)}
+
+					<article
 						class={cn(
-							'flex flex-col gap-3 overflow-hidden rounded-lg border-t-4 bg-white p-4',
-							subscaleBorderClass
+							"relative overflow-hidden rounded-xl border border-[#f0f0f0] bg-[#fcfcfc] p-4 pl-5 before:absolute before:inset-y-0 before:left-0 before:w-1 before:content-[''] md:p-5 md:pl-6",
+							subscaleAccentClass
 						)}
 					>
-						<div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-							<div class="flex-1">
-								<h5 class="text-base font-semibold text-[#191919]">
-									{subscale.name}
-								</h5>
-								<span
-									class={cn(
-										'mt-2 inline-block rounded bg-[#f7f5f0] px-2 py-1 text-sm',
-										colorClasses[subscale.interpretation.color]
-									)}
-								>
-									{subscale.interpretation.severity}
-								</span>
-							</div>
-							<div class="text-right">
-								<div class="text-xl font-bold text-[#191919] md:text-2xl">
+						<div class="mb-3 flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
+							<h4 class="text-lg font-semibold leading-snug text-[#191919]">
+								{subscale.name}
+							</h4>
+
+							<div class="md:whitespace-nowrap md:pl-4 md:text-right">
+								<div class={cn(' font-bold leading-tight', subscaleTextClass)}>
+									Балл:
 									{#if subscale.displayMethod === 'sum'}
 										{subscale.score}
-										<span class="text-sm text-[#191919] opacity-60 md:text-base">
-											/ {subscale.maxScore}
-										</span>
+										<span class="font-semibold text-[#191919]/45"> / {subscale.maxScore}</span>
 									{:else}
 										{subscale.averageScore.toFixed(2)}
-										<span class="text-sm text-[#191919] opacity-60 md:text-base">
+										<span class="font-semibold text-[#191919]/45">
 											/ {maxAverageScore.toFixed(2)}
 										</span>
 									{/if}
 								</div>
+
+								<div class={cn('mt-0.5 text-[13px] font-semibold leading-snug', subscaleTextClass)}>
+									{subscale.interpretation.severity}
+								</div>
 							</div>
 						</div>
+
 						{#if subscale.description}
-							<div class="space-y-1 text-sm leading-relaxed text-[#191919] opacity-70">
-								{#each subscale.description.split('\n') as line}
-									{#if line.trim().match(/^\d+\./)}
-										<div class="pl-4">{line.trim()}</div>
-									{:else if line.trim()}
-										<div>{line}</div>
-									{/if}
-								{/each}
+							<div class="whitespace-pre-line text-sm leading-[1.6] text-[#4a4a4a]">
+								<MarkdownLink text={subscale.description} />
 							</div>
 						{/if}
-					</div>
+					</article>
 				{/each}
 			</div>
-		</div>
+		</section>
 	{/if}
+
+	<section>
+		<h3 class="mb-4 text-xl font-semibold leading-tight text-[#191919]">Рекомендации</h3>
+		<div class="whitespace-pre-line  leading-[1.7] text-[#4a4a4a]">
+			<MarkdownLink text={interpretation.recommendation} />
+		</div>
+	</section>
 </div>

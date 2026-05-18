@@ -41,13 +41,13 @@
 </script>
 
 <div
-	class="mx-auto flex max-w-[720px] flex-col items-center gap-10 md:max-w-[960px] lg:max-w-[1200px]"
+	class="mx-auto flex max-w-[720px] flex-col items-center gap-10 md:max-w-[760px] lg:max-w-[960px]"
 >
 	<Reveal>
 		<h2 class="subtitle">обо мне</h2>
 	</Reveal>
 
-	<div class="grid w-full grid-cols-1 gap-4 px-5 md:grid-cols-24 md:px-0 lg:grid-cols-24">
+	<div class="grid w-full grid-cols-1 gap-4 px-5 md:grid-cols-24 xl:px-0 lg:grid-cols-24">
 		{#each items as item}
 			<div class={item.gridClass}>
 				<Reveal axis="x" class="h-full">

@@ -38,6 +38,6 @@
 
 <PageHero title={bat12Config.title} description={bat12Config.description} />
 
-<div class="container mx-auto max-w-[720px] lg:max-w-[1200px]">
+<div class="container mx-auto max-w-[720px] lg:max-w-[760px]">
 	<Survey config={bat12Config} />
 </div>

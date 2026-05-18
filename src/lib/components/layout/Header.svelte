@@ -94,7 +94,7 @@
 	class={cn('fixed z-20 hidden w-full md:flex', menuColor === 'black' && 'bg-[#f7f5f0]')}
 >
 	<div
-		class="relative mx-auto flex h-12 w-full max-w-full items-center md:max-w-[960px] lg:max-w-[1200px]"
+		class="relative mx-auto flex h-12 w-full max-w-full items-center md:max-w-[760px] lg:max-w-[960px]"
 	>
 		<nav aria-label="Главная навигация" class="ml-auto">
 			<ul class="m-0 flex list-none items-center p-0">
@@ -105,7 +105,7 @@
 							target={link.external ? '_blank' : undefined}
 							rel={link.external ? 'noopener noreferrer' : undefined}
 							class={cn(
-								'nav-link relative block px-3 py-2 text-[13px] no-underline select-none lg:text-[16px] xl:text-[22px]',
+								'nav-link relative block px-3 py-2 text-[20px] no-underline select-none lg:text-[22px] xl:text-[22px]',
 								menuColor === 'white' && 'text-white',
 								menuColor === 'black' && 'text-[#191919]',
 								link.link === page.url.pathname && 'active'
@@ -116,7 +116,7 @@
 					</li>
 				{/each}
 				<Button
-					href="https://t.me/psy_kalmykov"
+					href="https://t.me/m/cRvQa0zAMTJi"
 					target="_blank"
 					rel="noopener noreferrer"
 					variant="primary"
@@ -248,13 +248,15 @@
 				</li>
 			{/each}
 
-				<Button
-					href="https://t.me/psy_kalmykov"
-					target="_blank"
-					rel="noopener noreferrer"
-					variant="primary"
-					class="max-w-[180px]">Записаться</Button
-				>
+            <Button
+                href="https://t.me/m/cRvQa0zAMTJi"
+                target="_blank"
+                rel="noopener noreferrer"
+                variant="primary"
+                class="self-start rounded-3xl bg-[#B8A98A] px-5 py-2 text-base text-white transition-colors duration-200 hover:brightness-95 sm:self-auto"
+            >
+                Записаться
+            </Button>
 		</ul>
 	</nav>
 </div>

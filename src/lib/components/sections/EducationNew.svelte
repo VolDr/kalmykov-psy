@@ -1,64 +1,148 @@
 <script lang="ts">
-	import AccordionItem from '$lib/components/AccordionItem.svelte';
-	import DiplomaModal from '$lib/components/DiplomaModal.svelte';
-	import Reveal from '$lib/components/Reveal.svelte';
-	import { educationGroups } from '$lib/data/education';
-	import { cn } from '$lib/utils';
+    import AccordionItem from '$lib/components/AccordionItem.svelte';
+    import DiplomaModal from '$lib/components/DiplomaModal.svelte';
+    import Reveal from '$lib/components/Reveal.svelte';
+    import { educationGroups } from '$lib/data/education';
+    import { cn } from '$lib/utils';
 
-	let { isOpen = false }: { isOpen?: boolean } = $props();
-	let isModalOpen = $state(false);
-	let selectedDiplomaIndex = $state(0);
+    let { isOpen = false }: { isOpen?: boolean } = $props();
+    let isModalOpen = $state(false);
+    let selectedDiplomaIndex = $state(0);
 
-	const diplomas = $derived(
-		educationGroups
-			.flatMap((group) => group.items)
-			.filter((item) => item.diploma)
-			.map((item) => ({
-				imageUrl: item.diploma!,
-				title: item.title
-			}))
-	);
+    const diplomas = $derived(
+        educationGroups
+            .flatMap((group) => group.items)
+            .filter((item) => item.diploma)
+            .map((item) => ({
+                imageUrl: item.diploma!,
+                title: item.title
+            }))
+    );
 
-	function openDiplomaModal(imageUrl: string) {
-		const index = diplomas.findIndex((d) => d.imageUrl === imageUrl);
-		selectedDiplomaIndex = index >= 0 ? index : 0;
-		isModalOpen = true;
-	}
+    const categoryExplanations: Record<string, string> = {
+        'Основное образование': 'Дипломы по психологическому консультированию — то, что дает право работать психологом.',
+        'Подходы': 'Я работаю конкретными методами, а не интуитивно. Эти методы изучены в тысячах исследований и доказали свою эффективность в работе с психологическими запросами — примерно как доказанные схемы лечения в медицине.',
+        'Специализации': 'Отдельные темы, в которые я погрузился глубже.',
+        'Конференции': 'Я регулярно почещаю профессиональные встречи и конференции — там психологи обсуждают новые исследования, разбирают сложные случаи и учатся друг у друга.',
+        'Остальное': 'Образование, которое напрямую не связано с консультированием, но помогает в работе с людьми..'
+    };
+
+    function openDiplomaModal(imageUrl: string) {
+        const index = diplomas.findIndex((d) => d.imageUrl === imageUrl);
+        selectedDiplomaIndex = index >= 0 ? index : 0;
+        isModalOpen = true;
+    }
+
+    function scrollCarousel(event: Event, direction: 'left' | 'right') {
+        const button = event.currentTarget as HTMLElement;
+        const section = button.closest('.education-section');
+        const carousel = section?.querySelector('.education-carousel');
+        
+        if (carousel) {
+            const scrollAmount = 680; 
+            carousel.scrollBy({ 
+                left: direction === 'left' ? -scrollAmount : scrollAmount, 
+                behavior: 'smooth' 
+            });
+        }
+    }
+
+    function handleWheelScroll(e: WheelEvent) {
+        const target = e.currentTarget as HTMLElement;
+        
+        if (e.deltaX !== 0) return;
+
+        const isAtLeftEdge = target.scrollLeft <= 0;
+        const isAtRightEdge = Math.ceil(target.scrollLeft + target.clientWidth) >= target.scrollWidth;
+
+        if ((e.deltaY < 0 && !isAtLeftEdge) || (e.deltaY > 0 && !isAtRightEdge)) {
+            e.preventDefault();
+            
+            target.scrollBy({
+                left: e.deltaY > 0 ? 200 : -200,
+                behavior: 'smooth' 
+            });
+        }
+    }
 </script>
 
 <div class="w-full scroll-mt-24" id="education">
     <AccordionItem {isOpen}>
         {#snippet header()}
             <Reveal width="full" axis="x">
-                <h2 class="subtitle scroll-mt-24">где я учился</h2>
+                <div class="space-y-1.5 text-left">
+                    <h2 class="subtitle scroll-mt-24">Где я учился</h2>
+                    <p class="text-sm font-normal text-[#191919]/50 normal-case tracking-normal">
+                        Сюда можно нажать, чтобы посмотреть мои документы об образовании, если для вас это важно.
+                    </p>
+                </div>
             </Reveal>
         {/snippet}
     
         <div class="pt-4 md:pt-6">
             {#each educationGroups as group, groupIndex}
-                <div class={groupIndex > 0 ? 'mt-12' : 'mt-2'}>
-                    <h3 class="mb-6 text-2xl font-circe font-semibold text-[#191919]">{group.category}</h3>
+                <div class="education-section {groupIndex > 0 ? 'mt-12' : 'mt-2'}">
                     
-                    <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
-                        {#each group.items as item, i}
+                    <div class="flex items-end justify-between {categoryExplanations[group.category] ? 'mb-2' : 'mb-6'}">
+                        <h3 class="text-xl font-circe font-semibold text-[#191919] md:text-2xl">
+                            {group.category}
+                        </h3>
+                        
+                        {#if group.items.length > 3}
+                            <div class="hidden md:flex items-center gap-2 pb-1 pr-1">
+                                <button
+                                    onclick={(e) => scrollCarousel(e, 'left')}
+                                    class="flex h-9 w-9 items-center justify-center rounded-full border border-[#E5E5E5] text-[#191919]/40 transition-all hover:border-[#B8A98A] hover:text-[#B8A98A] hover:shadow-sm"
+                                    aria-label="Листать влево"
+                                >
+                                    <span class="icon-[lucide--chevron-left] h-5 w-5"></span>
+                                </button>
+                                <button
+                                    onclick={(e) => scrollCarousel(e, 'right')}
+                                    class="flex h-9 w-9 items-center justify-center rounded-full border border-[#E5E5E5] text-[#191919]/40 transition-all hover:border-[#B8A98A] hover:text-[#B8A98A] hover:shadow-sm"
+                                    aria-label="Листать вправо"
+                                >
+                                    <span class="icon-[lucide--chevron-right] h-5 w-5"></span>
+                                </button>
+                            </div>
+                        {/if}
+                    </div>
+                    
+                    {#if categoryExplanations[group.category]}
+                        <p class="mb-6 max-w-[700px] text-sm leading-relaxed text-[#191919]/60 font-light pr-20">
+                            {categoryExplanations[group.category]}
+                        </p>
+                    {/if}
+                    
+                    <div 
+                        class="education-carousel flex w-full snap-x snap-mandatory gap-4 overflow-x-auto pb-6 pt-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden md:[scrollbar-width:thin] md:[scrollbar-color:#B8A98A_#f7f5f0] md:[&::-webkit-scrollbar]:block md:[&::-webkit-scrollbar]:h-1.5 md:[&::-webkit-scrollbar-track]:bg-[#f7f5f0] md:[&::-webkit-scrollbar-track]:rounded-full md:[&::-webkit-scrollbar-thumb]:bg-[#B8A98A]/70 md:[&::-webkit-scrollbar-thumb]:rounded-full md:hover:[&::-webkit-scrollbar-thumb]:bg-[#B8A98A]"
+                        onwheel={handleWheelScroll}
+                    >
+                        {#each group.items as item}
                             <svelte:element
                                 this={item.diploma ? 'button' : 'div'}
                                 onclick={item.diploma ? () => openDiplomaModal(item.diploma!) : undefined}
                                 class={cn(
-                                    'group relative flex flex-col justify-between rounded-2xl border border-[#B8A98A] bg-white p-6 md:p-8 text-left transition-all duration-300',
+                                    'group relative flex w-[85vw] max-w-[320px] shrink-0 snap-start flex-col justify-between rounded-2xl border border-[#E5E5E5] bg-white p-6 md:p-8 text-left transition-all duration-300',
                                     {
-                                        'hover:cursor-pointer focus-visible:outline-[#B8A98A] focus:outline-[#B8A98A] outline-0': item.diploma,
-                                        'md:col-span-2': (i === group.items.length - 1) && (group.items.length % 2 !== 0)
+                                        'hover:cursor-pointer hover:border-[#B8A98A]/50 hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] focus-visible:outline-[#B8A98A] focus:outline-[#B8A98A] outline-0': item.diploma
                                     }
                                 )}
                             >
-                                <div class="relative z-10">
+                                <div class="relative z-10 w-full flex flex-col">
+                                    {#if !item.completed}
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 text-[10px] uppercase font-bold tracking-wider bg-[#f7f5f0] text-[#191919]/60 rounded-md w-fit mb-3">
+                                            <span class="h-1.5 w-1.5 rounded-full bg-[#B8A98A] animate-pulse"></span>
+                                            В процессе
+                                        </span>
+                                    {/if}
+
                                     <h5 class={cn('text-lg font-medium leading-snug text-[#191919] transition-colors', {
                                         'group-hover:text-[#B8A98A]': item.diploma
                                     })}>
                                         {item.title}
                                     </h5>
-                                    <p class="mt-3 text-sm text-[#191919]/60 leading-relaxed max-w-[90%]">{item.details}</p>
+                                    <p class="mt-3 text-sm text-[#191919]/60 leading-relaxed">{item.details}</p>
                                 </div>
                                 
                                 {#if item.diploma}

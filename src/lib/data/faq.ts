@@ -12,7 +12,7 @@ export const faqItems: FaqItem[] = [
 	{
 		question: 'как записаться на сессию?',
 		answer:
-			'Ознакомьтесь с [памяткой о работе](/online-therapy).\n\nПосле этого напишите мне в [WhatsApp](https://api.whatsapp.com/send?phone=79065378241) или [Telegram](https://t.me/psy_kalmykov), где мы подберём комфортное для вас время для сессии.'
+			'Ознакомьтесь с [памяткой о работе](/online-therapy).\n\nПосле этого напишите мне в [Telegram](https://t.me/m/POBhzGjVOWFi), где мы подберём комфортное для вас время для сессии.'
 	},
 	{
 		question: 'можно ли сначала познакомиться?',

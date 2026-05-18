@@ -17,6 +17,7 @@
 	let isSurveys = $derived(data.pathname == '/surveys');
 	let isArticles = $derived(data.pathname == '/articles');
 	let isLoginRoute = $derived(data.pathname === '/login');
+		let burnoutSurveyRoute = $derived(data.pathname === '/burnout-survey');
 	// Only hide header/footer for special code pages (like /ABC123), not regular pages
 	let isCodeRoute = $derived(
 		data.pathname &&
@@ -66,7 +67,6 @@
 		crossorigin="anonymous"
 	/>
 	<link rel="preload" href="/Aeonik.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
-	<link rel="preload" href="/Verdana.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
 	<link
 		rel="preload"
 		href="/Circle Light.woff2"
@@ -126,14 +126,14 @@
 	</script>
 </svelte:head>
 
-{#if !isAdminRoute && !isCodeRoute && !isLoginRoute}
+{#if !isAdminRoute && !isCodeRoute && !isLoginRoute && !burnoutSurveyRoute}
 	{#if page.url.pathname !== '/test-landing'}
 		<Header initialMenuColor="white" />
 	{/if}
 
 	<Affix />
 {/if}
-{#if !isAdminRoute && !isCodeRoute && !isLoginRoute && !isSurveys && !isArticles}
+{#if !isAdminRoute && !isCodeRoute && !isLoginRoute && !isSurveys && !isArticles && !burnoutSurveyRoute}
 	<ProgressBar progress={$progress} />
 {/if}
 <Toaster position="top-right" />
@@ -142,7 +142,9 @@
 	{@render children()}
 </main>
 
-{#if !isAdminRoute && !isCodeRoute && !isLoginRoute}
+{#if !isAdminRoute && !isCodeRoute && !isLoginRoute && !burnoutSurveyRoute}
 	<TelegramBanner link={telegramChannel.link} text={telegramChannel.text} />
+{/if}
+{#if !isAdminRoute && !isCodeRoute && !isLoginRoute }
 	<Footer />
 {/if}

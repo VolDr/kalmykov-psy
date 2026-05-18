@@ -213,17 +213,18 @@
 		user-select: text;
 		line-height: 1.5;
 		font-size: 18px;
+		
 
 		@media (width >= 720px) {
-			font-size: 20px;
+			font-size: 18px;
 		}
 
 		@media (width >= 960px) {
-			font-size: 22px;
+			font-size: 20px;
 		}
 
 		@media (width >= 1200px) {
-			font-size: 24px;
+			font-size: 22px;
 		}
 	}
 
@@ -237,17 +238,17 @@
 	font-weight: 500;
 
 	@media (width >= 720px) {
-		font-size: 22px;
+		font-size: 20px;
 		line-height: 27px;
 	}
 
 	@media (width >= 960px) {
-		font-size: 24px;
+		font-size: 22px;
 		line-height: 30px;
 	}
 
 	@media (width >= 1200px) {
-		font-size: 26px;
+		font-size: 24px;
 		line-height: 32px;
 	}
 }

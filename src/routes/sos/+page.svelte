@@ -34,8 +34,8 @@
 	description="Если вы или ваш близкий находитесь в остром и тяжёлом состоянии (шок, мысли о суициде) или попали в угрожающую жизни ситуацию — срочно обратитесь за помощью в эти организации."
 />
 
-<div class="container mx-auto mt-10 max-w-[720px] px-5 lg:max-w-[1200px] lg:px-0">
-	<div class="grid w-full grid-cols-1 gap-4 sm:grid-cols-2 md:px-0 lg:grid-cols-3">
+<div class="container mx-auto mt-10 max-w-[720px] px-5 lg:max-w-[960px] xl:px-0">
+	<div class="grid w-full grid-cols-1 gap-4 sm:grid-cols-2 xl:px-0 lg:grid-cols-3">
 		{#each contacts as group}
 			<div class=" min-h-[220px]">
 				<div class="flex h-full min-h-[180px] flex-col justify-end rounded-lg bg-[#f7f5f0] p-6">

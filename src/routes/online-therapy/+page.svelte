@@ -71,7 +71,7 @@
 	{/snippet}
 </PageHero>
 
-<div class="container mx-auto mt-10 max-w-[720px] px-5 lg:max-w-[960px] lg:px-0">
+<div class="container mx-auto mt-10 max-w-[720px] px-5 lg:max-w-[760px] xl:px-0">
 	<div class="grid grid-cols-1 gap-10 leading-relaxed">
 		{#each blocks as block}
 			<div class="col-span-full">
@@ -87,6 +87,6 @@
 				</section>
 			</div>
 		{/each}
-		<div class="col-span-full"><BookButton margin="my-0 mx-auto" /></div>
+		<div class="col-span-full"><BookButton margin="my-0 mx-auto w-full self-start rounded-3xl bg-[#B8A98A] px-5 py-2 text-base text-white transition-colors duration-200 hover:brightness-95 sm:self-auto" /></div>
 	</div>
 </div>

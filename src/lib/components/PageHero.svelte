@@ -11,8 +11,8 @@
 	let { title, description, maxWidth = 'lg' }: Props = $props();
 
 	const maxWidthClasses = {
-		md: 'lg:max-w-[960px]',
-		lg: 'lg:max-w-[1200px]',
+		md: 'lg:max-w-[760px]',
+		lg: 'lg:max-w-[960px]',
 		xl: 'lg:max-w-[1400px]'
 	};
 </script>
@@ -29,7 +29,7 @@
 	<div
 		class="relative z-10 mx-auto min-h-[100px] max-w-[720px] px-5 pt-[calc(63px+10vh)] pb-4
 			{maxWidthClasses[maxWidth]} lg:grid lg:aspect-[1.51] lg:grid-cols-12 lg:grid-rows-12
-			lg:gap-4 lg:px-0 lg:pt-14 lg:pb-0"
+			lg:gap-4 xl:px-0 lg:pt-14 lg:pb-0"
 	>
 		<!-- Title -->
 		<div class="mb-4 lg:col-start-1 lg:col-end-12 lg:row-start-5 lg:row-end-12 lg:mb-0">

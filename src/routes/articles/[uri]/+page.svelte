@@ -128,7 +128,7 @@
 
 <PageHero title={article.title} description={article.description} maxWidth="md" />
 
-<article class="container mx-auto mt-10 max-w-[720px] px-5 lg:max-w-[960px] lg:px-0">
+<article class="container mx-auto mt-10 max-w-[720px] px-5 lg:max-w-[760px] xl:px-0">
 	{#if article.imageUrl}
 		<img
 			src={article.imageUrl}
