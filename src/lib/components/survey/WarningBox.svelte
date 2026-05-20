@@ -1,4 +1,4 @@
-<script lang="ts">
+﻿<script lang="ts">
 	import MarkdownLink from '$lib/components/MarkdownLink.svelte';
 	import type { Warning } from '$lib/data/surveys/types';
 	import { cn } from '$lib/utils';
@@ -12,7 +12,7 @@
 	const warningStyles = {
 		critical: {
 			iconClass: 'icon-[lucide--alert-triangle]',
-			className: 'border-none bg-[#f7f5f0]'
+			className: 'border-none bg-background'
 		},
 		warning: {
 			iconClass: 'icon-[lucide--alert-circle]',
@@ -20,7 +20,7 @@
 		},
 		info: {
 			iconClass: 'icon-[lucide--info]',
-			className: 'border-none bg-[#f7f5f0]'
+			className: 'border-none bg-background'
 		}
 	};
 

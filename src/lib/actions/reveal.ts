@@ -21,6 +21,13 @@ export function reveal(node: HTMLElement, options: RevealOptions = {}) {
 		easing = 'cubic-bezier(0.16, 1, 0.3, 1)'
 	} = options;
 
+	// Respect the user's motion preference — show element immediately with no animation
+	if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+		node.style.transform = '';
+		node.style.opacity = '1';
+		return { destroy() {} };
+	}
+
 	const duration = Math.floor(Math.random() * (maxDuration - minDuration) + minDuration);
 	const delay = Math.random() * (maxDelay - minDelay) + minDelay;
 

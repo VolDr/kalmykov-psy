@@ -1,4 +1,4 @@
-<script lang="ts">
+﻿<script lang="ts">
 	import { parseMarkdownLinks, isExternalUrl } from '$lib/utils/markdown';
 
 	type Props = { text: string; class?: string; onLinkClick?: () => void };
@@ -16,7 +16,7 @@
 			target="_blank"
 			rel="noopener noreferrer"
 			onclick={onLinkClick}
-			class="nav-link relative inline-flex items-start font-semibold text-[#443d3d] no-underline select-none hover:text-[#191919]/60 {className}"
+			class="nav-link relative inline-flex items-start font-semibold text-foreground/80 no-underline  hover:text-foreground/60 {className}"
 		>
 			{part.text}
 			<span class="ml-1 icon-[lucide--external-link] text-xs"></span>
@@ -25,7 +25,7 @@
 		<a
 			href={part.href}
 			onclick={onLinkClick}
-			class="nav-link relative font-semibold text-[#443d3d] no-underline select-none hover:text-[#191919]/60 {className}"
+			class="nav-link relative font-semibold text-foreground/80 no-underline  hover:text-foreground/60 {className}"
 		>
 			{part.text}
 			<span class="mb-0.5 ml-0 icon-[lucide--external-link] text-xs"></span>

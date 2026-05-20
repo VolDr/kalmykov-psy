@@ -37,7 +37,7 @@
 	);
 </script>
 
-<div class="h-96 w-full rounded-sm border">
+<div class="h-96 w-full rounded-md border">
 	<LineChart
 		data={chartData}
 		x="date"

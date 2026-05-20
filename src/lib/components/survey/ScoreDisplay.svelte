@@ -1,4 +1,4 @@
-<script lang="ts">
+﻿<script lang="ts">
 	import MarkdownLink from '$lib/components/MarkdownLink.svelte';
 	import type { ScoringInterpretation } from '$lib/data/surveys/types';
 	import type { SubscaleResult } from '$lib/utils/survey/scoringEngine';
@@ -30,12 +30,12 @@
 		darkred: 'text-red-700'
 	} as const;
 
-	const accentBgClasses = {
-		green: 'before:bg-green-500',
-		yellow: 'before:bg-yellow-500',
-		orange: 'before:bg-orange-500',
-		red: 'before:bg-red-500',
-		darkred: 'before:bg-red-700'
+	const accentCardClasses = {
+		green: 'bg-green-50/80 border-green-200',
+		yellow: 'bg-yellow-50/80 border-yellow-200',
+		orange: 'bg-orange-50/80 border-orange-200',
+		red: 'bg-red-50/80 border-red-200',
+		darkred: 'bg-red-100/80 border-red-300'
 	} as const;
 
 	type ResultColor = keyof typeof textColorClasses;
@@ -43,56 +43,50 @@
 	const getTextColor = (color: string) =>
 		textColorClasses[color as ResultColor] ?? textColorClasses.green;
 
-	const getAccentBg = (color: string) =>
-		accentBgClasses[color as ResultColor] ?? accentBgClasses.green;
+	const getAccentCard = (color: string) =>
+		accentCardClasses[color as ResultColor] ?? accentCardClasses.green;
 
 	const mainTextClass = $derived(getTextColor(interpretation.color));
-	const mainAccentClass = $derived(getAccentBg(interpretation.color));
+	const mainAccentClass = $derived(getAccentCard(interpretation.color));
 </script>
 
 <div class="space-y-8 font- md:space-y-10">
 	<section
-		class={cn(
-			"relative overflow-hidden rounded-xl border border-[#f0f0f0] bg-[#fcfcfc] p-4 pl-5 before:absolute before:inset-y-0 before:left-0 before:w-1 before:content-[''] md:p-5 md:pl-6",
-			mainAccentClass
-		)}
+		class={cn('rounded-xl border p-4 md:p-5', mainAccentClass)}
 	>
-		<div class="mb-2 text-sm text-[#666666]">Общий показатель</div>
+		<div class="mb-2 text-sm text-muted-foreground">Общий показатель</div>
 
 		<div class={cn('mb-1 text-[30px] font-bold leading-none md:text-4xl', mainTextClass)}>
 			{#if averageScore !== undefined}
 				{averageScore.toFixed(2)}
-				<span class=" font-semibold text-[#191919]/50 md:text-xl">
+				<span class=" font-semibold text-foreground/50 md:text-xl">
 					/ {maxAverageScore.toFixed(2)}
 				</span>
 			{:else}
 				{score}
-				<span class=" font-semibold text-[#191919]/50 md:text-xl"> / {maxScore} </span>
+				<span class=" font-semibold text-foreground/50 md:text-xl"> / {maxScore} </span>
 			{/if}
 		</div>
 
-		<div class="text-lg font-semibold leading-snug text-[#191919]">
+		<div class="text-lg font-semibold leading-snug text-foreground">
 			{interpretation.severity}
 		</div>
 	</section>
 
 	{#if subscales && subscales.length > 0}
 		<section>
-			<h3 class="mb-4 text-xl font-semibold leading-tight text-[#191919]">Что значат эти цифры?</h3>
+			<h3 class="mb-4 text-xl font-semibold leading-tight text-foreground">Что значат эти цифры?</h3>
 
 			<div class="space-y-5 md:space-y-[30px]">
 				{#each subscales as subscale}
 					{@const subscaleTextClass = getTextColor(subscale.interpretation.color)}
-					{@const subscaleAccentClass = getAccentBg(subscale.interpretation.color)}
+					{@const subscaleAccentClass = getAccentCard(subscale.interpretation.color)}
 
 					<article
-						class={cn(
-							"relative overflow-hidden rounded-xl border border-[#f0f0f0] bg-[#fcfcfc] p-4 pl-5 before:absolute before:inset-y-0 before:left-0 before:w-1 before:content-[''] md:p-5 md:pl-6",
-							subscaleAccentClass
-						)}
+						class={cn('rounded-xl border p-4 md:p-5', subscaleAccentClass)}
 					>
 						<div class="mb-3 flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
-							<h4 class="text-lg font-semibold leading-snug text-[#191919]">
+							<h4 class="text-lg font-semibold leading-snug text-foreground">
 								{subscale.name}
 							</h4>
 
@@ -101,10 +95,10 @@
 									Балл:
 									{#if subscale.displayMethod === 'sum'}
 										{subscale.score}
-										<span class="font-semibold text-[#191919]/45"> / {subscale.maxScore}</span>
+										<span class="font-semibold text-foreground/45"> / {subscale.maxScore}</span>
 									{:else}
 										{subscale.averageScore.toFixed(2)}
-										<span class="font-semibold text-[#191919]/45">
+										<span class="font-semibold text-foreground/45">
 											/ {maxAverageScore.toFixed(2)}
 										</span>
 									{/if}
@@ -117,7 +111,7 @@
 						</div>
 
 						{#if subscale.description}
-							<div class="whitespace-pre-line text-sm leading-[1.6] text-[#4a4a4a]">
+							<div class="whitespace-pre-line text-sm leading-[1.6] text-muted-foreground">
 								<MarkdownLink text={subscale.description} />
 							</div>
 						{/if}
@@ -128,8 +122,8 @@
 	{/if}
 
 	<section>
-		<h3 class="mb-4 text-xl font-semibold leading-tight text-[#191919]">Рекомендации</h3>
-		<div class="whitespace-pre-line  leading-[1.7] text-[#4a4a4a]">
+		<h3 class="mb-4 text-xl font-semibold leading-tight text-foreground">Рекомендации</h3>
+		<div class="whitespace-pre-line  leading-[1.7] text-muted-foreground">
 			<MarkdownLink text={interpretation.recommendation} />
 		</div>
 	</section>

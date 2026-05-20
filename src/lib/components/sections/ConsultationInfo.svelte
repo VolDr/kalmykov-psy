@@ -1,4 +1,4 @@
-<script lang="ts">
+﻿<script lang="ts">
 	import BookButton from '$lib/components/BookButton.svelte';
 	import Reveal from '$lib/components/Reveal.svelte';
 
@@ -17,15 +17,15 @@
 		<div class="flex flex-col items-center mx-8 mt-8 text-center">
 			<ul class="mb-8 flex flex-col gap-3">
 				<li class="flex items-center gap-3 text-gray-700">
-					<span class="icon-[lucide--piggy-bank] h-5 w-5 text-[#B8A98A]"></span>
+					<span class="icon-[lucide--piggy-bank] h-5 w-5 text-primary"></span>
 					<span>{price}</span>
 				</li>
 				<li class="flex items-center gap-3 text-gray-700">
-					<span class="icon-[lucide--video] h-5 w-5 text-[#B8A98A]"></span>
+					<span class="icon-[lucide--video] h-5 w-5 text-primary"></span>
 					<span>{format}</span>
 				</li>
 				<li class="flex items-center gap-3 text-gray-700">
-					<span class="icon-[lucide--clock] h-5 w-5 text-[#B8A98A]"></span>
+					<span class="icon-[lucide--clock] h-5 w-5 text-primary"></span>
 					<span>{duration}</span>
 				</li>
 			</ul>

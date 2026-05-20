@@ -147,7 +147,7 @@
 	<div class="mt-12 border-t pt-8">
 		<a
 			href="/articles"
-			class="inline-flex items-center gap-2 text-[#B8A98A] transition-colors hover:text-[#998970]"
+			class="inline-flex items-center gap-2 text-primary transition-colors hover:text-primary/70"
 		>
 			<span class="icon-[lucide--arrow-left] h-4 w-4"></span>
 			<span>Все статьи</span>
@@ -163,7 +163,7 @@
 		margin-top: 2rem;
 		margin-bottom: 1rem;
 		line-height: 1.2;
-		color: #191919;
+		color: var(--color-foreground);
 	}
 
 	:global(.article-content h2) {
@@ -173,7 +173,7 @@
 		margin-top: 2rem;
 		margin-bottom: 1rem;
 		line-height: 1.3;
-		color: #191919;
+		color: var(--color-foreground);
 	}
 
 	:global(.article-content h3) {
@@ -183,7 +183,7 @@
 		margin-top: 1.5rem;
 		margin-bottom: 0.75rem;
 		line-height: 1.4;
-		color: #191919;
+		color: var(--color-foreground);
 	}
 
 	:global(.article-content p) {
@@ -205,7 +205,7 @@
 	:global(.article-content a) {
 		position: relative;
 		text-decoration: none;
-		color: #443d3d;
+		color: var(--color-foreground);
 		font-weight: 600;
 		display: inline-flex;
 		align-items: flex-start;
@@ -213,12 +213,12 @@
 	}
 
 	:global(.article-content a:hover) {
-		color: rgba(25, 25, 25, 0.6);
+		color: color-mix(in oklch, var(--color-foreground) 60%, transparent);
 	}
 
 	:global(.article-content strong) {
 		font-weight: 600;
-		color: #191919;
+		color: var(--color-foreground);
 	}
 
 	:global(.article-content em) {
@@ -226,15 +226,15 @@
 	}
 
 	:global(.article-content blockquote) {
-		border-left: 4px solid #b8a98a;
+		border-left: 4px solid var(--color-primary);
 		padding-left: 1rem;
 		margin: 1.5rem 0;
 		font-style: italic;
-		color: #4a5568;
+		color: var(--color-muted-foreground);
 	}
 
 	:global(.article-content code) {
-		background-color: #f7fafc;
+		background-color: var(--color-card);
 		padding: 0.125rem 0.375rem;
 		border-radius: 0.25rem;
 		font-size: 0.875em;
@@ -242,7 +242,7 @@
 	}
 
 	:global(.article-content pre) {
-		background-color: #f7fafc;
+		background-color: var(--color-card);
 		padding: 1rem;
 		border-radius: 0.5rem;
 		overflow-x: auto;
@@ -263,7 +263,7 @@
 
 	:global(.article-content hr) {
 		border: none;
-		border-top: 1px solid #e2e8f0;
+		border-top: 1px solid var(--color-border);
 		margin: 2rem 0;
 	}
 </style>

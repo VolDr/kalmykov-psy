@@ -1,4 +1,4 @@
-<script lang="ts">
+﻿<script lang="ts">
 	import { run } from 'svelte/legacy';
 
 	import { onMount } from 'svelte';
@@ -54,11 +54,11 @@
 		out:fade={{ duration: 300 }}
 	>
 		<button
-			class="m-0 cursor-pointer border-none bg-transparent p-0 transition-all duration-300 focus:outline-none"
+			class="m-0 cursor-pointer border-none bg-transparent p-3 transition-all duration-300 focus:outline-none"
 			onclick={scrollToTop}
 			aria-label="Scroll to top"
 		>
-			<i class="icon-[lucide--arrow-up] h-5 w-5 text-[#191919] lg:h-6 lg:w-6"></i>
+			<i class="icon-[lucide--arrow-up] h-5 w-5 text-foreground lg:h-6 lg:w-6"></i>
 		</button>
 	</div>
 {/if}

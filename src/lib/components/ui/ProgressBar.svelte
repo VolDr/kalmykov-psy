@@ -1,4 +1,4 @@
-<script lang="ts">
+﻿<script lang="ts">
 	import { run } from 'svelte/legacy';
 
 	interface Props {
@@ -15,10 +15,7 @@
 </script>
 
 <div
-	class="fixed inset-x-0 top-0 z-[202] h-[5px] origin-[0%] bg-[#cfc1a3]"
-	style="
-    transform: scaleX({progress});
-    transition: transform 100ms ease-out;
-    opacity: {fading ? 0.8 : 1};
-  "
+	class="fixed inset-x-0 top-0 z-[202] h-[5px] origin-[0%] bg-primary-light transition-[transform,opacity] duration-100 ease-out"
+	class:opacity-80={fading}
+	style="transform: scaleX({progress});"
 ></div>

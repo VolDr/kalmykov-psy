@@ -17,12 +17,14 @@
 	let isSurveys = $derived(data.pathname == '/surveys');
 	let isArticles = $derived(data.pathname == '/articles');
 	let isLoginRoute = $derived(data.pathname === '/login');
-		let burnoutSurveyRoute = $derived(data.pathname === '/burnout-survey');
+	let isUsefulRoute = $derived(data.pathname?.startsWith('/useful'))
+	let burnoutSurveyRoute = $derived(data.pathname === '/burnout-survey');
+	let isLma = $derived(data.pathname?.startsWith('/lma'));
 	// Only hide header/footer for special code pages (like /ABC123), not regular pages
 	let isCodeRoute = $derived(
 		data.pathname &&
 			/^\/[a-zA-Z0-9]+$/.test(data.pathname) &&
-			!data.pathname.match(/^\/(articles|surveys|online-therapy|sos|boom|login|logout)$/)
+			!data.pathname.match(/^\/(articles|surveys|online-therapy|sos|boom|login|logout|lma)$/)
 	);
 
 	// Управление overflow для body на странице login
@@ -57,8 +59,8 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
 	<link rel="canonical" href={data.canonicalUrl} />
 	<link rel="icon" href="/favicon.ico" sizes="any" type="image/svg+xml" />
-	<link rel="mask-icon" href="/logo.svg" color="#ffffff" />
-	<meta name="theme-color" content="#ffffff" />
+	<link rel="mask-icon" href="/logo.svg" color="#B8A98A" />
+	<meta name="theme-color" content="#f7f5f0" />
 	<link
 		rel="preload"
 		href="/TildaSans-VF.woff2"
@@ -126,14 +128,14 @@
 	</script>
 </svelte:head>
 
-{#if !isAdminRoute && !isCodeRoute && !isLoginRoute && !burnoutSurveyRoute}
+{#if !isAdminRoute && !isCodeRoute && !isLoginRoute && !burnoutSurveyRoute && !isLma && !isUsefulRoute}
 	{#if page.url.pathname !== '/test-landing'}
 		<Header initialMenuColor="white" />
 	{/if}
 
 	<Affix />
 {/if}
-{#if !isAdminRoute && !isCodeRoute && !isLoginRoute && !isSurveys && !isArticles && !burnoutSurveyRoute}
+{#if !isAdminRoute && !isCodeRoute && !isLoginRoute && !isSurveys && !isArticles && !burnoutSurveyRoute && !isLma}
 	<ProgressBar progress={$progress} />
 {/if}
 <Toaster position="top-right" />
@@ -142,9 +144,9 @@
 	{@render children()}
 </main>
 
-{#if !isAdminRoute && !isCodeRoute && !isLoginRoute && !burnoutSurveyRoute}
+{#if !isAdminRoute && !isCodeRoute && !isLoginRoute && !burnoutSurveyRoute && !isLma}
 	<TelegramBanner link={telegramChannel.link} text={telegramChannel.text} />
 {/if}
-{#if !isAdminRoute && !isCodeRoute && !isLoginRoute }
+{#if !isAdminRoute && !isCodeRoute && !isLoginRoute}
 	<Footer />
 {/if}

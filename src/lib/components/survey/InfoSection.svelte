@@ -1,4 +1,4 @@
-<script lang="ts">
+﻿<script lang="ts">
 	import { browser } from '$app/environment';
 	import AccordionItem from '$lib/components/AccordionItem.svelte';
 	import MarkdownLink from '$lib/components/MarkdownLink.svelte';
@@ -20,9 +20,9 @@
 	};
 
 	const typeStyles = {
-		warning: 'bg-[#f7f5f0]',
-		info: 'bg-[#f7f5f0]',
-		alert: 'bg-[#f7f5f0]'
+		warning: 'bg-background',
+		info: 'bg-background',
+		alert: 'bg-background'
 	};
 
 	let isExpanded = $state(
@@ -38,16 +38,16 @@
 	});
 
 	const iconClass = section.icon ? iconMap[section.icon as keyof typeof iconMap] : null;
-	const styleClass = section.type ? typeStyles[section.type] : 'border-[#f7f5f0] bg-white';
+	const styleClass = section.type ? typeStyles[section.type] : 'border-background bg-white';
 </script>
 
 <AccordionItem isOpen={isExpanded} class={cn(styleClass)}>
 	{#snippet header()}
 		<div class="flex items-center gap-3">
 			{#if iconClass}
-				<span class={cn(iconClass, 'h-5 w-5 flex-shrink-0 text-[#191919] opacity-70')}></span>
+				<span class={cn(iconClass, 'h-5 w-5 flex-shrink-0 text-foreground opacity-70')}></span>
 			{/if}
-			<h4 class="text-base text-[#191919] md:text-lg">{section.title}</h4>
+			<h4 class="text-base text-foreground md:text-lg">{section.title}</h4>
 		</div>
 	{/snippet}
 
@@ -63,12 +63,12 @@
 		{:else}
 			<div class="space-y-3">
 				{#if section.content.purpose}
-					<p class="text-sm font-medium text-[#191919] md:text-base">
+					<p class="text-sm font-medium text-foreground md:text-base">
 						{section.content.purpose}
 					</p>
 				{/if}
 				{#if section.content.bullets}
-					<ul class="space-y-2 text-sm text-[#191919] opacity-80 md:text-base">
+					<ul class="space-y-2 text-sm text-foreground opacity-80 md:text-base">
 						{#each section.content.bullets as bullet}
 							<li class="flex items-start gap-2">
 								<span class="flex-shrink-0">—</span>

@@ -1,11 +1,11 @@
-<script lang="ts">
+﻿<script lang="ts">
 	let { isSubmitting }: { isSubmitting: boolean } = $props();
 </script>
 
 <button
 	type="submit"
 	disabled={isSubmitting}
-	class="focus:ring-opacity-50 disabled:cursor-not-default w-full rounded-md bg-[#cfc1a3] px-4 py-2 font-medium text-white transition duration-200 hover:brightness-95 focus:ring-2 focus:brightness-95 focus:outline-none disabled:opacity-70"
+	class="focus:ring-opacity-50 disabled:cursor-not-default w-full rounded-md bg-primary-light px-4 py-2 font-medium text-white transition duration-200 hover:brightness-95 focus:ring-2 focus:brightness-95 focus:outline-none disabled:opacity-70"
 >
 	{#if isSubmitting}
 		<svg

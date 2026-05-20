@@ -1,4 +1,4 @@
-<script lang="ts">
+﻿<script lang="ts">
 	import Reveal from '$lib/components/Reveal.svelte';
 
 	export const items = [
@@ -52,13 +52,13 @@
 			<div class={item.gridClass}>
 				<Reveal axis="x" class="h-full">
 					<div
-						class="flex h-full min-h-[180px] flex-col justify-between rounded-lg bg-[#f7f5f0] p-6"
+						class="flex h-full min-h-[180px] flex-col justify-between rounded-lg bg-background p-6"
 					>
 						<div>
-							<span class="{iconMap[item.icon]} mb-4 h-6 w-6 text-right text-[#B8A98A]"></span>
-							<h3 class="text-lg font-semibold text-[#191919]">{item.highlight}</h3>
+							<span class="{iconMap[item.icon]} mb-4 h-6 w-6 text-right text-primary"></span>
+							<h3 class="text-lg font-semibold text-foreground">{item.highlight}</h3>
 						</div>
-						<p class="leading-relaxed text-[#191919]">{item.text}</p>
+						<p class="leading-relaxed text-foreground">{item.text}</p>
 					</div>
 				</Reveal>
 			</div>

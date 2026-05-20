@@ -1,4 +1,4 @@
-<script lang="ts">
+﻿<script lang="ts">
 	import { onMount } from 'svelte';
 	import { fly } from 'svelte/transition';
 
@@ -104,11 +104,11 @@
 {#if isVisible && isShowing}
 	<div
 		transition:fly={{ y: 100, duration: 300 }}
-		class="fixed bottom-0 left-0 right-0 z-[100] flex min-h-12 max-w-[100vw] items-center justify-between bg-[#f7f5f0] shadow-lg"
+		class="fixed bottom-0 left-0 right-0 z-[100] flex min-h-12 max-w-[100vw] items-center justify-between bg-card shadow-lg"
 	>
 		<button
 			onclick={closeBanner}
-			class="ml-4 cursor-pointer text-[#191919] focus:outline-none"
+			class="ml-4 cursor-pointer text-foreground focus:outline-none"
 			aria-label="Закрыть баннер"
 		>
 			<span class="icon-[lucide--x] h-5 w-5"></span>
@@ -122,7 +122,7 @@
 					rel="noopener noreferrer"
 					href={link}
 					onclick={handleLinkClick}
-					class="nav-link relative inline-flex select-none items-start font-semibold text-[#443d3d] no-underline hover:text-[#191919]/60"
+					class="nav-link relative inline-flex select-none items-start font-semibold text-foreground/70 no-underline hover:text-foreground/50"
 				>
 					тык
 					<span class="icon-[lucide--external-link] ml-1 text-xs"></span>

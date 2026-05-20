@@ -1,4 +1,4 @@
-<script lang="ts">
+﻿<script lang="ts">
 	import { Card } from '$lib/components/ui/card';
 	import { Badge } from '$lib/components/ui/badge';
 	import { Avatar } from '$lib/components/ui/avatar';
@@ -19,7 +19,7 @@
 	<div class="flex items-start justify-between gap-4">
 		<div class="flex flex-1 items-start gap-3">
 			<Avatar class="h-10 w-10">
-				<div class="flex h-full w-full items-center justify-center bg-[#cfc1a3] text-white">
+				<div class="flex h-full w-full items-center justify-center bg-primary-light text-white">
 					{activity.client?.name?.charAt(0).toUpperCase() ?? '?'}
 				</div>
 			</Avatar>

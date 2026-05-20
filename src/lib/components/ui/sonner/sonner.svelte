@@ -12,9 +12,9 @@
 		--normal-bg: var(--color-popover);
 		--normal-text: var(--color-popover-foreground);
 		--normal-border: var(--color-border);
-		--success-bg: #cfc1a3;
-		--success-border: #cfc1a3;
-		--success-text: #ffffff;
+		--success-bg: var(--color-primary-light);
+		--success-border: var(--color-primary-light);
+		--success-text: var(--color-primary-foreground);
 	"
 	{...restProps}
 />

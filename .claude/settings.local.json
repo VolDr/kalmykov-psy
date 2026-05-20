@@ -1,6 +1,20 @@
 {
+  "permissions": {
+    "allow": [
+      "Bash(node \"C:\\\\Users\\\\Андрей\\\\.claude\\\\skills\\\\impeccable\\\\scripts\\\\load-context.mjs\")",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\Андрей\\\\projects\\\\kalmykov-psy\" -Recurse -Filter \"*.svelte\")",
+      "Bash(Select-Object FullName)",
+      "Bash(ConvertTo-Json)",
+      "Bash(grep -rho '\\\\[#[A-Fa-f0-9]\\\\{3,8\\\\}\\\\]' src/ --include=\"*.svelte\" --include=\"*.ts\" --include=\"*.css\")",
+      "Bash(grep -rho '\\\\[#[A-Fa-f0-9]\\\\{3,8\\\\}\\\\]/[0-9]*' src/ --include=\"*.svelte\")",
+      "Bash(wc -c src/routes/+page.svelte src/routes/+error.svelte)",
+      "Bash(powershell -c \"\\(Get-Item 'src/routes/+page.svelte'\\).Length; \\(Get-Item 'src/routes/+error.svelte'\\).Length\")",
+      "Bash(grep -n \"#[A-Fa-f0-9]\\\\{3,8\\\\}\" src/app.css)",
+      "Bash(Select-Object -ExpandProperty FullName)"
+    ]
+  },
+  "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "svelte"
-  ],
-  "enableAllProjectMcpServers": true
+  ]
 }

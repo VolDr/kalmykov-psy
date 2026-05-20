@@ -153,7 +153,7 @@
 								{#each getFilteredTypes(contact.type) as typeOption}
 									<button
 										type="button"
-										class="w-full rounded-sm px-2 py-1.5 text-left text-sm hover:bg-accent hover:text-accent-foreground"
+										class="w-full rounded-md px-2 py-1.5 text-left text-sm hover:bg-accent hover:text-accent-foreground"
 										onclick={() => selectType(index, typeOption)}
 									>
 										{typeOption}

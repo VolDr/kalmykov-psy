@@ -1,4 +1,4 @@
-<script lang="ts">
+﻿<script lang="ts">
 	import { cn } from '$lib/utils';
 
 	let {
@@ -19,11 +19,11 @@
 	{onclick}
 	class={cn(
 		'invisible absolute top-1/2 z-20 -translate-y-1/2 md:visible',
-		'p-2 font-light tracking-wide text-[#191919]',
-		'rounded-[10px] border border-solid border-black',
+		'p-3 font-light tracking-wide text-foreground',
+		'rounded-md border border-solid border-black',
 		'bg-opacity-90 bg-white',
 		'transition-all duration-200 ease-out',
-		'hover:border-[#cfc1a3] hover:bg-[#cfc1a3] hover:text-white hover:shadow-md',
+		'hover:border-primary-light hover:bg-primary-light hover:text-white hover:shadow-md',
 		'active:scale-95 active:transform',
 		positionClasses
 	)}

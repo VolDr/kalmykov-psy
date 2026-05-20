@@ -1,4 +1,4 @@
-<script lang="ts">
+﻿<script lang="ts">
 	import Reveal from '$lib/components/Reveal.svelte';
 </script>
 
@@ -12,12 +12,12 @@
 	<div class="grid w-full grid-cols-1 gap-4 px-5 md:grid-cols-24 xl:px-0 lg:grid-cols-24">
 		<div class="col-span-1 md:col-span-14">
 			<Reveal class="h-full w-full">
-				<div class="flex h-full min-h-[180px] flex-col justify-between rounded-lg bg-[#f7f5f0] p-6">
+				<div class="flex h-full min-h-[180px] flex-col justify-between rounded-lg bg-background p-6">
 					<div>
-						<span class="icon-[lucide--route] mb-4 h-6 w-6 text-right text-[#B8A98A]"></span>
-						<h3 class="text-lg font-semibold text-[#191919]">последовательная работа</h3>
+						<span class="icon-[lucide--route] mb-4 h-6 w-6 text-right text-primary"></span>
+						<h3 class="text-lg font-semibold text-foreground">последовательная работа</h3>
 					</div>
-					<p class="leading-relaxed text-[#191919]">
+					<p class="leading-relaxed text-foreground">
 						Не прыгаю от темы к теме — сначала разбираемся в вашей ситуации, потом выстраиваем план
 						работы и двигаемся к изменениям. Не держу в терапии годами — работаем столько, сколько
 						нужно для реальных изменений.
@@ -28,12 +28,12 @@
 
 		<div class="col-span-1 md:col-span-10">
 			<Reveal class="h-full w-full">
-				<div class="flex h-full min-h-[180px] flex-col justify-between rounded-lg bg-[#f7f5f0] p-6">
+				<div class="flex h-full min-h-[180px] flex-col justify-between rounded-lg bg-background p-6">
 					<div>
-						<span class="icon-[lucide--signpost] mb-4 h-6 w-6 text-right text-[#B8A98A]"></span>
-						<h3 class="text-lg font-semibold text-[#191919]">понятная структура</h3>
+						<span class="icon-[lucide--signpost] mb-4 h-6 w-6 text-right text-primary"></span>
+						<h3 class="text-lg font-semibold text-foreground">понятная структура</h3>
 					</div>
-					<p class="leading-relaxed text-[#191919]">
+					<p class="leading-relaxed text-foreground">
 						Вы всегда будете понимать, что происходит: объясняю логику наших действий на каждом этапе
 						работы.
 					</p>
@@ -43,12 +43,12 @@
 
 		<div class="col-span-1 md:col-span-10">
 			<Reveal class="h-full w-full">
-				<div class="flex h-full min-h-[180px] flex-col justify-between rounded-lg bg-[#f7f5f0] p-6">
+				<div class="flex h-full min-h-[180px] flex-col justify-between rounded-lg bg-background p-6">
 					<div>
-						<span class="icon-[lucide--flask-conical] mb-4 h-6 w-6 text-right text-[#B8A98A]"></span>
-						<h3 class="text-lg font-semibold text-[#191919]">научный подход</h3>
+						<span class="icon-[lucide--flask-conical] mb-4 h-6 w-6 text-right text-primary"></span>
+						<h3 class="text-lg font-semibold text-foreground">научный подход</h3>
 					</div>
-					<p class="leading-relaxed text-[#191919]">
+					<p class="leading-relaxed text-foreground">
 						Применяю методы с доказанной эффективностью (ACT и КПТ), которые фокусируются на реальных
 						действиях, а не только на симптомах.
 					</p>
@@ -58,12 +58,12 @@
 
 		<div class="col-span-1 md:col-span-14">
 			<Reveal class="h-full w-full">
-				<div class="flex h-full min-h-[180px] flex-col justify-between rounded-lg bg-[#f7f5f0] p-6">
+				<div class="flex h-full min-h-[180px] flex-col justify-between rounded-lg bg-background p-6">
 					<div>
-						<span class="icon-[lucide--trending-up] mb-4 h-6 w-6 text-right text-[#B8A98A]"></span>
-						<h3 class="text-lg font-semibold text-[#191919]">измеримый результат</h3>
+						<span class="icon-[lucide--trending-up] mb-4 h-6 w-6 text-right text-primary"></span>
+						<h3 class="text-lg font-semibold text-foreground">измеримый результат</h3>
 					</div>
-					<p class="leading-relaxed text-[#191919]">
+					<p class="leading-relaxed text-foreground">
 						Использую систему трекинга прогресса и обратной связи, чтобы наша работа приводила к
 						конкретным результатам и можно было вовремя корректировать курс.
 					</p>
@@ -73,12 +73,12 @@
 
 		<div class="col-span-1 md:col-span-12">
 			<Reveal class="h-full w-full">
-				<div class="flex h-full min-h-[180px] flex-col justify-between rounded-lg bg-[#f7f5f0] p-6">
+				<div class="flex h-full min-h-[180px] flex-col justify-between rounded-lg bg-background p-6">
 					<div>
-						<span class="icon-[lucide--lightbulb] mb-4 h-6 w-6 text-right text-[#B8A98A]"></span>
-						<h3 class="text-lg font-semibold text-[#191919]">практика</h3>
+						<span class="icon-[lucide--lightbulb] mb-4 h-6 w-6 text-right text-primary"></span>
+						<h3 class="text-lg font-semibold text-foreground">практика</h3>
 					</div>
-					<p class="leading-relaxed text-[#191919]">
+					<p class="leading-relaxed text-foreground">
 						Постоянно учусь у коллег на практических курсах, чтобы применять живые, современные
 						подходы, а не застревать в теории.
 					</p>
@@ -88,10 +88,10 @@
 
 		<div class="col-span-1 md:col-span-12">
 			<Reveal class="h-full w-full">
-				<div class="flex h-full min-h-[180px] flex-col justify-between rounded-lg bg-[#f7f5f0] p-6">
+				<div class="flex h-full min-h-[180px] flex-col justify-between rounded-lg bg-background p-6">
 					<div>
-						<span class="icon-[lucide--briefcase] mb-4 h-6 w-6 text-right text-[#B8A98A]"></span>
-						<h3 class="text-lg font-semibold text-[#191919]">опыт в IT</h3>
+						<span class="icon-[lucide--briefcase] mb-4 h-6 w-6 text-right text-primary"></span>
+						<h3 class="text-lg font-semibold text-foreground">опыт в IT</h3>
 					</div>
 
 				</div>

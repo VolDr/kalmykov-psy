@@ -1,4 +1,4 @@
-<script lang="ts">
+﻿<script lang="ts">
 	// 1. Импортируем хранилище page
 	import { page } from '$app/state';
 	import Button from '$lib/components/ui/Button.svelte';
@@ -28,10 +28,10 @@
 
 <div class="flex min-h-screen flex-col items-center justify-center gap-10 px-4 text-center">
 	{#if is5xx}
-		<span class="icon-[lucide--cloud-off] h-8 w-8 text-[#B8A98A]"></span>
+		<span class="icon-[lucide--cloud-off] h-8 w-8 text-primary"></span>
 	{/if}
 	{#if !is5xx}
-		<span class="icon-[lucide--compass] h-8 w-8 text-[#B8A98A]"></span>
+		<span class="icon-[lucide--compass] h-8 w-8 text-primary"></span>
 	{/if}
 	<h1 class="select-none">{title}</h1>
 
@@ -45,7 +45,7 @@
 		{#if is5xx}
 			<button
 				onclick={() => location.reload()}
-				class="bg-opacity-0 inline-block cursor-pointer rounded-[10px] border border-solid border-black px-[30px] py-[10px] text-center font-light tracking-wide text-black transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-[#cfc1a3] hover:bg-[#cfc1a3] hover:text-white hover:shadow-md active:scale-95 active:transform"
+				class="bg-opacity-0 inline-block cursor-pointer rounded-[10px] border border-solid border-black px-[30px] py-[10px] text-center font-light tracking-wide text-black transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-primary-light hover:bg-primary-light hover:text-white hover:shadow-md active:scale-95 active:transform"
 			>
 				Попробовать ещё раз
 			</button>

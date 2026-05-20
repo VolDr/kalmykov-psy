@@ -1,4 +1,4 @@
-<script lang="ts">
+﻿<script lang="ts">
 	import AccordionItem from '$lib/components/AccordionItem.svelte';
 	import DiplomaModal from '$lib/components/DiplomaModal.svelte';
 	import Reveal from '$lib/components/Reveal.svelte';
@@ -37,7 +37,7 @@
 		
 				{#each educationGroups as group, groupIndex}
 					<div class={groupIndex > 0 ? 'mt-10' : ''}>
-						<h3 class="mb-6 text-xl font-semibold text-[#191919]/90">{group.category}</h3>
+						<h3 class="mb-6 text-xl font-semibold text-foreground/90">{group.category}</h3>
 						
 						<div class="grid grid-cols-1 gap-3 md:grid-cols-2">
 							{#each group.items as item, i}
@@ -45,10 +45,10 @@
 									this={item.diploma ? 'button' : 'div'}
 									onclick={item.diploma ? () => openDiplomaModal(item.diploma!) : undefined}
 									class={cn(
-										'group relative rounded-lg bg-[#f7f5f0] p-4 text-left transition-all',
+										'group relative rounded-lg bg-background p-4 text-left transition-all',
 										{
 											// Ховер эффекты только если есть диплом
-											'hover:cursor-pointer hover:bg-[#E8E6E5]': item.diploma,
+											'hover:cursor-pointer hover:bg-border': item.diploma,
 											// Если элемент последний и нечетный, растягиваем его (как в примере)
 											'md:col-span-2': (i === group.items.length - 1) && (group.items.length % 2 !== 0)
 										}
@@ -62,12 +62,12 @@
 									
 									<h5
 										class={cn('text-base font-medium leading-snug', {
-											'group-hover:text-[#191919]/60': item.diploma
+											'group-hover:text-foreground/60': item.diploma
 										})}
 									>
 										{item.title}
 									</h5>
-									<p class="mt-1.5 text-xs text-[#191919]/50">{item.details}</p>
+									<p class="mt-1.5 text-xs text-foreground/50">{item.details}</p>
 								</svelte:element>
 							{/each}
 						</div>

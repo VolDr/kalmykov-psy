@@ -1,4 +1,4 @@
-<script lang="ts">
+﻿<script lang="ts">
 	import { enhance } from '$app/forms';
 	import type { ActionData } from './$types';
 	import UsernameInput from './UsernameInput.svelte';
@@ -33,7 +33,7 @@
 			class="max-h-[48px] outline-none"
 			aria-label="Иконка компаса"
 		>
-			<span class="icon-[lucide--compass] h-8 w-8 text-[#B8A98A]"></span>
+			<span class="icon-[lucide--compass] h-8 w-8 text-primary"></span>
 		</button>
 
 		<h1 class="select-none">Страница не найдена</h1>

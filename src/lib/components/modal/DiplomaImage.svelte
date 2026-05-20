@@ -1,4 +1,4 @@
-<script lang="ts">
+﻿<script lang="ts">
 	import { fly } from 'svelte/transition';
 	import { cubicOut } from 'svelte/easing';
 	import { cn } from '$lib/utils';
@@ -21,7 +21,8 @@
 
 	function handleClick(e: MouseEvent) {
 		e.stopPropagation();
-		if (window.innerWidth < 768) {
+		const mq = window.matchMedia('(max-width: 767px)');
+		if (mq.matches) {
 			window.open(imageUrl, '_blank');
 		}
 	}
@@ -40,29 +41,26 @@
 	}}
 	class="absolute inset-0 flex items-center justify-center"
 >
-	<img
-		src={imageUrl}
-		alt={title}
-		class={cn(
-			'max-h-full w-auto max-w-full transition-opacity',
-			isLoaded ? 'opacity-100' : 'opacity-0'
-		)}
+	<button
+		type="button"
 		onclick={handleClick}
-		onkeydown={(e) => {
-			if (e.key === 'Enter' || e.key === ' ') {
-				e.preventDefault();
-				handleClick(new MouseEvent('click') as any);
-			}
-		}}
-		onload={() => onLoad(imageUrl)}
-		loading="eager"
-		role="button"
-		tabindex="0"
-		aria-label={`${title}. ${window.innerWidth < 768 ? 'Нажмите для открытия в новой вкладке' : ''}`}
-	/>
+		class="block max-h-full max-w-full"
+		aria-label={title}
+	>
+		<img
+			src={imageUrl}
+			alt=""
+			class={cn(
+				'max-h-full w-auto max-w-full transition-opacity',
+				isLoaded ? 'opacity-100' : 'opacity-0'
+			)}
+			onload={() => onLoad(imageUrl)}
+			loading="eager"
+		/>
+	</button>
 	{#if !isLoaded}
 		<div class="absolute inset-0 flex items-center justify-center">
-			<div class="h-12 w-12 animate-spin rounded-full border-b-2 border-[#cfc1a3]"></div>
+			<div class="h-12 w-12 animate-spin rounded-full border-b-2 border-primary-light"></div>
 		</div>
 	{/if}
 </div>

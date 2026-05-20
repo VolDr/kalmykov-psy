@@ -1,4 +1,4 @@
-<script lang="ts">
+﻿<script lang="ts">
 </script>
 
 <svelte:head>
@@ -6,8 +6,8 @@
 	<meta name="robots" content="noindex" />
 </svelte:head>
 
-<section class="min-h-screen bg-[#f7f5f0] py-12 md:py-20">
-	<div class="mx-auto px-5 text-[#191919] md:max-w-[960px]">
+<section class="min-h-screen bg-background py-12 md:py-20">
+	<div class="mx-auto px-5 text-foreground md:max-w-[960px]">
 		<h1 class="mb-12 font-circe text-3xl leading-tight font-semibold md:text-4xl">
 			Политика в отношении обработки персональных данных
 		</h1>

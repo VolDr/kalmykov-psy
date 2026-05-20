@@ -1,4 +1,4 @@
-<script lang="ts">
+﻿<script lang="ts">
 	import { fade, fly } from 'svelte/transition';
 	import { cubicOut } from 'svelte/easing';
 	import { cn } from '$lib/utils';
@@ -111,17 +111,8 @@
 	<!-- Backdrop -->
 	<div
 		transition:fade={{ duration: 200 }}
-		class="fixed inset-0 z-50 bg-[#000000ab]"
+		class="fixed inset-0 z-50 bg-black/67"
 		onclick={close}
-		onkeydown={(e) => {
-			if (e.key === 'Enter' || e.key === ' ') {
-				e.preventDefault();
-				close();
-			}
-		}}
-		role="button"
-		tabindex="0"
-		aria-label="Закрыть модальное окно"
 	>
 		<!-- Content wrapper - centered -->
 		<div class="flex min-h-screen items-center justify-center p-4">
@@ -136,7 +127,7 @@
 				<!-- Close button -->
 				<button
 					onclick={close}
-					class="absolute -top-10 right-0 z-10 cursor-pointer p-2 text-white transition-colors hover:text-[#cfc1a3]"
+					class="absolute -top-10 right-0 z-10 cursor-pointer p-2 text-white transition-colors hover:text-primary-light"
 					aria-label="Закрыть"
 				>
 					<svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -158,7 +149,7 @@
 								e.stopPropagation();
 								goToPrevious();
 							}}
-							class="hidden cursor-pointer rounded-lg border border-[#cfc1a3] bg-white/90 p-2 transition-all hover:bg-[#cfc1a3] hover:text-white md:flex"
+							class="hidden cursor-pointer rounded-lg border border-primary-light bg-white/90 p-2 transition-all hover:bg-primary-light hover:text-white md:flex"
 							aria-label="Предыдущий диплом"
 						>
 							<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -174,11 +165,8 @@
 
 					<!-- Image -->
 					<div
-						class="relative flex h-[50vh] w-[min(90vw,1200px)] items-center justify-center overflow-hidden md:h-[70vh]"
+						class="relative flex h-[max(260px,50svh)] w-[min(90vw,1200px)] items-center justify-center overflow-hidden md:h-[max(400px,70svh)]"
 						onclick={(e) => e.stopPropagation()}
-						onkeydown={(e) => e.stopPropagation()}
-						role="img"
-						aria-label={currentDiploma.title}
 					>
 						{#key currentIndex}
 							<div
@@ -210,7 +198,7 @@
 						<!-- Loading spinner -->
 						{#if !loadedImages.has(currentDiploma.imageUrl)}
 							<div class="pointer-events-none absolute inset-0 flex items-center justify-center">
-								<div class="h-12 w-12 animate-spin rounded-full border-b-2 border-[#cfc1a3]"></div>
+								<div class="h-12 w-12 animate-spin rounded-full border-b-2 border-primary-light"></div>
 							</div>
 						{/if}
 					</div>
@@ -222,7 +210,7 @@
 								e.stopPropagation();
 								goToNext();
 							}}
-							class="hidden cursor-pointer rounded-lg border border-[#cfc1a3] bg-white/90 p-2 transition-all hover:bg-[#cfc1a3] hover:text-white md:flex"
+							class="hidden cursor-pointer rounded-lg border border-primary-light bg-white/90 p-2 transition-all hover:bg-primary-light hover:text-white md:flex"
 							aria-label="Следующий диплом"
 						>
 							<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -252,8 +240,8 @@
 								class={cn(
 									'cursor-pointer rounded-full transition-all duration-200',
 									index === currentIndex
-										? 'h-2 w-8 bg-[#cfc1a3]'
-										: 'h-2 w-2 bg-gray-300 hover:bg-gray-400'
+										? 'h-2 w-8 bg-primary-light'
+										: 'h-2 w-2 bg-border hover:bg-foreground/40'
 								)}
 								aria-label="Перейти к диплому {index + 1}"
 							></button>

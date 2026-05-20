@@ -1,4 +1,4 @@
-<script lang="ts">
+﻿<script lang="ts">
 	import Reveal from '$lib/components/Reveal.svelte';
 	let {
 		items
@@ -23,11 +23,11 @@
 			<div class="{group.gridClass} min-h-[220px]">
 				<Reveal axis="x" class="h-full">
 					<div
-						class="flex h-full min-h-[180px] flex-col justify-between rounded-lg bg-[#f7f5f0] p-6"
+						class="flex h-full min-h-[180px] flex-col justify-between rounded-lg bg-background p-6"
 					>
 						<!-- Заголовок карточки -->
 						<div class="mb-4 flex items-center gap-3">
-							<h3 class="text-lg font-semibold text-[#191919]">{group.theme}</h3>
+							<h3 class="text-lg font-semibold text-foreground">{group.theme}</h3>
 						</div>
 
 						<!-- Список пунктов -->

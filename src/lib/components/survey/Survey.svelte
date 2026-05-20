@@ -1,4 +1,4 @@
-<script lang="ts">
+﻿<script lang="ts">
 	import { tick } from 'svelte';
 	import { browser } from '$app/environment';
 	import InfoSection from './InfoSection.svelte';
@@ -197,11 +197,11 @@
 
 				<!-- Current Score Display (optional, can be hidden) -->
 				{#if Object.keys(state.answers).length > 0 && !state.showResults}
-					<div class="border-t border-[#f7f5f0] pt-4">
+					<div class="border-t border-background pt-4">
 						<div class="flex items-center justify-between text-base md:text-lg">
 							<!-- <span class="text-black opacity-70">Текущий балл:</span> -->
 							<!-- Uncomment to show current score
-							<span class="font-semibold text-[#191919]">
+							<span class="font-semibold text-foreground">
 								{#if currentScore.averageScore !== undefined}
 									{currentScore.averageScore.toFixed(2)} / {(config.scoring.maxAverageScore ?? 5).toFixed(2)}
 								{:else}
@@ -220,7 +220,7 @@
 
 				<!-- Validation Error Message -->
 				{#if state.attemptedSubmit && !validation.isValid}
-					<div class="bg-[#f7f5f0] p-4">
+					<div class="bg-background p-4">
 						<p class="text-sm text-black">
 							Пожалуйста, ответьте на все обязательные вопросы перед отправкой.
 						</p>
@@ -233,9 +233,9 @@
 	<!-- Results Section -->
 	{#if state.showResults}
 		<div bind:this={resultsSection} id="survey-results" class="scroll-mt-6 space-y-6 px-5 md:px-0">
-			<div class="h-px bg-[#f7f5f0]"></div>
+			<div class="h-px bg-background"></div>
 
-			<h2 class="text-[24px] font-semibold text-[#191919] md:text-[28px] lg:text-[32px]">
+			<h2 class="text-[24px] font-semibold text-foreground md:text-[28px] lg:text-[32px]">
 				Результаты оценки
 			</h2>
 

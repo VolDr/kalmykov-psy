@@ -1,4 +1,4 @@
-<script lang="ts">
+﻿<script lang="ts">
 	import HeroBackground from '$lib/components/HeroBackground.svelte';
 	import Reveal from '$lib/components/Reveal.svelte';
 	import AccordionItem from '$lib/components/AccordionItem.svelte';
@@ -149,34 +149,30 @@ import { fade } from 'svelte/transition';
 		class="absolute z-0 h-full w-full bg-linear-to-b from-black/25 from-0% via-black/65 via-40% to-black/65"
 	></div>
 
-	<div class="relative z-10 mx-auto px-5 xl:px-0 pt-8 pb-8 md:max-w-[760px] lg:max-w-[960px] xl:pt-40 flex flex-col gap-5">
+	<div class="relative z-10 mx-auto px-5 xl:px-0 pt-8 pb-8 md:pt-[100px] md:max-w-[760px] lg:max-w-[960px] xl:pt-40 flex flex-col gap-5">
 		<Reveal width="full">
 			<h1 class=" font-circe text-3xl leading-tight md:text-5xl">
 				Живёте в режиме «дотянуть до пятницы», но выходные уже не восстанавливают?
 			</h1>
 		</Reveal>
 		<Reveal width="full">
-			<p class="leading-relaxed text-gray-200 md:text-xl">
+			<p class="leading-relaxed md:text-xl">
 				Разберитесь, что происходит — и начните это менять. С доказательным подходом, без
 				бесконечного копания в детстве и размытых советов.
 			</p>
 		</Reveal>
 		<Reveal width="full">
-			<p
-				class=" border-l-2 border-[#B8A98A] pl-5 text-base leading-relaxed text-gray-300 md:text-lg"
-			>
-				Верните себе энергию не застревая в
-				терапии на годы.
+			<p class="text-base leading-relaxed md:text-lg">
+				Верните себе энергию, не застревая в терапии на годы.
 			</p>
 		</Reveal>
 		<Reveal width="full">
 			<div class="flex flex-wrap items-center gap-6  w-full max-w-[388px] ">
             <Button
-                href="https://t.me/m/cRvQa0zAMTJi"
-                target="_blank"
-                rel="noopener noreferrer"
+                href="#pricing"
+
                 variant="primary"
-                class="self-start rounded-3xl bg-[#B8A98A] px-5 py-2 text-base text-white transition-colors duration-200 hover:brightness-95 sm:self-auto"
+                class="self-start rounded-md bg-primary px-5 py-2 text-base text-white transition-colors duration-200 hover:brightness-95 sm:self-auto"
             >
                 Записаться
             </Button>
@@ -185,15 +181,15 @@ import { fade } from 'svelte/transition';
 	</div>
 </section>
 
-<section class="bg-white py-16 md:py-24">
+<section class="bg-background py-16 md:py-24">
 	<div class="mx-auto px-5 xl:px-0 md:max-w-[760px] lg:max-w-[960px]">
 		<Reveal
-			><h2 class="mb-6 mb-8 font-circe text-3xl font-semibold text-[#191919] md:text-3xl">
+			><h2 class="mb-6 mb-8 font-circe text-3xl font-semibold text-foreground md:text-3xl">
 				узнаёте себя?
 			</h2></Reveal
 		>
 		<Reveal width="full">
-			<div class="grid gap-6 leading-relaxed text-[#191919]">
+			<div class="grid gap-6 leading-relaxed text-foreground">
 				<p>
 					Вы работаете в IT, маркетинге или управлении. <strong class="font-medium"
 						>Вы умны, продуктивны, привыкли справляться сами.</strong
@@ -219,10 +215,10 @@ import { fade } from 'svelte/transition';
 	</div>
 </section>
 
-<section class="bg-[#f7f5f0] py-16 md:py-24" id="requests">
+<section class="bg-card py-16 md:py-24" id="requests">
 	<div class="mx-auto px-5 xl:px-0 md:max-w-[960px] lg:max-w-[1200px]">
 		<Reveal
-			><h2 class="mb-6 mb-8 font-circe text-3xl font-semibold text-[#191919] md:text-3xl xl:pl-[120px] xl:pl-[120px]">
+			><h2 class="mb-6 mb-8 font-circe text-3xl font-semibold text-foreground md:text-3xl xl:pl-[120px] xl:pl-[120px]">
 				вам ко мне, если...
 			</h2></Reveal
 		>
@@ -230,22 +226,22 @@ import { fade } from 'svelte/transition';
 			{#each problems as cat}
 				<Reveal class="h-full w-full">
 					<div
-						class="group flex h-full flex-col rounded-2xl bg-white px-6 py-6 shadow-[0_2px_10px_rgb(0,0,0,0.02)] transition-all duration-300 md:p-8"
+						class="group flex h-full flex-col rounded-2xl bg-background px-6 py-6 shadow-[0_2px_10px_rgb(0,0,0,0.02)] transition-all duration-300 md:p-8"
 					>
 						<div class="mb-6 flex items-center gap-4">
 							<div
-								class="flex h-12 min-h-[55px] w-12 min-w-[55px] items-center justify-center rounded-full bg-[#f7f5f0] transition-colors group-hover:bg-[#B8A98A] md:min-w-[72px]"
+								class="flex h-12 min-h-[55px] w-12 min-w-[55px] items-center justify-center rounded-full bg-background transition-colors group-hover:bg-primary md:min-h-[72px] md:min-w-[72px]"
 							>
 								<span
-									class="text-xl text-[#B8A98A] transition-colors group-hover:text-white md:text-2xl {cat.icon}"
+									class="text-xl text-primary transition-colors group-hover:text-white md:text-2xl {cat.icon}"
 								></span>
 							</div>
-							<h3 class="text-xl font-semibold text-[#191919]">{cat.title}</h3>
+							<h3 class="text-xl font-semibold text-foreground">{cat.title}</h3>
 						</div>
 						<ul class="flex flex-col gap-4">
 							{#each cat.items as item}
 								<li
-									class="relative pl-6 leading-relaxed text-[#191919] before:absolute before:top-2.5 before:left-0 before:h-1.5 before:w-1.5 before:rounded-full before:bg-[#B8A98A]/50 before:content-['']"
+									class="relative pl-6 leading-relaxed text-foreground before:absolute before:top-2.5 before:left-0 before:h-1.5 before:w-1.5 before:rounded-full before:bg-primary/50 before:content-['']"
 								>
 									<MarkdownLink text={item} />
 								</li>
@@ -256,7 +252,7 @@ import { fade } from 'svelte/transition';
 			{/each}
 		</div>
 		<Reveal>
-			<p class="mx-auto mt-12 text-center text-lg text-[#191919]/50">
+			<p class="mx-auto mt-12 text-center text-lg text-foreground/50">
 				Дело не в силе воли и не в усталости. У этого состояния есть причины — и с ними можно
 				работать.
 			</p>
@@ -264,31 +260,31 @@ import { fade } from 'svelte/transition';
 	</div>
 </section>
 
-<section class="bg-white py-16 md:py-24">
+<section class="bg-background py-16 md:py-24">
 	<div class="mx-auto px-5 xl:px-0 md:max-w-[760px] lg:max-w-[760px]">
 		<Reveal
-			><h2 class="mb-6 mb-8 font-circe text-3xl font-semibold text-[#191919] md:text-3xl ">
+			><h2 class="mb-6 mb-8 font-circe text-3xl font-semibold text-foreground md:text-3xl ">
 				почему отпуск, тайм-менеджмент и «просто взять себя в руки» не работают
 			</h2></Reveal
 		>
 
 		<div class="space-y-12">
 			<div class="space-y-4">
-				<h3 class="font-circe text-2xl font-semibold text-[#191919]">
+				<h3 class="font-circe text-2xl font-semibold text-foreground">
 					Сначала — что такое выгорание на самом деле
 				</h3>
-				<p class="leading-relaxed text-[#191919]">
+				<p class="leading-relaxed text-foreground">
 					Выгорание — это синдром хронического рабочего стресса, который долго не удавалось
 					преодолеть. Три признака: постоянное истощение, ощущение, что работа стала чем-то далёким
 					и бессмысленным, и падение эффективности.
 				</p>
-				<p class="leading-relaxed text-[#191919]">
+				<p class="leading-relaxed text-foreground">
 					Ключевое слово — хронического. Выгорание накапливается там, где <strong
 						>требования работы систематически превышают ваши ресурсы</strong
 					>: слишком много задач, слишком мало контроля над происходящим, ощущение несправедливости
 					или конфликт между тем, что вы делаете, и тем, во что верите.
 				</p>
-				<p class="leading-relaxed text-[#191919]">
+				<p class="leading-relaxed text-foreground">
 					Именно поэтому всё, что работает с симптомами, а не с этим несоответствием, даёт <strong
 						>только временное облегчение</strong
 					>.
@@ -296,21 +292,21 @@ import { fade } from 'svelte/transition';
 			</div>
 
 			<div class="space-y-4">
-				<h3 class="font-circe text-2xl font-semibold text-[#191919]">Почему отпуск не помогает</h3>
-				<p class="leading-relaxed text-[#191919]">
-					Исследования дают однозначные ответ: отпуск умеренно улучшает самочувствие — снижает
+				<h3 class="font-circe text-2xl font-semibold text-foreground">Почему отпуск не помогает</h3>
+				<p class="leading-relaxed text-foreground">
+					Исследования дают однозначный ответ: отпуск умеренно улучшает самочувствие — снижает
 					стресс, улучшает настроение, снимает усталость. Но эффект невелик, и в большинстве
 					продольных исследований он <strong class="font-semibold"
 						>полностью гаснет в течение одной-двух недель</strong
 					> после возвращения на работу.
 				</p>
-				<p class="leading-relaxed text-[#191919]">
+				<p class="leading-relaxed text-foreground">
 					Причём — и это особенно интересно — <strong
 						>продолжительность отпуска почти ничего не меняет</strong
 					>. Более длинный отпуск не даёт более устойчивого эффекта, чем несколько коротких
 					перерывов.
 				</p>
-				<p class="leading-relaxed text-[#191919]">
+				<p class="leading-relaxed text-foreground">
 					Почему? Пока вы в отпуске, стрессовая среда временно исчезает. Но за это время не
 					происходит ничего, что изменило бы то, как вы в ней работаете: <strong
 						class="font-semibold"
@@ -323,10 +319,10 @@ import { fade } from 'svelte/transition';
 			</div>
 
 			<div class="space-y-4">
-				<h3 class="font-circe text-2xl font-semibold text-[#191919]">
+				<h3 class="font-circe text-2xl font-semibold text-foreground">
 					Почему тайм-менеджмент не спасает
 				</h3>
-				<p class="leading-relaxed text-[#191919]">
+				<p class="leading-relaxed text-foreground">
 					Логика кажется убедительной: если проблема в перегрузке — нужно научиться лучше организовывать
 					время, расставлять приоритеты, работать эффективнее, и станет легче. Иногда — да, временно
 					помогает. Но у этого подхода есть принципиальное ограничение: тайм-менеджмент — это
@@ -334,13 +330,13 @@ import { fade } from 'svelte/transition';
 						>инструмент для работы внутри системы, а не для её изменения</strong
 					>.
 				</p>
-				<p class="leading-relaxed text-[#191919]">
+				<p class="leading-relaxed text-foreground">
 					Исследования в рамках модели Job Demands–Resources показывают: выгорание снижается, когда
 					либо уменьшаются требования (объём нагрузки, организационный хаос, конфликты ролей), либо
 					увеличиваются ресурсы (автономия, поддержка, справедливость, ощущение, что ваша работа
 					соответствует вашим ценностям). Тайм-менеджмент сам по себе ни того, ни другого не даёт.
 				</p>
-				<p class="leading-relaxed text-[#191919]">
+				<p class="leading-relaxed text-foreground">
 					Хуже того — если его используют для того, чтобы впихнуть больше задач в тот же день, <strong
 						class="font-semibold">он не снижает выгорание, а поддерживает его</strong
 					>. Вы работаете эффективнее, но в той же дисфункциональной системе, с теми же
@@ -351,16 +347,16 @@ import { fade } from 'svelte/transition';
 			</div>
 
 			<div class="space-y-4">
-				<h3 class="font-circe text-2xl font-semibold text-[#191919]">
+				<h3 class="font-circe text-2xl font-semibold text-foreground">
 					Почему «просто взять себя в руки» только ускоряет разрушение
 				</h3>
-				<p class="leading-relaxed text-[#191919]">
+				<p class="leading-relaxed text-foreground">
 					Самодисциплина и мотивация — инструменты здоровой системы. Они хорошо работают, когда у
 					вас есть ресурс. Когда ресурса нет — они перестают быть инструментами роста и <strong
 						>превращаются в механизм давления</strong
 					>.
 				</p>
-				<p class="leading-relaxed text-[#191919]">
+				<p class="leading-relaxed text-foreground">
 					При выгорании ваш организм уже работает на пределе. Восстановительные механизмы ослаблены.
 					В этой точке требование «собраться и работать» означает одно: <strong
 						class="font-semibold">усилить давление на систему, которая уже истощена</strong
@@ -374,36 +370,35 @@ import { fade } from 'svelte/transition';
 			<Reveal width="full">
 				<div class="relative my-4 flex flex-col justify-center gap-3">
 					<p
-						class="relative z-10 max-w-[800px] text-center font-circe text-xl leading-relaxed text-[#191919] md:text-3xl  mx-auto"
+						class="relative z-10 max-w-[800px] text-center font-circe text-xl leading-relaxed text-foreground md:text-3xl  mx-auto"
 					>
 						Отпуск убирает стресс временно. <br/>Тайм-менеджмент помогает работать быстрее в той же
 						сломанной системе.<br/> «Взять себя в руки» при истощении — это давление на иссякший
 						ресурс.
 					</p>
 					<p
-						class="relative z-10 max-w-[800px] text-center font-circe text-xl leading-relaxed text-[#191919] md:text-3xl mx-auto"
+						class="relative z-10 max-w-[800px] text-center font-circe text-xl leading-relaxed text-foreground md:text-3xl mx-auto"
 					>
-						<span class="font-semibold text-[#B8A98A]"
+						<span class="font-semibold text-primary"
 							>Психотерапия меняет то, как вы функционируете в среде, которая никуда не делась.</span
 						>
 					</p>
 				</div>
 			</Reveal>
 			<div
-				class="flex h-full flex-col justify-between space-y-6 rounded-2xl bg-[#f7f5f0] px-4 py-6 md:p-10 "
+				class="flex h-full flex-col justify-between space-y-6 rounded-2xl bg-card px-4 py-6 md:p-10 "
 			>
-				<h3 class="font-circe text-2xl font-semibold text-[#191919] md:text-3xl">
+				<h3 class="font-circe text-2xl font-semibold text-foreground md:text-3xl">
 					Что мы делаем в терапии принципиально иначе
 				</h3>
-				<p class="text-md leading-relaxed text-[#191919]/80">
-					Подход в котором я работаю, сосредоточен не на борьбе с симптомами, а с тем, что их
-					производит — с <strong class="font-semibold">архитектурой</strong> выгорания.
+				<p class="text-md leading-relaxed text-foreground/80">
+					Подход, в котором я работаю, сосредоточен не на борьбе с симптомами, а на работе с тем, что их производит — с <strong class="font-semibold">архитектурой</strong> выгорания.
 				</p>
 				<ul class="space-y-6 pt-4">
 					<!-- flex-col для мобилки (цифра сверху), md:flex-row для десктопа (цифра слева) -->
 					<li class="flex flex-col gap-1 md:flex-row md:gap-6">
-						<span class="text-xl font-bold text-[#B8A98A]">01</span>
-						<span class="text-md leading-relaxed text-[#191919]/80">
+						<span class="text-xl font-bold text-primary">01</span>
+						<span class="text-md leading-relaxed text-foreground/80">
 							Мы в первую очередь выявляем ваши убеждения, которые поддерживают истощение:
 							<strong class="font-semibold">перфекционизм</strong>, убеждение «мне нужно всегда быть на связи», катастрофизацию ошибок, и делаем так, чтобы они перестали влиять на ваше
 							поведение. Параллельно — обучаем конкретным стратегиям: как принимать решения в
@@ -413,8 +408,8 @@ import { fade } from 'svelte/transition';
 						</span>
 					</li>
 					<li class="flex flex-col gap-1 md:flex-row md:gap-6">
-						<span class="text-xl font-bold text-[#B8A98A]">02</span>
-						<span class="text-md leading-relaxed text-[#191919]/80">
+						<span class="text-xl font-bold text-primary">02</span>
+						<span class="text-md leading-relaxed text-foreground/80">
 							Мы смещаем фокус с попытки контролировать симптомы на развитие
 							<strong class="font-semibold">психологической гибкости</strong>: контакт с настоящим
 							моментом, принятие трудных эмоций без борьбы с ними, и — что особенно важно — действия
@@ -424,8 +419,8 @@ import { fade } from 'svelte/transition';
 						</span>
 					</li>
 					<li class="flex flex-col gap-1 md:flex-row md:gap-6">
-						<span class="text-xl font-bold text-[#B8A98A]">03</span>
-						<span class="text-md leading-relaxed text-[#191919]/80">
+						<span class="text-xl font-bold text-primary">03</span>
+						<span class="text-md leading-relaxed text-foreground/80">
 							Мы тренируем новые способы реагирования
 							<strong class="font-semibold">в реальных или смоделированных рабочих ситуациях</strong
 							>
@@ -434,8 +429,8 @@ import { fade } from 'svelte/transition';
 						</span>
 					</li>
 				</ul>
-				<div class="mt-6 border-t border-[#E5E5E5] pt-6">
-					<p class="text-md leading-relaxed text-[#191919]">
+				<div class="mt-6 border-t border-border pt-6">
+					<p class="text-md leading-relaxed text-foreground">
 						<strong class="font-semibold">Результат:</strong> исследования показывают, что эффект по
 						снижению выгорания и стресса
 						<strong class="font-semibold"
@@ -449,11 +444,11 @@ import { fade } from 'svelte/transition';
 	</div>
 </section>
 
-<section class="bg-[#f7f5f0] py-16 md:py-24" id="approach">
+<section class="bg-card py-16 md:py-24" id="approach">
 	<div class="mx-auto px-5 xl:px-0 md:max-w-[960px] lg:max-w-[1200px]">
 		<Reveal
 			><h2
-				class="mb-8 md:mb-16 text-center font-circe text-3xl font-semibold text-[#191919] md:text-3xl xl:pl-[120px]"
+				class="mb-8 md:mb-16 text-center font-circe text-3xl font-semibold text-foreground md:text-3xl xl:pl-[120px]"
 			>
 				как я работаю
 			</h2></Reveal
@@ -464,10 +459,10 @@ import { fade } from 'svelte/transition';
 			<Reveal>
 				<div class="group flex flex-col">
 					<span
-						class="mb-5 icon-[lucide--route] h-8 w-8 text-[#B8A98A] transition-all duration-300 group-hover:text-[#B8A98A]"
+						class="mb-5 icon-[lucide--route] h-8 w-8 text-primary transition-all duration-300 group-hover:text-primary"
 					></span>
-					<h3 class="mb-3 text-xl font-semibold text-[#191919]">последовательность, не хаос</h3>
-					<p class="leading-relaxed text-[#191919]/70">
+					<h3 class="mb-3 text-xl font-semibold text-foreground">последовательность, не хаос</h3>
+					<p class="leading-relaxed text-foreground/70">
 						Не прыгаю от темы к теме — сначала разбираемся в вашей ситуации, потом выстраиваем план
 						работы и двигаемся к изменениям.
 					</p>
@@ -477,10 +472,10 @@ import { fade } from 'svelte/transition';
 			<Reveal>
 				<div class="group flex flex-col">
 					<span
-						class="mb-5 icon-[lucide--signpost] h-8 w-8 text-[#B8A98A] transition-all duration-300 group-hover:text-[#B8A98A]"
+						class="mb-5 icon-[lucide--signpost] h-8 w-8 text-primary transition-all duration-300 group-hover:text-primary"
 					></span>
-					<h3 class="mb-3 text-xl font-semibold text-[#191919]">прозрачность на каждом шаге</h3>
-					<p class="leading-relaxed text-[#191919]/70">
+					<h3 class="mb-3 text-xl font-semibold text-foreground">прозрачность на каждом шаге</h3>
+					<p class="leading-relaxed text-foreground/70">
 						Вы всегда понимаете, что мы делаем, зачем и как это работает: объясняю логику наших
 						действий на каждом этапе работы.
 					</p>
@@ -490,10 +485,10 @@ import { fade } from 'svelte/transition';
 			<Reveal>
 				<div class="group flex flex-col">
 					<span
-						class="mb-5 icon-[lucide--flask-conical] h-8 w-8 text-[#B8A98A] transition-all duration-300 group-hover:text-[#B8A98A]"
+						class="mb-5 icon-[lucide--flask-conical] h-8 w-8 text-primary transition-all duration-300 group-hover:text-primary"
 					></span>
-					<h3 class="mb-3 text-xl font-semibold text-[#191919]">доказательные методы</h3>
-					<p class="leading-relaxed text-[#191919]/70">
+					<h3 class="mb-3 text-xl font-semibold text-foreground">доказательные методы</h3>
+					<p class="leading-relaxed text-foreground/70">
 						Применяю методы с доказанной эффективностью, которые фокусируются на реальных действиях,
 						а не только на симптомах.
 					</p>
@@ -503,10 +498,10 @@ import { fade } from 'svelte/transition';
 			<Reveal>
 				<div class="group flex flex-col">
 					<span
-						class="mb-5 icon-[lucide--trending-up] h-8 w-8 text-[#B8A98A] transition-all duration-300 group-hover:text-[#B8A98A]"
+						class="mb-5 icon-[lucide--trending-up] h-8 w-8 text-primary transition-all duration-300 group-hover:text-primary"
 					></span>
-					<h3 class="mb-3 text-xl font-semibold text-[#191919]">измеримый прогресс</h3>
-					<p class="leading-relaxed text-[#191919]/70">
+					<h3 class="mb-3 text-xl font-semibold text-foreground">измеримый прогресс</h3>
+					<p class="leading-relaxed text-foreground/70">
 						Использую систему трекинга прогресса и обратной связи, чтобы наша работа приводила к
 						конкретным результатам и можно было корректировать курс.
 					</p>
@@ -516,10 +511,10 @@ import { fade } from 'svelte/transition';
 			<Reveal>
 				<div class="group flex flex-col">
 					<span
-						class="mb-5 icon-[lucide--briefcase] h-8 w-8 text-[#B8A98A] transition-all duration-300 group-hover:text-[#B8A98A]"
+						class="mb-5 icon-[lucide--briefcase] h-8 w-8 text-primary transition-all duration-300 group-hover:text-primary"
 					></span>
-					<h3 class="mb-3 text-xl font-semibold text-[#191919]">опыт в IT изнутри</h3>
-					<p class="leading-relaxed text-[#191919]/70">
+					<h3 class="mb-3 text-xl font-semibold text-foreground">опыт в IT изнутри</h3>
+					<p class="leading-relaxed text-foreground/70">
 						Знаю реалии цифровых профессий изнутри: сам проходил через выгорание и перфекционизм и
 						говорю с вами на одном языке.
 					</p>
@@ -529,10 +524,10 @@ import { fade } from 'svelte/transition';
 			<Reveal>
 				<div class="group flex flex-col">
 					<span
-						class="mb-5 icon-[lucide--door-open] h-8 w-8 text-[#B8A98A] transition-all duration-300 group-hover:text-[#B8A98A]"
+						class="mb-5 icon-[lucide--door-open] h-8 w-8 text-primary transition-all duration-300 group-hover:text-primary"
 					></span>
-					<h3 class="mb-3 text-xl font-semibold text-[#191919]">Без удержания в терапии</h3>
-					<p class="leading-relaxed text-[#191919]/70">
+					<h3 class="mb-3 text-xl font-semibold text-foreground">Без удержания в терапии</h3>
+					<p class="leading-relaxed text-foreground/70">
 						Конечная цель — сделать так, чтобы терапия вам стала не нужна. Работаем ровно столько,
 						сколько нужно для реальных изменений.
 					</p>
@@ -542,19 +537,19 @@ import { fade } from 'svelte/transition';
 	</div>
 </section>
 
-<section class="bg-white py-16 md:py-24" id="about">
+<section class="bg-background py-16 md:py-24" id="about">
 	<div class="mx-auto px-5 xl:px-0 md:max-w-[960px] lg:max-w-[1200px]">
 		<Reveal
 			><h2
-				class="mb-8 mb-16 text-center font-circe text-3xl font-semibold text-[#191919] md:text-3xl xl:pl-[120px]"
+				class="mb-8 mb-16 text-center font-circe text-3xl font-semibold text-foreground md:text-3xl xl:pl-[120px]"
 			>
 				обо мне
 			</h2></Reveal
 		>
 		<div class="mb-[24px] grid grid-cols-1 items-center gap-12 lg:grid-cols-2">
 			<Reveal width="full">
-				<div class="space-y-4 leading-relaxed text-[#191919]">
-					<p>Меня звоут Андрей Калмыков, я психолог для выгорающих профессионалов.</p>
+				<div class="space-y-4 leading-relaxed text-foreground">
+					<p>Меня зовут Андрей Калмыков, я психолог для выгорающих профессионалов.</p>
 					<p>
 						Я сам долго жил в режиме, который описывают мои клиенты: аспирантура плюс две работы
 						одновременно, ощущение, что остановиться нельзя, и всегда нужно двигаться к цели и быть
@@ -567,20 +562,20 @@ import { fade } from 'svelte/transition';
 					<p>В психологию пришёл осознанно, это моя вторая профессия, после долгой работы в IT.</p>
 					<ul>
 						<li
-							class="relative pl-6 leading-relaxed text-[#191919] before:absolute before:top-2.5 before:left-0 before:h-1.5 before:w-1.5 before:rounded-full before:bg-[#B8A98A]/50 before:content-['']"
+							class="relative pl-6 leading-relaxed text-foreground before:absolute before:top-2.5 before:left-0 before:h-1.5 before:w-1.5 before:rounded-full before:bg-primary/50 before:content-['']"
 						>
 							Регулярно посещаю профессиональные конференции и слежу за актуальными исследованиями —
 							потому что это интересно.
 						</li>
 						<li
-							class="relative pl-6 leading-relaxed text-[#191919] before:absolute before:top-2.5 before:left-0 before:h-1.5 before:w-1.5 before:rounded-full before:bg-[#B8A98A]/50 before:content-['']"
+							class="relative pl-6 leading-relaxed text-foreground before:absolute before:top-2.5 before:left-0 before:h-1.5 before:w-1.5 before:rounded-full before:bg-primary/50 before:content-['']"
 						>
 							<MarkdownLink
 								text="[Состою](https://akpn.org/members/kalmykov-andrei-viktorovich-2314)"
 							/> в Ассоциации специалистов в сфере контекстуально-поведенческой науки
 						</li>
 						<li
-							class="relative pl-6 leading-relaxed text-[#191919] before:absolute before:top-2.5 before:left-0 before:h-1.5 before:w-1.5 before:rounded-full before:bg-[#B8A98A]/50 before:content-['']"
+							class="relative pl-6 leading-relaxed text-foreground before:absolute before:top-2.5 before:left-0 before:h-1.5 before:w-1.5 before:rounded-full before:bg-primary/50 before:content-['']"
 						>
 							Веду <MarkdownLink text="[Telegram-канал](https://t.me/kalmykov_psy)" /> о психологии —
 							там можно познакомиться со мной поближе до записи.
@@ -595,7 +590,7 @@ import { fade } from 'svelte/transition';
 					alt="Андрей"
 					shadowPosition="bottom-left"
 					imgClass="h-[320px] w-[285px] lg:w-[505px] lg:h-[720px]"
-					shadowClass="bg-[#f7f5f0]"
+					shadowClass="bg-background"
 					width={505}
 					height={720}
 				/>
@@ -607,11 +602,11 @@ import { fade } from 'svelte/transition';
 	<div class="mx-auto mt-16 px-5 xl:px-0 md:mt-24 md:max-w-[760px] lg:max-w-[960px]">
 		<Reveal width="full">
 			<div>
-				<h3 class="mb-8 font-circe text-3xl font-semibold text-[#191919] md:text-3xl ">
+				<h3 class="mb-8 font-circe text-3xl font-semibold text-foreground md:text-3xl ">
 					Почему здесь нет отзывов?
 				</h3>
 				<div
-					class="space-y-6 border-l-2 border-[#B8A98A] pl-6 text-lg leading-relaxed text-[#191919] md:pl-8 md:text-xl"
+					class="space-y-6 rounded-lg bg-card px-6 py-4 text-lg leading-relaxed text-foreground md:px-8 md:text-xl"
 				>
 					<p>
 						Вы не найдёте здесь отзывов клиентов — и это осознанный выбор. Я строго отношусь к
@@ -631,13 +626,13 @@ import { fade } from 'svelte/transition';
 	</div>
 </section>
 
-<section id="pricing" class="bg-[#f7f5f0] py-16 md:py-24">
+<section id="pricing" class="bg-card py-16 md:py-24">
     <div class="mx-auto px-5 xl:px-0 md:max-w-[760px] lg:max-w-[960px]">
         <Reveal>
-            <h2 class="mb-6 mb-8 font-circe text-3xl font-semibold text-[#191919] md:text-3xl ">
+            <h2 class="mb-6 mb-8 font-circe text-3xl font-semibold text-foreground md:text-3xl ">
                 формат и стоимость
             </h2>
-            <p class="mb-12 text-lg text-[#191919]/70">
+            <p class="mb-12 text-lg text-foreground/70">
                 Индивидуальные психологические консультации. Одна встреча — 50 минут, онлайн, в удобное для
                 вас время.
             </p>
@@ -645,18 +640,18 @@ import { fade } from 'svelte/transition';
         <div class="grid grid-cols-1 gap-8 md:grid-cols-2">
             <Reveal class="h-full w-full">
                 <div
-                    class="flex h-full flex-col rounded-lg border border-[#B8A98A] bg-white p-6 shadow-sm md:p-8"
+                    class="flex h-full flex-col rounded-lg border border-primary bg-background p-6 shadow-sm md:p-8"
                 >
-                    <h3 class="mb-2 font-circe text-2xl font-semibold text-[#191919] md:pt-[58px]">
+                    <h3 class="mb-2 font-circe text-2xl font-semibold text-foreground md:pt-[58px]">
                         Разовая сессия
                     </h3>
-                    <div class="mb-8 text-3xl font-semibold text-[#191919]">4 000 ₽</div>
-                    <p class="mb-6 text-[#191919]/70">
+                    <div class="mb-8 text-3xl font-semibold text-foreground">4 000 ₽</div>
+                    <p class="mb-6 text-foreground/70">
                         Если хотите разобраться в конкретной ситуации, познакомиться с подходом или понять,
                         нужна ли вам терапия вообще.
                     </p>
 
-                    <ul class="mb-10 space-y-3 leading-relaxed text-[#191919]">
+                    <ul class="mb-10 space-y-3 leading-relaxed text-foreground">
                         <li>— 50 минут</li>
                         <li>— Онлайн</li>
                     </ul>
@@ -666,13 +661,13 @@ import { fade } from 'svelte/transition';
                             target="_blank"
                             rel="noopener noreferrer"
                             variant="primary"
-                            class="w-full self-start rounded-3xl bg-[#B8A98A] px-5 py-2 text-base text-white transition-colors duration-200 hover:brightness-95 sm:self-auto"
+                            class="w-full self-start rounded-md bg-primary px-5 py-2 text-base text-white transition-colors duration-200 hover:brightness-95 sm:self-auto"
                         >
                             Записаться
                         </Button>
                         <button
                             onclick={() => isIntroModalOpen = true}
-                            class="cursor-pointer w-full text-center text-sm font-medium text-[#191919]/60 underline decoration-[#191919]/30 underline-offset-4 transition-colors hover:text-[#191919] hover:decoration-[#191919]"
+                            class="cursor-pointer w-full text-center text-sm font-medium text-foreground/60 underline decoration-foreground/30 underline-offset-4 transition-colors hover:text-foreground hover:decoration-foreground"
                         >
                             Хочу познакомиться
                         </button>
@@ -680,8 +675,8 @@ import { fade } from 'svelte/transition';
                 </div>
             </Reveal>
             <Reveal class="h-full w-full">
-                <div class="flex h-full flex-col rounded-lg bg-[#191919] p-8 text-white shadow-xl">
-                    <div class="mb-4 w-fit rounded-full bg-[#B8A98A] px-3 py-1 text-xs text-white uppercase leading-[14px]">
+                <div class="flex h-full flex-col rounded-lg bg-foreground p-8 text-white shadow-xl">
+                    <div class="mb-4 w-fit rounded-md bg-primary px-3 py-1 text-xs text-white uppercase leading-[14px]">
                         Рекомендуемый формат
                     </div>
                     <h3 class="mb-2 font-circe text-2xl font-semibold">Регулярные встречи</h3>
@@ -702,7 +697,7 @@ import { fade } from 'svelte/transition';
 							target="_blank"
 							rel="noopener noreferrer"
 							variant="secondary"
-					   class="w-full self-start rounded-3xl px-5 py-2 text-base text-white transition-colors duration-200  sm:self-auto"
+					   class="w-full self-start rounded-md px-5 py-2 text-base text-white transition-colors duration-200  sm:self-auto"
 						>
 							Начать работу
 						</Button>
@@ -720,10 +715,10 @@ import { fade } from 'svelte/transition';
     </div>
 </section>
 
-<section class="bg-white py-16 md:py-24">
+<section class="bg-background py-16 md:py-24">
 	<div class="mx-auto px-5 xl:px-0 md:max-w-[760px] lg:max-w-[760px]">
 		<Reveal>
-			<h2 class="mb-8 font-circe text-3xl font-semibold text-[#191919] md:mb-12 md:text-3xl">
+			<h2 class="mb-8 font-circe text-3xl font-semibold text-foreground md:mb-12 md:text-3xl">
 				как мы придём к результату
 			</h2>
 		</Reveal>
@@ -732,19 +727,19 @@ import { fade } from 'svelte/transition';
 			{#each steps as step, i}
 				<Reveal width="full">
 					<div
-						class="flex flex-col gap-2 border-b border-[#B8A98A] py-8 last:border-0 md:flex-row md:gap-6"
+						class="flex flex-col gap-2 border-b border-primary py-8 last:border-0 md:flex-row md:gap-6"
 					>
-						<div class="font-circe text-3xl font-bold text-[#B8A98A] opacity-40 md:text-3xl">
+						<div class="font-circe text-3xl font-bold text-primary opacity-40 md:text-3xl">
 							0{i + 1}
 						</div>
 						<div class="space-y-2">
 							<div class="md:flex md:flex-row md:items-baseline">
-								<h3 class="text-xl font-semibold text-[#191919]">
+								<h3 class="text-xl font-semibold text-foreground">
 									{step.title}
 								</h3>
-								<span class="md:ml-2 text-sm font-normal text-[#191919]/50">{step.time}</span>
+								<span class="md:ml-2 text-sm font-normal text-foreground/50">{step.time}</span>
 							</div>
-							<p class="leading-relaxed text-[#191919]">{step.desc}</p>
+							<p class="leading-relaxed text-foreground">{step.desc}</p>
 						</div>
 					</div>
 				</Reveal>
@@ -753,18 +748,18 @@ import { fade } from 'svelte/transition';
 	</div>
 </section>
 
-<!-- <section class="bg-[#f7f5f0] py-16 md:py-24">
+<!-- <section class="bg-background py-16 md:py-24">
 	<div class="mx-auto px-5 xl:px-0 md:max-w-[760px] lg:max-w-[960px]">
 		<Reveal width="full">
 			<div
-				class="flex flex-col items-center gap-8 rounded-lg border border-[#B8A98A] bg-white p-8 shadow-sm md:flex-row"
+				class="flex flex-col items-center gap-8 rounded-lg border border-primary bg-white p-8 shadow-sm md:flex-row"
 			>
-				<div class="icon-[lucide--gift] text-6xl text-[#B8A98A]"></div>
+				<div class="icon-[lucide--gift] text-6xl text-primary"></div>
 				<div class="w-full">
-					<h3 class="mb-3 font-circe text-2xl font-semibold text-[#191919]">
+					<h3 class="mb-3 font-circe text-2xl font-semibold text-foreground">
 						Гайд «Как отдыхать правильно»
 					</h3>
-					<p class="mb-6 leading-relaxed text-[#191919]">
+					<p class="mb-6 leading-relaxed text-foreground">
 						Большинство людей отдыхают неправильно — и дело не в количестве часов. Дело в том, что
 						<strong class="font-semibold">тип отдыха не совпадает с типом усталости</strong>. Гайд
 						объясняет: какие бывают виды усталости, почему телефон и сериалы не восстанавливают, и
@@ -784,7 +779,7 @@ import { fade } from 'svelte/transition';
 	</div>
 </section> -->
 
-<section class="bg-[#191919] py-20 text-center text-white">
+<section class="bg-foreground py-20 text-center text-white">
 	<div class="mx-auto space-y-8 px-5 xl:px-0 md:max-w-[760px] lg:max-w-[960px]">
 		<Reveal width="full">
 			<h2 class="font-circe text-3xl leading-tight font-semibold md:text-3xl">
@@ -800,7 +795,7 @@ import { fade } from 'svelte/transition';
 						<Button
 							href="#pricing"
 							variant="primary"
-				   class="self-start rounded-3xl bg-[#B8A98A] px-5 py-2 text-base text-white transition-colors duration-200 hover:brightness-95 sm:self-auto w-full justify-center max-w-[388px]" 
+				   class="self-start rounded-md bg-primary px-5 py-2 text-base text-white transition-colors duration-200 hover:brightness-95 sm:self-auto w-full justify-center max-w-[388px]" 
 						>
 							Записаться
 						</Button>
@@ -809,23 +804,23 @@ import { fade } from 'svelte/transition';
 	</div>
 </section>
 
-<section class="bg-white py-16 md:py-24" id="faq">
+<section class="bg-background py-16 md:py-24" id="faq">
 	<div class="mx-auto px-5 xl:px-0 md:max-w-[760px] lg:max-w-[760px]">
 		<Reveal
 			><h2
-				class="mb-6 mb-8 text-center font-circe text-3xl font-semibold text-[#191919] md:text-3xl"
+				class="mb-6 mb-8 text-center font-circe text-3xl font-semibold text-foreground md:text-3xl"
 			>
 				вопросы и ответы
 			</h2></Reveal
 		>
-		<div class="w-full border-t border-[#B8A98A]">
+		<div class="w-full border-t border-primary">
 			{#each faqs as item}
-				<AccordionItem class="border-b border-[#B8A98A]">
+				<AccordionItem class="border-b border-primary">
 					{#snippet header()}
 						<h3 class="pr-4 text-lg font-medium">{item.q}</h3>
 					{/snippet}
 					{#snippet children()}
-						<p class="leading-relaxed text-[#191919]"><MarkdownLink text={item.a} /></p>
+						<p class="leading-relaxed text-foreground"><MarkdownLink text={item.a} /></p>
 					{/snippet}
 				</AccordionItem>
 			{/each}
@@ -835,27 +830,24 @@ import { fade } from 'svelte/transition';
 {#if isIntroModalOpen}
     <div
         transition:fade={{ duration: 200 }}
-        class="fixed inset-0 z-50 flex items-center justify-center bg-[#000000ab] p-4"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/67 p-4"
         onclick={() => isIntroModalOpen = false}
         onkeydown={(e) => {
-            if (e.key === 'Escape' || e.key === 'Enter' || e.key === ' ') {
+            if (e.key === 'Escape') {
                 e.preventDefault();
                 isIntroModalOpen = false;
             }
         }}
-        role="button"
-        tabindex="0"
-        aria-label="Закрыть модальное окно"
     >
         <div
-            class="relative flex w-full max-w-[480px] flex-col gap-6 rounded-2xl bg-white p-8 shadow-2xl md:p-9"
+            class="relative flex w-full max-w-[480px] flex-col gap-6 rounded-2xl bg-card p-8 shadow-2xl md:p-9"
             onclick={(e) => e.stopPropagation()}
             role="dialog"
             aria-modal="true"
         >
             <button
                 onclick={() => isIntroModalOpen = false}
-                class="absolute right-4 top-4 z-10 cursor-pointer p-2 text-[#191919]/50 transition-colors hover:text-[#191919]"
+                class="absolute right-4 top-4 z-10 cursor-pointer p-2 text-foreground/50 transition-colors hover:text-foreground"
                 aria-label="Закрыть"
             >
                 <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -864,11 +856,11 @@ import { fade } from 'svelte/transition';
             </button>
 
             <div class="space-y-2 pt-2">
-                <h3 class="font-circe text-xl font-semibold text-[#191919] md:text-2xl">
+                <h3 class="font-circe text-xl font-semibold text-foreground md:text-2xl">
                     Запишитесь на встречу-знакомство
                 </h3>
 
-<ul class="space-y-1 leading-relaxed text-[#191919] list-none">
+<ul class="space-y-1 leading-relaxed text-foreground list-none">
     <li class="relative pl-6 before:content-['—'] before:absolute before:left-0">
         вы расскажете, что вас беспокоит, а я расскажу, что мы можем с этим сделать
     </li>
@@ -887,7 +879,7 @@ import { fade } from 'svelte/transition';
                     target="_blank"
                     rel="noopener noreferrer"
                     variant="primary"
-                    class="w-full self-start rounded-3xl bg-[#B8A98A] px-5 py-2 text-base text-white transition-colors duration-200 hover:brightness-95 sm:self-auto"
+                    class="w-full self-start rounded-md bg-primary px-5 py-2 text-base text-white transition-colors duration-200 hover:brightness-95 sm:self-auto"
                 >
                     Записаться
                 </Button>

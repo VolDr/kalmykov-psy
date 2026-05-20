@@ -1,4 +1,4 @@
-<script lang="ts">
+﻿<script lang="ts">
 	import { cn } from '$lib/utils';
 
 	let {
@@ -23,7 +23,7 @@
 			onclick={(e) => handleClick(e, index)}
 			class={cn(
 				'cursor-pointer rounded-full transition-all duration-200',
-				index === current ? 'h-2 w-8 bg-[#cfc1a3]' : 'h-2 w-2 bg-gray-300 hover:bg-gray-400'
+				index === current ? 'h-2 w-8 bg-primary-light' : 'h-2 w-2 bg-border hover:bg-foreground/40'
 			)}
 			aria-label="Перейти к диплому {index + 1}"
 		></button>

@@ -1,4 +1,4 @@
-<script lang="ts">
+﻿<script lang="ts">
 	import { browser } from '$app/environment';
 	import QuestionRenderer from './QuestionRenderer.svelte';
 	import ScoreDisplay from './ScoreDisplay.svelte';
@@ -211,13 +211,13 @@
      {#if !isMounted}
         <!-- Лоадер или скелетон, пока подтягивается стейт из localStorage -->
         <div class="flex min-h-[300px] items-center justify-center">
-            <div class="h-10 w-10 animate-spin rounded-full border-4 border-[#B8A98A] border-t-transparent"></div>
+            <div class="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
         </div>
 	{:else if state.currentStep === -1 && !state.showResults}
 		<div>
 			<div class="mx-auto max-w-xl rounded-xl border border-gray-100 bg-white p-5 shadow-sm md:p-8 md:rounded-2xl">
-				<h2 class="mb-4 text-xl font-semibold text-[#191919] md:text-xl">Укажите вашу электронную почту</h2>
-				<p class="mb-8 text-sm leading-relaxed text-[#191919]/70">
+				<h2 class="mb-4 text-xl font-semibold text-foreground md:text-xl">Укажите вашу электронную почту</h2>
+				<p class="mb-8 text-sm leading-relaxed text-foreground/70">
 					Ваши результаты и рекомендации придут на неё.
 				</p>
 
@@ -227,7 +227,7 @@
 							type="email"
 							id="email"
 							bind:value={state.email}
-							class="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition-all focus:border-[#B8A98A] focus:ring-1 focus:ring-[#B8A98A]"
+							class="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition-all focus:border-primary focus:ring-1 focus:ring-primary"
 							placeholder="mail@example.ru"
 						/>
 					</div>
@@ -236,10 +236,10 @@
 						<input
 							type="checkbox"
 							bind:checked={state.consent}
-							class="mt-1 h-4 w-4 rounded border-gray-300 text-[#B8A98A] focus:ring-[#B8A98A]"
+							class="mt-1 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
 						/>
 						<span class="text-sm text-gray-600">
-							Я согласен(-на) на <a href="/privacy" target="_blank" rel="noopener noreferrer" class="text-[#B8A98A] underline underline-offset-2 transition-colors hover:text-[#191919]">обработку персональных данных</a>
+							Я согласен(-на) на <a href="/privacy" target="_blank" rel="noopener noreferrer" class="text-primary underline underline-offset-2 transition-colors hover:text-foreground">обработку персональных данных</a>
 						</span>
 					</label>
 
@@ -264,14 +264,14 @@
 					</div>
 					<div class="h-1.5 w-full overflow-hidden rounded-full bg-gray-200">
 						<div
-							class="h-full rounded-full bg-[#B8A98A] transition-all duration-300"
+							class="h-full rounded-full bg-primary transition-all duration-300"
 							style="width: {((state.currentStep + 1) / questionSteps.length) * 100}%"
 						></div>
 					</div>
 				</div>
 
 				{#if currentSubheadingText}
-					<div class="mb-4 rounded-lg bg-[#f7f5f0] px-3 py-3 text-center text-sm font-medium text-[#191919]/80 md:text-base">
+					<div class="mb-4 rounded-lg bg-background px-3 py-3 text-center text-sm font-medium text-foreground/80 md:text-base">
 						{currentSubheadingText}
 					</div>
 				{/if}
@@ -287,7 +287,7 @@
 					/>
 
 					<div class="mt-6 flex gap-3  ">
-						<Button variant="secondary" onclick={prevStep} class="flex-1 justify-center bg-gray-100 border-transparent text-[#191919] hover:bg-gray-200">
+						<Button variant="secondary" onclick={prevStep} class="flex-1 justify-center bg-gray-100 border-transparent text-foreground hover:bg-gray-200">
 							Назад
 						</Button>
 						<Button 
@@ -308,11 +308,11 @@
 	
 
 
-	<h2 class="mb-3 mt-0 text-[22px] font-semibold leading-tight text-[#191919] md:text-2xl">
+	<h2 class="mb-3 mt-0 text-[22px] font-semibold leading-tight text-foreground md:text-2xl">
 		Ваши результаты оценки выгорания
 	</h2>
 
-	<p class="mb-[30px] mt-0 text-base leading-[1.6] text-[#4a4a4a]">
+	<p class="mb-[30px] mt-0 text-base leading-[1.6] text-muted-foreground">
 		Вы прошли диагностику по методике BAT-23. Ниже представлена подробная детализация
 		вашего состояния.
 	</p>
@@ -331,21 +331,26 @@
 			{/if}
 
 			<div class="flex flex-col gap-4 sm:flex-row sm:items-stretch sm:justify-center mt-12">
+				<Button
+					href="/"
+					variant="secondary"
+					class="w-full self-start px-5 py-2 text-base text-white bg-foreground outline-none hover:bg-foreground/80 hover:text-white transition-colors duration-200 sm:self-auto sm:w-auto justify-center"
+				>
+					Хочу снизить уровень выгорания
+				</Button>
 				<Button variant="primary" onclick={handleReset} class="w-full sm:w-auto justify-center">
 					Пройти заново
 				</Button>
-
-
 			</div>
 
 	<div
-	class="mt-12 rounded-2xl border border-[#B8A98A] bg-white px-4 py-6 text-center md:mt-12 md:px-8 md:py-8"
+	class="mt-12 rounded-2xl border border-primary bg-white px-4 py-6 text-center md:mt-12 md:px-8 md:py-8"
 >
-	<h3 class="mb-3 mt-0  text-xl font-semibold leading-tight text-[#191919]">
+	<h3 class="mb-3 mt-0  text-xl font-semibold leading-tight text-foreground">
 			Следите за полезными материалами
 	</h3>
 
-	<p class="mx-auto mb-3 max-w-[460px] leading-[1.6] text-[#4a4a4a]">
+	<p class="mx-auto mb-3 max-w-[460px] leading-[1.6] text-muted-foreground">
 		В моем Telegram-канале я регулярно рассказываю о том, как справляться с выгоранием, выстраивать здоровые границы на работе, управлять стрессом и возвращать себе энергию.
 				
 	</p>

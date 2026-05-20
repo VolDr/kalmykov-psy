@@ -1,4 +1,4 @@
-<script lang="ts">
+﻿<script lang="ts">
 	import Slider from '$lib/components/ui/Slider.svelte';
 
 	interface FeedbackData {
@@ -23,7 +23,7 @@
 		<div class="flex w-full max-w-[640px] flex-col items-center gap-2">
 			<div class="flex w-full flex-col items-center justify-center gap-1">
 				<p class="text-center">Контакт с психологом</p>
-				<div class="text-center text-sm text-gray-500 md:text-base lg:text-lg">
+				<div class="text-center text-sm text-muted-foreground md:text-base lg:text-lg">
 					{appeal === 'plural'
 						? 'Чувствовали ли вы, что вас внимательно слушали, понимали и уважали?'
 						: `Чувствовал${gender === 'female' ? 'a' : ''} ли ты, что тебя внимательно слушали, понимали и уважали?`}
@@ -37,7 +37,7 @@
 				<p class="text-center">
 					{appeal === 'plural' ? 'Важные для вас темы' : 'Важные для тебя темы'}
 				</p>
-				<div class="text-center text-sm text-gray-500 md:text-base lg:text-lg">
+				<div class="text-center text-sm text-muted-foreground md:text-base lg:text-lg">
 					{appeal === 'plural'
 						? 'Говорили ли мы о том, что для вас действительно важно?'
 						: 'Говорили ли мы о том, что для тебя действительно важно?'}
@@ -49,7 +49,7 @@
 		<div class="flex w-full max-w-[640px] flex-col items-center gap-2">
 			<div class="flex w-full flex-col items-center justify-center gap-1">
 				<p class="text-center">Подход к работе</p>
-				<div class="text-center text-sm text-gray-500 md:text-base lg:text-lg">
+				<div class="text-center text-sm text-muted-foreground md:text-base lg:text-lg">
 					{appeal === 'plural'
 						? 'Подходил ли вам способ нашего общения и работы сегодня?'
 						: 'Подходил ли тебе способ нашего общения и работы сегодня?'}
@@ -63,7 +63,7 @@
 		<div class="flex w-full max-w-[640px] flex-col items-center gap-2">
 			<div class="flex w-full flex-col items-center justify-center gap-1">
 				<p class="text-center">Общее впечатление</p>
-				<div class="text-center text-sm text-gray-500 md:text-base lg:text-lg">
+				<div class="text-center text-sm text-muted-foreground md:text-base lg:text-lg">
 					{appeal === 'plural'
 						? 'Как вы оцениваете нашу встречу в целом?'
 						: 'Как ты оцениваешь нашу встречу в целом?'}
@@ -74,7 +74,7 @@
 
 		<div class="container mx-auto flex justify-center">
 			<button
-				class={`bg-opacity-0  mb-10 cursor-pointer rounded-[10px] border border-solid border-black px-[30px] py-[10px] text-center font-light tracking-wide transition-all duration-200 ease-out hover:border-[#cfc1a3] hover:bg-[#cfc1a3] hover:text-white hover:shadow-md active:scale-95 active:transform ${!editable ? 'cursor-default opacity-50' : ''}`}
+				class={`mb-10 cursor-pointer rounded-[10px] border border-foreground/30 px-[30px] py-[10px] text-center font-light tracking-wide transition-all duration-200 ease-out hover:border-primary-light hover:bg-primary-light hover:text-white hover:shadow-md active:scale-95 active:transform ${!editable ? 'cursor-default opacity-50' : ''}`}
 				name="_action"
 				value="SEND_FEEDBACK"
 				type="submit"

@@ -1,4 +1,4 @@
-<script lang="ts">
+﻿<script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
 	import { browser } from '$app/environment';
 
@@ -222,7 +222,7 @@
 	<!-- Slider track container with optimized styles for GPU acceleration -->
 	<div
 		bind:this={sliderRef}
-		class={`relative h-1.5 w-full rounded bg-gray-200 ${editable ? 'cursor-pointer' : 'cursor-default'}`}
+		class={`relative h-1.5 w-full rounded bg-border ${editable ? 'cursor-pointer' : 'cursor-default'}`}
 		style="transform: translateZ(0)"
 		onclick={handleTrackClick}
 		ontouchstart={handleTrackTouch}
@@ -231,7 +231,7 @@
 		<!-- Filled track with will-change for better performance -->
 		<div
 			bind:this={trackFillRef}
-			class={`absolute h-full rounded ${editable ? 'bg-[#cfc1a3]' : 'bg-[#e8e1d3]'}`}
+			class={`absolute h-full rounded ${editable ? 'bg-primary-light' : 'bg-secondary'}`}
 			style="width: {(currValue / 10) * 100}%; transform: translateZ(0); will-change: width;"
 		></div>
 
@@ -239,11 +239,11 @@
 		{#if editable}
 			<div
 				bind:this={thumbRef}
-				class="absolute top-1/2 h-4 w-4 cursor-grab touch-none rounded-full border-2 border-[#cfc1a3] bg-white shadow active:cursor-grabbing"
+				class="absolute top-1/2 h-4 w-4 cursor-grab touch-none rounded-full border-2 border-primary-light bg-white shadow active:cursor-grabbing"
 				style="left: calc({(currValue / 10) *
 					100}% - 0.5rem); transform: translateZ(0) translateY(-50%); transition: {isDragging
 					? 'none'
-					: 'left 0.05s linear'};"
+					: 'left 0.05s ease-out'};"
 				onmousedown={handleThumbMouseDown}
 				ontouchstart={handleThumbTouchStart}
 			></div>

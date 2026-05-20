@@ -1,4 +1,4 @@
-<script lang="ts">
+﻿<script lang="ts">
 	import { Card } from '$lib/components/ui/card';
 	import dayjs from 'dayjs';
 
@@ -42,7 +42,7 @@
 					</div>
 					<div class="h-2 w-full rounded-full bg-gray-200">
 						<div
-							class="h-2 rounded-full bg-[#cfc1a3] transition-all"
+							class="h-2 rounded-full bg-primary-light transition-all"
 							style:width="{(week.sessions / maxSessions) * 100}%"
 						></div>
 					</div>

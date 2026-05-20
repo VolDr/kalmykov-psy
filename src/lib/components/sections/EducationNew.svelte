@@ -1,4 +1,4 @@
-<script lang="ts">
+﻿<script lang="ts">
     import AccordionItem from '$lib/components/AccordionItem.svelte';
     import DiplomaModal from '$lib/components/DiplomaModal.svelte';
     import Reveal from '$lib/components/Reveal.svelte';
@@ -72,7 +72,7 @@
             <Reveal width="full" axis="x">
                 <div class="space-y-1.5 text-left">
                     <h2 class="subtitle scroll-mt-24">Где я учился</h2>
-                    <p class="text-sm font-normal text-[#191919]/50 normal-case tracking-normal">
+                    <p class="text-sm font-normal text-foreground/50 normal-case tracking-normal">
                         Сюда можно нажать, чтобы посмотреть мои документы об образовании, если для вас это важно.
                     </p>
                 </div>
@@ -84,7 +84,7 @@
                 <div class="education-section {groupIndex > 0 ? 'mt-12' : 'mt-2'}">
                     
                     <div class="flex items-end justify-between {categoryExplanations[group.category] ? 'mb-2' : 'mb-6'}">
-                        <h3 class="text-xl font-circe font-semibold text-[#191919] md:text-2xl">
+                        <h3 class="text-xl font-circe font-semibold text-foreground md:text-2xl">
                             {group.category}
                         </h3>
                         
@@ -92,14 +92,14 @@
                             <div class="hidden md:flex items-center gap-2 pb-1 pr-1">
                                 <button
                                     onclick={(e) => scrollCarousel(e, 'left')}
-                                    class="flex h-9 w-9 items-center justify-center rounded-full border border-[#E5E5E5] text-[#191919]/40 transition-all hover:border-[#B8A98A] hover:text-[#B8A98A] hover:shadow-sm"
+                                    class="flex h-9 w-9 items-center justify-center rounded-full border border-border text-foreground/40 transition-all hover:border-primary hover:text-primary hover:shadow-sm"
                                     aria-label="Листать влево"
                                 >
                                     <span class="icon-[lucide--chevron-left] h-5 w-5"></span>
                                 </button>
                                 <button
                                     onclick={(e) => scrollCarousel(e, 'right')}
-                                    class="flex h-9 w-9 items-center justify-center rounded-full border border-[#E5E5E5] text-[#191919]/40 transition-all hover:border-[#B8A98A] hover:text-[#B8A98A] hover:shadow-sm"
+                                    class="flex h-9 w-9 items-center justify-center rounded-full border border-border text-foreground/40 transition-all hover:border-primary hover:text-primary hover:shadow-sm"
                                     aria-label="Листать вправо"
                                 >
                                     <span class="icon-[lucide--chevron-right] h-5 w-5"></span>
@@ -109,13 +109,13 @@
                     </div>
                     
                     {#if categoryExplanations[group.category]}
-                        <p class="mb-6 max-w-[700px] text-sm leading-relaxed text-[#191919]/60 font-light pr-20">
+                        <p class="mb-6 max-w-[700px] text-sm leading-relaxed text-foreground/60  pr-20">
                             {categoryExplanations[group.category]}
                         </p>
                     {/if}
                     
                     <div 
-                        class="education-carousel flex w-full snap-x snap-mandatory gap-4 overflow-x-auto pb-6 pt-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden md:[scrollbar-width:thin] md:[scrollbar-color:#B8A98A_#f7f5f0] md:[&::-webkit-scrollbar]:block md:[&::-webkit-scrollbar]:h-1.5 md:[&::-webkit-scrollbar-track]:bg-[#f7f5f0] md:[&::-webkit-scrollbar-track]:rounded-full md:[&::-webkit-scrollbar-thumb]:bg-[#B8A98A]/70 md:[&::-webkit-scrollbar-thumb]:rounded-full md:hover:[&::-webkit-scrollbar-thumb]:bg-[#B8A98A]"
+                        class="education-carousel flex w-full snap-x snap-mandatory gap-4 overflow-x-auto pb-6 pt-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden md:[scrollbar-width:thin] md:[scrollbar-color:var(--color-primary)_var(--color-background)] md:[&::-webkit-scrollbar]:block md:[&::-webkit-scrollbar]:h-1.5 md:[&::-webkit-scrollbar-track]:bg-background md:[&::-webkit-scrollbar-track]:rounded-full md:[&::-webkit-scrollbar-thumb]:bg-primary/70 md:[&::-webkit-scrollbar-thumb]:rounded-full md:hover:[&::-webkit-scrollbar-thumb]:bg-primary"
                         onwheel={handleWheelScroll}
                     >
                         {#each group.items as item}
@@ -123,30 +123,30 @@
                                 this={item.diploma ? 'button' : 'div'}
                                 onclick={item.diploma ? () => openDiplomaModal(item.diploma!) : undefined}
                                 class={cn(
-                                    'group relative flex w-[85vw] max-w-[320px] shrink-0 snap-start flex-col justify-between rounded-2xl border border-[#E5E5E5] bg-white p-6 md:p-8 text-left transition-all duration-300',
+                                    'group relative flex w-[85vw] max-w-[320px] shrink-0 snap-start flex-col justify-between rounded-2xl border border-border bg-background p-6 md:p-8 text-left transition-all duration-300',
                                     {
-                                        'hover:cursor-pointer hover:border-[#B8A98A]/50 hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] focus-visible:outline-[#B8A98A] focus:outline-[#B8A98A] outline-0': item.diploma
+                                        'hover:cursor-pointer hover:border-primary/50 hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] focus-visible:outline-primary focus:outline-primary outline-0': item.diploma
                                     }
                                 )}
                             >
                                 <div class="relative z-10 w-full flex flex-col">
                                     {#if !item.completed}
-                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 text-[10px] uppercase font-bold tracking-wider bg-[#f7f5f0] text-[#191919]/60 rounded-md w-fit mb-3">
-                                            <span class="h-1.5 w-1.5 rounded-full bg-[#B8A98A] animate-pulse"></span>
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 text-[10px] uppercase font-bold tracking-wider bg-card text-foreground/60 rounded-md w-fit mb-3">
+                                            <span class="h-1.5 w-1.5 rounded-full bg-primary animate-pulse"></span>
                                             В процессе
                                         </span>
                                     {/if}
 
-                                    <h5 class={cn('text-lg font-medium leading-snug text-[#191919] transition-colors', {
-                                        'group-hover:text-[#B8A98A]': item.diploma
+                                    <h5 class={cn('text-lg font-medium leading-snug text-foreground transition-colors', {
+                                        'group-hover:text-primary': item.diploma
                                     })}>
                                         {item.title}
                                     </h5>
-                                    <p class="mt-3 text-sm text-[#191919]/60 leading-relaxed">{item.details}</p>
+                                    <p class="mt-3 text-sm text-foreground/60 leading-relaxed">{item.details}</p>
                                 </div>
                                 
                                 {#if item.diploma}
-                                    <div class="mt-6 flex h-10 w-10 items-center justify-center rounded-full bg-[#f7f5f0] text-[#B8A98A] transition-all duration-300 group-hover:scale-110 group-hover:bg-[#B8A98A] group-hover:text-white">
+                                    <div class="mt-6 flex h-10 w-10 items-center justify-center rounded-full bg-background text-primary transition-all duration-300 group-hover:scale-110 group-hover:bg-primary group-hover:text-white">
                                         <span class="icon-[lucide--file-badge-2] h-5 w-5"></span>
                                     </div>
                                 {/if}

@@ -1,4 +1,4 @@
-<script lang="ts">
+﻿<script lang="ts">
 	import { cn } from '$lib/utils';
 	import { onlineTherapyBlocks, type BlockProps } from '$lib/data/online-therapy';
 	import MarkdownLink from '$lib/components/MarkdownLink.svelte';
@@ -87,6 +87,6 @@
 				</section>
 			</div>
 		{/each}
-		<div class="col-span-full"><BookButton margin="my-0 mx-auto w-full self-start rounded-3xl bg-[#B8A98A] px-5 py-2 text-base text-white transition-colors duration-200 hover:brightness-95 sm:self-auto" /></div>
+		<div class="col-span-full"><BookButton margin="my-0 mx-auto w-full self-start rounded-md bg-primary px-5 py-2 text-base text-white transition-colors duration-200 hover:brightness-95 sm:self-auto" /></div>
 	</div>
 </div>

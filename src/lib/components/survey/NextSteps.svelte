@@ -1,4 +1,4 @@
-<script lang="ts">
+﻿<script lang="ts">
 	import type { NextStepsInfo } from '$lib/data/surveys/types';
 
 	type Props = {
@@ -10,13 +10,13 @@
 
 <div class="space-y-6">
 	{#if nextSteps.advice}
-		<div class="border-2 border-[#f7f5f0] bg-[#f7f5f0] shadow-sm">
+		<div class="border-2 border-background bg-background shadow-sm">
 			<div class="space-y-4 p-6 md:p-8">
-				<h3 class="flex items-center gap-2 text-base font-semibold text-[#191919] md:text-lg">
+				<h3 class="flex items-center gap-2 text-base font-semibold text-foreground md:text-lg">
 					<span class="icon-[lucide--alert-circle] h-5 w-5"></span>
 					Важная информация
 				</h3>
-				<p class="text-sm leading-relaxed text-[#191919] opacity-80 md:text-base">
+				<p class="text-sm leading-relaxed text-foreground opacity-80 md:text-base">
 					{nextSteps.advice}
 				</p>
 			</div>
@@ -24,9 +24,9 @@
 	{/if}
 
 	{#if nextSteps.criticalActions && nextSteps.criticalActions.length > 0}
-		<div class="border-2 border-[#f7f5f0] shadow-sm">
+		<div class="border-2 border-background shadow-sm">
 			<div class="space-y-4 p-6 md:p-8">
-				<h3 class="flex items-center gap-2 text-base font-semibold text-[#191919] md:text-lg">
+				<h3 class="flex items-center gap-2 text-base font-semibold text-foreground md:text-lg">
 					<span class="icon-[lucide--check-circle] h-5 w-5 text-emerald-600"></span>
 					Критически важные действия
 				</h3>
@@ -38,7 +38,7 @@
 							>
 								{index + 1}
 							</span>
-							<span class="pt-0.5 text-sm leading-relaxed text-[#191919] opacity-80 md:text-base">
+							<span class="pt-0.5 text-sm leading-relaxed text-foreground opacity-80 md:text-base">
 								{action}
 							</span>
 						</li>
@@ -49,9 +49,9 @@
 	{/if}
 
 	{#if nextSteps.management}
-		<div class="border-2 border-[#f7f5f0] shadow-sm">
+		<div class="border-2 border-background shadow-sm">
 			<div class="space-y-4 p-6 md:p-8">
-				<h3 class="text-base font-semibold text-[#191919] md:text-lg">
+				<h3 class="text-base font-semibold text-foreground md:text-lg">
 					{nextSteps.management.title}
 				</h3>
 				<div class="overflow-x-auto">
