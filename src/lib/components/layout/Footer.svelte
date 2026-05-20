@@ -52,7 +52,7 @@
             <!-- Бренд -->
             <div>
                 <p class="text-[22px] font-medium text-foreground leading-tight">
-                    Калмыков Андрей
+                    Андрей Калмыков
                 </p>
                 <p class="mt-1 text-sm text-foreground/50">
                     Психолог · Терапия выгорания
