@@ -10,7 +10,8 @@
       "Bash(wc -c src/routes/+page.svelte src/routes/+error.svelte)",
       "Bash(powershell -c \"\\(Get-Item 'src/routes/+page.svelte'\\).Length; \\(Get-Item 'src/routes/+error.svelte'\\).Length\")",
       "Bash(grep -n \"#[A-Fa-f0-9]\\\\{3,8\\\\}\" src/app.css)",
-      "Bash(Select-Object -ExpandProperty FullName)"
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "mcp__Claude_Preview__preview_start"
     ]
   },
   "enableAllProjectMcpServers": true,
