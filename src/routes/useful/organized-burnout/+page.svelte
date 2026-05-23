@@ -46,6 +46,18 @@
 		</div>
 	</header>
 
+	<!-- Image 1: обложка — задаёт главный конфликт -->
+	<div class="mx-auto mb-10 max-w-[680px] px-5 sm:mb-16" data-reveal>
+		<figure class="m-0">
+			<img
+				src="/lmb/1.webp"
+				alt="Человечек сидит внутри календаря как в клетке, рядом список дел, помидорка Pomodoro и карточка Deep Work"
+				loading="eager"
+				class="block h-auto w-full rounded-[14px]"
+			/>
+		</figure>
+	</div>
+
 	<!-- Intro -->
 	<section class="mx-auto mb-10 max-w-[680px] px-5 sm:mb-[60px]" data-reveal>
 		<h2
@@ -59,9 +71,7 @@
 				Ведёте идеальный календарь и умеете расставлять приоритеты лучше большинства людей в вашей
 				команде.
 			</p>
-			<p>
-				И всё равно — в воскресенье вечером у вас тревога. Потому что завтра понедельник.
-			</p>
+			<p>И всё равно — в воскресенье вечером у вас тревога. Потому что завтра понедельник.</p>
 			<p>
 				Если это про вас — эта статья не про тайм-менеджмент. Она про то, почему именно у
 				организованных, умных, дисциплинированных людей это происходит чаще всего. И где на самом
@@ -70,19 +80,7 @@
 		</div>
 	</section>
 
-	<!-- Image 1 -->
-	<div class="mx-auto mb-10 max-w-[680px] px-5 sm:mb-16" data-reveal>
-		<figure class="m-0">
-			<img
-				src="/lmb/1.webp"
-				alt="Человечек сидит внутри календаря как в клетке, рядом список дел, помидорка Pomodoro и карточка Deep Work"
-				loading="lazy"
-				class="block h-auto w-full rounded-[14px]"
-			/>
-		</figure>
-	</div>
-
-	<!-- Story -->
+	<!-- Story: Коля -->
 	<section class="mx-auto mb-10 max-w-[680px] px-5 sm:mb-[60px]" data-reveal>
 		<h2
 			class="mb-[22px] font-circe text-[clamp(20px,2.5vw,26px)] leading-[1.25] font-semibold tracking-[-0.01em]"
@@ -113,6 +111,18 @@
 		</div>
 	</section>
 
+	<!-- Image 5: перегрузка стала аккуратнее — вывод после истории -->
+	<div class="mx-auto mb-10 max-w-[680px] px-5 sm:mb-16" data-reveal>
+		<figure class="m-0">
+			<img
+				src="/lmb/5.webp"
+				alt="Человек держит огромную стопку задач, а рядом эти задачи красиво разложены по коробкам: срочно, важно, потом, ещё потерплю"
+				loading="lazy"
+				class="block h-auto w-full rounded-[14px]"
+			/>
+		</figure>
+	</div>
+
 	<!-- Time management section -->
 	<section class="mx-auto mb-10 max-w-[680px] px-5 sm:mb-[60px]" data-reveal>
 		<h2
@@ -120,6 +130,19 @@
 		>
 			Тайм-менеджмент — это таблетка от головной боли при переломе ноги
 		</h2>
+
+		<!-- Image 2: сразу под заголовком — главная метафора -->
+		<div class="mb-[28px]">
+			<figure class="m-0">
+				<img
+					src="/lmb/2.webp"
+					alt="Человек со сломанной ногой пьёт таблетку «тайм-менеджмент» и держит рядом план"
+					loading="lazy"
+					class="block h-auto w-full rounded-[14px]"
+				/>
+			</figure>
+		</div>
+
 		<div class="flex flex-col gap-[18px] text-[clamp(16px,1.8vw,18px)] leading-[1.75]">
 			<p>
 				Тайм-менеджмент разработан для людей с работающей нервной системой. Он отвечает на вопрос
@@ -143,30 +166,6 @@
 			</p>
 		</div>
 	</section>
-
-	<!-- Image 2 -->
-	<div class="mx-auto mb-10 max-w-[680px] px-5 sm:mb-16" data-reveal>
-		<figure class="m-0">
-			<img
-				src="/lmb/2.webp"
-				alt="Человек со сломанной ногой пьёт таблетку «тайм-менеджмент» и держит рядом план"
-				loading="lazy"
-				class="block h-auto w-full rounded-[14px]"
-			/>
-		</figure>
-	</div>
-
-	<!-- Image 5 -->
-	<div class="mx-auto mb-10 max-w-[680px] px-5 sm:mb-16" data-reveal>
-		<figure class="m-0">
-			<img
-				src="/lmb/5.webp"
-				alt="Человек держит огромную стопку задач, а рядом эти задачи красиво разложены по коробкам: срочно, важно, потом, ещё потерплю"
-				loading="lazy"
-				class="block h-auto w-full rounded-[14px]"
-			/>
-		</figure>
-	</div>
 
 	<!-- What's really happening -->
 	<section class="mx-auto mb-10 max-w-[680px] px-5 sm:mb-[60px]" data-reveal>
@@ -192,6 +191,24 @@
 				давить на тормоз и газ одновременно. Вы тратите силы на борьбу с собственным состоянием, а
 				не на работу или жизнь.
 			</p>
+		</div>
+	</section>
+
+	<!-- Image 4: газ и тормоз — иллюстрирует фразу выше -->
+	<div class="mx-auto mb-10 max-w-[680px] px-5 sm:mb-16" data-reveal>
+		<figure class="m-0">
+			<img
+				src="/lmb/4.webp"
+				alt="Человек в машине одновременно давит на «дожать» и «отдохнуть», машина дымится и не едет"
+				loading="lazy"
+				class="block h-auto w-full rounded-[14px]"
+			/>
+		</figure>
+	</div>
+
+	<!-- Continuation: trajectory -->
+	<section class="mx-auto mb-10 max-w-[680px] px-5 sm:mb-[60px]" data-reveal>
+		<div class="flex flex-col gap-[18px] text-[clamp(16px,1.8vw,18px)] leading-[1.75]">
 			<p>
 				Если не работать с настоящим корнем, состояние накапливается по предсказуемой траектории.
 				Сначала — усталость. Потом — цинизм и ощущение бессмысленности. Потом — функциональный
@@ -205,24 +222,12 @@
 		</div>
 	</section>
 
-	<!-- Image 3 -->
+	<!-- Image 3: переход к точке входа — корни под расписанием -->
 	<div class="mx-auto mb-10 max-w-[680px] px-5 sm:mb-16" data-reveal>
 		<figure class="m-0">
 			<img
 				src="/lmb/3.webp"
 				alt="Два человечка приподнимают календарь, а под ним корни: страх ошибки, «всегда на связи», «если остановлюсь — всё рухнет», «надо быть эффективным»"
-				loading="lazy"
-				class="block h-auto w-full rounded-[14px]"
-			/>
-		</figure>
-	</div>
-
-	<!-- Image 4 -->
-	<div class="mx-auto mb-10 max-w-[680px] px-5 sm:mb-16" data-reveal>
-		<figure class="m-0">
-			<img
-				src="/lmb/4.webp"
-				alt="Человек в машине одновременно давит на «дожать» и «отдохнуть», машина дымится и не едет"
 				loading="lazy"
 				class="block h-auto w-full rounded-[14px]"
 			/>
@@ -238,9 +243,7 @@
 				Почему я говорю об этом не как теоретик
 			</h2>
 			<div class="flex flex-col gap-4 text-[clamp(15px,1.6vw,17px)] leading-[1.75] text-foreground">
-				<p>
-					Меня зовут Андрей Калмыков, я психолог для выгорающих профессионалов.
-				</p>
+				<p>Меня зовут Андрей Калмыков, я психолог для выгорающих профессионалов.</p>
 				<p>
 					До психологии у меня была долгая жизнь в IT. Я сам жил в том режиме, который описываю:
 					аспирантура плюс две работы одновременно, ощущение, что останавливаться нельзя, что нужно
