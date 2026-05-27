@@ -6,7 +6,7 @@
 </script>
 
 <Button
-	href="https://t.me/m/hSP1SM5sYjcy"
+	href="https://t.me/m/psy_kalmykov"
 	target="_blank"
 	rel="noopener noreferrer"
 	class="{margin} block max-w-[250px]"

@@ -3,7 +3,7 @@
 	import Header from '$lib/components/layout/Header.svelte';
 	import Affix from '$lib/components/ui/Affix.svelte';
 	import Footer from '$lib/components/layout/Footer.svelte';
-	import { onNavigate } from '$app/navigation';
+	import { onNavigate, afterNavigate } from '$app/navigation';
 	import { createProgress } from '$lib/hooks/useProgress.js';
 	import ProgressBar from '$lib/components/ui/ProgressBar.svelte';
 	import { Toaster } from '$lib/components/ui/sonner';
@@ -38,6 +38,12 @@
 		return () => {
 			document.body.classList.remove('overflow-hidden');
 		};
+	});
+
+	afterNavigate(() => {
+		if (typeof window.ym === 'function') {
+			window.ym(105424317, 'hit', window.location.href);
+		}
 	});
 
 	onNavigate((navigation) => {

@@ -11,7 +11,10 @@
       "Bash(powershell -c \"\\(Get-Item 'src/routes/+page.svelte'\\).Length; \\(Get-Item 'src/routes/+error.svelte'\\).Length\")",
       "Bash(grep -n \"#[A-Fa-f0-9]\\\\{3,8\\\\}\" src/app.css)",
       "Bash(Select-Object -ExpandProperty FullName)",
-      "mcp__Claude_Preview__preview_start"
+      "mcp__Claude_Preview__preview_start",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\Андрей\\\\projects\\\\kalmykov-psy\" -Recurse -ErrorAction SilentlyContinue)",
+      "Bash(npm run *)",
+      "Bash(npx skills *)"
     ]
   },
   "enableAllProjectMcpServers": true,

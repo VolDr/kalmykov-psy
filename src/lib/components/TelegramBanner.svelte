@@ -1,6 +1,7 @@
 ﻿<script lang="ts">
 	import { onMount } from 'svelte';
 	import { fly } from 'svelte/transition';
+	import { reachGoal } from '$lib/metrika';
 
 	interface Props {
 		text: string;
@@ -28,7 +29,7 @@
 	}
 
 	function handleLinkClick() {
-		// Не скрываем сразу, чтобы пользователь видел переход, но запоминаем
+		reachGoal('telegram_banner_click');
 		localStorage.setItem(STORAGE_KEY, JSON.stringify({ timestamp: Date.now(), type: 'click' }));
 	}
 

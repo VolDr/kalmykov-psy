@@ -1,28 +1,45 @@
-<script>
+<script lang="ts">
 	import { onMount } from 'svelte';
+	import { initScrollGoals } from '$lib/useScrollGoals';
+	import { reachGoal } from '$lib/metrika';
+
+	let ctaSection: HTMLElement;
 
 	onMount(() => {
-		if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-		const targets = document.querySelectorAll('[data-reveal]');
-		targets.forEach((el) => {
-			el.style.opacity = '0';
-			el.style.transform = 'translateY(18px)';
-			el.style.transition =
-				'opacity 640ms cubic-bezier(0.16,1,0.3,1), transform 640ms cubic-bezier(0.16,1,0.3,1)';
-		});
-		const obs = new IntersectionObserver(
-			(entries) => {
-				entries.forEach((e) => {
-					if (e.isIntersecting) {
-						e.target.style.opacity = '1';
-						e.target.style.transform = '';
-						obs.unobserve(e.target);
-					}
-				});
+		if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+			const targets = document.querySelectorAll('[data-reveal]');
+			targets.forEach((el) => {
+				(el as HTMLElement).style.opacity = '0';
+				(el as HTMLElement).style.transform = 'translateY(18px)';
+				(el as HTMLElement).style.transition =
+					'opacity 640ms cubic-bezier(0.16,1,0.3,1), transform 640ms cubic-bezier(0.16,1,0.3,1)';
+			});
+			const obs = new IntersectionObserver(
+				(entries) => {
+					entries.forEach((e) => {
+						if (e.isIntersecting) {
+							(e.target as HTMLElement).style.opacity = '1';
+							(e.target as HTMLElement).style.transform = '';
+							obs.unobserve(e.target);
+						}
+					});
+				},
+				{ threshold: 0.07 }
+			);
+			targets.forEach((el) => obs.observe(el));
+		}
+
+		initScrollGoals();
+
+		const observer = new IntersectionObserver(
+			([entry]) => {
+				if (!entry.isIntersecting) return;
+				reachGoal('lead_cta_seen');
+				observer.disconnect();
 			},
-			{ threshold: 0.07 }
+			{ threshold: 0.5 }
 		);
-		targets.forEach((el) => obs.observe(el));
+		if (ctaSection) observer.observe(ctaSection);
 	});
 </script>
 
@@ -111,6 +128,8 @@
 		</div>
 	</section>
 
+	<div data-scroll-goal="lead_scroll_25"></div>
+
 	<!-- Image 5: перегрузка стала аккуратнее — вывод после истории -->
 	<div class="mx-auto mb-10 max-w-[680px] px-5 sm:mb-16" data-reveal>
 		<figure class="m-0">
@@ -122,6 +141,8 @@
 			/>
 		</figure>
 	</div>
+
+	<div data-scroll-goal="lead_scroll_50"></div>
 
 	<!-- Time management section -->
 	<section class="mx-auto mb-10 max-w-[680px] px-5 sm:mb-[60px]" data-reveal>
@@ -234,6 +255,8 @@
 		</figure>
 	</div>
 
+	<div data-scroll-goal="lead_scroll_75"></div>
+
 	<!-- About -->
 	<section class="mx-auto mb-10 max-w-[680px] px-5 sm:mb-[60px]" data-reveal>
 		<div class="rounded-2xl bg-card px-6 py-7 sm:px-10 sm:py-9">
@@ -298,7 +321,7 @@
 	</section>
 
 	<!-- CTA -->
-	<section class="mx-auto mb-14 max-w-[680px] px-5 sm:mb-20" data-reveal>
+	<section class="mx-auto mb-14 max-w-[680px] px-5 sm:mb-20" data-reveal bind:this={ctaSection}>
 		<div class="rounded-2xl bg-card px-6 py-8 text-center sm:px-12 sm:py-[44px]">
 			<h2
 				class="mb-5 font-circe text-[clamp(22px,2.8vw,28px)] leading-[1.25] font-semibold tracking-[-0.01em]"
@@ -334,6 +357,7 @@
 				href="https://t.me/m/hSP1SM5sYjcy"
 				target="_blank"
 				rel="noopener noreferrer"
+				onclick={() => reachGoal('lead_cta_click')}
 				class="mt-7 inline-block rounded-md bg-primary px-8 py-[14px] text-base font-medium tracking-[0.01em] text-primary-foreground no-underline transition-colors duration-200 ease-out hover:bg-primary-light"
 			>
 				Записаться на встречу-знакомство

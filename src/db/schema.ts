@@ -17,6 +17,16 @@ import {
 } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
 
+
+export const analyticsEvents = pgTable('analytics_events', {
+  id:         bigserial('id', { mode: 'number' }).primaryKey(),
+  createdAt:  timestamp('created_at').defaultNow().notNull(),
+  goal:       text('goal').notNull(),
+  sessionId:  text('session_id'),
+  page:       text('page'),
+  params:     jsonb('params')
+});
+
 export const source = pgTable(
 	'Source',
 	{

@@ -8,9 +8,25 @@
 	import EducationNew from '$lib/components/sections/EducationNew.svelte';
 	import Media from '$lib/components/sections/Media.svelte';
 import { fade } from 'svelte/transition';
+	import { onMount } from 'svelte';
+	import { reachGoal } from '$lib/metrika';
+	import { initScrollGoals } from '$lib/useScrollGoals';
 
 
     let isIntroModalOpen = $state(false);
+
+	onMount(() => initScrollGoals());
+	let modalOpenedAt = $state<number | null>(null);
+
+	$effect(() => {
+		if (isIntroModalOpen) modalOpenedAt = Date.now();
+	});
+
+	function handleModalClose(source: 'backdrop' | 'button' | 'esc') {
+		const timeSpent = modalOpenedAt ? Math.round((Date.now() - modalOpenedAt) / 1000) : 0;
+		reachGoal('modal_closed_without_action', { source, time_spent: timeSpent });
+		isIntroModalOpen = false;
+	}
 	const problems = [
 		{
 			icon: 'icon-[lucide--zap]',
@@ -170,7 +186,7 @@ import { fade } from 'svelte/transition';
 			<div class="flex flex-wrap items-center gap-6  w-full max-w-[388px] ">
             <Button
                 href="#pricing"
-
+                onclick={() => reachGoal('main_pricing_click')}
                 variant="primary"
                 class="self-start rounded-md bg-primary px-5 py-2 text-base text-white transition-colors duration-200 hover:brightness-95 sm:self-auto"
             >
@@ -214,6 +230,8 @@ import { fade } from 'svelte/transition';
 		</Reveal>
 	</div>
 </section>
+
+<div data-scroll-goal="main_scroll_25"></div>
 
 <section class="bg-card py-16 md:py-24" id="requests">
 	<div class="mx-auto px-5 xl:px-0 md:max-w-[960px] lg:max-w-[1200px]">
@@ -444,6 +462,8 @@ import { fade } from 'svelte/transition';
 	</div>
 </section>
 
+<div data-scroll-goal="main_scroll_50"></div>
+
 <section class="bg-card py-16 md:py-24" id="approach">
 	<div class="mx-auto px-5 xl:px-0 md:max-w-[960px] lg:max-w-[1200px]">
 		<Reveal
@@ -626,6 +646,8 @@ import { fade } from 'svelte/transition';
 	</div>
 </section>
 
+<div data-scroll-goal="main_scroll_75"></div>
+
 <section id="pricing" class="bg-card py-16 md:py-24">
     <div class="mx-auto px-5 xl:px-0 md:max-w-[760px] lg:max-w-[960px]">
         <Reveal>
@@ -660,13 +682,14 @@ import { fade } from 'svelte/transition';
                             href="https://t.me/m/HK_tu_dOMDli"
                             target="_blank"
                             rel="noopener noreferrer"
+                            onclick={() => reachGoal('main_telegram_click')}
                             variant="primary"
                             class="w-full self-start rounded-md bg-primary px-5 py-2 text-base text-white transition-colors duration-200 hover:brightness-95 sm:self-auto"
                         >
                             Записаться
                         </Button>
                         <button
-                            onclick={() => isIntroModalOpen = true}
+                            onclick={() => { isIntroModalOpen = true; reachGoal('main_intro_click'); }}
                             class="cursor-pointer w-full text-center text-sm font-medium text-foreground/60 underline decoration-foreground/30 underline-offset-4 transition-colors hover:text-foreground hover:decoration-foreground"
                         >
                             Хочу познакомиться
@@ -696,6 +719,7 @@ import { fade } from 'svelte/transition';
 							href="https://t.me/m/gUIhb0xPODli"
 							target="_blank"
 							rel="noopener noreferrer"
+							onclick={() => reachGoal('main_telegram_click')}
 							variant="secondary"
 					   class="w-full self-start rounded-md px-5 py-2 text-base text-white transition-colors duration-200  sm:self-auto"
 						>
@@ -703,7 +727,7 @@ import { fade } from 'svelte/transition';
 						</Button>
 					</div>
                         <button
-                            onclick={() => isIntroModalOpen = true}
+                            onclick={() => { isIntroModalOpen = true; reachGoal('main_intro_click'); }}
                             class="w-full text-center text-sm font-medium text-white/60 underline decoration-white/30 underline-offset-4 transition-colors hover:text-white hover:decoration-white"
                         >
                             Хочу познакомиться
@@ -794,8 +818,9 @@ import { fade } from 'svelte/transition';
 			<div class="flex flex-col items-center justify-center gap-6 md:flex-row">
 						<Button
 							href="#pricing"
+							onclick={() => reachGoal('main_pricing_click')}
 							variant="primary"
-				   class="self-start rounded-md bg-primary px-5 py-2 text-base text-white transition-colors duration-200 hover:brightness-95 sm:self-auto w-full justify-center max-w-[388px]" 
+				   class="self-start rounded-md bg-primary px-5 py-2 text-base text-white transition-colors duration-200 hover:brightness-95 sm:self-auto w-full justify-center max-w-[388px]"
 						>
 							Записаться
 						</Button>
@@ -831,11 +856,11 @@ import { fade } from 'svelte/transition';
     <div
         transition:fade={{ duration: 200 }}
         class="fixed inset-0 z-50 flex items-center justify-center bg-black/67 p-4"
-        onclick={() => isIntroModalOpen = false}
+        onclick={() => handleModalClose('backdrop')}
         onkeydown={(e) => {
             if (e.key === 'Escape') {
                 e.preventDefault();
-                isIntroModalOpen = false;
+                handleModalClose('esc');
             }
         }}
     >
@@ -846,7 +871,7 @@ import { fade } from 'svelte/transition';
             aria-modal="true"
         >
             <button
-                onclick={() => isIntroModalOpen = false}
+                onclick={() => handleModalClose('button')}
                 class="absolute right-4 top-4 z-10 cursor-pointer p-2 text-foreground/50 transition-colors hover:text-foreground"
                 aria-label="Закрыть"
             >
@@ -878,6 +903,7 @@ import { fade } from 'svelte/transition';
                     href="https://t.me/m/_KpBREAfOGMy"
                     target="_blank"
                     rel="noopener noreferrer"
+                    onclick={() => reachGoal('modal_intro_click')}
                     variant="primary"
                     class="w-full self-start rounded-md bg-primary px-5 py-2 text-base text-white transition-colors duration-200 hover:brightness-95 sm:self-auto"
                 >

@@ -1,5 +1,6 @@
 ﻿<script lang="ts">
 	import { browser } from '$app/environment';
+	import { reachGoal } from '$lib/metrika';
 	import QuestionRenderer from './QuestionRenderer.svelte';
 	import ScoreDisplay from './ScoreDisplay.svelte';
 	import NextSteps from './NextSteps.svelte';
@@ -64,6 +65,7 @@
 
 	let state = $state(loadState());
 	let isMounted = $state(false);
+	const firedProgressMilestones = new Set<number>();
 	let resultsSection: HTMLElement;
 	let hasInitialScrolled = false;
 
@@ -153,8 +155,12 @@
 		if (state.currentStep === -1 && !canProceedFromEmail) return;
 		if (state.currentStep >= 0 && !canProceedQuestion) return;
 
+		if (state.currentStep === -1) {
+			reachGoal('survey_email_submitted');
+		}
+
 		let nextIdx = state.currentStep + 1;
-		
+
 		while (nextIdx < questionSteps.length) {
 			if (shouldDisplayQuestion(questionSteps[nextIdx], state.answers)) break;
 			nextIdx++;
@@ -163,8 +169,21 @@
 		if (nextIdx < questionSteps.length) {
 			state.currentStep = nextIdx;
 			window.scrollTo({ top: 0, behavior: 'smooth' });
+
+			const progress = Math.round(((nextIdx + 1) / questionSteps.length) * 100);
+			for (const milestone of [25, 50, 75]) {
+				if (progress >= milestone && !firedProgressMilestones.has(milestone)) {
+					firedProgressMilestones.add(milestone);
+					reachGoal(`survey_progress_${milestone}`);
+				}
+			}
 		} else {
 			state.showResults = true;
+			reachGoal('survey_completed', {
+				result: currentScore.interpretation.severity,
+				questions_answered: state.currentStep + 1,
+				email_provided: !!state.email
+			});
 			sendResultsEmail();
 		}
 	}
@@ -333,6 +352,7 @@
 			<div class="flex flex-col gap-4 sm:flex-row sm:items-stretch sm:justify-center mt-12">
 				<Button
 					href="/"
+					onclick={() => reachGoal('lead_cta_click')}
 					variant="secondary"
 					class="w-full self-start px-5 py-2 text-base text-white bg-foreground outline-none hover:bg-foreground/80 hover:text-white transition-colors duration-200 sm:self-auto sm:w-auto justify-center"
 				>
@@ -355,7 +375,7 @@
 				
 	</p>
 
-	<a href="https://t.me/kalmykov_psy" target="_blank" rel="noopener noreferrer" class="inline-block">
+	<a href="https://t.me/kalmykov_psy" target="_blank" rel="noopener noreferrer" onclick={() => reachGoal('survey_telegram_click')} class="inline-block">
 				<Button variant="primary" onclick={handleReset} class="w-full sm:w-auto justify-center">
 						Подписаться
 					</Button>
