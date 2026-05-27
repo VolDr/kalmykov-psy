@@ -4,7 +4,7 @@ import { dev } from '$app/environment';
 
 // Initialize scheduler on server startup (production only)
 if (!dev || process.env.ENABLE_NOTIFICATIONS === 'true') {
-	import('$lib/server/scheduler.server.ts').then(({ notificationScheduler }) => {
+	import('$lib/server/scheduler.server').then(({ notificationScheduler }) => {
 		notificationScheduler.start();
 		console.log('🚀 Планировщик уведомлений запущен');
 	});

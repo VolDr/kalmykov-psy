@@ -83,7 +83,7 @@
             {#each educationGroups as group, groupIndex}
                 <div class="education-section {groupIndex > 0 ? 'mt-12' : 'mt-2'}">
                     
-                    <div class="flex items-end justify-between {categoryExplanations[group.category] ? 'mb-2' : 'mb-6'}">
+                    <div class="pl-4 flex items-end justify-between {categoryExplanations[group.category] ? 'mb-2' : 'mb-6'}">
                         <h3 class="text-xl font-circe font-semibold text-foreground md:text-2xl">
                             {group.category}
                         </h3>
@@ -109,30 +109,34 @@
                     </div>
                     
                     {#if categoryExplanations[group.category]}
-                        <p class="mb-6 max-w-[700px] text-sm leading-relaxed text-foreground/60  pr-20">
+                        <p class="pl-4 mb-6 max-w-[700px] text-sm leading-relaxed text-foreground/60  pr-20">
                             {categoryExplanations[group.category]}
                         </p>
                     {/if}
                     
                     <div 
-                        class="education-carousel flex w-full snap-x snap-mandatory gap-4 overflow-x-auto pb-6 pt-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden md:[scrollbar-width:thin] md:[scrollbar-color:var(--color-primary)_var(--color-background)] md:[&::-webkit-scrollbar]:block md:[&::-webkit-scrollbar]:h-1.5 md:[&::-webkit-scrollbar-track]:bg-background md:[&::-webkit-scrollbar-track]:rounded-full md:[&::-webkit-scrollbar-thumb]:bg-primary/70 md:[&::-webkit-scrollbar-thumb]:rounded-full md:hover:[&::-webkit-scrollbar-thumb]:bg-primary"
+                        class="education-carousel flex w-full snap-x snap-mandatory gap-4 overflow-x-auto pb-6 pt-2 scroll-pl-4 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden md:[scrollbar-width:thin] md:[scrollbar-color:var(--color-primary)_var(--color-background)] md:[&::-webkit-scrollbar]:block md:[&::-webkit-scrollbar]:h-1.5 md:[&::-webkit-scrollbar-track]:bg-background md:[&::-webkit-scrollbar-track]:rounded-full md:[&::-webkit-scrollbar-thumb]:bg-primary/70 md:[&::-webkit-scrollbar-thumb]:rounded-full md:hover:[&::-webkit-scrollbar-thumb]:bg-primary my-scroll"
                         onwheel={handleWheelScroll}
                     >
-                        {#each group.items as item}
+                        {#each group.items as item, idx}
                             <svelte:element
                                 this={item.diploma ? 'button' : 'div'}
                                 onclick={item.diploma ? () => openDiplomaModal(item.diploma!) : undefined}
                                 class={cn(
-                                    'group relative flex w-[85vw] max-w-[320px] shrink-0 snap-start flex-col justify-between rounded-2xl border border-border bg-background p-6 md:p-8 text-left transition-all duration-300',
+                                    ' group relative flex w-[85vw] max-w-[320px] shrink-0 snap-start flex-col justify-between rounded-2xl border border-border bg-background p-6 md:p-8 text-left transition-all duration-300',
                                     {
-                                        'hover:cursor-pointer hover:border-primary/50 hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] focus-visible:outline-primary focus:outline-primary outline-0': item.diploma
+                                        'hover:cursor-pointer hover:border-primary/50 hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] focus-visible:outline-primary focus:outline-primary outline-0': item.diploma,
+                                        'ml-4': idx === 0,
+                                        'mr-4' : idx === group.items.length - 1
                                     }
                                 )}
                             >
                                 <div class="relative z-10 w-full flex flex-col">
                                     {#if !item.completed}
+                                        <span class="t-badge" data-open="true">
+                                            <span class="t-badge-dot h-2 w-2 rounded-full bg-primary"></span>
+                                        </span>
                                         <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 text-[10px] uppercase font-bold tracking-wider bg-card text-foreground/60 rounded-md w-fit mb-3">
-                                            <span class="h-1.5 w-1.5 rounded-full bg-primary animate-pulse"></span>
                                             В процессе
                                         </span>
                                     {/if}

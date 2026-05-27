@@ -1,7 +1,20 @@
 ﻿<script lang="ts">
-	import { fly } from 'svelte/transition';
 	import { cubicOut } from 'svelte/easing';
 	import { cn } from '$lib/utils';
+
+	function pageSlide(_node: Element, { dir = 1, skip = false }: { dir?: number; skip?: boolean } = {}) {
+		if (skip) return { duration: 0, css: () => '' };
+		const s = getComputedStyle(document.documentElement);
+		const dur = parseFloat(s.getPropertyValue('--page-slide-dur')) || 200;
+		const dist = parseFloat(s.getPropertyValue('--page-slide-distance')) || 8;
+		const blur = parseFloat(s.getPropertyValue('--page-blur')) || 3;
+		return {
+			duration: dur,
+			easing: cubicOut,
+			css: (t: number) =>
+				`opacity:${t};transform:translateX(${(1 - t) * dist * dir}px);filter:blur(${(1 - t) * blur}px)`
+		};
+	}
 
 	let {
 		imageUrl,
@@ -29,16 +42,8 @@
 </script>
 
 <div
-	in:fly={{
-		x: isFirstOpen ? 0 : direction * 300,
-		duration: isFirstOpen ? 0 : 300,
-		easing: cubicOut
-	}}
-	out:fly={{
-		x: isFirstOpen ? 0 : direction * -300,
-		duration: isFirstOpen ? 0 : 300,
-		easing: cubicOut
-	}}
+	in:pageSlide={{ dir: direction, skip: isFirstOpen }}
+	out:pageSlide={{ dir: -direction, skip: isFirstOpen }}
 	class="absolute inset-0 flex items-center justify-center"
 >
 	<button

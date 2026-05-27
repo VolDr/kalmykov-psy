@@ -313,6 +313,62 @@ export const emailSubscription = pgTable(
 
 export const subscriberStatusEnum = pgEnum('subscriber_status', ['pending', 'active', 'unsubscribed']);
 
+export const paymentStatusEnum = pgEnum('payment_status', ['pending', 'paid', 'failed']);
+
+export const bookingStatusEnum = pgEnum('booking_status', ['pending_payment', 'confirmed', 'cancelled', 'requires_refund']);
+
+export const availability = pgTable('Availability', {
+	id: bigserial({ mode: 'number' }).primaryKey().notNull(),
+	startAt: timestamp('start_at', { withTimezone: true, mode: 'string' }).notNull(),
+	endAt: timestamp('end_at', { withTimezone: true, mode: 'string' }).notNull(),
+	createdAt: timestamp({ precision: 3, withTimezone: true, mode: 'string' })
+		.default(sql`CURRENT_TIMESTAMP`)
+		.notNull()
+});
+
+export const booking = pgTable(
+	'Booking',
+	{
+		id: bigserial({ mode: 'number' }).primaryKey().notNull(),
+		availabilityId: bigint('availability_id', { mode: 'number' }).notNull(),
+		bookedAt: timestamp('booked_at', { withTimezone: true, mode: 'string' }).notNull(),
+		email: text().notNull(),
+		clientName: text('client_name').notNull(),
+		status: bookingStatusEnum().default('pending_payment').notNull(),
+		lockedUntil: timestamp({ precision: 3, withTimezone: true, mode: 'string' }),
+		paymentId: bigint('payment_id', { mode: 'number' }),
+		createdAt: timestamp({ precision: 3, withTimezone: true, mode: 'string' })
+			.default(sql`CURRENT_TIMESTAMP`)
+			.notNull(),
+		updatedAt: timestamp({ precision: 3, withTimezone: true, mode: 'string' }).notNull()
+	},
+	(table) => [
+		foreignKey({
+			columns: [table.availabilityId],
+			foreignColumns: [availability.id],
+			name: 'Booking_availabilityId_fkey'
+		})
+			.onUpdate('cascade')
+			.onDelete('restrict'),
+		uniqueIndex('unique_active_booking_slot')
+			.on(table.availabilityId, table.bookedAt)
+			.where(sql`status IN ('confirmed', 'pending_payment')`)
+	]
+);
+
+export const robokassaPayment = pgTable('RobokassaPayment', {
+	id: bigserial({ mode: 'number' }).primaryKey().notNull(),
+	createdAt: timestamp({ precision: 3, withTimezone: true, mode: 'string' })
+		.default(sql`CURRENT_TIMESTAMP`)
+		.notNull(),
+	updatedAt: timestamp({ precision: 3, withTimezone: true, mode: 'string' }).notNull(),
+	outSum: numeric({ precision: 10, scale: 2 }).notNull(),
+	description: text().notNull(),
+	status: paymentStatusEnum().default('pending').notNull(),
+	email: text(),
+	opKey: text('op_key')
+});
+
 export const subscriber = pgTable('Subscriber', {
     id: text().primaryKey().notNull(),
     email: text().notNull().unique(),

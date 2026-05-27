@@ -14,7 +14,10 @@
       "mcp__Claude_Preview__preview_start",
       "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\Андрей\\\\projects\\\\kalmykov-psy\" -Recurse -ErrorAction SilentlyContinue)",
       "Bash(npm run *)",
-      "Bash(npx skills *)"
+      "Bash(npx skills *)",
+      "Bash(cat src/index.ts)",
+      "Bash(cat src/lib/index.ts)",
+      "Bash(npm install *)"
     ]
   },
   "enableAllProjectMcpServers": true,

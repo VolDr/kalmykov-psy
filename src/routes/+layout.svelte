@@ -20,6 +20,9 @@
 	let isUsefulRoute = $derived(data.pathname?.startsWith('/useful'))
 	let burnoutSurveyRoute = $derived(data.pathname === '/burnout-survey');
 	let isLma = $derived(data.pathname?.startsWith('/lma'));
+	let isPaymentResult = $derived(
+		data.pathname === '/payment/success' || data.pathname === '/payment/fail'
+	);
 	// Only hide header/footer for special code pages (like /ABC123), not regular pages
 	let isCodeRoute = $derived(
 		data.pathname &&
@@ -134,7 +137,7 @@
 	</script>
 </svelte:head>
 
-{#if !isAdminRoute && !isCodeRoute && !isLoginRoute && !burnoutSurveyRoute && !isLma && !isUsefulRoute}
+{#if !isAdminRoute && !isCodeRoute && !isLoginRoute && !burnoutSurveyRoute && !isLma && !isUsefulRoute && !isPaymentResult}
 	{#if page.url.pathname !== '/test-landing'}
 		<Header initialMenuColor="white" />
 	{/if}
@@ -150,9 +153,9 @@
 	{@render children()}
 </main>
 
-{#if !isAdminRoute && !isCodeRoute && !isLoginRoute && !burnoutSurveyRoute && !isLma}
+{#if !isAdminRoute && !isCodeRoute && !isLoginRoute && !burnoutSurveyRoute && !isLma && !isPaymentResult}
 	<TelegramBanner link={telegramChannel.link} text={telegramChannel.text} />
 {/if}
-{#if !isAdminRoute && !isCodeRoute && !isLoginRoute}
+{#if !isAdminRoute && !isCodeRoute && !isLoginRoute && !isPaymentResult}
 	<Footer />
 {/if}

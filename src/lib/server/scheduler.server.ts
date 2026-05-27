@@ -4,6 +4,8 @@ import dayjs from 'dayjs';
 import timezone from 'dayjs/plugin/timezone';
 import utc from 'dayjs/plugin/utc';
 import { notificationService } from './notification.server';
+import { releaseExpiredLocks } from './booking.server';
+import { releaseExpiredPayments } from './robokassa.server';
 
 // Настраиваем timezone support
 dayjs.extend(utc);
@@ -36,6 +38,28 @@ class NotificationScheduler {
 				}
 			} catch (error) {
 				console.error('Ошибка в планировщике уведомлений:', error);
+			}
+		});
+
+		// Освобождаем просроченные брони каждые 5 минут
+		cron.schedule('*/5 * * * *', async () => {
+			try {
+				const released = await releaseExpiredLocks();
+				if (released > 0) {
+					console.log(`Освобождено просроченных броней: ${released}`);
+				}
+			} catch (error) {
+				console.error('Ошибка при освобождении броней:', error);
+			}
+		});
+
+		// Помечаем просроченные платежи как failed каждые 5 минут
+		cron.schedule('*/5 * * * *', async () => {
+			try {
+				const count = await releaseExpiredPayments();
+				if (count > 0) console.log(`Просроченных платежей помечено как failed: ${count}`);
+			} catch (error) {
+				console.error('Ошибка при обновлении просроченных платежей:', error);
 			}
 		});
 

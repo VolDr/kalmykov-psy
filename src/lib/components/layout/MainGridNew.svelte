@@ -617,8 +617,8 @@ import { fade } from 'svelte/transition';
 			</Reveal>
 		</div>
 	</div>
-	<div class="mx-auto px-5 xl:px-0 md:max-w-[960px] lg:max-w-[1200px]"><EducationNew /></div>
-	<div class="mx-auto px-5 xl:px-0 md:max-w-[960px] lg:max-w-[1200px]"><Media /></div>
+	<div class="mx-auto  xl:px-0 md:max-w-[960px] lg:max-w-[1200px]"><EducationNew /></div>
+	<div class="mx-auto  xl:px-0 md:max-w-[960px] lg:max-w-[1200px]"><Media /></div>
 	<div class="mx-auto mt-16 px-5 xl:px-0 md:mt-24 md:max-w-[760px] lg:max-w-[960px]">
 		<Reveal width="full">
 			<div>
@@ -679,10 +679,8 @@ import { fade } from 'svelte/transition';
                     </ul>
                     <div class="mt-auto flex flex-col gap-4">
                         <Button
-                            href="https://t.me/m/HK_tu_dOMDli"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onclick={() => reachGoal('main_telegram_click')}
+                            href="/booking"
+                            onclick={() => reachGoal('main_pricing_click')}
                             variant="primary"
                             class="w-full self-start rounded-md bg-primary px-5 py-2 text-base text-white transition-colors duration-200 hover:brightness-95 sm:self-auto"
                         >
@@ -716,12 +714,10 @@ import { fade } from 'svelte/transition';
                     <div class="mt-auto flex flex-col gap-4">
      <div class="mt-auto flex">
 						<Button
-							href="https://t.me/m/gUIhb0xPODli"
-							target="_blank"
-							rel="noopener noreferrer"
-							onclick={() => reachGoal('main_telegram_click')}
+							href="/booking?type=package"
+							onclick={() => reachGoal('main_pricing_click')}
 							variant="secondary"
-					   class="w-full self-start rounded-md px-5 py-2 text-base text-white transition-colors duration-200  sm:self-auto"
+							class="w-full self-start rounded-md px-5 py-2 text-base text-white transition-colors duration-200 sm:self-auto"
 						>
 							Начать работу
 						</Button>

@@ -283,7 +283,7 @@
 					</div>
 					<div class="h-1.5 w-full overflow-hidden rounded-full bg-gray-200">
 						<div
-							class="h-full rounded-full bg-primary transition-all duration-300"
+							class="t-resize h-full rounded-full bg-primary"
 							style="width: {((state.currentStep + 1) / questionSteps.length) * 100}%"
 						></div>
 					</div>

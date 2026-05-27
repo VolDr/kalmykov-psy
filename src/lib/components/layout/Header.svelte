@@ -116,9 +116,7 @@
 					</li>
 				{/each}
 				<Button
-					href="https://t.me/m/cRvQa0zAMTJi"
-					target="_blank"
-					rel="noopener noreferrer"
+					href="/booking"
 					variant="primary"
 					class="block rounded-sm bg-primary px-3 py-0 text-[22px] text-white transition-colors duration-200 hover:brightness-95"
 					>Записаться</Button
@@ -167,32 +165,19 @@
 		aria-expanded={opened}
 		onclick={toggle}
 		onkeydown={handleKeydown}
-		class="relative h-5 w-6 pr-6 focus:outline-none"
+		class={cn(
+			'relative h-6 w-6 focus:outline-none',
+			(opened || menuColor === 'black') ? 'text-foreground' : 'text-white'
+		)}
 	>
-		<span
-			class={cn(
-				'absolute top-0 left-0 h-0.5 w-6 transition-all duration-200',
-				(opened || menuColor === 'black') && 'bg-black',
-				!opened && menuColor !== 'black' && 'bg-white',
-				opened && 'translate-y-2 rotate-45'
-			)}
-		></span>
-		<span
-			class={cn(
-				'absolute top-2 left-0 h-0.5 w-6 transition-all duration-200',
-				(opened || menuColor === 'black') && 'bg-black',
-				!opened && menuColor !== 'black' && 'bg-white',
-				opened && 'opacity-0'
-			)}
-		></span>
-		<span
-			class={cn(
-				'absolute top-4 left-0 h-0.5 w-6 transition-all duration-200',
-				(opened || menuColor === 'black') && 'bg-black',
-				!opened && menuColor !== 'black' && 'bg-white',
-				opened && '-translate-y-2 -rotate-45'
-			)}
-		></span>
+		<div class="t-icon-swap" data-state={opened ? 'b' : 'a'}>
+			<span class="t-icon" data-icon="a">
+				<span class="icon-[lucide--menu] h-6 w-6"></span>
+			</span>
+			<span class="t-icon" data-icon="b">
+				<span class="icon-[lucide--x] h-6 w-6"></span>
+			</span>
+		</div>
 	</button>
 </div>
 
@@ -209,10 +194,8 @@
 	role="dialog"
 	aria-modal="true"
 	aria-label="Мобильное меню"
-	class={cn(
-		'fixed top-0 right-0 z-40 h-full w-[80%] max-w-[300px] bg-white shadow-xl transition-transform duration-200 ease-out sm:hidden',
-		opened ? 'translate-x-0' : 'translate-x-full'
-	)}
+	class="t-panel-slide-x fixed top-0 right-0 z-40 h-full w-[80%] max-w-[300px] bg-white shadow-xl sm:hidden"
+	data-open={opened ? 'true' : 'false'}
 >
 	<nav aria-label="Меню навигации мобильное">
 		<ul class="m-0 flex list-none flex-col p-0 px-4 pt-16">
@@ -249,9 +232,7 @@
 			{/each}
 
             <Button
-                href="https://t.me/m/cRvQa0zAMTJi"
-                target="_blank"
-                rel="noopener noreferrer"
+                href="/booking"
                 variant="primary"
                 class="mt-3 self-start rounded-md bg-primary px-5 py-2 text-base text-white transition-colors duration-200 hover:brightness-95 sm:self-auto"
             >

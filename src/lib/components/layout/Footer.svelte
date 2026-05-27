@@ -61,9 +61,7 @@
 
             <!-- Кнопка записи -->
             <Button
-                href="https://t.me/m/cRvQa0zAMTJi"
-                target="_blank"
-                rel="noopener noreferrer"
+                href="/booking"
                 variant="primary"
                 class="self-start rounded-md bg-primary px-5 py-2 text-base text-white transition-colors duration-200 hover:brightness-95 sm:self-auto"
             >

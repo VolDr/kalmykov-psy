@@ -1,6 +1,5 @@
 ﻿<script lang="ts">
 	import { onMount } from 'svelte';
-	import { fly } from 'svelte/transition';
 	import { reachGoal } from '$lib/metrika';
 
 	interface Props {
@@ -21,10 +20,9 @@
 
 	function closeBanner() {
 		isShowing = false;
-		// Даем время анимации исчезновения перед полным скрытием
 		setTimeout(() => {
 			isVisible = false;
-		}, 300);
+		}, 350); // matches --panel-close-dur
 		localStorage.setItem(STORAGE_KEY, JSON.stringify({ timestamp: Date.now(), type: 'close' }));
 	}
 
@@ -102,10 +100,10 @@
 	});
 </script>
 
-{#if isVisible && isShowing}
+{#if isVisible}
 	<div
-		transition:fly={{ y: 100, duration: 300 }}
-		class="fixed bottom-0 left-0 right-0 z-[100] flex min-h-12 max-w-[100vw] items-center justify-between bg-card shadow-lg"
+		class="t-panel-slide fixed bottom-0 left-0 right-0 z-[100] flex min-h-12 max-w-[100vw] items-center justify-between bg-card shadow-lg"
+		data-open={isShowing ? 'true' : 'false'}
 	>
 		<button
 			onclick={closeBanner}

@@ -1,8 +1,21 @@
 ﻿<script lang="ts">
-	import { fade, fly } from 'svelte/transition';
 	import { cubicOut } from 'svelte/easing';
 	import { cn } from '$lib/utils';
 	import { swipe } from '$lib/actions/swipe';
+
+	function pageSlide(_node: Element, { dir = 1, skip = false }: { dir?: number; skip?: boolean } = {}) {
+		if (skip) return { duration: 0, css: () => '' };
+		const s = getComputedStyle(document.documentElement);
+		const dur = parseFloat(s.getPropertyValue('--page-slide-dur')) || 200;
+		const dist = parseFloat(s.getPropertyValue('--page-slide-distance')) || 8;
+		const blur = parseFloat(s.getPropertyValue('--page-blur')) || 3;
+		return {
+			duration: dur,
+			easing: cubicOut,
+			css: (t: number) =>
+				`opacity:${t};transform:translateX(${(1 - t) * dist * dir}px);filter:blur(${(1 - t) * blur}px)`
+		};
+	}
 
 	interface Diploma {
 		imageUrl: string;
@@ -23,6 +36,28 @@
 	let loadedImages = $state(new Set<string>());
 	let direction = $state(1);
 	let isFirstOpen = $state(true);
+
+	let isVisible = $state(false);
+	let isOpenClass = $state(false);
+	let isClosingClass = $state(false);
+
+	$effect(() => {
+		if (isOpen && !isOpenClass) {
+			isVisible = true;
+			isClosingClass = false;
+			requestAnimationFrame(() => {
+				isOpenClass = true;
+			});
+		} else if (!isOpen && isVisible && !isClosingClass) {
+			isOpenClass = false;
+			isClosingClass = true;
+			const t = setTimeout(() => {
+				isVisible = false;
+				isClosingClass = false;
+			}, 150);
+			return () => clearTimeout(t);
+		}
+	});
 
 	const currentDiploma = $derived(diplomas[currentIndex]);
 
@@ -107,18 +142,17 @@
 	});
 </script>
 
-{#if isOpen && diplomas.length > 0}
+{#if isVisible && diplomas.length > 0}
 	<!-- Backdrop -->
 	<div
-		transition:fade={{ duration: 200 }}
-		class="fixed inset-0 z-50 bg-black/67"
+		class={cn('t-backdrop fixed inset-0 z-50 bg-black/67', isOpenClass && 'is-open', isClosingClass && 'is-closing')}
 		onclick={close}
 	>
 		<!-- Content wrapper - centered -->
 		<div class="flex min-h-screen items-center justify-center p-4">
 			<!-- Modal content -->
 			<div
-				class="relative flex flex-col gap-6"
+				class={cn('t-modal relative flex flex-col gap-6', isOpenClass && 'is-open', isClosingClass && 'is-closing')}
 				use:swipe={{ onSwipeLeft: goToNext, onSwipeRight: goToPrevious }}
 				role="dialog"
 				aria-modal="true"
@@ -171,16 +205,8 @@
 						{#key currentIndex}
 							<div
 								class="absolute inset-0 flex items-center justify-center"
-								in:fly={{
-									x: isFirstOpen ? 0 : direction * 300,
-									duration: isFirstOpen ? 0 : 300,
-									easing: cubicOut
-								}}
-								out:fly={{
-									x: isFirstOpen ? 0 : direction * -300,
-									duration: isFirstOpen ? 0 : 300,
-									easing: cubicOut
-								}}
+								in:pageSlide={{ dir: direction, skip: isFirstOpen }}
+								out:pageSlide={{ dir: -direction, skip: isFirstOpen }}
 							>
 								<img
 									src={currentDiploma.imageUrl}

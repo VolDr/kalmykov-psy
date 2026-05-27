@@ -27,7 +27,7 @@
         </div>
 
         <!-- Добавлен pb-10, чтобы абсолютная ссылка влезла и не обрезалась контейнером -->
-        <div class="flex w-full snap-x snap-mandatory scroll-px-5 items-stretch gap-4 overflow-x-auto overflow-y-hidden px-5 pb-10 md:mb-10 md:grid md:grid-cols-3 md:gap-6 md:overflow-visible md:px-5 md:pb-0 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden" onwheel={handleWheelScroll}>
+        <div class="flex w-full scroll-pl-4 snap-x snap-mandatory  items-stretch gap-4 overflow-x-auto overflow-y-hidden px-4 pb-10 md:mb-10 md:grid md:grid-cols-3 md:gap-6 md:overflow-visible md:px-5 md:pb-0 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden" onwheel={handleWheelScroll}>
             
             <!-- Карточка 1: RG.ru -->
             <div class="relative flex w-[75vw] max-w-[320px] shrink-0 snap-start flex-col md:w-auto md:max-w-none">
