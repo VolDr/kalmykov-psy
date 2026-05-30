@@ -1,6 +1,6 @@
 ﻿<script lang="ts">
 	import Survey from '$lib/components/survey/SurveyStep.svelte';
-	import { bat23Config } from '../../../configs/bat23Config';
+	import { bat23Config } from '../../../configs/bat23ConfigSoft';
 	
 export const ssr = false;
 </script>

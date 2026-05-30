@@ -77,14 +77,14 @@
 	<div class="w-full max-w-md text-center">
 		<div class="mb-6 flex justify-center">
 			{#if status === 'confirmed' || status === 'paid'}
-				<div class="flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
-					<svg class="h-8 w-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<div class="flex h-16 w-16 items-center justify-center rounded-full bg-primary/15">
+					<svg class="h-8 w-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
 					</svg>
 				</div>
 			{:else if status === 'requires_refund'}
-				<div class="flex h-16 w-16 items-center justify-center rounded-full bg-amber-100">
-					<svg class="h-8 w-8 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<div class="flex h-16 w-16 items-center justify-center rounded-full bg-stone-100">
+					<svg class="h-8 w-8 text-stone-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
 					</svg>
 				</div>
@@ -100,10 +100,24 @@
 		</div>
 
 		{#if status === 'confirmed' || status === 'paid'}
-			<h1 class="font-display text-2xl font-medium text-stone-800">Оплата прошла успешно!</h1>
+			<h1 class="font-display text-2xl font-medium text-stone-800">Оплата прошла успешно</h1>
+			{#if data.description}
+				<p class="mt-3 text-base font-medium text-stone-600">{data.description}</p>
+			{/if}
+			{#if data.bookedAt}
+				<p class="mt-2 text-lg font-medium text-stone-700">
+					{new Date(data.bookedAt).toLocaleString('ru-RU', {
+						day: '2-digit',
+						month: 'long',
+						year: 'numeric',
+						hour: '2-digit',
+						minute: '2-digit'
+					})}
+				</p>
+			{/if}
 			<p class="mt-4 text-stone-600">
-				Я свяжусь с вами для подтверждения деталей сессии или
-				<a href="https://t.me/m/HK_tu_dOMDli" class="text-stone-800 underline underline-offset-2 hover:text-stone-600">напишите мне в Telegram</a>.
+				Свяжусь с вами в течение дня для подтверждения деталей или
+				<a href="https://t.me/m/LMOE2JTtMDcy" class="text-stone-800 underline underline-offset-2 hover:text-stone-600">напишите мне в Telegram</a>.
 			</p>
 		{:else if status === 'requires_refund'}
 			<h1 class="font-display text-2xl font-medium text-stone-800">Оплата прошла, но слот занят</h1>
@@ -132,7 +146,7 @@
 		{#if status !== 'pending_payment' || !polling}
 			<a
 				href="/"
-				class="mt-8 inline-block rounded-lg bg-stone-800 px-6 py-2.5 text-sm font-medium text-white transition hover:bg-stone-700"
+				class="mt-8 inline-block rounded-lg bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground transition hover:bg-primary/90"
 			>
 				На главную
 			</a>

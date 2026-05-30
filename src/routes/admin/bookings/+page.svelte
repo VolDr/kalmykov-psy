@@ -31,11 +31,19 @@
 	};
 
 	let now = $state(Date.now());
+	let hideCancelled = $state(true);
+
+	function toggleHideCancelled() {
+		hideCancelled = !hideCancelled;
+		localStorage.setItem('admin_hideCancelled', String(hideCancelled));
+	}
 
 	onMount(() => {
+		const saved = localStorage.getItem('admin_hideCancelled');
+		if (saved !== null) hideCancelled = saved === 'true';
+
 		const t = setInterval(() => {
 			now = Date.now();
-			// Reload page shortly after any lock expires so statuses update
 			const anyJustExpired = data.bookings.some(
 				(b) => b.status === 'pending_payment' && b.lockedUntil &&
 					new Date(b.lockedUntil).getTime() < now &&
@@ -61,7 +69,59 @@
 </svelte:head>
 
 <div class="p-6">
-	<h1 class="mb-6 text-2xl font-semibold">Бронирования ({data.bookings.length})</h1>
+	<div class="mb-6 flex items-center justify-between">
+		<h1 class="text-2xl font-semibold">Бронирования ({data.bookings.length})</h1>
+		<button
+			type="button"
+			onclick={toggleHideCancelled}
+			class="rounded-lg border px-3 py-1.5 text-sm text-stone-500 hover:bg-stone-50"
+		>
+			{hideCancelled ? 'Показать отменённые' : 'Скрыть отменённые'}
+		</button>
+	</div>
+
+	<form
+		method="POST"
+		action="?/create"
+		class="mb-6 flex flex-wrap items-end gap-3 rounded-xl border bg-white p-4"
+	>
+		<div class="flex flex-col gap-1">
+			<label for="bookedAt" class="text-xs font-medium text-stone-500">Дата и время</label>
+			<input
+				id="bookedAt"
+				name="bookedAt"
+				type="datetime-local"
+				required
+				class="rounded-lg border border-stone-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-stone-300"
+			/>
+		</div>
+		<div class="flex flex-col gap-1">
+			<label for="telegram" class="text-xs font-medium text-stone-500">Telegram</label>
+			<input
+				id="telegram"
+				name="telegram"
+				type="text"
+				placeholder="@username"
+				required
+				class="rounded-lg border border-stone-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-stone-300"
+			/>
+		</div>
+		<div class="flex flex-col gap-1">
+			<label for="email" class="text-xs font-medium text-stone-500">Email</label>
+			<input
+				id="email"
+				name="email"
+				type="email"
+				placeholder="client@example.com"
+				required
+				class="rounded-lg border border-stone-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-stone-300"
+			/>
+		</div>
+		<button
+			type="submit"
+			class="rounded-lg bg-stone-800 px-4 py-2 text-sm font-medium text-white hover:bg-stone-700"
+		>Добавить</button>
+	</form>
 
 	<div class="overflow-x-auto rounded-xl border bg-white">
 		{#if data.bookings.length === 0}
@@ -75,10 +135,11 @@
 						<th class="px-4 py-3">Email</th>
 						<th class="px-4 py-3">Статус</th>
 						<th class="px-4 py-3">Платёж №</th>
+					<th class="px-4 py-3"></th>
 					</tr>
 				</thead>
 				<tbody class="divide-y">
-					{#each data.bookings as b}
+					{#each data.bookings.filter(b => !hideCancelled || b.status !== 'cancelled') as b}
 						<tr class="hover:bg-stone-50">
 							<td class="whitespace-nowrap px-4 py-3 font-medium text-stone-800">
 								{fmt(b.bookedAt)}
@@ -108,6 +169,17 @@
 								{/if}
 							</td>
 							<td class="px-4 py-3 text-stone-400">{b.paymentId ?? '—'}</td>
+							<td class="px-4 py-3">
+								{#if b.status !== 'cancelled'}
+									<form method="POST" action="?/cancel">
+										<input type="hidden" name="id" value={b.id} />
+										<button
+											type="submit"
+											class="rounded px-2 py-1 text-xs text-red-500 hover:bg-red-50 hover:text-red-700"
+										>Отменить</button>
+									</form>
+								{/if}
+							</td>
 						</tr>
 					{/each}
 				</tbody>

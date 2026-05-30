@@ -3,6 +3,7 @@
 	import { page } from '$app/state';
 	import { cn } from '$lib/utils';
 	import { onMount } from 'svelte';
+	import { afterNavigate } from '$app/navigation';
 	import Button from '$lib/components/ui/Button.svelte';
 	let {
 		initialMenuColor = 'white',
@@ -78,6 +79,10 @@
 		const threshold = heroHeight - headerHeight * 0.8;
 		menuColor = scrollY > threshold ? 'black' : initialMenuColor;
 	}
+
+	afterNavigate(() => {
+		closeMenu();
+	});
 
 	onMount(() => {
 		window.addEventListener('scroll', handleScroll, { passive: true });
@@ -181,14 +186,17 @@
 	</button>
 </div>
 
-{#if opened}
-	<button
-		aria-label="Закрыть меню"
-		onclick={closeMenu}
-		onkeydown={handleKeydown}
-		class="fixed inset-0 z-30 animate-in bg-black/40 transition-opacity duration-200 fade-in sm:hidden"
-	></button>
-{/if}
+<button
+	aria-label="Закрыть меню"
+	tabindex={opened ? 0 : -1}
+	aria-hidden={!opened}
+	onclick={closeMenu}
+	onkeydown={handleKeydown}
+	class={cn(
+		'fixed inset-0 z-30 bg-black/40 transition-opacity duration-200 sm:hidden',
+		opened ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+	)}
+></button>
 
 <div
 	role="dialog"
@@ -205,7 +213,7 @@
 						href={link.link}
 						target={link.external ? '_blank' : undefined}
 						rel={link.external ? 'noopener noreferrer' : undefined}
-						onclick={link.link === '/' ? undefined : closeMenu}
+						onclick={closeMenu}
 						class={cn(
 							'flex min-h-[44px] items-center rounded-sm px-4 py-3 text-lg text-foreground transition-colors duration-200 hover:bg-gray-100',
 							link.link === page.url.pathname && 'bg-card font-medium'

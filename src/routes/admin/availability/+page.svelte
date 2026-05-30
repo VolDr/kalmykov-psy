@@ -5,23 +5,29 @@
 
 	let { data } = $props();
 
-	let selectedDate = $state<string>('');
+	let selectedDates = $state<Set<string>>(new Set());
 	let startHour = $state(9);
 	let endHour = $state(18);
 	let error = $state('');
 
 	const MSK_TZ = 'Europe/Moscow';
 
-	function handleDateChange(date: DateValue | undefined) {
-		if (!date) return;
-		selectedDate = `${date.year}-${String(date.month).padStart(2, '0')}-${String(date.day).padStart(2, '0')}`;
+	function dateStr(d: DateValue): string {
+		return `${d.year}-${String(d.month).padStart(2, '0')}-${String(d.day).padStart(2, '0')}`;
 	}
 
-	const calendarValue = $derived.by(() => {
-		if (!selectedDate) return undefined;
-		const [y, m, d] = selectedDate.split('-').map(Number);
-		return new CalendarDate(y, m, d);
-	});
+	function handleCalendarChange(dates: DateValue[] | undefined) {
+		if (!dates) { selectedDates = new Set(); return; }
+		selectedDates = new Set(dates.map(dateStr));
+	}
+
+	// Convert selectedDates back to CalendarDate[] for the Calendar value prop
+	const calendarValue = $derived(
+		[...selectedDates].map((s) => {
+			const [y, m, d] = s.split('-').map(Number);
+			return new CalendarDate(y, m, d);
+		})
+	);
 
 	const hours = Array.from({ length: 24 }, (_, i) => i);
 
@@ -52,15 +58,33 @@
 
 	<div class="mb-8 grid gap-6 lg:grid-cols-2">
 		<div class="rounded-xl border bg-white p-4">
-			<p class="mb-3 text-sm font-medium text-stone-600">Выберите дату (по МСК)</p>
-			<Calendar type="single" value={calendarValue} onValueChange={handleDateChange} locale="ru" />
+			<p class="mb-1 text-sm font-medium text-stone-600">Выберите даты (МСК)</p>
+			<p class="mb-3 text-xs text-stone-400">Кликайте по датам для выбора/снятия</p>
+			<Calendar type="multiple" value={calendarValue} onValueChange={handleCalendarChange} locale="ru" />
+			{#if selectedDates.size > 0}
+				<button
+					type="button"
+					onclick={() => (selectedDates = new Set())}
+					class="mt-3 text-xs text-stone-400 hover:text-red-500"
+				>Сбросить все ({selectedDates.size})</button>
+			{/if}
 		</div>
 
-		{#if selectedDate}
-			<div class="rounded-xl border bg-white p-4">
+		<div class="rounded-xl border bg-white p-4">
+			{#if selectedDates.size === 0}
+				<div class="flex h-full items-center justify-center text-sm text-stone-400">
+					Выберите даты на календаре
+				</div>
+			{:else}
 				<p class="mb-4 text-sm font-medium text-stone-600">
-					Добавить слот на <span class="font-semibold text-stone-800">{selectedDate}</span> МСК
+					Добавить слот на <span class="font-semibold text-stone-800">{selectedDates.size} {selectedDates.size === 1 ? 'дату' : 'дат'}</span>
 				</p>
+
+				<div class="mb-4 flex flex-wrap gap-1.5">
+					{#each [...selectedDates].sort() as d}
+						<span class="rounded-full bg-stone-100 px-2.5 py-0.5 text-xs text-stone-600">{d}</span>
+					{/each}
+				</div>
 
 				<form
 					method="POST"
@@ -70,13 +94,17 @@
 						return async ({ result, update }) => {
 							if (result.type === 'failure') {
 								error = (result.data?.error as string) ?? 'Ошибка';
+							} else {
+								selectedDates = new Set();
 							}
 							await update();
 						};
 					}}
 					class="space-y-4"
 				>
-					<input type="hidden" name="date" value={selectedDate} />
+					{#each [...selectedDates] as d}
+						<input type="hidden" name="date" value={d} />
+					{/each}
 
 					<div class="flex gap-3">
 						<label class="flex-1">
@@ -114,15 +142,11 @@
 						type="submit"
 						class="w-full rounded-lg bg-stone-800 py-2 text-sm font-medium text-white hover:bg-stone-700"
 					>
-						Добавить слот
+						Добавить слот{selectedDates.size > 1 ? ` (${selectedDates.size} дни)` : ''}
 					</button>
 				</form>
-			</div>
-		{:else}
-			<div class="flex items-center justify-center rounded-xl border bg-stone-50 p-4 text-sm text-stone-400">
-				Выберите дату на календаре
-			</div>
-		{/if}
+			{/if}
+		</div>
 	</div>
 
 	<div class="rounded-xl border bg-white">

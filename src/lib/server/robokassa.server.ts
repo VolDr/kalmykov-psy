@@ -15,9 +15,27 @@ function cfg() {
 	};
 }
 
-function paymentSig(outSum: string, invId: number): string {
+function buildReceipt(description: string, outSum: string) {
+	return {
+		items: [
+			{
+				name: description.substring(0, 128),
+				quantity: 1,
+				sum: Math.round(parseFloat(outSum) * 100) / 100,
+				payment_method: 'full_payment',
+				payment_object: 'service',
+				tax: 'none'
+			}
+		]
+	};
+}
+
+function paymentSig(outSum: string, invId: number, receiptEncoded?: string): string {
 	const { login, pass1 } = cfg();
-	return createHash('md5').update(`${login}:${outSum}:${invId}:${pass1}`).digest('hex');
+	const base = receiptEncoded
+		? `${login}:${outSum}:${invId}:${receiptEncoded}:${pass1}`
+		: `${login}:${outSum}:${invId}:${pass1}`;
+	return createHash('md5').update(base).digest('hex');
 }
 
 function resultSig(outSum: string, invId: number): string {
@@ -51,7 +69,9 @@ export async function createPayment(params: {
 		})
 		.returning();
 
-	const sig = paymentSig(params.outSum, payment.id);
+	const receiptJson = JSON.stringify(buildReceipt(payment.description, params.outSum));
+	const receiptEncoded = encodeURIComponent(receiptJson);
+	const sig = paymentSig(params.outSum, payment.id, receiptEncoded);
 
 	const minutes = params.expiresInMinutes ?? 15;
 	const expiration = new Date(Date.now() + minutes * 60 * 1000);
@@ -64,6 +84,7 @@ export async function createPayment(params: {
 			OutSum: params.outSum,
 			InvId: String(payment.id),
 			Description: payment.description,
+			Receipt: receiptJson,
 			SignatureValue: sig,
 			IsTest: isTestMode() ? '1' : '0',
 			ExpirationDate: expirationDate,

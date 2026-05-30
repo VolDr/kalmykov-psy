@@ -77,9 +77,7 @@ export async function getAvailabilities(): Promise<AvailabilityWithSlots[]> {
 			.filter((slotStart) => new Date(slotStart).getTime() > nowMs + BUFFER_MS) // skip past and near-future slots (< 24h)
 			.map((slotStart) => {
 				const match = activeBookings.find(
-					(b) =>
-						b.availabilityId === a.id &&
-						new Date(b.bookedAt).getTime() === new Date(slotStart).getTime()
+					(b) => new Date(b.bookedAt).getTime() === new Date(slotStart).getTime()
 				);
 				let status: SlotStatus = 'available';
 				if (match) status = match.status === 'confirmed' ? 'booked' : 'locked';
@@ -160,7 +158,7 @@ export async function createBooking(params: {
 	// Create payment FIRST — if Robokassa is down, no booking row is created (no cleanup needed)
 	const payment = await createPayment({
 		outSum: params.outSum ?? CONSULTATION_PRICE,
-		description: `Консультация ${dateLabel} ${hourLabel} МСК`,
+		description: params.outSum === PACKAGE_PRICE ? 'Пакет консультаций' : 'Консультация',
 		email: params.email,
 		expiresInMinutes: 15,
 		successUrl: `${params.originUrl}/booking/success`,

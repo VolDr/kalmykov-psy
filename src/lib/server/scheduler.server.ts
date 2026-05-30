@@ -41,25 +41,23 @@ class NotificationScheduler {
 			}
 		});
 
-		// Освобождаем просроченные брони каждые 5 минут
-		cron.schedule('*/5 * * * *', async () => {
+		// Освобождаем просроченные брони каждую минуту
+		cron.schedule('* * * * *', async () => {
 			try {
 				const released = await releaseExpiredLocks();
-				if (released > 0) {
-					console.log(`Освобождено просроченных броней: ${released}`);
-				}
+				console.log(`[cron] releaseExpiredLocks: ${released} освобождено`);
 			} catch (error) {
-				console.error('Ошибка при освобождении броней:', error);
+				console.error('[cron] Ошибка при освобождении броней:', error);
 			}
 		});
 
-		// Помечаем просроченные платежи как failed каждые 5 минут
-		cron.schedule('*/5 * * * *', async () => {
+		// Помечаем просроченные платежи как failed каждую минуту
+		cron.schedule('* * * * *', async () => {
 			try {
 				const count = await releaseExpiredPayments();
-				if (count > 0) console.log(`Просроченных платежей помечено как failed: ${count}`);
+				console.log(`[cron] releaseExpiredPayments: ${count} помечено как failed`);
 			} catch (error) {
-				console.error('Ошибка при обновлении просроченных платежей:', error);
+				console.error('[cron] Ошибка при обновлении просроченных платежей:', error);
 			}
 		});
 

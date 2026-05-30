@@ -235,9 +235,9 @@
 	{:else if state.currentStep === -1 && !state.showResults}
 		<div>
 			<div class="mx-auto max-w-xl rounded-xl border border-gray-100 bg-white p-5 shadow-sm md:p-8 md:rounded-2xl">
-				<h2 class="mb-4 text-xl font-semibold text-foreground md:text-xl">Укажите вашу электронную почту</h2>
+				<h2 class="mb-4 text-xl font-semibold text-foreground md:text-xl">Опросник на уровень выгорания</h2>
 				<p class="mb-8 text-sm leading-relaxed text-foreground/70">
-					Ваши результаты и рекомендации придут на неё.
+					Укажите вашу электронную почту. Ваши результаты придут на неё.
 				</p>
 
 				<div class="space-y-6">

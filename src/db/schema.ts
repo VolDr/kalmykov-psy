@@ -343,13 +343,6 @@ export const booking = pgTable(
 		updatedAt: timestamp({ precision: 3, withTimezone: true, mode: 'string' }).notNull()
 	},
 	(table) => [
-		foreignKey({
-			columns: [table.availabilityId],
-			foreignColumns: [availability.id],
-			name: 'Booking_availabilityId_fkey'
-		})
-			.onUpdate('cascade')
-			.onDelete('restrict'),
 		uniqueIndex('unique_active_booking_slot')
 			.on(table.availabilityId, table.bookedAt)
 			.where(sql`status IN ('confirmed', 'pending_payment')`)

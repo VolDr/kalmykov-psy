@@ -60,7 +60,7 @@
 						bind:value={email}
 						placeholder="example@mail.ru"
 						autocomplete="email"
-						class="w-full rounded-lg border border-stone-200 bg-stone-50 px-4 py-2.5 text-stone-800 outline-none transition focus:border-stone-400 focus:bg-white focus:ring-2 focus:ring-stone-200"
+						class="w-full rounded-lg border border-stone-200 bg-stone-50 px-4 py-2.5 text-stone-800 outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20"
 					/>
 				</label>
 
@@ -71,7 +71,7 @@
 				<button
 					onclick={pay}
 					disabled={loading || !email.trim()}
-					class="w-full rounded-lg bg-stone-800 px-6 py-3 text-sm font-medium text-white transition hover:bg-stone-700 disabled:cursor-not-allowed disabled:opacity-60"
+					class="w-full rounded-lg bg-primary px-6 py-3 text-sm font-medium text-primary-foreground transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
 				>
 					{loading ? 'Перенаправление...' : `Оплатить ${PRICE.toLocaleString('ru-RU')} ₽`}
 				</button>

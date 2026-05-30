@@ -25,11 +25,11 @@ export const load: PageServerLoad = async (event) => {
 export const actions = {
 	create: async ({ request, locals }) => {
 		const form = await request.formData();
-		const date = form.get('date') as string;
+		const dates = form.getAll('date') as string[];
 		const startHour = parseInt(form.get('startHour') as string, 10);
 		const endHour = parseInt(form.get('endHour') as string, 10);
 
-		if (!date || isNaN(startHour) || isNaN(endHour)) {
+		if (!dates.length || isNaN(startHour) || isNaN(endHour)) {
 			return fail(400, { error: 'Заполните все поля' });
 		}
 
@@ -37,35 +37,40 @@ export const actions = {
 			return fail(400, { error: 'Начало должно быть раньше конца' });
 		}
 
-		const startAt = dayjs.tz(`${date} ${String(startHour).padStart(2, '0')}:00:00`, MSK).toISOString();
-		const endAt = dayjs.tz(`${date} ${String(endHour).padStart(2, '0')}:00:00`, MSK).toISOString();
+		const skipped: string[] = [];
 
-		const overlap = await db
-			.select({ id: schema.availability.id })
-			.from(schema.availability)
-			.where(and(lt(schema.availability.startAt, endAt), gt(schema.availability.endAt, startAt)))
-			.limit(1);
+		for (const date of dates) {
+			const startAt = dayjs.tz(`${date} ${String(startHour).padStart(2, '0')}:00:00`, MSK).toISOString();
+			const endAt = dayjs.tz(`${date} ${String(endHour).padStart(2, '0')}:00:00`, MSK).toISOString();
 
-		if (overlap.length > 0) {
-			return fail(400, { error: 'Слот пересекается с уже существующим временем' });
+			const overlap = await db
+				.select({ id: schema.availability.id })
+				.from(schema.availability)
+				.where(and(lt(schema.availability.startAt, endAt), gt(schema.availability.endAt, startAt)))
+				.limit(1);
+
+			if (overlap.length > 0) {
+				skipped.push(date);
+				continue;
+			}
+
+			await db.insert(schema.availability).values({ startAt, endAt });
 		}
 
-		await db.insert(schema.availability).values({ startAt, endAt });
-		return { success: true };
+		if (skipped.length > 0 && skipped.length === dates.length) {
+			return fail(400, { error: `Все слоты пересекаются с существующими` });
+		}
+
+		return { success: true, skipped };
 	},
 
 	delete: async ({ request, locals }) => {
-
 		const form = await request.formData();
 		const id = parseInt(form.get('id') as string, 10);
 
 		if (isNaN(id)) return fail(400, { error: 'Некорректный ID' });
 
-		try {
-			await db.delete(schema.availability).where(eq(schema.availability.id, id));
-		} catch {
-			return fail(400, { error: 'Невозможно удалить: на эту дату есть бронирования' });
-		}
+		await db.delete(schema.availability).where(eq(schema.availability.id, id));
 		return { success: true };
 	}
 } satisfies Actions;

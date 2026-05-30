@@ -40,8 +40,8 @@ export const POST: RequestHandler = async ({ request, url, getClientAddress }) =
 		outSum: prod.outSum,
 		description: prod.description,
 		email: trimmedEmail,
-		successUrl: `${url.origin}/payment/success`,
-		failUrl: `${url.origin}/payment/fail`
+		successUrl: `${url.origin}/booking/success`,
+		failUrl: `${url.origin}/booking/fail`
 	});
 
 	return json(payment);

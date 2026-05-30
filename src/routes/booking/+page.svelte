@@ -6,7 +6,7 @@
 
 	let { data } = $props();
 
-	type Step = 1 | 2 | 3;
+	type Step = 1 | 2;
 	let step = $state<Step>(1);
 	let selectedDate = $state('');
 	let selectedSlot = $state<{ startAt: string; availabilityId: number; status: SlotInfo['status'] } | null>(null);
@@ -17,12 +17,10 @@
 
 	const MSK_TZ = 'Europe/Moscow';
 
-	// YYYY-MM-DD string in the user's local timezone
 	function localDateStr(iso: string): string {
-		return new Date(iso).toLocaleDateString('sv'); // 'sv' locale gives YYYY-MM-DD
+		return new Date(iso).toLocaleDateString('sv');
 	}
 
-	// All available slots grouped by local date
 	const slotsByLocalDate = $derived.by(() => {
 		const map = new Map<string, { startAt: string; availabilityId: number; status: SlotInfo['status'] }[]>();
 		for (const av of data.availabilities) {
@@ -36,8 +34,9 @@
 	});
 
 	const availableDatesSet = $derived(new Set(slotsByLocalDate.keys()));
-
-	const slotsForSelectedDate = $derived(slotsByLocalDate.get(selectedDate) ?? []);
+	const slotsForSelectedDate = $derived(
+		(slotsByLocalDate.get(selectedDate) ?? []).filter(s => s.status === 'available')
+	);
 
 	function isDateUnavailable(date: DateValue): boolean {
 		const s = `${date.year}-${String(date.month).padStart(2, '0')}-${String(date.day).padStart(2, '0')}`;
@@ -56,21 +55,22 @@
 		if (!availableDatesSet.has(s)) return;
 		selectedDate = s;
 		selectedSlot = null;
-		step = 2;
 		trackGoal('booking_date_selected');
 	}
 
 	function handleSlotSelect(slot: { startAt: string; availabilityId: number; status: SlotInfo['status'] }) {
 		if (slot.status !== 'available') return;
 		selectedSlot = slot;
-		step = 3;
 		trackGoal('booking_hour_selected');
 	}
 
-	function goBack() {
-		if (step === 3) { step = 2; return; }
-		if (step === 2) { step = 1; selectedDate = ''; selectedSlot = null; }
+	function goToPayment() {
+		if (!selectedSlot) return;
+		step = 2;
 	}
+
+	const step1Clickable = $derived(step === 2);
+	const step2Clickable = $derived(step === 1 && !!selectedSlot);
 
 	function localTime(iso: string): string {
 		return new Date(iso).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
@@ -81,10 +81,9 @@
 	}
 
 	function localDateLabel(iso: string): string {
-		return new Date(iso).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' });
+		return new Date(iso).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
 	}
 
-	// Show MSK suffix only when user's timezone differs from Moscow
 	const showMsk = $derived.by(() => {
 		try {
 			return Intl.DateTimeFormat().resolvedOptions().timeZone !== MSK_TZ;
@@ -97,7 +96,6 @@
 		if (!selectedSlot || !telegram.trim() || !email.trim()) return;
 		loading = true;
 		error = '';
-
 		trackGoal('booking_payment_initiated');
 		try {
 			const res = await fetch('/api/booking', {
@@ -111,7 +109,6 @@
 					type: data.type
 				})
 			});
-
 			const json = await res.json();
 			if (!res.ok) throw new Error(json.error || 'Ошибка');
 
@@ -139,88 +136,116 @@
 </svelte:head>
 
 <div class="min-h-screen bg-stone-50 px-4 py-16">
-	<div class="mx-auto max-w-2xl">
+	<div class="mx-auto max-w-3xl">
 		<div class="mb-8 text-center">
 			<h1 class="font-display text-3xl font-medium text-stone-800">Запись на консультацию</h1>
 			<p class="mt-2 text-stone-500">Стоимость: {Number(data.price).toLocaleString('ru-RU')} ₽</p>
 		</div>
 
-		<!-- Steps indicator -->
+		<!-- Steps -->
 		<div class="mb-8 flex items-center justify-center gap-2 text-sm">
-			{#each [['1', 'Дата'], ['2', 'Время'], ['3', 'Оплата']] as [num, label], i}
-				<div class={cn(
+			<!-- Step 1 -->
+			<button
+				type="button"
+				onclick={() => { if (step1Clickable) step = 1; }}
+				class={cn(
 					'flex items-center gap-1.5',
-					step === i + 1 ? 'text-stone-800 font-medium' : 'text-stone-400'
-				)}>
-					<span class={cn(
-						'flex h-6 w-6 items-center justify-center rounded-full text-xs font-medium',
-						step === i + 1 ? 'bg-stone-800 text-white' : 'bg-stone-200 text-stone-500'
-					)}>{num}</span>
-					{label}
-				</div>
-				{#if i < 2}
-					<span class="text-stone-200">—</span>
-				{/if}
-			{/each}
+					step === 1 ? 'font-medium text-foreground' : 'text-muted-foreground',
+					step1Clickable ? 'cursor-pointer hover:text-foreground' : 'cursor-default'
+				)}
+			>
+				<span class={cn(
+					'flex h-6 w-6 items-center justify-center rounded-full text-xs font-medium transition',
+					step === 1 ? 'bg-primary text-primary-foreground' : step1Clickable ? 'bg-primary/30 text-primary-foreground/80 hover:bg-primary/50' : 'bg-stone-200 text-stone-500'
+				)}>1</span>
+				Дата и время
+			</button>
+
+			<span class="text-stone-200">—</span>
+
+			<!-- Step 2 -->
+			<button
+				type="button"
+				onclick={() => { if (step2Clickable) goToPayment(); }}
+				class={cn(
+					'flex items-center gap-1.5',
+					step === 2 ? 'font-medium text-foreground' : 'text-muted-foreground',
+					step2Clickable ? 'cursor-pointer hover:text-foreground' : 'cursor-default'
+				)}
+			>
+				<span class={cn(
+					'flex h-6 w-6 items-center justify-center rounded-full text-xs font-medium transition',
+					step === 2 ? 'bg-primary text-primary-foreground' : step2Clickable ? 'bg-primary/30 text-foreground/70 hover:bg-primary/50' : 'bg-stone-200 text-stone-500'
+				)}>2</span>
+				Оплата
+			</button>
 		</div>
 
 		<div class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-stone-200">
 
-			<!-- Step 1: Calendar -->
+			<!-- Step 1: Calendar + slots -->
 			{#if step === 1}
-				<p class="mb-4 text-sm text-stone-500">Выберите удобную дату. Подсвечены только доступные дни.</p>
 				{#if data.availabilities.length === 0}
 					<p class="py-8 text-center text-stone-400">Нет доступных дат. Попробуйте позже.</p>
 				{:else}
-					<div class="flex justify-center">
-						<Calendar
-							type="single"
-							locale="ru"
-							{isDateUnavailable}
-							onValueChange={handleDateChange}
-						/>
+					<div class="grid grid-cols-1 gap-6 md:grid-cols-2 md:gap-8">
+						<!-- Calendar -->
+						<div class="flex justify-center md:justify-start">
+							<Calendar
+								type="single"
+								locale="ru"
+								{isDateUnavailable}
+								onValueChange={handleDateChange}
+							/>
+						</div>
+
+						<!-- Slots -->
+						<div class="flex flex-col">
+							{#if !selectedDate}
+								<p class="mt-4 text-sm text-stone-400 md:mt-8">Выберите дату на календаре</p>
+							{:else if slotsForSelectedDate.length === 0}
+								<p class="mt-4 text-sm text-stone-400 md:mt-8">Нет свободных слотов на эту дату.</p>
+							{:else}
+								<p class="mb-3 text-sm font-medium text-stone-600">
+									{new Date(selectedDate + 'T12:00:00').toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}
+									— выберите время
+									{#if showMsk}<span class="font-normal text-stone-400">(ваше время)</span>{/if}
+								</p>
+								<div class="grid grid-cols-3 gap-2">
+									{#each slotsForSelectedDate as slot}
+										<button
+											onclick={() => handleSlotSelect(slot)}
+											class={cn(
+												'rounded-lg border py-3 text-sm font-medium transition',
+												selectedSlot?.startAt === slot.startAt
+													? 'border-primary bg-primary text-primary-foreground'
+													: 'border-stone-200 bg-white hover:border-primary/40 hover:bg-primary/5'
+											)}
+										>
+											{localTime(slot.startAt)}
+											{#if showMsk}
+												<span class="block text-xs font-normal opacity-60">{mskTime(slot.startAt)} МСК</span>
+											{/if}
+										</button>
+									{/each}
+								</div>
+								{#if selectedSlot}
+									<button
+										onclick={goToPayment}
+										class="mt-4 w-full rounded-lg bg-primary px-6 py-3 text-sm font-medium text-primary-foreground transition hover:bg-primary/90"
+									>
+										Перейти к оплате
+									</button>
+								{/if}
+							{/if}
+						</div>
 					</div>
 				{/if}
 
-			<!-- Step 2: Slot selection -->
-			{:else if step === 2 && slotsForSelectedDate.length === 0}
-				<div class="py-8 text-center">
-					<p class="text-stone-400">Слоты недоступны для этой даты.</p>
-					<button onclick={() => { step = 1; selectedDate = ''; }} class="mt-3 text-sm text-stone-600 underline">
-						Выбрать другую дату
-					</button>
-				</div>
-			{:else if step === 2}
-				<div class="mb-4">
-					<button onclick={goBack} class="text-sm text-stone-400 hover:text-stone-600">← Назад</button>
-					<p class="mt-1 text-sm font-medium text-stone-700">
-						{selectedDate} — выберите время
-						{#if showMsk}<span class="font-normal text-stone-400">(ваше время)</span>{/if}
-					</p>
-				</div>
-
-				<div class="grid grid-cols-3 gap-2 sm:grid-cols-4">
-					{#each slotsForSelectedDate.filter(s => s.status === 'available') as slot}
-						<button
-							onclick={() => handleSlotSelect(slot)}
-							class={cn(
-								'rounded-lg border py-3 text-sm font-medium transition',
-								'border-stone-200 bg-white hover:border-stone-400 hover:bg-stone-50',
-								selectedSlot?.startAt === slot.startAt && 'border-stone-800 bg-stone-800 text-white'
-							)}
-						>
-							{localTime(slot.startAt)}
-							{#if showMsk}
-								<span class="block text-xs font-normal opacity-60">{mskTime(slot.startAt)} МСК</span>
-							{/if}
-						</button>
-					{/each}
-				</div>
-
-			<!-- Step 3: Contact details -->
-			{:else if step === 3 && selectedSlot}
-				<div class="mb-4">
-					<button onclick={goBack} class="text-sm text-stone-400 hover:text-stone-600">← Назад</button>
+			<!-- Step 2: Payment form -->
+			{:else if step === 2 && selectedSlot}
+				<div class="mb-6">
+					<button onclick={() => { step = 1; }} class="text-sm text-stone-400 hover:text-stone-600">← Назад</button>
 					<p class="mt-1 text-sm font-medium text-stone-700">
 						{localDateLabel(selectedSlot.startAt)}, {localTime(selectedSlot.startAt)}
 						{#if showMsk}
@@ -231,13 +256,13 @@
 
 				<div class="space-y-4">
 					<label class="block">
-						<span class="mb-1.5 block text-sm font-medium text-stone-700">Telegram</span>
+						<span class="mb-1.5 block text-sm font-medium text-stone-700">Telegram <span class="font-normal text-stone-400">(для связи по деталям сессии)</span></span>
 						<input
 							type="text"
 							bind:value={telegram}
 							placeholder="@username"
 							autocomplete="off"
-							class="w-full rounded-lg border border-stone-200 bg-stone-50 px-4 py-2.5 text-stone-800 outline-none transition focus:border-stone-400 focus:bg-white focus:ring-2 focus:ring-stone-200"
+							class="w-full rounded-lg border border-stone-200 bg-stone-50 px-4 py-2.5 text-stone-800 outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20"
 						/>
 					</label>
 
@@ -247,7 +272,7 @@
 							type="email"
 							bind:value={email}
 							placeholder="example@mail.ru"
-							class="w-full rounded-lg border border-stone-200 bg-stone-50 px-4 py-2.5 text-stone-800 outline-none transition focus:border-stone-400 focus:bg-white focus:ring-2 focus:ring-stone-200"
+							class="w-full rounded-lg border border-stone-200 bg-stone-50 px-4 py-2.5 text-stone-800 outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20"
 						/>
 					</label>
 
@@ -258,9 +283,9 @@
 					<button
 						onclick={handlePay}
 						disabled={loading || !telegram.trim() || !email.trim()}
-						class="w-full rounded-lg bg-stone-800 px-6 py-3 text-sm font-medium text-white transition hover:bg-stone-700 disabled:cursor-not-allowed disabled:opacity-60"
+						class="w-full rounded-lg bg-primary px-6 py-3 text-sm font-medium text-primary-foreground transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
 					>
-						{loading ? 'Перенаправление...' : `Оплатить ${Number(data.price).toLocaleString('ru-RU')} ₽`}
+						{loading ? 'Перенаправление...' : 'Оплатить'}
 					</button>
 
 					<p class="text-center text-xs text-stone-400">
@@ -268,6 +293,7 @@
 					</p>
 				</div>
 			{/if}
+
 		</div>
 	</div>
 </div>
