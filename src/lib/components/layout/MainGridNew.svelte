@@ -74,12 +74,12 @@ import { fade } from 'svelte/transition';
 			desc: 'Не прыгаю от темы к теме — сначала разбираемся в вашей ситуации, потом выстраиваем план работы и двигаемся к изменениям.'
 		},
 		{
-			title: 'позрачность на каждом шаге',
+			title: 'прозрачность на каждом шаге',
 			desc: 'Вы всегда понимаете, что мы делаем, зачем и как это работает: объясняю логику наших действий на каждом этапе работы. Никаких туманных процессов без ориентиров.'
 		},
 		{
-			title: 'только доказательные методы',
-			desc: 'Применяю методы с доказанной эффективностью, которые фокусируются на реальных действиях, а не только на симптомах.'
+			title: 'КПТ и ACT — не «философия», а протоколы',
+			desc: 'Работаю в подходах когнитивно-поведенческой терапии (КПТ) и ACT. Это не советы «дышите глубже» — это структурированные методы с измеримыми результатами и доказательной базой.'
 		},
 		{
 			title: 'измеримый прогресс',
@@ -126,11 +126,15 @@ import { fade } from 'svelte/transition';
 	const faqs = [
 		{
 			q: 'сколько нужно сессий?',
-			a: 'Предсказать заранее — почти невозможно. У каждого своя динамика. Кто-то уходит через три месяца, кто-то работает год. Психика не укладывается в расписание. Могу сказать точно, что я работаю **не на количество сессий, а на то, чтобы вы перестали в них нуждаться**.'
+			a: 'Точное количество предсказать сложно — у каждого своя динамика. Но ориентир: большинство людей с запросом на выгорание замечают первые устойчивые изменения **через 6–10 сессий** (около 2–3 месяцев работы). Средний курс — 3–4 месяца. Могу сказать точно: я работаю **не на количество сессий, а на то, чтобы вы перестали в них нуждаться**.'
 		},
 		{
 			q: 'как часто нужно встречаться?',
 			a: 'Наиболее эффективно — **раз в неделю** — это поддерживает терапевтический процесс в нужном ритме. Как только появятся устойчивые изменения, частоту можно постепенно снижать.'
+		},
+		{
+			q: 'что если мы не совпадём?',
+			a: 'Это нормальная и важная часть процесса. Первая встреча-знакомство именно для этого — **мы оба решаем, комфортно ли работать вместе**. Если нет — я честно скажу об этом сам, и при необходимости порекомендую коллег с другим подходом. Никакого давления.'
 		},
 		{
 			q: 'будут задания между сессиями?',
@@ -141,16 +145,16 @@ import { fade } from 'svelte/transition';
 			a: 'Нет. Достаточно общего ощущения, что что-то идёт не так. **Конкретный запрос мы сформулируем вместе** в процессе — именно для этого и нужна первая встреча.'
 		},
 		{
+			q: 'какой формат встреч?',
+			a: 'Встречи онлайн — в Zoom или Google Meet, 50 минут. Никуда ехать не нужно. Расписание гибкое: **вечернее время и выходные** — потому что у людей с ненормированным графиком нет стандартного рабочего дня. Перенести сессию можно за 24 часа.'
+		},
+		{
 			q: 'боюсь осуждения',
 			a: 'На сессиях нет места осуждению — ни морализаторства, ни «правильных» эмоций. **Пространство терапии — это безопасная среда**. Делитесь только тем, к чему готовы, в своём темпе.'
 		},
 		{
-			q: 'буду нервничать на первой встрече — это нормально?',
-			a: 'Абсолютно нормально — многие испытывают тревогу в начале. Первая встреча именно для этого и нужна: оценить, комфортно ли вам, и создать пространство для разговора. Начнём мягко, без давления.'
-		},
-		{
 			q: 'как понять, нужна ли мне вообще терапия?',
-			a: 'Если проблемы не решаются самостоятельно длительное время, или вы чувствуете, что что-то идёт не так — терапия может помочь. Для того чтобы понять, подойдёт ли вам мой подход можно записаться на встречу-знакомство.'
+			a: 'Если проблемы не решаются самостоятельно длительное время, или вы чувствуете, что что-то идёт не так — терапия может помочь. Для того чтобы понять, подойдёт ли вам мой подход, можно записаться на **бесплатную встречу-знакомство** — это ни к чему не обязывает.'
 		}
 	];
 </script>
@@ -173,25 +177,33 @@ import { fade } from 'svelte/transition';
 		</Reveal>
 		<Reveal width="full">
 			<p class="leading-relaxed md:text-xl">
-				Разберитесь, что происходит — и начните это менять. С доказательным подходом, без
+				Разберитесь, что происходит — и начните это менять. С доказательным подходом (КПТ и ACT), без
 				бесконечного копания в детстве и размытых советов.
 			</p>
 		</Reveal>
 		<Reveal width="full">
-			<p class="text-base leading-relaxed md:text-lg">
-				Верните себе энергию, не застревая в терапии на годы.
+			<p class="text-sm leading-relaxed text-white/70">
+				Работаю с разработчиками, тимлидами, PM и другими IT-специалистами — людьми, которые привыкли решать задачи сами и не понимают, почему этот метод здесь не работает.
 			</p>
 		</Reveal>
 		<Reveal width="full">
-			<div class="flex flex-wrap items-center gap-6  w-full max-w-[388px] ">
-            <Button
-                href="#pricing"
-                onclick={() => reachGoal('main_pricing_click')}
-                variant="primary"
-                class="self-start rounded-md bg-primary px-5 py-2 text-base text-white transition-colors duration-200 hover:brightness-95 sm:self-auto"
-            >
-                Записаться
-            </Button>
+			<div class="flex flex-col gap-3 w-full max-w-[388px]">
+				<Button
+					onclick={() => { isIntroModalOpen = true; reachGoal('hero_intro_click'); }}
+					variant="primary"
+					class="w-full rounded-md bg-primary px-5 py-3 text-base text-white transition-colors duration-200 hover:brightness-95"
+				>
+					Бесплатная встреча-знакомство
+				</Button>
+				<Button
+					href="#pricing"
+					onclick={() => reachGoal('hero_pricing_click')}
+					variant="secondary"
+					class="w-full rounded-md px-5 py-2 text-base text-white/80 transition-colors duration-200"
+				>
+					Посмотреть форматы и цены
+				</Button>
+				<p class="text-xs text-white/50 leading-relaxed">20 минут · бесплатно · без обязательств</p>
 			</div>
 		</Reveal>
 	</div>
@@ -280,11 +292,53 @@ import { fade } from 'svelte/transition';
 
 <section class="bg-background py-16 md:py-24">
 	<div class="mx-auto px-5 xl:px-0 md:max-w-[760px] lg:max-w-[760px]">
-		<Reveal
-			><h2 class="mb-6 mb-8 font-circe text-3xl font-semibold text-foreground md:text-3xl ">
+		<Reveal width="full">
+			<h2 class="mb-10 font-circe text-3xl font-semibold text-foreground md:text-3xl">
+				как это обычно выглядит
+			</h2>
+		</Reveal>
+		<div class="space-y-6">
+			{#each [
+				{
+					role: 'Senior-разработчик, 7 лет в IT',
+					request: 'Работа есть, зарплата хорошая — но радости никакой. Выходные не восстанавливают, на встречах сижу и думаю о чём угодно кроме работы.',
+					result: 'За 10–12 сессий — восстановил способность отключаться от работы, понял источник хронической тревоги, вернул ощущение смысла в том, что делает.'
+				},
+				{
+					role: 'Team lead, 30+ человек в команде',
+					request: 'Не могу сказать «нет» ни команде, ни руководству. Ощущение, что всё держится только на мне — и это разрушает.',
+					result: 'За 8–10 сессий — выстроил границы без конфликтов, научился делегировать без тревоги, перестал просыпаться с мыслями о работе.'
+				},
+				{
+					role: 'Product Manager',
+					request: 'Понимаю, что что-то идёт не так — но не могу сформулировать, что именно. Просто усталость, или уже выгорание?',
+					result: 'Первые 2 сессии — разобрались в ситуации и поставили конкретный запрос. Через 3 месяца работы — выход из состояния хронического «режима пожара».'
+				}
+			] as scenario}
+				<Reveal width="full">
+					<div class="rounded-2xl bg-card px-6 py-6 md:px-8">
+						<p class="mb-1 text-sm font-medium text-primary">{scenario.role}</p>
+						<p class="mb-4 text-foreground/70 leading-relaxed italic">«{scenario.request}»</p>
+						<p class="leading-relaxed text-foreground"><span class="font-medium">Результат:</span> {scenario.result}</p>
+					</div>
+				</Reveal>
+			{/each}
+		</div>
+		<Reveal>
+			<p class="mt-8 text-sm text-foreground/40 leading-relaxed">
+				Это не отзывы клиентов — это архетипические сценарии на основе типичных запросов. Имена и детали не публикуются: конфиденциальность — основа терапии.
+			</p>
+		</Reveal>
+	</div>
+</section>
+
+<section class="bg-background py-16 md:py-24">
+	<div class="mx-auto px-5 xl:px-0 md:max-w-[760px] lg:max-w-[760px]">
+		<Reveal width="full">
+			<h2 class="mb-6 mb-8 font-circe text-3xl font-semibold text-foreground md:text-3xl ">
 				почему отпуск, тайм-менеджмент и «просто взять себя в руки» не работают
-			</h2></Reveal
-		>
+			</h2>
+		</Reveal>
 
 		<div class="space-y-12">
 			<div class="space-y-4">
@@ -507,10 +561,9 @@ import { fade } from 'svelte/transition';
 					<span
 						class="mb-5 icon-[lucide--flask-conical] h-8 w-8 text-primary transition-all duration-300 group-hover:text-primary"
 					></span>
-					<h3 class="mb-3 text-xl font-semibold text-foreground">доказательные методы</h3>
+					<h3 class="mb-3 text-xl font-semibold text-foreground">КПТ и ACT — не «философия»</h3>
 					<p class="leading-relaxed text-foreground/70">
-						Применяю методы с доказанной эффективностью, которые фокусируются на реальных действиях,
-						а не только на симптомах.
+						Работаю в подходах когнитивно-поведенческой терапии и ACT. Это структурированные протоколы с доказательной базой — не советы «дышите глубже».
 					</p>
 				</div>
 			</Reveal>
@@ -579,7 +632,7 @@ import { fade } from 'svelte/transition';
 						Это не делает меня лучше других психологов. Но это значит, что я понимаю вас без
 						предисловий — не только потому, что читал об этом, а потому что сам через это прошёл.
 					</p>
-					<p>В психологию пришёл осознанно, это моя вторая профессия, после долгой работы в IT.</p>
+					<p>В психологию пришёл осознанно — это моя вторая профессия. До этого работал в IT: разработка и управление проектами. Знаю, что такое ревью кода в 23:00 и релиз в пятницу вечером — не из книг.</p>
 					<ul>
 						<li
 							class="relative pl-6 leading-relaxed text-foreground before:absolute before:top-2.5 before:left-0 before:h-1.5 before:w-1.5 before:rounded-full before:bg-primary/50 before:content-['']"
@@ -648,16 +701,39 @@ import { fade } from 'svelte/transition';
 
 <div data-scroll-goal="main_scroll_75"></div>
 
-<section id="pricing" class="bg-card py-16 md:py-24">
+<section id="pricing" class="bg-background py-16 md:py-24">
     <div class="mx-auto px-5 xl:px-0 md:max-w-[760px] lg:max-w-[960px]">
         <Reveal>
             <h2 class="mb-6 mb-8 font-circe text-3xl font-semibold text-foreground md:text-3xl ">
                 формат и стоимость
             </h2>
-            <p class="mb-12 text-lg text-foreground/70">
+            <p class="mb-8 text-lg text-foreground/70">
                 Индивидуальные психологические консультации. Одна встреча — 50 минут, онлайн, в удобное для
                 вас время.
             </p>
+            <div class="mb-12 grid grid-cols-1 gap-4 md:grid-cols-3">
+                <div class="flex items-start gap-3 rounded-xl bg-card px-4 py-4">
+                    <span class="icon-[lucide--shield-check] mt-0.5 h-5 w-5 shrink-0 text-primary"></span>
+                    <div>
+                        <p class="text-sm font-medium text-foreground">Полная конфиденциальность</p>
+                        <p class="text-xs text-foreground/50 mt-0.5">Нет медицинских документов, нет диагнозов, нет передачи данных</p>
+                    </div>
+                </div>
+                <div class="flex items-start gap-3 rounded-xl bg-card px-4 py-4">
+                    <span class="icon-[lucide--clock] mt-0.5 h-5 w-5 shrink-0 text-primary"></span>
+                    <div>
+                        <p class="text-sm font-medium text-foreground">Вечера и выходные</p>
+                        <p class="text-xs text-foreground/50 mt-0.5">Выгорание не работает по графику 9–5 — сессии тоже</p>
+                    </div>
+                </div>
+                <div class="flex items-start gap-3 rounded-xl bg-card px-4 py-4">
+                    <span class="icon-[lucide--video] mt-0.5 h-5 w-5 shrink-0 text-primary"></span>
+                    <div>
+                        <p class="text-sm font-medium text-foreground">Zoom или Google Meet</p>
+                        <p class="text-xs text-foreground/50 mt-0.5">Из любой точки, никуда ехать не нужно</p>
+                    </div>
+                </div>
+            </div>
         </Reveal>
         <div class="grid grid-cols-1 gap-8 md:grid-cols-2">
             <Reveal class="h-full w-full">
@@ -878,18 +954,19 @@ import { fade } from 'svelte/transition';
 
             <div class="space-y-2 pt-2">
                 <h3 class="font-circe text-xl font-semibold text-foreground md:text-2xl">
-                    Запишитесь на встречу-знакомство
+                    Встреча-знакомство: проверим, подходим ли мы друг другу
                 </h3>
+                <p class="text-sm text-foreground/60 leading-relaxed">Первый шаг — не обязательство, а взаимный выбор. После встречи мы оба решаем, есть ли смысл работать вместе.</p>
 
-<ul class="space-y-1 leading-relaxed text-foreground list-none">
+<ul class="space-y-1 leading-relaxed text-foreground list-none mt-3">
     <li class="relative pl-6 before:content-['—'] before:absolute before:left-0">
-        вы расскажете, что вас беспокоит, а я расскажу, что мы можем с этим сделать
+        вы расскажете, что происходит — как умеете, формулировка не нужна
     </li>
     <li class="relative pl-6 before:content-['—'] before:absolute before:left-0">
-        20–25 минут
+        я объясню, чем смогу помочь и как это работает
     </li>
     <li class="relative pl-6 before:content-['—'] before:absolute before:left-0">
-        встреча бесплатная и ни к чему не обязывает
+        20–25 минут, бесплатно, ни к чему не обязывает
     </li>
 </ul>
             </div>

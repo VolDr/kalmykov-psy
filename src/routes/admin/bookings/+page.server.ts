@@ -4,6 +4,7 @@ import { requireAuth } from '$lib/server/protected';
 import { db } from '../../..';
 import * as schema from '../../../db/schema';
 import { desc, eq } from 'drizzle-orm';
+import { telegramService } from '$lib/server/telegram.server';
 
 export const load: PageServerLoad = async (event) => {
 	requireAuth(event);
@@ -40,15 +41,26 @@ export const actions: Actions = {
 
 		if (!bookedAt || !telegram || !email) return fail(400, { createError: 'Заполните все поля' });
 
+		const parsedDate = new Date(bookedAt);
+		if (isNaN(parsedDate.getTime())) return fail(400, { createError: 'Некорректная дата' });
+
 		const now = new Date().toISOString();
+		const bookedAtIso = parsedDate.toISOString();
 		await db.insert(schema.booking).values({
 			availabilityId: 0,
-			bookedAt: new Date(bookedAt).toISOString(),
+			bookedAt: bookedAtIso,
 			clientName: telegram,
 			email,
 			status: 'confirmed',
 			updatedAt: now
 		});
+
+		telegramService.sendBookingConfirmed({
+			clientName: telegram,
+			email,
+			bookedAt: bookedAtIso,
+			source: 'admin'
+		}).catch((e) => console.error('Telegram booking notification failed:', e));
 
 		return { created: true };
 	}

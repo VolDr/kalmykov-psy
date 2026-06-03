@@ -66,10 +66,8 @@ class NotificationService {
 				`🔍 Проверяем: ${activity.client.nick || activity.client.name} - ${scheduledTime.format('DD.MM HH:mm')} (через ${Math.round((timeDiff / 60) * 10) / 10}ч)`
 			);
 
-			// РАСШИРЕННЫЕ временные окна для надежности
-
-			// Уведомление за 24 часа: от 25 часов до 22 часов до события
-			if (timeDiff <= 25 * 60 && timeDiff >= 22 * 60) {
+			// Уведомление за 24 часа: окно 23ч45м–24ч15м до события
+			if (timeDiff <= 24 * 60 + 15 && timeDiff >= 23 * 60 + 45) {
 				console.log(
 					`📅 Пора отправить уведомление за день (через ${Math.round((timeDiff / 60) * 10) / 10}ч)`
 				);
@@ -84,8 +82,8 @@ class NotificationService {
 				}
 			}
 
-			// Уведомление за 1 час: от 2 часов до 45 минут до события
-			if (timeDiff <= 2 * 60 && timeDiff >= 45) {
+			// Уведомление за 1 час: окно 45м–75м до события
+			if (timeDiff <= 75 && timeDiff >= 45) {
 				console.log(`⏰ Пора отправить уведомление за час (через ${Math.round(timeDiff)}мин)`);
 				const sent = await this.sendNotificationIfNotSent(activity, '1h');
 				if (sent) {
@@ -164,8 +162,8 @@ class NotificationService {
 		const scheduledTime = dayjs(activity.scheduledDate).tz('Europe/Moscow');
 		const timeDiff = scheduledTime.diff(now, 'minutes');
 
-		// Если до события меньше 22 часов, но уведомление за день не отправлено
-		if (timeDiff < 22 * 60 && timeDiff > 45) {
+		// Если до события меньше 23ч45м, но уведомление за день не отправлено
+		if (timeDiff < 23 * 60 + 45 && timeDiff > 75) {
 			const dayKey = this.getNotificationKey(activity.id, '24h');
 			if (!(await this.isNotificationSent(dayKey))) {
 				console.log(

@@ -1,5 +1,6 @@
 import type { Api } from 'grammy';
 import { Bot } from 'grammy';
+import { SocksProxyAgent } from 'socks-proxy-agent';
 import dayjs from 'dayjs';
 import timezone from 'dayjs/plugin/timezone';
 import utc from 'dayjs/plugin/utc';
@@ -7,6 +8,11 @@ import utc from 'dayjs/plugin/utc';
 // Настраиваем timezone support
 dayjs.extend(utc);
 dayjs.extend(timezone);
+
+/** Экранирует спецсимволы HTML для Telegram parse_mode:'HTML' */
+function tgEscape(s: string): string {
+	return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
 
 const BOT_TOKEN = '7547958197:AAGOGOTBCMRvNM8kiNV5rb-eX4T8TqGPWsI';
 const CHAT_ID = '5365717876';
@@ -17,9 +23,12 @@ class TelegramService {
 
 	constructor() {
 		if (BOT_TOKEN) {
-			this.bot = new Bot(BOT_TOKEN);
+			const agent = new SocksProxyAgent('socks5://127.0.0.1:1080');
+			this.bot = new Bot(BOT_TOKEN, {
+				client: { baseFetchConfig: { agent, compress: true } }
+			});
 			this.api = this.bot.api;
-			console.log('🤖 Telegram bot инициализирован');
+			console.log('🤖 Telegram bot инициализирован (через SOCKS5 прокси)');
 		} else {
 			console.warn('⚠️ TELEGRAM_BOT_TOKEN не найден в переменных окружения');
 		}
@@ -99,6 +108,48 @@ class TelegramService {
 		}
 	}
 
+	async sendBookingConfirmed(params: {
+		clientName: string;
+		email: string;
+		bookedAt: string;
+		source: 'website' | 'admin';
+	}) {
+		const sourceLabel = params.source === 'admin' ? 'через админку' : 'через сайт';
+
+		const message = `
+✅ <b>Новая запись подтверждена</b>
+
+👤 <b>Клиент:</b> ${tgEscape(params.clientName)}
+📧 <b>Email:</b> ${tgEscape(params.email)}
+📅 <b>Дата:</b> ${dayjs(params.bookedAt).tz('Europe/Moscow').format('DD.MM.YYYY')}
+🕐 <b>Время:</b> ${dayjs(params.bookedAt).tz('Europe/Moscow').format('HH:mm')}
+🔗 <b>Источник:</b> ${sourceLabel}
+		`.trim();
+
+		return await this.sendNotification(message);
+	}
+
+	async sendPaymentConfirmed(params: {
+		email: string;
+		amount: string;
+		description: string;
+		bookedAt?: string;
+	}) {
+		const sessionLine = params.bookedAt
+			? `\n📅 <b>Дата:</b> ${dayjs(params.bookedAt).tz('Europe/Moscow').format('DD.MM.YYYY')}\n🕐 <b>Время:</b> ${dayjs(params.bookedAt).tz('Europe/Moscow').format('HH:mm')}`
+			: '';
+
+		const message = `
+💳 <b>Оплата подтверждена</b>
+
+📧 <b>Email:</b> ${tgEscape(params.email)}
+🛒 <b>Продукт:</b> ${tgEscape(params.description)}${sessionLine}
+💰 <b>Сумма:</b> ${tgEscape(params.amount)} ₽
+		`.trim();
+
+		return await this.sendNotification(message);
+	}
+
 	async sendAppointmentReminder(activity: any, client: any, hoursBeforeType: '24h' | '1h') {
 		const timeText = hoursBeforeType === '24h' ? 'за день' : 'за час';
 		const emoji = hoursBeforeType === '24h' ? '🗓' : '⏰';
@@ -106,10 +157,10 @@ class TelegramService {
 		const message = `
 ${emoji} <b>Напоминание ${timeText}</b>
 
-👤 <b>Клиент:</b> ${client.nick || client.name}
+👤 <b>Клиент:</b> ${tgEscape(client.nick || client.name)}
 📅 <b>Дата:</b> ${dayjs(activity.scheduledDate).tz('Europe/Moscow').format('DD.MM.YYYY')}
 🕐 <b>Время:</b> ${dayjs(activity.scheduledDate).tz('Europe/Moscow').format('HH:mm')}
-${activity.description ? `📝 <b>Описание:</b> ${activity.description}` : ''}
+${activity.description ? `📝 <b>Описание:</b> ${tgEscape(activity.description)}` : ''}
 ${hoursBeforeType === '1h' ? '\n⚡ <b>Скоро встреча!</b>' : ''}
     `.trim();
 
