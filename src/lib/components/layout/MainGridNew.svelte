@@ -773,7 +773,7 @@
 		<Reveal width="full">
 			<div class="mb-5 flex items-center gap-4 md:gap-6">
 				<h2 class="font-caveat text-[36px] lg:text-[51px] font-bold text-navy">
-					формат и стоимость
+					формат<br class="md:hidden" /> и стоимость
 				</h2>
 				<span class="h-0.5 flex-1">
 					<svg

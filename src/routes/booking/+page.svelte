@@ -154,9 +154,9 @@
 <div class="min-h-screen bg-background px-4 py-20 lg:py-28">
 	<div class="mx-auto max-w-3xl">
 		<!-- заголовок -->
-		<div class="mb-7 text-center">
+		<div class="mb-7 text-center relative">	<img src="/star_1.webp" class="pointer-events-none absolute left-[24px] top-[29px] lg:top-3 left-1 lg:left-[301px] h-6 w-6 " alt="" aria-hidden="true" />
 			<h1 class="flex items-center justify-center gap-3 font-caveat text-[34px] leading-none font-bold tracking-[0.5px] text-navy md:text-[40px]">
-				<svg class="h-7 w-7 shrink-0 md:h-8 md:w-8" viewBox="0 0 40 40" fill="none" aria-hidden="true"><path d="M20 3 C21 13 27 19 37 20 C27 21 21 27 20 37 C19 27 13 21 3 20 C13 19 19 13 20 3 Z" fill="var(--color-primary)" /></svg>
+			
 				Запись на консультацию
 			</h1>
 			<p class="mt-2 text-[15px] text-foreground/55">
