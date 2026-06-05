@@ -4,7 +4,7 @@ export const bat4Config: SurveyConfig = {
 	id: 'bat4',
 	title: 'BAT-4',
 	description: 'Ультракороткий опросник для оценки профессионального выгорания',
-
+	time: '1-2 минуты',
 	infoSections: {
 		beforeUse: {
 			title: 'Важный дисклеймер',

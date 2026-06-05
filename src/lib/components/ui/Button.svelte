@@ -18,7 +18,7 @@
 	} = $props();
 
 	const baseClasses =
-		'text-center tracking-wide py-[10px] px-[30px] outline outline-solid rounded-[10px] inline-block transition-all duration-200 ease-out active:transform active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-default';
+		'text-center tracking-wide py-[10px] px-[30px] outline outline-solid rounded-4xl inline-block transition-all duration-200 ease-out active:transform active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-default';
 
 	const variantClasses = {
 		primary:

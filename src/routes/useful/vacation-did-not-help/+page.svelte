@@ -48,12 +48,12 @@
 	<meta name="robots" content="noindex, nofollow" />
 </svelte:head>
 
-<article class="min-h-screen border-t-[3px] border-primary bg-background text-foreground">
+<article class="min-h-screen border-primary bg-background text-foreground">
 	<!-- Hero -->
 	<header class="mb-10 border-b border-border pt-12 pb-9 sm:mb-16 sm:pt-16 sm:pb-[52px]">
 		<div class="mx-auto max-w-[680px] px-5">
 			<h1
-				class="mb-4 max-w-[600px] font-circe text-[clamp(26px,4.5vw,42px)] leading-[1.2] font-semibold tracking-[-0.02em]"
+				class="mb-4 max-w-[600px] font-caveat  text-[clamp(26px,4.5vw,42px)] leading-[1.2] font-semibold tracking-[-0.02em]"
 			>
 				Отпуск не работает. И это не потому, что вы плохо отдыхали
 			</h1>
@@ -91,7 +91,7 @@
 	<!-- Story -->
 	<section class="mx-auto mb-10 max-w-[680px] px-5 sm:mb-[60px]" data-reveal>
 		<h2
-			class="mb-[22px] font-circe text-[clamp(20px,2.5vw,26px)] leading-[1.25] font-semibold tracking-[-0.01em]"
+			class="mb-[22px] font-caveat  text-[clamp(26px,2.5vw,32px)] leading-[1.25] font-semibold tracking-[-0.01em]"
 		>
 			История, которую вы, возможно, уже прожили
 		</h2>
@@ -131,7 +131,7 @@
 	<!-- Pebble section -->
 	<section class="mx-auto mb-10 max-w-[680px] px-5 sm:mb-[60px]" data-reveal>
 		<h2
-			class="mb-[22px] font-circe text-[clamp(20px,2.5vw,26px)] leading-[1.25] font-semibold tracking-[-0.01em]"
+			class="mb-[22px] font-caveat  text-[clamp(26px,2.5vw,32px)] leading-[1.25] font-semibold tracking-[-0.01em]"
 		>
 			Во всем виноваты камешки!
 		</h2>
@@ -200,7 +200,7 @@
 	<!-- Why nothing changes -->
 	<section class="mx-auto mb-10 max-w-[680px] px-5 sm:mb-[60px]" data-reveal>
 		<h2
-			class="mb-[22px] font-circe text-[clamp(20px,2.5vw,26px)] leading-[1.25] font-semibold tracking-[-0.01em]"
+			class="mb-[22px] font-caveat  text-[clamp(26px,2.5vw,32px)] leading-[1.25] font-semibold tracking-[-0.01em]"
 		>
 			Почему ничего не меняется, даже если очень стараться
 		</h2>
@@ -261,7 +261,7 @@
 	<!-- What if nothing changes -->
 	<section class="mx-auto mb-10 max-w-[680px] px-5 sm:mb-[60px]" data-reveal>
 		<h2
-			class="mb-[22px] font-circe text-[clamp(20px,2.5vw,26px)] leading-[1.25] font-semibold tracking-[-0.01em]"
+			class="mb-[22px] font-caveat text-[clamp(26px,2.5vw,32px)] leading-[1.25] font-navy tracking-[-0.01em]"
 		>
 			Что будет, если ничего не менять
 		</h2>
@@ -293,7 +293,7 @@
 	<section class="mx-auto mb-10 max-w-[680px] px-5 sm:mb-[60px]" data-reveal>
 		<div class="rounded-2xl bg-card px-6 py-7 sm:px-10 sm:py-9">
 			<h2
-				class="mb-[22px] font-circe text-[clamp(20px,2.5vw,24px)] leading-[1.25] font-semibold tracking-[-0.01em]"
+				class="mb-[22px] font-caveat  text-[clamp(20px,2.5vw,24px)] leading-[1.25] font-semibold tracking-[-0.01em]"
 			>
 				Кто я и почему пишу про это так уверенно
 			</h2>
@@ -342,7 +342,7 @@
 	<!-- What really helps -->
 	<section class="mx-auto mb-10 max-w-[680px] px-5 sm:mb-[60px]" data-reveal>
 		<h2
-			class="mb-[22px] font-circe text-[clamp(20px,2.5vw,26px)] leading-[1.25] font-semibold tracking-[-0.01em]"
+			class="mb-[22px] font-caveat  text-[clamp(26px,2.5vw,32px)] leading-[1.25] font-semibold tracking-[-0.01em]"
 		>
 			Что реально меняет ситуацию
 		</h2>
@@ -407,7 +407,7 @@
 	<section class="mx-auto mb-14 max-w-[680px] px-5 sm:mb-20" data-reveal bind:this={ctaSection}>
 		<div class="rounded-2xl bg-card px-6 py-8 text-center sm:px-12 sm:py-[44px]">
 			<h2
-				class="mb-5 font-circe text-[clamp(22px,2.8vw,28px)] leading-[1.25] font-semibold tracking-[-0.01em]"
+				class="mb-5 font-caveat  text-[clamp(22px,2.8vw,28px)] leading-[1.25] font-semibold tracking-[-0.01em]"
 			>
 				Если узнаёте себя
 			</h2>
@@ -435,7 +435,7 @@
 				target="_blank"
 				rel="noopener noreferrer"
 				onclick={() => reachGoal('lead_cta_click')}
-				class="mt-7 inline-block rounded-md bg-primary px-8 py-[14px] text-base font-medium tracking-[0.01em] text-primary-foreground no-underline transition-colors duration-200 ease-out hover:bg-primary-light"
+				class="mt-7 inline-block rounded-3xl bg-primary px-8 py-[14px] text-base font-medium tracking-[0.01em] text-primary-foreground no-underline transition-colors duration-200 ease-out hover:bg-primary-light"
 			>
 				Записаться на встречу-знакомство
 			</a>

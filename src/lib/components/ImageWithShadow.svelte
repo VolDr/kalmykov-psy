@@ -26,7 +26,7 @@
         shadowPosition === 'bottom-left' ? '-top-3 -left-4' : '-top-5 -right-3';
 </script>
 
-<div class="mx-5 flex h-[360px] max-h-[80svh] items-center justify-center overflow-hidden lg:mx-0 lg:h-auto lg:max-h-none lg:overflow-visible">
+<div class="mx-5 flex items-center justify-center lg:mx-0">
     <!-- Общий контейнер для картинки и тени -->
     <div class="relative">
         <!-- Тень теперь живет здесь, снаружи тега picture -->

@@ -1,4 +1,9 @@
-﻿<script lang="ts">
+﻿<!--
+  Заменяет: src/lib/components/survey/WarningBox.svelte
+  Дизайн: тёплая карточка (bg-card), иконка в кружке, navy-заголовок.
+  critical — акцент destructive, warning — золотой, info — navy. Логика/пропсы не изменены.
+-->
+<script lang="ts">
 	import MarkdownLink from '$lib/components/MarkdownLink.svelte';
 	import type { Warning } from '$lib/data/surveys/types';
 	import { cn } from '$lib/utils';
@@ -12,31 +17,44 @@
 	const warningStyles = {
 		critical: {
 			iconClass: 'icon-[lucide--alert-triangle]',
-			className: 'border-none bg-background'
+			iconColor: 'text-destructive',
+			iconBg: 'bg-destructive/10'
 		},
 		warning: {
 			iconClass: 'icon-[lucide--alert-circle]',
-			className: 'border-none bg-yellow-50'
+			iconColor: 'text-primary',
+			iconBg: 'bg-primary/12'
 		},
 		info: {
 			iconClass: 'icon-[lucide--info]',
-			className: 'border-none bg-background'
+			iconColor: 'text-navy',
+			iconBg: 'bg-card'
 		}
 	};
 
 	const style = warningStyles[warning.type];
 </script>
 
-<div class={cn('rounded-lg p-4 shadow-md', style.className)} role="alert">
-	<div class="flex gap-3">
-		<span class={cn(style.iconClass, 'h-5 w-5 flex-shrink-0 translate-y-[2px]')}></span>
-		<div class="flex-1 space-y-2">
-			<h3 class="text-base font-bold text-black md:text-lg">
-				{warning.title}
-			</h3>
-			<div class="text-sm leading-relaxed whitespace-pre-line text-black opacity-80 md:text-base">
-				<MarkdownLink text={warning.message} />
-			</div>
+<div
+	class="flex gap-4 rounded-2xl bg-card px-5 py-5 md:gap-5 md:px-6"
+	role="alert"
+>
+	<span
+		class={cn(
+			'flex h-11 w-11 shrink-0 items-center justify-center rounded-full',
+			style.iconBg
+		)}
+	>
+		<span class={cn(style.iconClass, 'h-5 w-5', style.iconColor)}></span>
+	</span>
+	<div class="flex-1 space-y-1.5">
+		<h3 class="text-[17px] font-bold text-navy md:text-[19px]">
+			{warning.title}
+		</h3>
+		<div
+			class="text-[15px] leading-relaxed whitespace-pre-line text-foreground/80 md:text-[16px]"
+		>
+			<MarkdownLink text={warning.message} />
 		</div>
 	</div>
 </div>

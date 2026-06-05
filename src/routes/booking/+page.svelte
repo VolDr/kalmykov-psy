@@ -1,15 +1,33 @@
+<!--
+  ════════════════════════════════════════════════════════════════
+  ПОРТ: полная замена  src/routes/booking/+page.svelte
+  ────────────────────────────────────────────────────────────────
+  Редизайн страницы записи (макет «Запись на консультацию»).
+  · Та же логика и контракт данных, что и в оригинале:
+      data.availabilities / data.price / data.type,
+      POST /api/booking → форма Робокассы (form.submit),
+      аналитика trackGoal(...), вычисление МСК-времени.
+  · Используется штатный Bits-UI <Calendar> (как в оригинале): locale="ru",
+      isDateUnavailable / onValueChange. Он сам красит выбранный день в
+      --primary (золотой), подсвечивает «сегодня» и зачёркивает недоступные.
+      Контракт логики тот же: availableDatesSet / slotsByLocalDate.
+  · Токены: font-caveat / text-navy / bg-primary — из app.css.
+  ════════════════════════════════════════════════════════════════
+-->
 <script lang="ts">
 	import { Calendar } from '$lib/components/ui/calendar';
-	import { CalendarDate, type DateValue } from '@internationalized/date';
+	import type { DateValue } from '@internationalized/date';
 	import { cn } from '$lib/utils';
 	import type { SlotInfo } from '$lib/server/booking.server';
 
 	let { data } = $props();
 
 	type Step = 1 | 2;
+	type Slot = { startAt: string; availabilityId: number; status: SlotInfo['status'] };
+
 	let step = $state<Step>(1);
 	let selectedDate = $state('');
-	let selectedSlot = $state<{ startAt: string; availabilityId: number; status: SlotInfo['status'] } | null>(null);
+	let selectedSlot = $state<Slot | null>(null);
 	let telegram = $state('');
 	let email = $state('');
 	let loading = $state(false);
@@ -22,7 +40,7 @@
 	}
 
 	const slotsByLocalDate = $derived.by(() => {
-		const map = new Map<string, { startAt: string; availabilityId: number; status: SlotInfo['status'] }[]>();
+		const map = new Map<string, Slot[]>();
 		for (const av of data.availabilities) {
 			for (const slot of av.slots) {
 				const d = localDateStr(slot.startAt);
@@ -35,7 +53,7 @@
 
 	const availableDatesSet = $derived(new Set(slotsByLocalDate.keys()));
 	const slotsForSelectedDate = $derived(
-		(slotsByLocalDate.get(selectedDate) ?? []).filter(s => s.status === 'available')
+		(slotsByLocalDate.get(selectedDate) ?? []).filter((s) => s.status === 'available')
 	);
 
 	function isDateUnavailable(date: DateValue): boolean {
@@ -58,7 +76,7 @@
 		trackGoal('booking_date_selected');
 	}
 
-	function handleSlotSelect(slot: { startAt: string; availabilityId: number; status: SlotInfo['status'] }) {
+	function handleSlotSelect(slot: Slot) {
 		if (slot.status !== 'available') return;
 		selectedSlot = slot;
 		trackGoal('booking_hour_selected');
@@ -75,11 +93,9 @@
 	function localTime(iso: string): string {
 		return new Date(iso).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
 	}
-
 	function mskTime(iso: string): string {
 		return new Date(iso).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', timeZone: MSK_TZ });
 	}
-
 	function localDateLabel(iso: string): string {
 		return new Date(iso).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
 	}
@@ -132,64 +148,51 @@
 </script>
 
 <svelte:head>
-	<title>Запись на консультацию</title>
+	<title>Запись на консультацию | Андрей Калмыков</title>
 </svelte:head>
 
-<div class="min-h-screen bg-stone-50 px-4 py-16">
+<div class="min-h-screen bg-background px-4 py-20 lg:py-28">
 	<div class="mx-auto max-w-3xl">
-		<div class="mb-8 text-center">
-			<h1 class="font-display text-3xl font-medium text-stone-800">Запись на консультацию</h1>
-			<p class="mt-2 text-stone-500">Стоимость: {Number(data.price).toLocaleString('ru-RU')} ₽</p>
+		<!-- заголовок -->
+		<div class="mb-7 text-center">
+			<h1 class="flex items-center justify-center gap-3 font-caveat text-[34px] leading-none font-bold tracking-[0.5px] text-navy md:text-[40px]">
+				<svg class="h-7 w-7 shrink-0 md:h-8 md:w-8" viewBox="0 0 40 40" fill="none" aria-hidden="true"><path d="M20 3 C21 13 27 19 37 20 C27 21 21 27 20 37 C19 27 13 21 3 20 C13 19 19 13 20 3 Z" fill="var(--color-primary)" /></svg>
+				Запись на консультацию
+			</h1>
+			<p class="mt-2 text-[15px] text-foreground/55">
+				Стоимость: {Number(data.price).toLocaleString('ru-RU')} ₽
+			</p>
 		</div>
 
-		<!-- Steps -->
-		<div class="mb-8 flex items-center justify-center gap-2 text-sm">
-			<!-- Step 1 -->
+		<!-- шаги -->
+		<div class="mb-8 flex items-center justify-center gap-3 text-[15px]">
 			<button
 				type="button"
 				onclick={() => { if (step1Clickable) step = 1; }}
-				class={cn(
-					'flex items-center gap-1.5',
-					step === 1 ? 'font-medium text-foreground' : 'text-muted-foreground',
-					step1Clickable ? 'cursor-pointer hover:text-foreground' : 'cursor-default'
-				)}
+				class={cn('flex items-center gap-2', step === 1 ? 'font-bold text-navy' : 'text-foreground/45', step1Clickable ? 'cursor-pointer hover:text-navy' : 'cursor-default')}
 			>
-				<span class={cn(
-					'flex h-6 w-6 items-center justify-center rounded-full text-xs font-medium transition',
-					step === 1 ? 'bg-primary text-primary-foreground' : step1Clickable ? 'bg-primary/30 text-primary-foreground/80 hover:bg-primary/50' : 'bg-stone-200 text-stone-500'
-				)}>1</span>
+				<span class={cn('flex h-6 w-6 items-center justify-center rounded-full text-[12px] font-bold transition', step === 1 ? 'bg-primary text-white' : step1Clickable ? 'bg-primary/30 text-navy hover:bg-primary/50' : 'bg-[#e7ddc7] text-foreground/45')}>1</span>
 				Дата и время
 			</button>
-
-			<span class="text-stone-200">—</span>
-
-			<!-- Step 2 -->
+			<span class="text-[#d8cfbc]">—</span>
 			<button
 				type="button"
 				onclick={() => { if (step2Clickable) goToPayment(); }}
-				class={cn(
-					'flex items-center gap-1.5',
-					step === 2 ? 'font-medium text-foreground' : 'text-muted-foreground',
-					step2Clickable ? 'cursor-pointer hover:text-foreground' : 'cursor-default'
-				)}
+				class={cn('flex items-center gap-2', step === 2 ? 'font-bold text-navy' : 'text-foreground/45', step2Clickable ? 'cursor-pointer hover:text-navy' : 'cursor-default')}
 			>
-				<span class={cn(
-					'flex h-6 w-6 items-center justify-center rounded-full text-xs font-medium transition',
-					step === 2 ? 'bg-primary text-primary-foreground' : step2Clickable ? 'bg-primary/30 text-foreground/70 hover:bg-primary/50' : 'bg-stone-200 text-stone-500'
-				)}>2</span>
+				<span class={cn('flex h-6 w-6 items-center justify-center rounded-full text-[12px] font-bold transition', step === 2 ? 'bg-primary text-white' : step2Clickable ? 'bg-primary/30 text-navy hover:bg-primary/50' : 'bg-[#e7ddc7] text-foreground/45')}>2</span>
 				Оплата
 			</button>
 		</div>
 
-		<div class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-stone-200">
-
-			<!-- Step 1: Calendar + slots -->
+		<div class="rounded-[20px] border border-[#ece3d1] bg-white p-6 shadow-[0_12px_44px_rgba(43,42,78,0.06)] lg:p-8">
+			<!-- ШАГ 1: календарь + слоты -->
 			{#if step === 1}
 				{#if data.availabilities.length === 0}
-					<p class="py-8 text-center text-stone-400">Нет доступных дат. Попробуйте позже.</p>
+					<p class="py-10 text-center text-foreground/40">Нет доступных дат. Попробуйте позже.</p>
 				{:else}
-					<div class="grid grid-cols-1 gap-6 md:grid-cols-2 md:gap-8">
-						<!-- Calendar -->
+					<div class="grid grid-cols-1 gap-7 md:grid-cols-[300px_1fr] md:gap-9">
+						<!-- календарь (стандартный Bits-UI Calendar) -->
 						<div class="flex justify-center md:justify-start">
 							<Calendar
 								type="single"
@@ -199,41 +202,36 @@
 							/>
 						</div>
 
-						<!-- Slots -->
+						<!-- слоты -->
 						<div class="flex flex-col">
 							{#if !selectedDate}
-								<p class="mt-4 text-sm text-stone-400 md:mt-8">Выберите дату на календаре</p>
+								<p class="text-[15px] text-foreground/40 md:mt-1">Выберите дату на календаре</p>
 							{:else if slotsForSelectedDate.length === 0}
-								<p class="mt-4 text-sm text-stone-400 md:mt-8">Нет свободных слотов на эту дату.</p>
+								<p class="text-[15px] text-foreground/40 md:mt-1">Нет свободных слотов на эту дату.</p>
 							{:else}
-								<p class="mb-3 text-sm font-medium text-stone-600">
+								<p class="mb-3 text-[15px] font-semibold text-navy">
 									{new Date(selectedDate + 'T12:00:00').toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}
 									— выберите время
-									{#if showMsk}<span class="font-normal text-stone-400">(ваше время)</span>{/if}
+									{#if showMsk}<span class="font-normal text-foreground/40">(ваше время)</span>{/if}
 								</p>
-								<div class="grid grid-cols-3 gap-2">
+								<div class="grid grid-cols-3 gap-2.5">
 									{#each slotsForSelectedDate as slot}
 										<button
 											onclick={() => handleSlotSelect(slot)}
 											class={cn(
-												'rounded-lg border py-3 text-sm font-medium transition',
+												'rounded-[12px] border py-3 text-[15px] font-semibold transition',
 												selectedSlot?.startAt === slot.startAt
-													? 'border-primary bg-primary text-primary-foreground'
-													: 'border-stone-200 bg-white hover:border-primary/40 hover:bg-primary/5'
+													? 'border-primary bg-primary text-white'
+													: 'border-[#e7ddc7] bg-white text-navy hover:border-primary/50 hover:bg-primary/5'
 											)}
 										>
 											{localTime(slot.startAt)}
-											{#if showMsk}
-												<span class="block text-xs font-normal opacity-60">{mskTime(slot.startAt)} МСК</span>
-											{/if}
+											{#if showMsk}<span class="block text-[11px] font-normal opacity-60">{mskTime(slot.startAt)} МСК</span>{/if}
 										</button>
 									{/each}
 								</div>
 								{#if selectedSlot}
-									<button
-										onclick={goToPayment}
-										class="mt-4 w-full rounded-lg bg-primary px-6 py-3 text-sm font-medium text-primary-foreground transition hover:bg-primary/90"
-									>
+									<button onclick={goToPayment} class="mt-5 w-full rounded-[12px] bg-primary px-6 py-3.5 text-[15px] font-bold text-white shadow-[0_8px_20px_rgba(233,184,78,0.3)] transition hover:brightness-[0.97] active:scale-[0.99]">
 										Перейти к оплате
 									</button>
 								{/if}
@@ -242,58 +240,43 @@
 					</div>
 				{/if}
 
-			<!-- Step 2: Payment form -->
+			<!-- ШАГ 2: оплата -->
 			{:else if step === 2 && selectedSlot}
 				<div class="mb-6">
-					<button onclick={() => { step = 1; }} class="text-sm text-stone-400 hover:text-stone-600">← Назад</button>
-					<p class="mt-1 text-sm font-medium text-stone-700">
+					<button onclick={() => { step = 1; }} class="inline-flex items-center gap-1.5 text-[14px] text-foreground/50 transition hover:text-navy">
+						<span class="icon-[lucide--arrow-left] h-4 w-4"></span> Назад
+					</button>
+					<p class="mt-2 text-[16px] font-semibold text-navy">
 						{localDateLabel(selectedSlot.startAt)}, {localTime(selectedSlot.startAt)}
-						{#if showMsk}
-							<span class="font-normal text-stone-400">({mskTime(selectedSlot.startAt)} МСК)</span>
-						{/if}
+						{#if showMsk}<span class="font-normal text-foreground/40">({mskTime(selectedSlot.startAt)} МСК)</span>{/if}
 					</p>
 				</div>
 
-				<div class="space-y-4">
+				<div class="space-y-5">
 					<label class="block">
-						<span class="mb-1.5 block text-sm font-medium text-stone-700">Telegram <span class="font-normal text-stone-400">(для связи по деталям сессии)</span></span>
-						<input
-							type="text"
-							bind:value={telegram}
-							placeholder="@username"
-							autocomplete="off"
-							class="w-full rounded-lg border border-stone-200 bg-stone-50 px-4 py-2.5 text-stone-800 outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20"
-						/>
+						<span class="mb-2 block text-[14px] font-semibold text-navy">Telegram <span class="font-normal text-foreground/45">(для связи по деталям сессии)</span></span>
+						<input type="text" bind:value={telegram} placeholder="@username" autocomplete="off"
+							class="w-full rounded-[12px] border border-[#e7ddc7] bg-[#faf7f0] px-4 py-3 text-[15px] text-navy outline-none transition placeholder:text-foreground/35 focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20" />
 					</label>
-
 					<label class="block">
-						<span class="mb-1.5 block text-sm font-medium text-stone-700">Email <span class="font-normal text-stone-400">(для чека)</span></span>
-						<input
-							type="email"
-							bind:value={email}
-							placeholder="example@mail.ru"
-							class="w-full rounded-lg border border-stone-200 bg-stone-50 px-4 py-2.5 text-stone-800 outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20"
-						/>
+						<span class="mb-2 block text-[14px] font-semibold text-navy">Email <span class="font-normal text-foreground/45">(для чека)</span></span>
+						<input type="email" bind:value={email} placeholder="example@mail.ru"
+							class="w-full rounded-[12px] border border-[#e7ddc7] bg-[#faf7f0] px-4 py-3 text-[15px] text-navy outline-none transition placeholder:text-foreground/35 focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20" />
 					</label>
 
 					{#if error}
-						<p class="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">{error}</p>
+						<p class="rounded-[12px] bg-red-50 px-4 py-3 text-[14px] text-red-600">{error}</p>
 					{/if}
 
-					<button
-						onclick={handlePay}
-						disabled={loading || !telegram.trim() || !email.trim()}
-						class="w-full rounded-lg bg-primary px-6 py-3 text-sm font-medium text-primary-foreground transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
-					>
-						{loading ? 'Перенаправление...' : 'Оплатить'}
+					<button onclick={handlePay} disabled={loading || !telegram.trim() || !email.trim()}
+						class="w-full rounded-[12px] bg-primary px-6 py-3.5 text-[15px] font-bold text-white shadow-[0_8px_20px_rgba(233,184,78,0.3)] transition hover:brightness-[0.97] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-55 disabled:shadow-none">
+						{loading ? 'Перенаправление…' : 'Оплатить'}
 					</button>
-
-					<p class="text-center text-xs text-stone-400">
+					<p class="text-center text-[13px] text-foreground/45">
 						После оплаты слот закрепляется за вами. Оплата через Робокассу.
 					</p>
 				</div>
 			{/if}
-
 		</div>
 	</div>
 </div>

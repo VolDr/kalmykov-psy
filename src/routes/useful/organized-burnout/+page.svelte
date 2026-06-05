@@ -48,12 +48,12 @@
 	<meta name="robots" content="noindex, nofollow" />
 </svelte:head>
 
-<article class="min-h-screen border-t-[3px] border-primary bg-background text-foreground">
+<article class="min-h-screen border-primary bg-background text-foreground">
 	<!-- Hero -->
 	<header class="mb-10 border-b border-border pt-12 pb-9 sm:mb-16 sm:pt-16 sm:pb-[52px]">
 		<div class="mx-auto max-w-[680px] px-5">
 			<h1
-				class="mb-4 max-w-[600px] font-circe text-[clamp(26px,4.5vw,42px)] leading-[1.2] font-semibold tracking-[-0.02em]"
+				class="mb-4 max-w-[600px] font-caveat  text-[clamp(26px,4.5vw,42px)] leading-[1.2] font-semibold tracking-[-0.02em]"
 			>
 				Почему организованные люди выгорают сильнее всего
 			</h1>
@@ -78,7 +78,7 @@
 	<!-- Intro -->
 	<section class="mx-auto mb-10 max-w-[680px] px-5 sm:mb-[60px]" data-reveal>
 		<h2
-			class="mb-[22px] font-circe text-[clamp(20px,2.5vw,26px)] leading-[1.25] font-semibold tracking-[-0.01em]"
+			class="mb-[22px] font-caveat  text-[clamp(26px,2.5vw,32px)] leading-[1.25] font-semibold tracking-[-0.01em]"
 		>
 			Это читают те, кто уже перестал верить советам
 		</h2>
@@ -100,7 +100,7 @@
 	<!-- Story: Коля -->
 	<section class="mx-auto mb-10 max-w-[680px] px-5 sm:mb-[60px]" data-reveal>
 		<h2
-			class="mb-[22px] font-circe text-[clamp(20px,2.5vw,26px)] leading-[1.25] font-semibold tracking-[-0.01em]"
+			class="mb-[22px] font-caveat  text-[clamp(26px,2.5vw,32px)] leading-[1.25] font-semibold tracking-[-0.01em]"
 		>
 			История, которую вы, скорее всего, уже проживаете
 		</h2>
@@ -147,7 +147,7 @@
 	<!-- Time management section -->
 	<section class="mx-auto mb-10 max-w-[680px] px-5 sm:mb-[60px]" data-reveal>
 		<h2
-			class="mb-[22px] font-circe text-[clamp(20px,2.5vw,26px)] leading-[1.25] font-semibold tracking-[-0.01em]"
+			class="mb-[22px] font-caveat  text-[clamp(26px,2.5vw,32px)] leading-[1.25] font-semibold tracking-[-0.01em]"
 		>
 			Тайм-менеджмент — это таблетка от головной боли при переломе ноги
 		</h2>
@@ -191,7 +191,7 @@
 	<!-- What's really happening -->
 	<section class="mx-auto mb-10 max-w-[680px] px-5 sm:mb-[60px]" data-reveal>
 		<h2
-			class="mb-[22px] font-circe text-[clamp(20px,2.5vw,26px)] leading-[1.25] font-semibold tracking-[-0.01em]"
+			class="mb-[22px] font-caveat  text-[clamp(26px,2.5vw,32px)] leading-[1.25] font-semibold tracking-[-0.01em]"
 		>
 			Что на самом деле происходит — и почему это не лень
 		</h2>
@@ -261,7 +261,7 @@
 	<section class="mx-auto mb-10 max-w-[680px] px-5 sm:mb-[60px]" data-reveal>
 		<div class="rounded-2xl bg-card px-6 py-7 sm:px-10 sm:py-9">
 			<h2
-				class="mb-[22px] font-circe text-[clamp(20px,2.5vw,24px)] leading-[1.25] font-semibold tracking-[-0.01em]"
+				class="mb-[22px] font-caveat  text-[clamp(20px,2.5vw,24px)] leading-[1.25] font-semibold tracking-[-0.01em]"
 			>
 				Почему я говорю об этом не как теоретик
 			</h2>
@@ -286,7 +286,7 @@
 	<!-- Entry point -->
 	<section class="mx-auto mb-10 max-w-[680px] px-5 sm:mb-[60px]" data-reveal>
 		<h2
-			class="mb-[22px] font-circe text-[clamp(20px,2.5vw,26px)] leading-[1.25] font-semibold tracking-[-0.01em]"
+			class="mb-[22px] font-caveat  text-[clamp(26px,2.5vw,32px)] leading-[1.25] font-semibold tracking-[-0.01em]"
 		>
 			Где находится настоящая точка входа
 		</h2>
@@ -324,7 +324,7 @@
 	<section class="mx-auto mb-14 max-w-[680px] px-5 sm:mb-20" data-reveal bind:this={ctaSection}>
 		<div class="rounded-2xl bg-card px-6 py-8 text-center sm:px-12 sm:py-[44px]">
 			<h2
-				class="mb-5 font-circe text-[clamp(22px,2.8vw,28px)] leading-[1.25] font-semibold tracking-[-0.01em]"
+				class="mb-5 font-caveat  text-[clamp(22px,2.8vw,28px)] leading-[1.25] font-semibold tracking-[-0.01em]"
 			>
 				Вы уже достаточно долго живёте в режиме «ещё немного потерплю»
 			</h2>
@@ -358,7 +358,7 @@
 				target="_blank"
 				rel="noopener noreferrer"
 				onclick={() => reachGoal('lead_cta_click')}
-				class="mt-7 inline-block rounded-md bg-primary px-8 py-[14px] text-base font-medium tracking-[0.01em] text-primary-foreground no-underline transition-colors duration-200 ease-out hover:bg-primary-light"
+				class="mt-7 inline-block rounded-3xl bg-primary px-8 py-[14px] text-base font-medium tracking-[0.01em] text-primary-foreground no-underline transition-colors duration-200 ease-out hover:bg-primary-light"
 			>
 				Записаться на встречу-знакомство
 			</a>

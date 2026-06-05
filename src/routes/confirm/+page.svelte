@@ -19,7 +19,7 @@
                         <polyline points="22 4 12 14.01 9 11.01"/>
                     </svg>
                 </div>
-                <h1 class="mb-3 font-circe text-2xl font-semibold text-foreground">Подписка подтверждена!</h1>
+                <h1 class="mb-3 font-caveat  text-2xl font-semibold text-foreground">Подписка подтверждена!</h1>
             </div>
         {:else}
             <div class="rounded-lg border border-red-200 bg-white p-8 shadow-sm">
@@ -30,7 +30,7 @@
                         <line x1="9" y1="9" x2="15" y2="15"/>
                     </svg>
                 </div>
-                <h1 class="mb-3 font-circe text-2xl font-semibold text-foreground">Что-то пошло не так</h1>
+                <h1 class="mb-3 font-caveat  text-2xl font-semibold text-foreground">Что-то пошло не так</h1>
                 <p class="mb-6 leading-relaxed text-foreground/70">{data.message}</p>
                 <Button variant="outline" href="/subscription" class="w-full justify-center">Вернуться к подписке</Button>
             </div>

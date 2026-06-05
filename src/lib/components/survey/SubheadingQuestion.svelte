@@ -1,4 +1,8 @@
-﻿<script lang="ts">
+<!--
+  Заменяет: src/lib/components/survey/SubheadingQuestion.svelte
+  Дизайн: заголовок группы вопросов — крупный, насыщенный, navy (как в макете).
+-->
+<script lang="ts">
 	import type { SurveyQuestion } from '$lib/data/surveys/types';
 
 	type Props = {
@@ -9,8 +13,10 @@
 </script>
 
 {#if question.text}
-	<div class="pt-6 pb-2">
-		<h3 class="text-md font-semibold text-foreground md:text-xl">
+	<div class="pt-4 pb-1">
+		<h3
+			class="max-w-[720px] text-[24px] leading-[1.25] font-extrabold tracking-[-0.4px] text-navy md:text-[31px]"
+		>
 			{question.text}
 		</h3>
 	</div>

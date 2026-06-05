@@ -164,7 +164,7 @@
       "refersTo": "button-primary",
       "description": "The main CTA. Used for booking, form submission, and primary navigation actions.",
       "html": "<button class=\"ds-btn-primary\">Записаться на консультацию</button>",
-      "css": ".ds-btn-primary { background: oklch(0.719 0.048 81); color: oklch(0.984 0.004 81); padding: 12px 24px; border-radius: 10px; border: none; font-family: 'Tilda-Sans', system-ui, sans-serif; font-size: 0.9375rem; font-weight: 500; letter-spacing: 0.01em; cursor: pointer; transition: background 200ms cubic-bezier(0.25, 1, 0.5, 1), box-shadow 200ms cubic-bezier(0.25, 1, 0.5, 1); } .ds-btn-primary:hover { background: oklch(0.798 0.033 81); box-shadow: 0 4px 16px rgba(0,0,0,0.12); } .ds-btn-primary:focus-visible { outline: none; box-shadow: 0 0 0 2px oklch(0.984 0.004 81), 0 0 0 4px oklch(0.719 0.048 81); } .ds-btn-primary:active { transform: scale(0.98); }"
+      "css": ".ds-btn-primary { background: oklch(0.793 0.123 84);    color: oklch(0.984 0.004 81); padding: 12px 24px; border-radius: 10px; border: none; font-family: 'Tilda-Sans', system-ui, sans-serif; font-size: 0.9375rem; font-weight: 500; letter-spacing: 0.01em; cursor: pointer; transition: background 200ms cubic-bezier(0.25, 1, 0.5, 1), box-shadow 200ms cubic-bezier(0.25, 1, 0.5, 1); } .ds-btn-primary:hover { background: oklch(0.798 0.033 81); box-shadow: 0 4px 16px rgba(0,0,0,0.12); } .ds-btn-primary:focus-visible { outline: none; box-shadow: 0 0 0 2px oklch(0.984 0.004 81), 0 0 0 4px oklch(0.793 0.123 84);    } .ds-btn-primary:active { transform: scale(0.98); }"
     },
     {
       "name": "Outline Button",
@@ -172,7 +172,7 @@
       "refersTo": "button-outline",
       "description": "Secondary CTA. Used alongside primary, or when the context already has Burnished Ochre nearby.",
       "html": "<button class=\"ds-btn-outline\">Подробнее</button>",
-      "css": ".ds-btn-outline { background: transparent; color: oklch(0.719 0.048 81); padding: 12px 24px; border-radius: 10px; border: 1px solid oklch(0.719 0.048 81); font-family: 'Tilda-Sans', system-ui, sans-serif; font-size: 0.9375rem; font-weight: 500; letter-spacing: 0.01em; cursor: pointer; transition: background 200ms cubic-bezier(0.25, 1, 0.5, 1), color 200ms cubic-bezier(0.25, 1, 0.5, 1), box-shadow 200ms cubic-bezier(0.25, 1, 0.5, 1); } .ds-btn-outline:hover { background: oklch(0.719 0.048 81); color: oklch(0.984 0.004 81); box-shadow: 0 4px 16px rgba(0,0,0,0.10); } .ds-btn-outline:focus-visible { outline: none; box-shadow: 0 0 0 2px oklch(0.969 0.007 81), 0 0 0 4px oklch(0.719 0.048 81); }"
+      "css": ".ds-btn-outline { background: transparent; color: oklch(0.793 0.123 84);    padding: 12px 24px; border-radius: 10px; border: 1px solid oklch(0.793 0.123 84);    font-family: 'Tilda-Sans', system-ui, sans-serif; font-size: 0.9375rem; font-weight: 500; letter-spacing: 0.01em; cursor: pointer; transition: background 200ms cubic-bezier(0.25, 1, 0.5, 1), color 200ms cubic-bezier(0.25, 1, 0.5, 1), box-shadow 200ms cubic-bezier(0.25, 1, 0.5, 1); } .ds-btn-outline:hover { background: oklch(0.793 0.123 84);    color: oklch(0.984 0.004 81); box-shadow: 0 4px 16px rgba(0,0,0,0.10); } .ds-btn-outline:focus-visible { outline: none; box-shadow: 0 0 0 2px oklch(0.969 0.007 81), 0 0 0 4px oklch(0.793 0.123 84);    }"
     },
     {
       "name": "Content Card",
@@ -188,7 +188,7 @@
       "refersTo": null,
       "description": "Form fields: email subscription, contact. Understated; should not compete with content.",
       "html": "<div class=\"ds-input-wrap\"><input class=\"ds-input\" type=\"email\" placeholder=\"your@email.com\" /></div>",
-      "css": ".ds-input-wrap { position: relative; } .ds-input { width: 100%; padding: 10px 14px; background: oklch(0.984 0.004 81); border: 1px solid oklch(0.143 0.005 81 / 0.2); border-radius: 10px; font-family: 'Tilda-Sans', system-ui, sans-serif; font-size: 0.9375rem; font-weight: 400; color: oklch(0.143 0.005 81); outline: none; transition: border-color 200ms cubic-bezier(0.25, 1, 0.5, 1); box-sizing: border-box; } .ds-input:focus { border-color: oklch(0.719 0.048 81); } .ds-input:disabled { opacity: 0.5; cursor: not-allowed; } .ds-input::placeholder { color: oklch(0.366 0.003 81); }"
+      "css": ".ds-input-wrap { position: relative; } .ds-input { width: 100%; padding: 10px 14px; background: oklch(0.984 0.004 81); border: 1px solid oklch(0.143 0.005 81 / 0.2); border-radius: 10px; font-family: 'Tilda-Sans', system-ui, sans-serif; font-size: 0.9375rem; font-weight: 400; color: oklch(0.143 0.005 81); outline: none; transition: border-color 200ms cubic-bezier(0.25, 1, 0.5, 1); box-sizing: border-box; } .ds-input:focus { border-color: oklch(0.793 0.123 84);    } .ds-input:disabled { opacity: 0.5; cursor: not-allowed; } .ds-input::placeholder { color: oklch(0.366 0.003 81); }"
     },
     {
       "name": "Navigation Header",
@@ -196,7 +196,7 @@
       "refersTo": null,
       "description": "Fixed header. Transparent on hero; transitions to Warm Parchment on scroll. TildaSans 500 labels.",
       "html": "<nav class=\"ds-nav\"><a class=\"ds-nav-link\" href=\"#about\">Обо мне</a><a class=\"ds-nav-link ds-nav-link--active\" href=\"#pricing\">Стоимость</a><a class=\"ds-nav-link\" href=\"#faq\">FAQ</a></nav>",
-      "css": ".ds-nav { display: flex; align-items: center; gap: 32px; padding: 0 20px; height: 64px; background: oklch(0.969 0.007 81); } .ds-nav-link { font-family: 'Tilda-Sans', system-ui, sans-serif; font-size: 0.9375rem; font-weight: 500; color: oklch(0.143 0.005 81); text-decoration: none; transition: color 200ms cubic-bezier(0.25, 1, 0.5, 1); } .ds-nav-link:hover { color: oklch(0.719 0.048 81); } .ds-nav-link--active { color: oklch(0.719 0.048 81); }"
+      "css": ".ds-nav { display: flex; align-items: center; gap: 32px; padding: 0 20px; height: 64px; background: oklch(0.969 0.007 81); } .ds-nav-link { font-family: 'Tilda-Sans', system-ui, sans-serif; font-size: 0.9375rem; font-weight: 500; color: oklch(0.143 0.005 81); text-decoration: none; transition: color 200ms cubic-bezier(0.25, 1, 0.5, 1); } .ds-nav-link:hover { color: oklch(0.793 0.123 84);    } .ds-nav-link--active { color: oklch(0.793 0.123 84);    }"
     },
     {
       "name": "Progress Indicator Pills",

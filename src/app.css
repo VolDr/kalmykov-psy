@@ -8,7 +8,8 @@
 
 @theme {
 	--font-tilda-sans: 'Tilda-Sans', 'system-ui';
-	--font-circe: 'Circe', 'system-ui';
+	--font-caveat : 'Circe', 'system-ui';
+	--font-caveat: 'Caveat', 'Circe', cursive;
 	--font-verdana: 'Verdana', 'system-ui';
 	--font-aeonik: 'Aeonik', 'system-ui';
 	--breakpoint-3xl: 121rem;
@@ -25,9 +26,9 @@
 	--card-foreground: oklch(0.143 0.005 81);
 	--popover: oklch(0.984 0.004 81);
 	--popover-foreground: oklch(0.143 0.005 81);
-	--primary: oklch(0.719 0.048 81);
+	--primary: oklch(0.793 0.123 84);   
 	--primary-foreground: oklch(0.984 0.003 81);
-	--primary-light: oklch(0.798 0.033 81);
+	--primary-light: oklch(0.84 0.1 86); 
 	--secondary: oklch(0.945 0.005 81);
 	--secondary-foreground: oklch(0.200 0.005 81);
 	--muted: oklch(0.945 0.005 81);
@@ -37,7 +38,7 @@
 	--destructive: oklch(0.577 0.245 27.325);
 	--border: oklch(0.906 0.003 81);
 	--input: oklch(0.906 0.003 81);
-	--ring: oklch(0.719 0.048 81);
+	--ring: oklch(0.793 0.123 84);   
 	--chart-1: oklch(0.646 0.222 41.116);
 	--chart-2: oklch(0.6 0.118 184.704);
 	--chart-3: oklch(0.398 0.07 227.392);
@@ -45,12 +46,16 @@
 	--chart-5: oklch(0.769 0.188 70.08);
 	--sidebar: oklch(0.969 0.007 81);
 	--sidebar-foreground: oklch(0.143 0.005 81);
-	--sidebar-primary: oklch(0.719 0.048 81);
+	--sidebar-primary: oklch(0.793 0.123 84);   
 	--sidebar-primary-foreground: oklch(0.984 0.003 81);
 	--sidebar-accent: oklch(0.945 0.005 81);
 	--sidebar-accent-foreground: oklch(0.200 0.005 81);
 	--sidebar-border: oklch(0.906 0.003 81);
-	--sidebar-ring: oklch(0.719 0.048 81);
+	--sidebar-ring: oklch(0.793 0.123 84);   
+	--navy: #2b2a4e;                          
+	--lilac: #e7e1f4;                         
+	--lilac-foreground: #5a4b8c;              
+	--marker: #f2cf74;                    
 }
 
 .dark {
@@ -124,6 +129,14 @@
 	--color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
 	--color-sidebar-border: var(--sidebar-border);
 	--color-sidebar-ring: var(--sidebar-ring);
+	--color-navy: var(--navy);
+	--color-lilac: var(--lilac);
+	--color-lilac-foreground: var(--lilac-foreground);
+	--color-marker: var(--marker);
+}
+
+html, body {
+	overflow-x: clip;
 }
 
 /* Scrollbar */
@@ -155,24 +168,15 @@
 	}
 
 	@font-face {
-		font-family: 'Tilda-Sans';
+		font-family: 'Caveat';
 		src:
-			url('/TildaSans-VF.woff2') format('woff2'),
-			url('/TildaSans-VF.woff') format('woff'),
-			url('/TildaSans-VF.ttf') format('truetype');
+			url('/_Caveat.woff2') format('woff2');
 		font-display: swap;
-		font-weight: 100 900;
-	}
-
-
-	@font-face {
-		font-family: 'Verdana';
-		src:
-			url('/Verdana.woff2') format('woff2');
-		font-display: swap;
-		font-weight: 100 900;
+		font-weight: 500 600 700;
 		font-style: normal;
 	}
+
+
 
 		@font-face {
 		font-family: 'Aeonik';
@@ -184,16 +188,7 @@
 	}
 
 
-	@font-face {
-		font-family: 'Circe';
-		src:
-			url('/Circle Light.woff2') format('woff2'),
-			url('/Circle Light.woff') format('woff'),
-			url('/Circle Light.ttf') format('truetype');
-		font-display: swap;
-		font-weight: 100 900;
-		font-style: normal;
-	}
+
 
 	html,
 	body {

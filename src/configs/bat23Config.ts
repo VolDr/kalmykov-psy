@@ -4,7 +4,7 @@ export const bat23Config: SurveyConfig = {
 	id: 'bat23',
 	title: 'BAT-23',
 	description: 'Полный опросник для диагностической оценки профессионального выгорания',
-
+	time: '5-7 минут',
 	infoSections: {
 		beforeUse: {
 			title: 'Важный дисклеймер',

@@ -4,7 +4,7 @@ export const bat12Config: SurveyConfig = {
 	id: 'bat12',
 	title: 'BAT-12',
 	description: 'Короткий опросник для оценки профессионального выгорания',
-
+	time: '3-5 минут',
 	infoSections: {
 		beforeUse: {
 			title: 'Важный дисклеймер',

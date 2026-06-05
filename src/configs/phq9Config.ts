@@ -4,7 +4,7 @@ export const phq9Config: SurveyConfig = {
 	id: 'phq9',
 	title: 'PHQ-9',
 	description: 'Опросник для оценки депрессивного состояния',
-
+	time: '5-7 минут',
 	infoSections: {
 		beforeUse: {
 			title: 'Важный дисклеймер',

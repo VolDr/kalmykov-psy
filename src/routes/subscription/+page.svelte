@@ -62,7 +62,7 @@
         {#if !submitted}
             <div class="mb-6 md:mb-6">
                 <p class="mb-3 text-sm font-medium uppercase tracking-widest text-foreground/40">рассылка</p>
-                <h1 class="mb-4 font-circe text-3xl font-semibold leading-tight text-foreground md:text-4xl">Материалы о выгорании</h1>
+                <h1 class="mb-4 font-caveat  text-3xl font-semibold leading-tight text-navy md:text-4xl">Материалы о выгорании</h1>
                 <p class="max-w-[600px] text-lg leading-relaxed text-foreground/70">
                 Подпишитесь на рассылку, чтобы получать полезные материалы, практические идеи и разбор исследований по работе с выгоранием и прокрастинацией. Без воды и мотивационных цитат.
                 </p>
@@ -140,7 +140,7 @@
                         <polyline points="22 4 12 14.01 9 11.01"/>
                     </svg>
                 </div>
-                <h2 class="mb-3 font-circe text-2xl font-semibold text-foreground">Проверьте почту</h2>
+                <h2 class="mb-3 font-caveat  text-2xl font-semibold text-foreground">Проверьте почту</h2>
                 <p class="mb-4 xl:mb-12 leading-relaxed text-foreground/70">Отправил письмо на <strong class="font-medium text-foreground">{email}</strong> — нажмите кнопку подтверждения, чтобы подписка стала активной.</p>
                 <p class="text-sm text-foreground/40">Не нашли письмо? Проверьте папку «Спам» или «Промоакции».</p>
             </div>

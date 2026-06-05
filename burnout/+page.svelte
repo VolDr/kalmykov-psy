@@ -107,7 +107,7 @@
 
 	<div class="relative z-10 mx-auto px-5 pt-32 pb-16 md:max-w-[760px] lg:max-w-[960px] xl:pt-48">
 		<Reveal width="full">
-			<h1 class=" font-circe text-3xl leading-tight md:text-5xl">
+			<h1 class=" font-caveat  text-3xl leading-tight md:text-5xl">
 				Психолог при выгорании: консультация и психотерапия онлайн
 			</h1>
 		</Reveal>
@@ -134,7 +134,7 @@
 <section class="bg-white py-16 md:py-24">
 	<div class="mx-auto px-5 md:max-w-[760px] lg:max-w-[760px]">
 		<Reveal>
-			<h2 class="mb-8 font-circe text-3xl font-semibold text-[#191919] md:text-4xl">
+			<h2 class="mb-8 font-caveat  text-3xl font-semibold text-[#191919] md:text-4xl">
 				Психологическая помощь при выгорании — когда пора обратиться
 			</h2>
 		</Reveal>
@@ -178,7 +178,7 @@
 <section class="bg-[#f7f5f0] py-16 md:py-24">
 	<div class="mx-auto px-5 md:max-w-[760px] lg:max-w-[760px]">
 		<Reveal>
-			<h2 class="mb-8 font-circe text-3xl font-semibold text-[#191919] md:text-4xl">
+			<h2 class="mb-8 font-caveat  text-3xl font-semibold text-[#191919] md:text-4xl">
 				Как проходит консультация психолога при выгорании
 			</h2>
 		</Reveal>
@@ -205,14 +205,14 @@
 					Со второй сессии начинается основная работа: когнитивная реструктуризация дисфункциональных убеждений («я должен быть всегда эффективен»), поведенческая активация, развитие психологической гибкости через ACT-интервенции, регуляция эмоций через майндфулнесс-практики. Средняя длительность курса при умеренном выгорании — 12–20 сессий.
 				</p>
 
-				<h3 class="font-circe text-2xl font-semibold text-[#191919] mt-12 mb-4">
+				<h3 class="font-caveat  text-2xl font-semibold text-[#191919] mt-12 mb-4">
 					Консультативный альянс как основа эффективной работы
 				</h3>
 				<p>
 					Терапевтический альянс — рабочий союз между клиентом и психологом — объясняет до 30% дисперсии терапевтических исходов (Wampold, 2015). В контексте выгорания это особенно критично: клиент, у которого истощён эмоциональный ресурс, нуждается в безопасном пространстве без требований и оценки. Качество альянса формируется в первых трёх сессиях — именно поэтому важно, чтобы психолог имел опыт работы с синдромом выгорания, а не только с общими запросами «на тему работы».
 				</p>
 
-				<h3 class="font-circe text-2xl font-semibold text-[#191919] mt-12 mb-4">
+				<h3 class="font-caveat  text-2xl font-semibold text-[#191919] mt-12 mb-4">
 					Психотерапевтический контракт: что важно обсудить на первой сессии
 				</h3>
 				<p>На первой встрече необходимо прояснить:</p>
@@ -241,7 +241,7 @@
 <section class="bg-white py-16 md:py-24">
 	<div class="mx-auto px-5 md:max-w-[760px] lg:max-w-[760px]">
 		<Reveal>
-			<h2 class="mb-8 font-circe text-3xl font-semibold text-[#191919] md:text-4xl">
+			<h2 class="mb-8 font-caveat  text-3xl font-semibold text-[#191919] md:text-4xl">
 				Индивидуальное консультирование или психотерапия: в чём разница
 			</h2>
 		</Reveal>
@@ -301,14 +301,14 @@
 					<a href="/burnout/sindrom-professionalnogo-vygoraniya/vygoranie-vs-depressiya/" class="text-[#B8A98A] underline hover:no-underline transition-all">Выгорание vs депрессия: как отличить</a>.
 				</p>
 
-				<h3 class="font-circe text-2xl font-semibold text-[#191919] mt-12 mb-4">
+				<h3 class="font-caveat  text-2xl font-semibold text-[#191919] mt-12 mb-4">
 					Онлайн-психотерапия при эмоциональном истощении
 				</h3>
 				<p>
 					Онлайн-формат при выгорании показывает сопоставимую эффективность с очной работой. Для клиентов с истощением это особенно важно: отсутствие необходимости «доехать» снижает порог входа и устраняет один из распространённых барьеров — «у меня нет сил идти к психологу». Сессии проходят в Zoom или другом защищённом видеоканале, конфиденциальность обеспечена.
 				</p>
 
-				<h3 class="font-circe text-2xl font-semibold text-[#191919] mt-12 mb-4">
+				<h3 class="font-caveat  text-2xl font-semibold text-[#191919] mt-12 mb-4">
 					Нужен ли психолог или психиатр при выгорании
 				</h3>
 				<p>
@@ -322,7 +322,7 @@
 <section class="bg-[#f7f5f0] py-16 md:py-24">
 	<div class="mx-auto px-5 md:max-w-[760px] lg:max-w-[760px]">
 		<Reveal>
-			<h2 class="mb-8 font-circe text-3xl font-semibold text-[#191919] md:text-4xl">
+			<h2 class="mb-8 font-caveat  text-3xl font-semibold text-[#191919] md:text-4xl">
 				Какие методы психотерапии применяются при выгорании
 			</h2>
 		</Reveal>
@@ -352,7 +352,7 @@
 <section class="bg-white py-16 md:py-24">
 	<div class="mx-auto px-5 md:max-w-[760px] lg:max-w-[760px]">
 		<Reveal>
-			<h2 class="mb-8 font-circe text-3xl font-semibold text-[#191919] md:text-4xl">
+			<h2 class="mb-8 font-caveat  text-3xl font-semibold text-[#191919] md:text-4xl">
 				Диагностика, профилактика и восстановление: навигация по теме
 			</h2>
 		</Reveal>

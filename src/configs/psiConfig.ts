@@ -4,7 +4,7 @@ export const psiConfig: SurveyConfig = {
 	id: 'psi',
 	title: 'Шкала прокрастинации (PSI)',
 	description: 'Шкала прокрастинации П. Стила',
-
+	time: '8-10 минут',
 	infoSections: {
 		beforeUse: {
 			title: 'О шкале прокрастинации',

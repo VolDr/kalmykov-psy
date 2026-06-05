@@ -13,7 +13,7 @@ export const onlineTherapyBlocks: BlockProps[] = [
 		{
 		title: 'Записаться на сессию',
 		data: [
-			'Просто напишите мне в [Telegram](https://t.me/m/POBhzGjVOWFi).'
+			'Напишите мне в [Telegram](https://t.me/m/POBhzGjVOWFi) или [забронируйте время сессии](https://kalmykov-psy.ru/booking/), и я свяжусь с вами.'
 		]
 	},
 	{

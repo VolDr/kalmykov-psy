@@ -1,3 +1,7 @@
+<!--
+  Заменяет: src/lib/components/survey/QuestionRenderer.svelte
+  Изменение: прокидывает `number` в RadioQuestion (для рукописной нумерации вопросов).
+-->
 <script lang="ts">
 	import type { SurveyQuestion } from '$lib/data/surveys/types';
 	import RadioQuestion from './RadioQuestion.svelte';
@@ -10,6 +14,7 @@
 		shouldDisplay?: boolean;
 		disabled?: boolean;
 		answers?: Record<string, number>;
+		number?: number;
 	};
 
 	let {
@@ -18,7 +23,8 @@
 		onChange,
 		shouldDisplay = true,
 		disabled = false,
-		answers = {}
+		answers = {},
+		number
 	}: Props = $props();
 
 	// Determine which text to use based on condition
@@ -38,7 +44,7 @@
 	{#if question.type === 'subheading'}
 		<SubheadingQuestion question={adaptedQuestion} />
 	{:else if question.type === 'radio'}
-		<RadioQuestion question={adaptedQuestion} {value} {onChange} {disabled} />
+		<RadioQuestion question={adaptedQuestion} {value} {onChange} {disabled} {number} />
 	{:else if question.type === 'checkbox'}
 		<div>Checkbox questions not implemented yet</div>
 	{:else if question.type === 'textarea'}

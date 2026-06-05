@@ -17,7 +17,11 @@
       "Bash(npx skills *)",
       "Bash(cat src/index.ts)",
       "Bash(cat src/lib/index.ts)",
-      "Bash(npm install *)"
+      "Bash(npm install *)",
+      "Bash(cd /d \"C:\\\\Users\\\\Андрей\\\\projects\\\\kalmykov-psy\")",
+      "Bash(cat .env)",
+      "Bash(cat .env.local)",
+      "WebSearch"
     ]
   },
   "enableAllProjectMcpServers": true,

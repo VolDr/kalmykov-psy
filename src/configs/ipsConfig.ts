@@ -4,7 +4,7 @@ export const ipsConfig: SurveyConfig = {
 	id: 'ips',
 	title: 'Шкала иррациональной прокрастинации',
 	description: 'Шкала иррациональной прокрастинации П. Стила',
-
+	time: '5-7 минут',
 	infoSections: {
 		beforeUse: {
 			title: 'О шкале иррациональной прокрастинации',

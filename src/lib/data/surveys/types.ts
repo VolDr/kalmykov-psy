@@ -87,6 +87,7 @@ export interface SurveyConfig {
 	id: string;
 	title: string;
 	description: string;
+	time: string;
 	infoSections: Record<string, InfoSection>;
 	questions: SurveyQuestion[];
 	scoring: {

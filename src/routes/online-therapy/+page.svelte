@@ -1,36 +1,122 @@
-﻿<script lang="ts">
-	import { cn } from '$lib/utils';
+﻿<!--
+  ════════════════════════════════════════════════════════════════
+  ПОРТ: полная замена  src/routes/online-therapy/+page.svelte
+  ────────────────────────────────────────────────────────────────
+  Редизайн страницы «Как строится работа» (макет «Перед началом работы»).
+  · Header / Footer берутся из +layout.svelte (онлайн-терапия в layout НЕ скрыта) —
+    поэтому здесь только контент страницы. PageHero больше не нужен.
+  · Данные те же: onlineTherapyBlocks. 14 блоков сгруппированы в 5 разделов.
+    Логика avito-overrides (?avito) сохранена.
+  · Клик по теме раскрывает её полный текст в правой колонке (master-detail),
+    повторный клик возвращает краткую сводку раздела.
+  · Требует токенов из app.css.additions.css (font-caveat, text-navy) —
+    они уже добавлены при порте «верха».
+  · Иконки — через iconify-плагин (icon-[lucide--…]), как в Header.svelte.
+  ════════════════════════════════════════════════════════════════
+-->
+<script lang="ts">
 	import { onlineTherapyBlocks, type BlockProps } from '$lib/data/online-therapy';
 	import MarkdownLink from '$lib/components/MarkdownLink.svelte';
-	import PageHero from '$lib/components/PageHero.svelte';
+	import Reveal from '$lib/components/Reveal.svelte';
 	import { page } from '$app/state';
-	import BookButton from '$lib/components/BookButton.svelte';
+	import { cubicOut } from 'svelte/easing';
 
-	// Модификации блоков для разных источников
+	function panelEnter(node: Element, { duration = 300 }: { duration?: number } = {}) {
+		return {
+			duration,
+			css: (t: number) => {
+				const e = cubicOut(t);
+				return `opacity:${e};transform:translateY(${(1 - e) * 10}px);filter:blur(${(1 - e) * 3}px)`;
+			}
+		};
+	}
+
+	// ── модификации цены для отдельных источников (как было) ──
 	const priceOverrides: Record<string, string[]> = {
 		avito: ['3000₽ за сессию первые три сессии, далее 5000₽.']
 	};
 
 	function getModifiedBlocks(source: string | null): BlockProps[] {
-		if (!source || !priceOverrides[source]) {
-			return onlineTherapyBlocks;
-		}
-
-		return onlineTherapyBlocks.map((block) => {
-			if (block.title === 'Оплата и стоимость') {
-				const override = priceOverrides[source];
-				return {
-					...block,
-					data: [...override, ...block.data.slice(1)]
-				};
-			}
-			return block;
-		});
+		if (!source || !priceOverrides[source]) return onlineTherapyBlocks;
+		return onlineTherapyBlocks.map((block) =>
+			block.title === 'Оплата и стоимость'
+				? { ...block, data: [...priceOverrides[source], ...block.data.slice(1)] }
+				: block
+		);
 	}
 
-	// Получаем источник из query параметров (например, ?avito или ?special)
 	const source = $derived(page.url.searchParams.keys().next().value ?? null);
 	const blocks = $derived(getModifiedBlocks(source));
+	// быстрый доступ к тексту блока по его заголовку
+	const byTitle = $derived(Object.fromEntries(blocks.map((b) => [b.title, b.data])));
+
+	// ── группировка в 5 разделов (label — что видит пользователь, key — заголовок блока) ──
+	type Topic = { label: string; key: string };
+	type Group = { num: string; icon: string; title: [string, string]; summary: string; topics: Topic[] };
+
+	const groups: Group[] = [
+		{
+			num: '01',
+			icon: 'icon-[lucide--message-circle]',
+			title: ['Начало', 'работы'],
+			summary: 'Как сделать первый шаг, где и как проходят встречи и чего ожидать на первой сессии.',
+			topics: [
+				{ label: 'С чего начать', key: 'С чего начать' },
+				{ label: 'Как записаться', key: 'Записаться на сессию' },
+				{ label: 'Где проходит сессия', key: 'Где проходит сессия' },
+				{ label: 'Что происходит на сессии', key: 'Что происходит на сессии' }
+			]
+		},
+		{
+			num: '02',
+			icon: 'icon-[lucide--clock]',
+			title: ['Организация', 'встреч'],
+			summary: 'Длительность и частота встреч, оплата, а также правила переноса и отмены сессий.',
+			topics: [
+				{ label: 'Продолжительность сессии', key: 'Продолжительность сессии' },
+				{ label: 'Частота встреч', key: 'Частота встреч' },
+				{ label: 'Оплата и стоимость', key: 'Оплата и стоимость' },
+				{ label: 'Опоздания и переносы', key: 'Опоздания и переносы' }
+			]
+		},
+		{
+			num: '03',
+			icon: 'icon-[lucide--lock]',
+			title: ['Конфиденциальность', 'и безопасность'],
+			summary:
+				'Как я сохраняю конфиденциальность, поддерживаю нейтральность и следую этическим принципам в работе.',
+			topics: [
+				{ label: 'Конфиденциальность', key: 'Конфиденциальность' },
+				{ label: 'Нейтральность и принятие', key: 'Нейтральность и принятие' },
+				{ label: 'Этические принципы', key: 'Этические принципы' }
+			]
+		},
+		{
+			num: '04',
+			icon: 'icon-[lucide--user-round]',
+			title: ['Процесс', 'терапии'],
+			summary: 'О продолжительности терапии, обратной связи в процессе и моих отпусках.',
+			topics: [
+				{ label: 'Длительность работы', key: 'Длительность работы' },
+				{ label: 'Обратная связь', key: 'Обратная связь' },
+				{ label: 'Отпуск', key: 'Отпуск' }
+			]
+		},
+		{
+			num: '05',
+			icon: 'icon-[lucide--flag]',
+			title: ['Завершение', 'работы'],
+			summary: 'Как может завершиться терапия и что важно знать об этом.',
+			topics: [{ label: 'Завершение терапии', key: 'Завершение работы' }]
+		}
+	];
+
+	// выбранная тема в каждом разделе (null = показываем сводку)
+	let selected = $state<(number | null)[]>(groups.map(() => null));
+
+	function toggle(i: number, j: number) {
+		selected[i] = selected[i] === j ? null : j;
+	}
 </script>
 
 <svelte:head>
@@ -59,34 +145,171 @@
 	<meta name="twitter:image" content="{import.meta.env.VITE_URL}/header.webp" />
 </svelte:head>
 
-<PageHero title="Как мы будем работать" maxWidth="md">
-	{#snippet description()}
-		<p class="leading-relaxed">
-			Психотерапия — это регулярные встречи, во время которых мы работаем с вашими мыслями,
-			чувствами и поведением для достижения желаемых изменений.
-		</p>
-		<p class="leading-relaxed">
-			Если какие-то пункты вызывают у вас вопросы, вы можете обсудить их со мной.
-		</p>
-	{/snippet}
-</PageHero>
+<!-- ═══════════════════ ГЕРОЙ ═══════════════════ -->
+<section class="bg-background pt-24 lg:pt-32">
+	<div
+		class="mx-auto grid grid-cols-1 items-center gap-8 px-5 md:max-w-[760px] lg:max-w-[1600px] lg:grid-cols-[1.1fr_0.9fr] xl:px-0"
+	>
+		<Reveal width="full">
+			<div class="flex flex-col">
+				<span class="relative mb-5 inline-block w-fit">
+					<span class="inline-block -rotate-[4deg] font-caveat text-[26px] font-bold text-primary"
+						>важно знать</span
+					>
 
-<div class="container mx-auto mt-10 max-w-[720px] px-5 lg:max-w-[760px] xl:px-0">
-	<div class="grid grid-cols-1 gap-10 leading-relaxed">
-		{#each blocks as block}
-			<div class="col-span-full">
-				<section class="flex flex-col items-start gap-2">
-					<h2 class="subtitle">{block.title.toLowerCase()}</h2>
-					<div class="flex flex-col items-start gap-1">
-						{#each block.data as item}
-							<p>
-								<MarkdownLink text={item} />
-							</p>
+				</span>
+				<h1 class="mb-8 font-caveat text-[52px] leading-[1.22] font-bold tracking-[1px] text-navy md:text-[52px]">
+					Перед началом<br />работы
+				</h1>
+				<p class="max-w-[440px] text-lg leading-relaxed text-foreground/75 md:text-[19px]">
+					Ниже описано, как устроена работа, какие правила помогают нам сотрудничать и чего можно
+					ожидать от терапии.
+				</p>
+			</div>
+		</Reveal>
+
+		<!-- иллюстрация: ваза с веточкой -->
+		<Reveal width="full">
+			<div class="hidden lg:flex min-h-[260px] items-center justify-center lg:min-h-[320px]">
+				<svg class="h-auto w-full max-w-[380px]" viewBox="0 0 380 320" fill="none" aria-hidden="true">
+					<circle cx="232" cy="138" r="98" fill="#F6E7CF" />
+					<path d="M188 150 C190 110 196 78 214 50" stroke="var(--color-navy)" stroke-width="2.2" stroke-linecap="round" />
+					<path d="M214 50 C224 38 240 32 256 34" stroke="var(--color-navy)" stroke-width="2.2" stroke-linecap="round" />
+					<path d="M200 96 C212 84 228 82 242 88" stroke="var(--color-navy)" stroke-width="2.2" stroke-linecap="round" />
+					<path d="M194 122 C182 116 170 118 160 128" stroke="var(--color-navy)" stroke-width="2.2" stroke-linecap="round" />
+					<path d="M256 34 C268 26 282 28 288 38 C278 44 264 44 256 34 Z" stroke="var(--color-navy)" stroke-width="2" fill="none" stroke-linejoin="round" />
+					<path d="M242 88 C254 82 268 86 272 96 C261 100 248 97 242 88 Z" stroke="var(--color-navy)" stroke-width="2" fill="none" stroke-linejoin="round" />
+					<path d="M160 128 C148 124 136 128 132 138 C143 142 154 138 160 128 Z" stroke="var(--color-navy)" stroke-width="2" fill="none" stroke-linejoin="round" />
+					<path d="M214 50 C206 38 206 26 214 18 C222 26 222 40 214 50 Z" stroke="var(--color-navy)" stroke-width="2" fill="none" stroke-linejoin="round" />
+					<path d="M174 152 C172 178 178 192 181 206 C166 232 158 252 163 280 C165 298 170 308 186 309 L206 309 C222 308 226 298 228 280 C233 252 224 232 210 206 C213 192 219 178 216 152" stroke="var(--color-navy)" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+					<ellipse cx="195" cy="152" rx="21" ry="6" stroke="var(--color-navy)" stroke-width="2.2" fill="none" />
+					<path d="M173 170 C185 175 205 175 217 170" stroke="var(--color-navy)" stroke-width="1.6" stroke-linecap="round" opacity="0.5" />
+					<path d="M86 312 C150 320 240 314 318 318" stroke="var(--color-navy)" stroke-width="2" stroke-linecap="round" />
+				</svg>
+			</div>
+		</Reveal>
+	</div>
+</section>
+
+<!-- ═══════════════════ РАЗДЕЛЫ 01–05 ═══════════════════ -->
+<section class="bg-background pt-8 pb-6">
+	<div class="mx-auto px-5 md:max-w-[760px] lg:max-w-[1200px] xl:px-0">
+		<div class="h-px w-full bg-[#d8cfbc]"></div>
+
+		{#each groups as group, i}
+			{@const sel = selected[i]}
+			<Reveal width="full">
+				<div
+					class="grid grid-cols-[52px_1fr] gap-x-5 gap-y-5 py-10 lg:border-b lg:border-[#e4dccb] lg:grid-cols-[54px_300px_1fr_2fr] lg:py-11"
+				>
+					<!-- номер -->
+					<div class="-mt-[10px] font-caveat text-[42px] leading-none font-bold text-primary lg:text-[54px]">
+						{group.num}
+					</div>
+
+					<!-- иконка + заголовок -->
+					<div class="col-start-2 flex items-center gap-2 lg:col-start-auto max-h-fit">
+						<span
+							class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#f6e7cf] text-navy"
+						>
+							<span class="{group.icon} h-4 w-4"></span>
+						</span>
+						<h2
+							class="m-0 text-[19px] leading-[1.22] font-extrabold text-navy [hyphens:auto] [overflow-wrap:break-word]"
+						>
+							{group.title[0]}<br />{group.title[1]}
+						</h2>
+					</div>
+
+					<!-- темы (кликабельные) -->
+					<div class="col-span-2 flex flex-col lg:col-span-1">
+						{#each group.topics as topic, j}
+							<button
+								type="button"
+								onclick={() => toggle(i, j)}
+								class="group flex w-full items-center justify-between gap-3 border-b border-[#e4dccb] px-0.5 py-3 text-left text-[16px] lg:text-[19px] font-semibold transition-all duration-200 {j === 0
+									? 'border-t border-[#e4dccb]'
+									: ''} {sel === j ? 'font-bold text-navy' : 'text-foreground/85 hover:text-navy'}"
+							>
+								<span>{topic.label}</span>
+								<!-- десктоп: шеврон вправо; мобиль: шеврон вниз -->
+								<span
+									class="h-4 w-4 shrink-0 text-primary transition-all duration-200
+										icon-[lucide--chevron-down] lg:hidden
+										{sel === j ? 'rotate-180' : ''}"
+								></span>
+								<span
+									class="icon-[lucide--chevron-right] h-4 w-4 shrink-0 text-primary transition-all duration-200 hidden lg:block {sel === j
+										? 'translate-x-0 opacity-100'
+										: '-translate-x-1 opacity-0 group-hover:translate-x-0 group-hover:opacity-60'}"
+								></span>
+							</button>
+
+							<!-- мобиль: inline-контент под каждой темой -->
+							{#if sel === j}
+								<div
+									class="lg:hidden border-b border-[#e4dccb] px-0.5 py-4"
+									in:panelEnter={{ duration: 150 }}
+								>
+									<div class="flex flex-col gap-2.5 text-[15px] leading-relaxed text-foreground/75">
+										{#each byTitle[topic.key] ?? [] as para}
+											<p><MarkdownLink text={para} /></p>
+										{/each}
+									</div>
+								</div>
+							{/if}
 						{/each}
 					</div>
-				</section>
-			</div>
+
+					<!-- десктоп: правая панель со сводкой / текстом темы -->
+					<div class="hidden lg:block col-span-1 pt-1" style="min-height: 80px;">
+						{#key sel}
+							<div in:panelEnter={{ duration: 220 }}>
+								{#if sel === null}
+									<p class="text-[16px] leading-relaxed text-foreground/75">{group.summary}</p>
+								{:else}
+									<span class="mb-2.5 block text-[16px] font-extrabold text-navy"
+										>{group.topics[sel].label}</span
+									>
+									<div class="flex flex-col gap-2.5 text-[15px] leading-relaxed text-foreground/75">
+										{#each byTitle[group.topics[sel].key] ?? [] as para}
+											<p><MarkdownLink text={para} /></p>
+										{/each}
+									</div>
+								{/if}
+							</div>
+						{/key}
+					</div>
+				</div>
+			</Reveal>
 		{/each}
-		<div class="col-span-full"><BookButton margin="my-0 mx-auto w-full self-start rounded-md bg-primary px-5 py-2 text-base text-white transition-colors duration-200 hover:brightness-95 sm:self-auto" /></div>
+
+		<!-- ═══════════════════ ПЛАШКА ═══════════════════ -->
+		<Reveal width="full">
+			<div
+				class="mt-8 grid grid-cols-1 items-center gap-7 rounded-[24px] bg-card px-8 py-8 sm:grid-cols-[auto_1fr] lg:grid-cols-[auto_1fr_auto] lg:px-10"
+			>
+				<svg class="shrink-0" width="40" height="40" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+					<path d="M20 3 C21 13 27 19 37 20 C27 21 21 27 20 37 C19 27 13 21 3 20 C13 19 19 13 20 3 Z" fill="none" stroke="var(--color-primary)" stroke-width="2.4" stroke-linejoin="round" />
+				</svg>
+				<p class="max-w-[560px] text-[17px] leading-relaxed font-medium text-foreground">
+					Если у вас останутся вопросы после прочтения, я с радостью отвечу на них перед нашей первой
+					встречей.
+				</p>
+				<span
+					class="relative font-caveat text-[26px] leading-tight font-bold text-primary sm:col-span-2 lg:col-span-1 lg:text-right"
+				>
+					важно для<br />нашего доверия
+					<svg
+						class="absolute -right-9 top-1 hidden h-7 w-7 lg:block"
+						viewBox="0 0 26 24"
+						fill="none"
+						aria-hidden="true"
+					>
+						<path d="M13 21 C3.5 14.2 1.6 8.8 4.6 5.3 C7 2.2 11.2 3.1 13 6.6 C15.1 2.9 19.4 2.5 21.6 5.7 C24.2 9.2 21.8 14.4 13 21 Z" fill="none" stroke="var(--color-primary)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
+					</svg>
+				</span>
+			</div>
+		</Reveal>
 	</div>
-</div>
+</section>

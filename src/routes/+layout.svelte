@@ -18,7 +18,7 @@
 	let isArticles = $derived(data.pathname == '/articles');
 	let isLoginRoute = $derived(data.pathname === '/login');
 	let isUsefulRoute = $derived(data.pathname?.startsWith('/useful'))
-	let burnoutSurveyRoute = $derived(data.pathname === '/burnout-survey');
+	let burnoutSurveyRoute = $derived(data.pathname === '/useful/burnout-survey');
 
 	let isPaymentResult = $derived(
 		data.pathname?.startsWith('/payment/success') ||
@@ -70,25 +70,13 @@
 	<meta charset="utf-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
 	<link rel="canonical" href={data.canonicalUrl} />
+	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link rel="icon" href="/favicon.ico" sizes="any" type="image/svg+xml" />
 	<link rel="mask-icon" href="/logo.svg" color="#B8A98A" />
 	<meta name="theme-color" content="#f7f5f0" />
-	<link
-		rel="preload"
-		href="/TildaSans-VF.woff2"
-		as="font"
-		type="font/woff2"
-		crossorigin="anonymous"
-	/>
-	<link rel="preload" href="/Aeonik.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
-	<link
-		rel="preload"
-		href="/Circle Light.woff2"
-		as="font"
-		type="font/woff2"
-		crossorigin="anonymous"
-	/>
 
+	<link rel="preload" href="/_Caveat.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
+	<link rel="preload" href="/Aeonik.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
 	<script type="text/javascript">
 		(function (m, e, t, r, i, k, a) {
 			m[i] =

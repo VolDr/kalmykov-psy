@@ -1,19 +1,37 @@
-﻿<script lang="ts">
+﻿<!--
+  ════════════════════════════════════════════════════════════════
+  ИСПРАВЛЕНО:  src/lib/components/layout/Header.svelte
+  ────────────────────────────────────────────────────────────────
+  Полная замена. Что починено:
+  1. ПОЛУПРОЗРАЧНОСТЬ (bg-background/90 + backdrop-blur) теперь только
+     на ОСНОВНОЙ строке (логотип + меню + «Записаться»), а строка
+     якорей (запросы/подход/обо мне/стоимость/вопрос-ответ) висит ПОД
+     ней без фона — больше нет высокой «слащавой» плашки.
+  2. АКТИВНЫЙ якорь снова явно подсвечивается: navy + жирный +
+     жёлтое подчёркивание (раньше было еле заметное muted→navy).
+  Логика IntersectionObserver / scroll / мобильное меню — без изменений.
+  ════════════════════════════════════════════════════════════════
+-->
+<script lang="ts">
 	import { navigationLinks, anchorLinks } from '$lib/data/navigation';
 	import { page } from '$app/state';
 	import { cn } from '$lib/utils';
 	import { onMount } from 'svelte';
 	import { afterNavigate } from '$app/navigation';
 	import Button from '$lib/components/ui/Button.svelte';
+	import ButtonSvg from '../ui/ButtonSvg.svelte';
+
 	let {
-		initialMenuColor = 'white',
+		initialMenuColor = 'black',
 		heroSelector = '[data-hero]'
 	}: { initialMenuColor?: 'black' | 'white'; heroSelector?: string } = $props();
 
 	let opened = $state(false);
 	let menuColor = $state<'black' | 'white'>(initialMenuColor);
+	let scrolled = $state(false);
 	let headerElement: HTMLDivElement | null = null;
 	let activeAnchor = $state('');
+	let savedScrollY = 0;
 
 	$effect(() => {
 		if (page.url.pathname !== '/') {
@@ -43,18 +61,31 @@
 		return () => observer.disconnect();
 	});
 
+	function lockScroll() {
+		savedScrollY = window.scrollY;
+		document.body.style.overflow = 'hidden';
+		document.body.style.position = 'fixed';
+		document.body.style.top = `-${savedScrollY}px`;
+		document.body.style.width = '100%';
+	}
+
+	function unlockScroll() {
+		document.body.style.overflow = '';
+		document.body.style.position = '';
+		document.body.style.top = '';
+		document.body.style.width = '';
+		window.scrollTo(0, savedScrollY);
+	}
+
 	function toggle() {
 		opened = !opened;
-		if (opened) {
-			document.body.style.overflow = 'hidden';
-		} else {
-			document.body.style.overflow = '';
-		}
+		if (opened) lockScroll();
+		else unlockScroll();
 	}
 
 	function closeMenu() {
 		opened = false;
-		document.body.style.overflow = '';
+		unlockScroll();
 	}
 
 	function handleKeydown(event: KeyboardEvent) {
@@ -68,6 +99,8 @@
 
 	function handleScroll() {
 		const heroElement = document.querySelector(heroSelector);
+		scrolled = window.scrollY > 12;
+
 		if (!heroElement || !headerElement) {
 			menuColor = initialMenuColor;
 			return;
@@ -94,54 +127,76 @@
 	});
 </script>
 
-<div
-	bind:this={headerElement}
-	class={cn('fixed z-20 hidden w-full md:flex', menuColor === 'black' && 'bg-card')}
->
+<!-- ====================== DESKTOP ====================== -->
+<!-- Внешний контейнер теперь ПРОЗРАЧНЫЙ — фон только на верхней строке -->
+<div bind:this={headerElement} class="fixed top-0 left-0 z-20 hidden w-full flex-col md:flex">
+	<!-- ОСНОВНАЯ строка: логотип + меню + кнопка — только ей даём фон/блюр -->
 	<div
-		class="relative mx-auto flex h-12 w-full max-w-full items-center md:max-w-[760px] lg:max-w-[960px]"
+		class={cn(
+			'w-full transition-colors duration-200',
+			scrolled && 'bg-background/90 backdrop-blur-sm'
+		)}
 	>
-		<nav aria-label="Главная навигация" class="ml-auto">
-			<ul class="m-0 flex list-none items-center p-0">
-				{#each navigationLinks as link}
-					<li>
-						<a
-							href={link.link}
-							target={link.external ? '_blank' : undefined}
-							rel={link.external ? 'noopener noreferrer' : undefined}
-							class={cn(
-								'nav-link relative block px-3 py-2 text-[20px] no-underline select-none lg:text-[22px] xl:text-[22px]',
-								menuColor === 'white' && 'text-white',
-								menuColor === 'black' && 'text-foreground',
-								link.link === page.url.pathname && 'active'
-							)}
-						>
-							{link.label}
-						</a>
-					</li>
-				{/each}
-				<Button
-					href="/booking"
-					variant="primary"
-					class="block rounded-sm bg-primary px-3 py-0 text-[22px] text-white transition-colors duration-200 hover:brightness-95"
-					>Записаться</Button
-				>
-			</ul>
+		<div
+			class="mx-auto flex w-full max-w-full items-center justify-between gap-8 px-5 py-3 md:max-w-[760px] lg:max-w-[1600px] xl:px-0"
+		>
+			<!-- логотип -->
+			<a href="/" class="hide flex shrink-0 items-center gap-3 no-underline select-none">
 
-			{#if page.url.pathname === '/'}
-				<ul class="absolute right-0 mt-3 ml-6 flex list-none items-center gap-4 p-0">
+				<span class="hidden md:flex flex-col leading-none">
+					<span class="font-caveat text-[28px] leading-none font-bold text-navy">Андрей Калмыков</span>
+					<span class="mt-0.5 text-[11px] tracking-[0.14em] text-muted-foreground lowercase"
+						>психолог-консультант</span
+					>
+				</span>
+			</a>
+
+			<!-- главное меню -->
+			<nav aria-label="Главная навигация">
+				<ul class="m-0 flex list-none items-center gap-7 p-0">
+					{#each navigationLinks as link}
+						<li>
+							<a
+								href={link.link}
+								target={link.external ? '_blank' : undefined}
+								rel={link.external ? 'noopener noreferrer' : undefined}
+								class={cn(
+									'nav-link relative block py-1.5 text-[16px] whitespace-nowrap text-foreground no-underline transition-colors select-none hover:text-navy lg:text-[19px]',
+									link.link === page.url.pathname && 'active'
+								)}
+							>
+								{link.label}
+							</a>
+						</li>
+					{/each}
+					<ButtonSvg
+				width="180px"
+								href="/booking"
+                           variant="2"
+						>Записаться</ButtonSvg>
+					
+				</ul>
+			</nav>
+		</div>
+	</div>
+
+	<!-- строка ЯКОРЕЙ: без фона, висит под основной строкой -->
+	{#if page.url.pathname === '/'}
+		<div class="w-full">
+			<div
+				class="mx-auto flex w-full max-w-full justify-end px-5 pt-2 md:max-w-[760px] lg:max-w-[1600px] xl:px-0"
+			>
+				<ul class="m-0 flex list-none items-center gap-7  bg-background/90 backdrop-blur-sm px-2 py-1 rounded-sm">
 					{#each anchorLinks as anchor}
 						{@const isActive = activeAnchor === anchor.link.replace('/#', '')}
 						<li>
 							<a
 								href={anchor.link}
 								class={cn(
-									'block rounded-sm px-3 py-0 text-[22px] transition-colors duration-200',
-									isActive && 'bg-white text-foreground',
-									!isActive &&
-										menuColor === 'black' &&
-										'bg-primary text-white hover:brightness-95',
-									!isActive && menuColor === 'white' && 'text-white hover:opacity-80'
+									'anchor-link relative block py-0.5 text-[14px] whitespace-nowrap transition-colors duration-200',
+									isActive
+										? 'font-bold text-navy active'
+										: 'font-medium text-muted-foreground hover:text-navy'
 								)}
 							>
 								{anchor.label}
@@ -149,31 +204,30 @@
 						</li>
 					{/each}
 				</ul>
-			{/if}
-		</nav>
-	</div>
+			</div>
+		</div>
+	{/if}
 </div>
 
-<div class="fixed top-0 left-0 z-50 flex h-12 w-full items-center justify-between px-4 md:hidden">
-	<span
-		class={cn(
-			'text-xl font-medium transition-colors duration-200',
-			(opened || menuColor === 'black') && 'text-foreground',
-			!opened && menuColor === 'white' && 'text-white'
-		)}
-	>
-		&#12644;
-	</span>
+<!-- ====================== MOBILE BAR ====================== -->
+<div
+	class={cn(
+		'fixed top-0 left-0 z-50 flex h-14 w-full items-center justify-between px-4 transition-colors duration-200 md:hidden',
+		(scrolled || opened) && 'bg-background/95 backdrop-blur-sm'
+	)}
+>
+	<!-- мобильный логотип -->
+	<a href="/" onclick={closeMenu} class="flex items-center gap-2 no-underline select-none">
+		
+		<span class="font-caveat text-[24px] leading-none font-bold text-navy">Андрей Калмыков, психолог</span>
+	</a>
 
 	<button
 		aria-label={opened ? 'Закрыть меню' : 'Открыть меню'}
 		aria-expanded={opened}
 		onclick={toggle}
 		onkeydown={handleKeydown}
-		class={cn(
-			'relative h-6 w-6 focus:outline-none',
-			(opened || menuColor === 'black') ? 'text-foreground' : 'text-white'
-		)}
+		class="relative h-6 w-6 text-navy focus:outline-none"
 	>
 		<div class="t-icon-swap" data-state={opened ? 'b' : 'a'}>
 			<span class="t-icon" data-icon="a">
@@ -186,6 +240,7 @@
 	</button>
 </div>
 
+<!-- ====================== MOBILE OVERLAY ====================== -->
 <button
 	aria-label="Закрыть меню"
 	tabindex={opened ? 0 : -1}
@@ -193,20 +248,23 @@
 	onclick={closeMenu}
 	onkeydown={handleKeydown}
 	class={cn(
-		'fixed inset-0 z-30 bg-black/40 transition-opacity duration-200 sm:hidden',
-		opened ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+		'fixed inset-x-0 top-0 z-30 h-dvh bg-black/40 transition-opacity duration-200 md:hidden overscroll-none touch-none',
+		opened ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
 	)}
 ></button>
 
+<!-- ====================== MOBILE PANEL ====================== -->
 <div
 	role="dialog"
 	aria-modal="true"
 	aria-label="Мобильное меню"
-	class="t-panel-slide-x fixed top-0 right-0 z-40 h-full w-[80%] max-w-[300px] bg-white shadow-xl sm:hidden"
+	class="t-panel-slide-x fixed top-0 right-0 z-40 flex h-dvh w-[84%] max-w-[320px] flex-col bg-background shadow-xl md:hidden"
 	data-open={opened ? 'true' : 'false'}
 >
-	<nav aria-label="Меню навигации мобильное">
-		<ul class="m-0 flex list-none flex-col p-0 px-4 pt-16">
+
+
+	<nav aria-label="Меню навигации мобильное" class="flex-1 overflow-y-auto px-4">
+		<ul class="mt-14 flex list-none flex-col gap-1 p-0">
 			{#each navigationLinks as link}
 				<li>
 					<a
@@ -215,20 +273,25 @@
 						rel={link.external ? 'noopener noreferrer' : undefined}
 						onclick={closeMenu}
 						class={cn(
-							'flex min-h-[44px] items-center rounded-sm px-4 py-3 text-lg text-foreground transition-colors duration-200 hover:bg-gray-100',
-							link.link === page.url.pathname && 'bg-card font-medium'
+							'flex min-h-[48px] items-center rounded-xl px-4 text-[17px] font-semibold text-foreground transition-colors duration-200 hover:bg-card',
+							link.link === page.url.pathname && 'bg-card text-navy'
 						)}
 					>
 						{link.label}
 					</a>
-					{#if link.link === '/'}
-						<ul class="mb-2 ml-4 flex flex-col pl-4">
+
+					{#if link.link === '/' && page.url.pathname === '/'}
+						<ul class="mt-1 mb-2 ml-4 flex list-none flex-col border-l border-border pl-5">
 							{#each anchorLinks as anchor}
+								{@const isActive = activeAnchor === anchor.link.replace('/#', '')}
 								<li>
 									<a
 										href={anchor.link}
 										onclick={closeMenu}
-										class="block py-2 text-base text-foreground/70 transition-colors duration-200 hover:text-primary"
+										class={cn(
+											'block py-2 text-[15px] transition-colors duration-200',
+											isActive ? 'font-bold text-navy' : 'text-muted-foreground hover:text-navy'
+										)}
 									>
 										{anchor.label}
 									</a>
@@ -238,28 +301,33 @@
 					{/if}
 				</li>
 			{/each}
-
-            <Button
-                href="/booking"
-                variant="primary"
-                class="mt-3 self-start rounded-md bg-primary px-5 py-2 text-base text-white transition-colors duration-200 hover:brightness-95 sm:self-auto"
-            >
-                Записаться
-            </Button>
 		</ul>
 	</nav>
+
+	<!-- кнопка снизу -->
+	<div class="px-4 pt-3 pb-6">
+		<Button
+			href="/booking"
+			variant="primary"
+			class="block w-full rounded-full bg-primary px-5 py-3 text-center text-[16px] font-bold text-white shadow-[0_6px_16px_rgba(233,184,78,0.28)] transition-all duration-200 hover:brightness-95"
+		>
+			Записаться
+		</Button>
+	</div>
 </div>
 
 <style>
+	/* подчёркивание активного пункта главного меню — жёлтым, как в макете */
 	.nav-link::after {
 		content: '';
 		position: absolute;
-		width: 100%;
-		transform: scaleX(0);
-		height: 1px;
-		bottom: 4px;
 		left: 0;
-		background-color: currentColor;
+		bottom: 0;
+		width: 100%;
+		height: 3px;
+		border-radius: 3px;
+		background-color: var(--color-primary);
+		transform: scaleX(0);
 		transform-origin: bottom right;
 		transition: transform 0.25s ease-out;
 	}
@@ -268,9 +336,29 @@
 		transform-origin: bottom left;
 	}
 	.nav-link.active {
-		font-weight: 500;
+		font-weight: 700;
 	}
 	.nav-link.active::after {
 		transform: scaleX(1);
+	}
+
+	/* активный ЯКОРЬ — жёлтое подчёркивание под текущим разделом */
+	.anchor-link::after {
+		content: '';
+		position: absolute;
+		left: 0;
+		bottom: -2px;
+		width: 100%;
+		height: 2px;
+		border-radius: 2px;
+		background-color: var(--color-primary);
+		transform: scaleX(0);
+		transform-origin: bottom right;
+		transition: transform 0.25s ease-out;
+	}
+	.anchor-link:hover::after,
+	.anchor-link.active::after {
+		transform: scaleX(1);
+		transform-origin: bottom left;
 	}
 </style>

@@ -4,7 +4,7 @@ export const cpqConfig: SurveyConfig = {
 	id: 'cpq',
 	title: 'Опросник клинического перфекционизма (CPQ)',
 	description: 'Опросник клинического перфекционизма',
-
+	time: '3-6 минут',
 	infoSections: {
 		beforeUse: {
 			title: 'О шкале клинического перфекционизма',

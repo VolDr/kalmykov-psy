@@ -4,7 +4,7 @@ export const gad7Config: SurveyConfig = {
 	id: 'gad7',
 	title: 'GAD-7',
 	description: 'Опросник генерализованного тревожного расстройства',
-
+	time: '2-4 минуты',
 	infoSections: {
 		beforeUse: {
 			title: 'Важный дисклеймер',

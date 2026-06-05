@@ -34,7 +34,7 @@
 		<!-- Title -->
 		<div class="mb-4 lg:col-start-1 lg:col-end-12 lg:row-start-5 lg:row-end-12 lg:mb-0">
 			<h1 class="flex flex-col gap-2 text-left">
-				<span class="font-circe text-3xl lg:text-5xl lg:leading-tight">
+				<span class="font-caveat  text-3xl lg:text-5xl lg:leading-tight">
 					{title}
 				</span>
 

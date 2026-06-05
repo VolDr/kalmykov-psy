@@ -29,6 +29,7 @@ export const navigationLinks = [
 
 export const anchorLinks = [
 	{ label: 'запросы', link: '/#requests' },
+	{ label: 'причины', link: '/#reasons' },
 	{ label: 'подход', link: '/#approach' },
 	{ label: 'обо мне', link: '/#about' },
 		{ label: 'стоимость', link: '/#pricing' },
