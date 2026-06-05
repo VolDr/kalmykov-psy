@@ -1,4 +1,4 @@
-<script lang="ts">
+﻿<script lang="ts">
 	import AccordionItem from '$lib/components/AccordionItem.svelte';
 	import DiplomaModal from '$lib/components/DiplomaModal.svelte';
 	import Reveal from '$lib/components/Reveal.svelte';
@@ -80,16 +80,16 @@
 		{#snippet header()}
 			<Reveal width="full" axis="x">
 				<div class="text-left">
-					<div class="flex items-center gap-4 md:gap-6">
-						<h2 class="font-caveat text-[36px] lg:text-[51px] font-bold text-navy">
-							где я учился
-						</h2>
-						<span class="hidden h-0.5 flex-1 sm:block">
-							<svg viewBox="0 0 600 22" preserveAspectRatio="none" class="block h-[22px] w-full" aria-hidden="true">
-								<path d="M2 12 C200 6 400 16 598 10" stroke="var(--color-muted-foreground)" stroke-width="1.5" fill="none" stroke-linecap="round" />
-							</svg>
-						</span>
-					</div>
+					<div class="mb-11 flex items-center gap-4 md:gap-6">
+					<h2 class="font-caveat text-4xl font-bold whitespace-nowrap text-navy md:text-[40px]">
+						где я учился
+					</h2>
+					<span class="h-0.5 flex-1">
+						<svg viewBox="0 0 600 22" preserveAspectRatio="none" class="block h-[22px] w-full" aria-hidden="true">
+							<path d="M2 12 C200 6 400 16 598 10" stroke="var(--color-muted-foreground)" stroke-width="1.5" fill="none" stroke-linecap="round" />
+						</svg>
+					</span>
+				</div>
 					<p class="mt-3 max-w-[640px] text-[16px] lg:text-[19px] leading-relaxed text-foreground/55">
 						Здесь можно посмотреть мои документы об образовании, если для вас это важно.
 					</p>

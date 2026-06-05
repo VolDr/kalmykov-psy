@@ -7,10 +7,7 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
-	--font-tilda-sans: 'Tilda-Sans', 'system-ui';
-	--font-caveat : 'Circe', 'system-ui';
-	--font-caveat: 'Caveat', 'Circe', cursive;
-	--font-verdana: 'Verdana', 'system-ui';
+	--font-caveat: 'Caveat', system-ui;
 	--font-aeonik: 'Aeonik', 'system-ui';
 	--breakpoint-3xl: 121rem;
 	--ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
@@ -170,7 +167,7 @@ html, body {
 	@font-face {
 		font-family: 'Caveat';
 		src:
-			url('/_Caveat.woff2') format('woff2');
+			url('/Caveat.ttf') format('woff2');
 		font-display: swap;
 		font-weight: 500 600 700;
 		font-style: normal;

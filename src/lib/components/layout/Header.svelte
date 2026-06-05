@@ -31,8 +31,6 @@
 	let scrolled = $state(false);
 	let headerElement: HTMLDivElement | null = null;
 	let activeAnchor = $state('');
-	let savedScrollY = 0;
-
 	$effect(() => {
 		if (page.url.pathname !== '/') {
 			activeAnchor = '';
@@ -62,19 +60,11 @@
 	});
 
 	function lockScroll() {
-		savedScrollY = window.scrollY;
 		document.body.style.overflow = 'hidden';
-		document.body.style.position = 'fixed';
-		document.body.style.top = `-${savedScrollY}px`;
-		document.body.style.width = '100%';
 	}
 
 	function unlockScroll() {
 		document.body.style.overflow = '';
-		document.body.style.position = '';
-		document.body.style.top = '';
-		document.body.style.width = '';
-		window.scrollTo(0, savedScrollY);
 	}
 
 	function toggle() {
@@ -217,7 +207,11 @@
 	)}
 >
 	<!-- мобильный логотип -->
-	<a href="/" onclick={closeMenu} class="flex items-center gap-2 no-underline select-none">
+	<a
+		href="/"
+		onclick={opened ? (e) => { e.preventDefault(); closeMenu(); } : closeMenu}
+		class="flex items-center gap-2 no-underline select-none"
+	>
 		
 		<span class="font-caveat text-[24px] leading-none font-bold text-navy">Андрей Калмыков, психолог</span>
 	</a>
@@ -245,7 +239,8 @@
 	aria-label="Закрыть меню"
 	tabindex={opened ? 0 : -1}
 	aria-hidden={!opened}
-	onclick={closeMenu}
+	onclick={(e) => { e.preventDefault(); e.stopPropagation(); closeMenu(); }}
+	ontouchend={(e) => { e.preventDefault(); closeMenu(); }}
 	onkeydown={handleKeydown}
 	class={cn(
 		'fixed inset-x-0 top-0 z-30 h-dvh bg-black/40 transition-opacity duration-200 md:hidden overscroll-none touch-none',

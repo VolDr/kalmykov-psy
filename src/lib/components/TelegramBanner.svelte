@@ -1,6 +1,7 @@
 ﻿<script lang="ts">
 	import { onMount } from 'svelte';
 	import { reachGoal } from '$lib/metrika';
+	import ButtonSvg from './ui/ButtonSvg.svelte';
 
 	interface Props {
 		text: string;
@@ -28,6 +29,9 @@
 
 	function handleLinkClick() {
 		reachGoal('telegram_banner_click');
+				setTimeout(() => {
+			isVisible = false;
+		}, 350);
 		localStorage.setItem(STORAGE_KEY, JSON.stringify({ timestamp: Date.now(), type: 'click' }));
 	}
 
@@ -102,30 +106,34 @@
 
 {#if isVisible}
 	<div
-		class="t-panel-slide fixed bottom-0 left-0 right-0 z-[100] flex min-h-12 max-w-[100vw] items-center justify-between bg-card shadow-lg"
+		class="fixed bottom-4 left-1/2 -translate-x-1/2 z-[100] flex min-h-12 max-w-[70vw] lg:max-w-[550px] items-center justify-between  t-panel w-[600px] h-[70px]"
 		data-open={isShowing ? 'true' : 'false'}
 	>
+
+		<svg
+			viewBox="0 0 340 68"
+			preserveAspectRatio="none"
+			aria-hidden="true"
+			class="pointer-events-none absolute inset-0 h-full w-full drop-shadow-[0_8px_10px_rgba(231,225,244,0.18)]"
+		>
+			<path
+				fill="#e7e1f4"
+				d="M 42 10 C 81 7, 121 8, 162 8 C 205 8, 248 7, 294 8 C 322 9, 337 23, 336 40 C 335 57, 319 69, 291 70 C 245 71, 202 69, 156 70 C 111 71, 74 72, 40 70 C 18 68, 7 55, 7 39 C 7 23, 20 12, 42 10 Z"
+			/>
+		</svg>
+
 		<button
 			onclick={closeBanner}
-			class="ml-4 cursor-pointer text-foreground focus:outline-none"
+			class="relative z-10  ml-4 lg:ml-7 mt-2 cursor-pointer text-foreground focus:outline-none rotate-2 hover:rotate-4"
 			aria-label="Закрыть баннер"
 		>
 			<span class="icon-[lucide--x] h-5 w-5"></span>
 		</button>
 
-		<div class="mx-auto max-w-[70vw] text-center">
+		<div class="relative z-10 mx-auto max-w-[80vw] text-center text-[15px] lg:text-[19px]">
 			<p>
 				{text}
-				<a
-					target="_blank"
-					rel="noopener noreferrer"
-					href={link}
-					onclick={handleLinkClick}
-					class="nav-link relative inline-flex select-none items-start font-semibold text-foreground/70 no-underline hover:text-foreground/50"
-				>
-					тык
-					<span class="icon-[lucide--external-link] ml-1 text-xs"></span>
-				</a>
+				<ButtonSvg href={link} open='blank' width='70px' onclick={handleLinkClick} height='30px' style='3' textSize="19px">тык</ButtonSvg>
 			</p>
 		</div>
 

@@ -65,8 +65,8 @@
 		<div class="mb-12 flex flex-col gap-10 sm:flex-row sm:items-start sm:justify-between lg:mb-16">
 			<div class="flex items-center gap-3.5">
 
-				<div>
-					<p class="text-[20px] leading-tight font-extrabold">Андрей Калмыков</p>
+				<div class='relative'>
+					<p class="text-[20px] leading-tight font-extrabold">Андрей Калмыков</p> <img src="/star_1.webp" class="pointer-events-none absolute top-0 right-0 lg:-top-[4%] lg:right-[17%] h-6 w-6 rotate-12 " alt="" aria-hidden="true" />
 					<p class="mt-1 text-sm text-white/50">Психолог · Терапия выгорания</p>
 				</div>
 			</div>

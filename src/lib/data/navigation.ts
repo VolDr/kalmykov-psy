@@ -4,7 +4,7 @@ export const navigationLinks = [
 		link: '/'
 	},
 	{
-		label: 'Как строится работа',
+		label: 'Процесс',
 		link: '/online-therapy'
 	},
 	// {

@@ -64,33 +64,33 @@
 			title: 'Выгорание',
 			description:
 				'Ощущение истощения, снижение мотивации и удовольствия от работы, трудности с восстановлением.',
-			icon: 'icon-[lucide--flame]'
+			icon: '/burnout.webp'
 		},
 		{
 			id: 'anxiety',
 			title: 'Тревога',
 			description:
 				'Чувство напряжения, беспокойства, трудности с расслаблением и навязчивые мысли.',
-			icon: 'icon-[lucide--waves]'
+			icon: '/anxiety.webp'
 		},
 		{
 			id: 'depression',
 			title: 'Депрессия',
 			description: 'Пониженное настроение, потеря интереса и удовольствия, упадок сил.',
-			icon: 'icon-[lucide--cloud-rain]'
+			icon: '/depression.webp'
 		},
 		{
 			id: 'perfectionism',
 			title: 'Перфекционизм',
 			description: 'Высокие требования к себе, страх ошибок и трудности с принятием результата.',
-			icon: 'icon-[lucide--star]'
+			icon: '/perfectionism.webp'
 		},
 		{
 			id: 'procrastination',
 			title: 'Прокрастинация',
 			description:
 				'Откладывание важных задач, внутреннее сопротивление и сложности с началом действия.',
-			icon: 'icon-[lucide--hourglass]'
+			icon: '/procrastination.webp'
 		},
 		{
 			id: 'other',
@@ -179,17 +179,14 @@
 </svelte:head>
 
 <!-- ═══════════════════ ГЕРОЙ ═══════════════════ -->
-<section class="bg-background pt-24 lg:pt-32">
+<section class="bg-background pt-16 lg:pt-24">
 	<div
-		class="mx-auto grid grid-cols-1 items-center gap-8  md:max-w-[760px] lg:max-w-[1200px] lg:grid-cols-[1.1fr_0.9fr] px-5 xl:px-0"
+		class="mx-auto grid grid-cols-1 items-center gap-8 px-5 md:max-w-[760px] lg:max-w-[1200px] lg:grid-cols-[1.1fr_0.9fr] xl:px-0 pt-[43px]"
 	>
 		<Reveal width="full">
 			<div class="flex flex-col">
 				<span class="mb-1.5 inline-block w-fit" aria-hidden="true">
-					<svg class="h-9 w-14" viewBox="0 0 58 40" fill="none">
-						<path d="M29 4 C30 14 33 17 43 18 C33 19 30 22 29 32 C28 22 25 19 15 18 C25 17 28 14 29 4 Z" fill="none" stroke="var(--color-primary)" stroke-width="2.2" stroke-linejoin="round" />
-						<path d="M48 6 L52 4 M50 12 L54 12 M9 9 L6 7" stroke="var(--color-primary)" stroke-width="2.2" stroke-linecap="round" />
-					</svg>
+					<img src="/star_3.webp" class="h-9 w-14" alt="" aria-hidden="true" />
 				</span>
 
 				<h1
@@ -215,22 +212,9 @@
 		</Reveal>
 
 		<!-- иллюстрация: ваза с веточкой -->
-			<div class="hidden items-center justify-center lg:flex">
-			<svg class="h-auto w-full max-w-[360px]" viewBox="0 0 380 320" fill="none" aria-hidden="true">
-				<circle cx="232" cy="138" r="98" fill="#F6E7CF" />
-				<path d="M188 150 C190 110 196 78 214 50" stroke="var(--color-navy)" stroke-width="2.2" stroke-linecap="round" />
-				<path d="M214 50 C224 38 240 32 256 34" stroke="var(--color-navy)" stroke-width="2.2" stroke-linecap="round" />
-				<path d="M200 96 C212 84 228 82 242 88" stroke="var(--color-navy)" stroke-width="2.2" stroke-linecap="round" />
-				<path d="M194 122 C182 116 170 118 160 128" stroke="var(--color-navy)" stroke-width="2.2" stroke-linecap="round" />
-				<path d="M256 34 C268 26 282 28 288 38 C278 44 264 44 256 34 Z" stroke="var(--color-navy)" stroke-width="2" fill="none" stroke-linejoin="round" />
-				<path d="M242 88 C254 82 268 86 272 96 C261 100 248 97 242 88 Z" stroke="var(--color-navy)" stroke-width="2" fill="none" stroke-linejoin="round" />
-				<path d="M160 128 C148 124 136 128 132 138 C143 142 154 138 160 128 Z" stroke="var(--color-navy)" stroke-width="2" fill="none" stroke-linejoin="round" />
-				<path d="M214 50 C206 38 206 26 214 18 C222 26 222 40 214 50 Z" stroke="var(--color-navy)" stroke-width="2" fill="none" stroke-linejoin="round" />
-				<path d="M174 152 C172 178 178 192 181 206 C166 232 158 252 163 280 C165 298 170 308 186 309 L206 309 C222 308 226 298 228 280 C233 252 224 232 210 206 C213 192 219 178 216 152" stroke="var(--color-navy)" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round" />
-				<ellipse cx="195" cy="152" rx="21" ry="6" stroke="var(--color-navy)" stroke-width="2.2" fill="none" />
-				<path d="M173 170 C185 175 205 175 217 170" stroke="var(--color-navy)" stroke-width="1.6" stroke-linecap="round" opacity="0.5" />
-				<path d="M86 312 C150 320 240 314 318 318" stroke="var(--color-navy)" stroke-width="2" stroke-linecap="round" />
-			</svg>
+		<div class="hidden items-center justify-center lg:flex">
+			<img src="/vaza.webp" alt="" class="h-auto w-full max-w-[360px]" aria-hidden="true" />
+		</div>
 	</div>
 </section>
 
@@ -247,15 +231,7 @@
 					<!-- тема: иконка + заголовок + описание -->
 					<div>
 						<div class="flex items-center gap-5">
-							<span
-								class="flex h-[72px] w-[72px] shrink-0 items-center justify-center rounded-full bg-[#f6e7cf] text-navy"
-							>
-								<span
-									class="{group.topic.icon} h-8 w-8 {group.topic.id === 'burnout'
-										? 'text-primary'
-										: ''}"
-								></span>
-							</span>
+							<img src={group.topic.icon} alt="" class="h-10 w-10 shrink-0" aria-hidden="true" />
 							<h2 class="m-0 text-[27px] leading-[1.1] font-extrabold tracking-[-0.3px] text-navy">
 								{group.topic.title}
 							</h2>
@@ -313,15 +289,11 @@
 			<div
 				class="mt-[18px] grid grid-cols-1 items-center justify-items-center gap-5 rounded-[26px] border-2 border-dashed border-primary px-7 py-8 text-center sm:grid-cols-[auto_1fr_auto] sm:gap-11 sm:px-14"
 			>
-				<svg class="shrink-0 text-primary" width="48" height="48" viewBox="0 0 48 48" fill="none" aria-hidden="true">
-					<path d="M24 4 C25.5 17 31 22.5 44 24 C31 25.5 25.5 31 24 44 C22.5 31 17 25.5 4 24 C17 22.5 22.5 17 24 4 Z" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round" />
-				</svg>
+				<img src="/star_1.webp" class="shrink-0 h-12 w-12" alt="" aria-hidden="true" />
 				<p class="max-w-[460px] text-[19px] leading-[1.7] font-semibold text-navy">
 					Если результат вас тревожит, поделитесь им на консультации. Я помогу разобраться.
 				</p>
-				<svg class="shrink-0 text-primary" width="48" height="44" viewBox="0 0 48 44" fill="none" aria-hidden="true">
-					<path d="M24 39 C7 27 3.5 16.5 9 9.5 C13.5 3.8 21.5 5.2 24 12 C26.7 5 34.5 4.2 39 10.3 C44 17.2 39.5 27.6 24 39 Z" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" />
-				</svg>
+				<img src="/heart_1.webp" class="shrink-0 h-12 w-12" alt="" aria-hidden="true" />
 			</div>
 		</Reveal>
 	</div>

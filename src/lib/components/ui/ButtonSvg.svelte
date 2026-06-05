@@ -13,8 +13,6 @@
 
     variant?: BlobVariant;
 
-    onclick?: (event: MouseEvent) => void;
-
     ariaLabel?: string;
     buttonType?: ButtonType;
 
@@ -22,8 +20,12 @@
     height?: string;
     fullWidth?: boolean;
 
+    mobileWidth?: string;
+    mobileHeight?: string;
+
     fill?: string;
     textColor?: string;
+    textSize?: string;
 
     class?: string;
     style?: string;
@@ -40,8 +42,6 @@
 
     variant = '1',
 
-    onclick,
-
     ariaLabel,
     buttonType = 'button',
 
@@ -49,8 +49,12 @@
     height = '74px',
     fullWidth = false,
 
+    mobileWidth = width,
+    mobileHeight = height,
+
     fill = '#F3C55A',
     textColor = '#25221f',
+    textSize = '18px',
 
     class: className = '',
     style: styleProp = '',
@@ -141,12 +145,12 @@
   const computedRel = $derived(rel ?? (open === 'blank' ? 'noopener noreferrer' : undefined));
 
   const rootStyle = $derived(
-    `--button-svg-width: ${width}; --button-svg-height: ${height}; --button-svg-text-color: ${textColor}; ${styleProp}`
+    `--button-svg-width-desktop: ${width}; --button-svg-height-desktop: ${height}; --button-svg-width-mobile: ${mobileWidth}; --button-svg-height-mobile: ${mobileHeight}; --button-svg-text-color: ${textColor}; --button-svg-text-size: ${textSize}; ${styleProp}`
   );
 
   const rootClass = $derived(
     cn(
-      'group relative inline-grid h-[var(--button-svg-height)] place-items-center',
+      'button-svg group relative inline-grid h-[var(--button-svg-height)] place-items-center',
       fullWidth ? 'w-full' : 'w-[var(--button-svg-width)] max-w-full',
       'border-0 bg-transparent p-0 no-underline',
       'transition-transform duration-200',
@@ -157,15 +161,25 @@
 
   const textClass = cn(
     'relative z-10 rotate-[0.25deg]',
-    'text-[18px] font-bold tracking-[-0.03em]',
-    'text-[var(--button-svg-text-color)]',
-    ''
+    'text-[length:var(--button-svg-text-size)] font-bold tracking-[-0.03em]',
+    'text-[var(--button-svg-text-color)]'
   );
 
-  function handleClick(event: MouseEvent) {
-    onclick?.(event);
-  }
 </script>
+
+<style>
+  .button-svg {
+    --button-svg-width: var(--button-svg-width-desktop);
+    --button-svg-height: var(--button-svg-height-desktop);
+  }
+
+  @media (max-width: 640px) {
+    .button-svg {
+      --button-svg-width: var(--button-svg-width-mobile);
+      --button-svg-height: var(--button-svg-height-mobile);
+    }
+  }
+</style>
 
 {#if isLink}
   <a
@@ -174,13 +188,14 @@
     target={computedTarget}
     rel={computedRel}
     aria-label={ariaLabel || undefined}
-    onclick={handleClick}
+
     class={rootClass}
     style={rootStyle}
   >
     <svg
       viewBox="0 0 340 78"
       aria-hidden="true"
+      preserveAspectRatio="none"
       class="absolute inset-0 h-full w-full overflow-visible drop-shadow-[0_8px_10px_rgba(214,155,46,0.18)]"
     >
       <path fill={fill} d={current.path} />
@@ -195,13 +210,14 @@
     {...restProps}
     type={buttonType}
     aria-label={ariaLabel || undefined}
-    onclick={handleClick}
+
     class={rootClass}
     style={rootStyle}
   >
     <svg
       viewBox="0 0 340 78"
       aria-hidden="true"
+      preserveAspectRatio="none"
       class="absolute inset-0 h-full w-full overflow-visible drop-shadow-[0_8px_10px_rgba(214,155,46,0.18)]"
     >
       <path fill={fill} d={current.path} />

@@ -117,23 +117,7 @@
 
 			<!-- ваза + сердечко -->
 			<div class="hidden items-center justify-center md:flex" aria-hidden="true">
-				<svg class="h-auto w-full max-w-[320px]" viewBox="0 0 380 320" fill="none">
-					<circle cx="210" cy="170" r="100" fill="#F6E7CF" opacity="0.85" />
-					<path d="M338 110 C342 100 356 100 358 112 C360 100 374 100 376 110 C378 122 360 134 357 136 C354 134 336 122 338 110 Z" fill="none" stroke="var(--color-primary)" stroke-width="2.4" stroke-linejoin="round" />
-					<path d="M150 64 L150 90 M137 77 L163 77" stroke="var(--color-primary)" stroke-width="2.2" stroke-linecap="round" />
-					<path d="M188 150 C190 110 196 78 214 50" stroke="var(--color-navy)" stroke-width="2.2" stroke-linecap="round" />
-					<path d="M214 50 C224 38 240 32 256 34" stroke="var(--color-navy)" stroke-width="2.2" stroke-linecap="round" />
-					<path d="M200 96 C212 84 228 82 242 88" stroke="var(--color-navy)" stroke-width="2.2" stroke-linecap="round" />
-					<path d="M194 122 C182 116 170 118 160 128" stroke="var(--color-navy)" stroke-width="2.2" stroke-linecap="round" />
-					<path d="M256 34 C268 26 282 28 288 38 C278 44 264 44 256 34 Z" stroke="var(--color-navy)" stroke-width="2" fill="none" stroke-linejoin="round" />
-					<path d="M242 88 C254 82 268 86 272 96 C261 100 248 97 242 88 Z" stroke="var(--color-navy)" stroke-width="2" fill="none" stroke-linejoin="round" />
-					<path d="M160 128 C148 124 136 128 132 138 C143 142 154 138 160 128 Z" stroke="var(--color-navy)" stroke-width="2" fill="none" stroke-linejoin="round" />
-					<path d="M214 50 C206 38 206 26 214 18 C222 26 222 40 214 50 Z" stroke="var(--color-navy)" stroke-width="2" fill="none" stroke-linejoin="round" />
-					<path d="M174 152 C172 178 178 192 181 206 C166 232 158 252 163 280 C165 298 170 308 186 309 L206 309 C222 308 226 298 228 280 C233 252 224 232 210 206 C213 192 219 178 216 152" stroke="var(--color-navy)" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round" />
-					<ellipse cx="195" cy="152" rx="21" ry="6" stroke="var(--color-navy)" stroke-width="2.2" fill="none" />
-					<path d="M173 170 C185 175 205 175 217 170" stroke="var(--color-navy)" stroke-width="1.6" stroke-linecap="round" opacity="0.5" />
-					<path d="M86 312 C150 320 240 314 318 318" stroke="var(--color-navy)" stroke-width="2" stroke-linecap="round" />
-				</svg>
+				<img src="/vaza.webp" alt="" class="h-auto w-full max-w-[320px]" aria-hidden="true" />
 			</div>
 		</div>
 	{:else}

@@ -115,7 +115,7 @@
 			n: '03',
 			title: 'Работа с мышлением и поведением',
 			time: 'основной блок',
-			desc: 'Работаем с убеждениями, которые поддерживают проблему. Вводим поведенческие изменения — небольшими шагами, которые реально вписать в вашу жизнь. При необходимости — осваиваем конкретные навыки..'
+			desc: 'Работаем с убеждениями, которые поддерживают проблему. Вводим поведенческие изменения — небольшими шагами, которые реально вписать в вашу жизнь. При необходимости — осваиваем конкретные навыки.'
 		},
 		{
 			n: '04',
@@ -158,7 +158,7 @@
 					class="mb-5 md:min-w-[530px] font-caveat text-[36px] leading-[1.18] font-bold text-navy lg:text-[51px]"
 				>
 					Живёте в режиме<br />
-					<TextSvg textSize="36px" variant="3" width="370px" mobileWidth="230px" mobileTextSize="text-[36px]">«дотянуть до пятницы»</TextSvg>,<br
+					<TextSvg textSize="51px" variant="3" width="520px" mobileWidth="230px" mobileTextSize="text-[36px]">«дотянуть до пятницы»</TextSvg>,<br
 					/>но выходные уже <br />не восстанавливают?
 				</h1>
 			</Reveal>
@@ -170,23 +170,7 @@
 			</Reveal>
 			<Reveal width="full">
 				<p class="mb-8 flex items-start gap-3 text-[16px] lg:text-[19px] font-semibold text-foreground">
-					<svg
-						class="mt-1 shrink-0 -rotate-[15deg]"
-						width="26"
-						height="24"
-						viewBox="0 0 26 24"
-						fill="none"
-						aria-hidden="true"
-					>
-						<path
-							d="M13 21 C3.5 14.2 1.6 8.8 4.6 5.3 C7 2.2 11.2 3.1 13 6.6 C15.1 2.9 19.4 2.5 21.6 5.7 C24.2 9.2 21.8 14.4 13 21 Z"
-							fill="none"
-							stroke="var(--color-primary)"
-							stroke-width="2.2"
-							stroke-linecap="round"
-							stroke-linejoin="round"
-						/>
-					</svg>
+					<img src="/star_1.webp" class="mt-1 h-6 w-6 shrink-0 -rotate-[15deg]" alt="" aria-hidden="true" />
 					Верните себе энергию, не застревая в терапии на годы.
 				</p>
 			</Reveal>
@@ -203,41 +187,12 @@
 		<Reveal width="full">
 			<div class="relative mx-auto w-full max-w-[380px] sm:max-w-[460px] lg:max-w-[560px]">
 				<!-- дудлы -->
-				<svg
-					class="pointer-events-none absolute top-[4%] left-[4%] z-10 h-5 w-5 rotate-12 sm:h-6 sm:w-6"
-					viewBox="0 0 40 40"
-					fill="none"
-					aria-hidden="true"
-					><path
-						d="M20 4 C21.4 13 27 18.6 36 20 C27 21.6 21.2 27 20 36 C18.7 27 13 21.4 4 20 C13 18.6 18.8 13 20 4 Z"
-						fill="none"
-						stroke="var(--color-lilac-foreground)"
-						stroke-width="2.6"
-						stroke-linejoin="round"
-					/></svg
-				>
+				<img src="/star_2.webp" class="pointer-events-none absolute top-[4%] left-[4%] z-10 h-5 w-5 rotate-12 sm:h-6 sm:w-6" alt="" aria-hidden="true" />
 				<span
 					class="pointer-events-none absolute  -top-[4%] lg:top-[3%]   right-[0%]  lg:right-[0%] z-10 -rotate-[8deg] font-caveat text-[22px] font-bold text-primary sm:text-[30px]"
 					>привет!</span
 				>
-				<svg
-					class="pointer-events-none absolute top-[0%] lg:top-[6%]   right-[16%] lg:right-[14%] z-10 h-12 w-10 sm:h-16 sm:w-14"
-					viewBox="0 0 60 66"
-					fill="none"
-					aria-hidden="true"
-					><path
-						d="M54 8 C30 6 12 22 13 52"
-						stroke="var(--color-navy)"
-						stroke-width="2.4"
-						stroke-linecap="round"
-					/><path
-						d="M4 42 L13.5 55 L24 45"
-						stroke="var(--color-navy)"
-						stroke-width="2.4"
-						stroke-linecap="round"
-						stroke-linejoin="round"
-					/></svg
-				>
+				<img src="/arrow_1.webp" class="pointer-events-none absolute top-[0%] lg:top-[6%] right-[16%] lg:right-[14%] z-10 h-12 w-10 sm:h-16 sm:w-14 rotate-28" alt="" aria-hidden="true" />
 
 				<!-- фото-бубль -->
 				<svg class="w-full" viewBox="0 0 560 720">
@@ -294,7 +249,7 @@
 	</div>
 </section>
 
-<section class="bg-background py-10 md:py-0 md:pt-24">
+<section class="bg-background pt-20 md:pt-24">
 	<div class="mx-auto px-5 md:max-w-[760px] lg:max-w-[1600px] xl:px-0">
 		<Reveal width="full">
 			<div class="mb-12 flex items-center gap-4 md:gap-6">
@@ -316,21 +271,16 @@
 						/></svg
 					>
 				</span>
-				<svg class="shrink-0" width="30" height="30" viewBox="0 0 40 40" aria-hidden="true"
-					><path
-						d="M20 4 C21 13 27 19 36 20 C27 21 21 27 20 36 C19 27 13 21 4 20 C13 19 19 13 20 4 Z"
-						fill="var(--color-primary)"
-					/></svg
-				>
+				<img src="/star_2.webp" class="shrink-0 h-[30px] w-[30px]" alt="" aria-hidden="true" />
 			</div>
 		</Reveal>
 			<div class="mb-9 max-w-[640px] text-[16px] lg:text-[19px] text-foreground/60">
 			Вы работаете в IT, маркетинге или управлении. Вы умны, продуктивны, привыкли справляться сами.
 		</div>
-		<div class="grid grid-cols-1 divide-y divide-border md:grid-cols-3 md:divide-y-0 md:gap-x-8 md:gap-y-0">
+		<div class="grid grid-cols-1 divide-y divide-border lg:grid-cols-3 lg:divide-y-0 lg:gap-x-8 lg:gap-y-0">
 			{#each [{ n: '01', photo: '/you_1.webp', photoMobile: '/you_1_m.webp', title: 'рабочий день не заканчивается', body: 'Открываете рабочий чат в 23:00 — «просто проверить».<br> Просыпаетесь в воскресенье с тревогой, что что-то упустили.<br> Берёте ноутбук на отдых «на всякий случай».' }, { n: '02', photo: '/you_2.webp', photoMobile: '/you_2_m.webp', title: 'отпуск не помогает', body: 'Пробовали взять отпуск — лучше не стало.<br> Пробовали «просто меньше работать» — чувство вины съедало изнутри.<br> Читали про work-life balance — красиво, но непонятно, что с этим делать.' }, { n: '03', photo: '/you_3.webp', photoMobile: '/you_3_m.webp', title: 'баланс кажется недостижимым', body: 'Сил хватает только на работу и быт.<br> На остальное — нет.' }] as card}
 				<Reveal width="full">
-					<div class="flex flex-col gap-4 py-8 first:pt-0 md:min-h-[360px] md:flex-row md:items-center md:gap-6 md:py-0">
+					<div class="flex flex-col gap-4 py-8 first:pt-0 md:min-h-[360px] md:flex-row md:items-start md:gap-6 md:py-0 ">
 						<picture class="contents">
 							<source media="(max-width: 767px)" srcset={card.photoMobile} />
 							<img
@@ -379,22 +329,7 @@
 						/>
 					</svg>
 				</span>
-				<svg
-					class="hidden shrink-0 sm:block"
-					width="30"
-					height="28"
-					viewBox="0 0 26 24"
-					fill="none"
-					aria-hidden="true"
-				>
-					<path
-						d="M13 21 C4 14 2 9 4.5 5.5 C6.7 2.4 11 3 13 6.5 C15 3 19.3 2.4 21.5 5.5 C24 9 22 14 13 21 Z"
-						fill="none"
-						stroke="var(--color-primary)"
-						stroke-width="2.2"
-						stroke-linejoin="round"
-					/>
-				</svg>
+				<img src="/heart_2.webp" class="hidden shrink-0 h-[28px] w-[30px] sm:block" alt="" aria-hidden="true" />
 			</div>
 		</Reveal>
 
@@ -469,7 +404,7 @@
 						<ul class="flex flex-col gap-4">
 							{#each cat.items as item, j}
 								<li
-									class="relative pl-6 text-[16px] lg:text-[19px] leading-relaxed text-foreground text-foreground/75 before:absolute before:top-2.5 before:left-0 before:h-1.5 before:w-1.5 before:rounded-full before:bg-primary before:content-['']"
+									class="relative pl-6 text-[16px] lg:text-[19px] leading-relaxed text-foreground/75 before:absolute before:top-2.5 before:left-0 before:h-1.5 before:w-1.5 before:rounded-full before:bg-primary before:content-['']"
 								>
 									<MarkdownLink text={item} />
 								</li>
@@ -510,7 +445,7 @@
 			>
 				Почему отпуск, тайм-менеджмент<br class="hidden md:block" />
 				и
-				<TextSvg textSize="51px" variant="3" width="530px" mobileTextSize='36px' mobileWidth="320px">«просто взять себя в руки»</TextSvg> не работают
+				<TextSvg textSize="51px" variant="3" width="530px" mobileTextSize='36px' mobileWidth="320px">«просто взять себя в руки»</TextSvg>не работают
 			</h2>
 		</Reveal>
 
@@ -518,7 +453,7 @@
 		<div class="grid grid-cols-1 gap-10 md:grid-cols-3 md:gap-12">
 			<Reveal width="full">
 				<div>
-					<span class="mb-4 icon-[lucide--umbrella] block h-9 w-9 text-navy"></span>
+					<img src="/vacation.webp" alt="" class="mb-4 h-10 w-10" aria-hidden="true" />
 					<h3 class="mb-4 text-[20px] lg:text-[24px] leading-snug font-extrabold text-navy">
 						почему отпуск не помогает
 					</h3>
@@ -549,8 +484,8 @@
 			</Reveal>
 			<Reveal width="full">
 				<div>
-					<span class="mb-4 icon-[lucide--clock] block h-9 w-9 text-navy"></span>
-					<h3 class="mb-4  text-[20px] lg:text-[24px] leading-snug font-extrabold text-navy">
+					<img src="/time_management.webp" alt="" class="mb-4 h-10 w-10" aria-hidden="true" />
+					<h3 class="mb-4 text-[20px] lg:text-[24px] leading-snug font-extrabold text-navy">
 						почему тайм-менеджмент не спасает
 					</h3>
 					<p class="mb-3 text-[16px] lg:text-[19px] leading-relaxed text-foreground/75">
@@ -578,8 +513,8 @@
 			</Reveal>
 			<Reveal width="full">
 				<div>
-					<span class="mb-4 icon-[lucide--hand-heart] block h-9 w-9 text-navy"></span>
-					<h3 class="mb-4  text-[20px] lg:text-[24px] leading-snug font-extrabold text-navy">
+					<img src="/willpower.webp" alt="" class="mb-4 h-10 w-10" aria-hidden="true" />
+					<h3 class="mb-4 text-[20px] lg:text-[24px] leading-snug font-extrabold text-navy">
 						почему «просто взять себя в руки» ускоряет разрушение
 					</h3>
 					<p class="mb-3 text-[16px] lg:text-[19px] leading-relaxed text-foreground/75">
@@ -620,28 +555,8 @@
 					aria-hidden="true">”</span
 				>
 				<!-- дудлы -->
-				<svg
-					class="pointer-events-none absolute -top-3 -right-10 h-6 w-6"
-					viewBox="0 0 40 40"
-					fill="none"
-					aria-hidden="true"
-					><path
-						d="M20 4 C21.4 13 27 18.6 36 20 C27 21.6 21.2 27 20 36 C18.7 27 13 21.4 4 20 C13 18.6 18.8 13 20 4 Z"
-						fill="none"
-						stroke="var(--color-primary)"
-						stroke-width="2.6"
-						stroke-linejoin="round"
-					/></svg
-				>
-				<svg
-					class="pointer-events-none absolute top-28 -left-14 h-5 w-5 rotate-12"
-					viewBox="0 0 40 40"
-					aria-hidden="true"
-					><path
-						d="M20 4 C21 13 27 19 36 20 C27 21 21 27 20 36 C19 27 13 21 4 20 C13 19 19 13 20 4 Z"
-						fill="var(--color-marker)"
-					/></svg
-				>
+				<img src="/star_3.webp" class="pointer-events-none absolute -top-3 right-1 h-6 w-6 sm:-right-10" alt="" aria-hidden="true" />
+				<img src="/star_1.webp" class="pointer-events-none absolute top-4 left-1 h-5 w-5 rotate-12 sm:top-28 sm:-left-14" alt="" aria-hidden="true" />
 			</div>
 		</Reveal>
 
@@ -675,7 +590,7 @@
 					<div>
 						<div class="mb-3.5 font-caveat text-[30px] leading-none font-bold text-primary">03</div>
 						<p class="text-[16px] lg:text-[19px] leading-relaxed text-foreground/75">
-							Тренируем новые способы реагирования  <strong
+							Тренируем новые способы реагирования <strong
 								class="font-semibold text-foreground">в реальных или смоделированных рабочих ситуациях</strong>
 							— через поведенческие эксперименты, ролевые игры, домашние задания. Это принципиально
 							отличает нашу работу от отпуска: навык формируется там, где возникает проблема.
@@ -724,10 +639,10 @@
 		</Reveal>
 
 		<div class="grid grid-cols-1 gap-x-12 gap-y-12 md:grid-cols-2 md:gap-y-14 lg:grid-cols-3">
-			{#each [{ icon: 'icon-[lucide--route]', title: 'последовательность, не хаос', desc: 'Не прыгаю от темы к теме — сначала разбираемся в вашей ситуации, потом выстраиваем план работы и двигаемся к изменениям.' }, { icon: 'icon-[lucide--signpost]', title: 'прозрачность на каждом шаге', desc: 'Вы всегда понимаете, что мы делаем, зачем и как это работает: объясняю логику наших действий на каждом этапе работы.' }, { icon: 'icon-[lucide--flask-conical]', title: 'доказательные методы', desc: 'Применяю методы с доказанной эффективностью, которые фокусируются на реальных действиях, а не только на симптомах.' }, { icon: 'icon-[lucide--trending-up]', title: 'измеримый прогресс', desc: 'Использую систему трекинга прогресса и обратной связи, чтобы наша работа приводила к конкретным результатам и можно было корректировать курс.' }, { icon: 'icon-[lucide--briefcase]', title: 'опыт в IT изнутри', desc: 'Знаю реалии цифровых профессий изнутри: сам проходил через выгорание и перфекционизм и говорю с вами на одном языке.' }, { icon: 'icon-[lucide--door-open]', title: 'без удержания в терапии', desc: 'Конечная цель — сделать так, чтобы терапия вам стала не нужна. Работаем ровно столько, сколько нужно для реальных изменений.' }] as item}
+			{#each [{ icon: '/consistency.webp', title: 'последовательность, не хаос', desc: 'Не прыгаю от темы к теме — сначала разбираемся в вашей ситуации, потом выстраиваем план работы и двигаемся к изменениям.' }, { icon: '/transparency.webp', title: 'прозрачность на каждом шаге', desc: 'Вы всегда понимаете, что мы делаем, зачем и как это работает: объясняю логику наших действий на каждом этапе работы.' }, { icon: '/evidence_based.webp', title: 'доказательные методы', desc: 'Применяю методы с доказанной эффективностью, которые фокусируются на реальных действиях, а не только на симптомах.' }, { icon: '/progress.webp', title: 'измеримый прогресс', desc: 'Использую систему трекинга прогресса и обратной связи, чтобы наша работа приводила к конкретным результатам и можно было корректировать курс.' }, { icon: '/it.webp', title: 'опыт в IT изнутри', desc: 'Знаю реалии цифровых профессий изнутри: сам проходил через выгорание и перфекционизм и говорю с вами на одном языке.' }, { icon: '/no-lock-in.webp', title: 'без удержания в терапии', desc: 'Конечная цель — сделать так, чтобы терапия вам стала не нужна. Работаем ровно столько, сколько нужно для реальных изменений.' }] as item}
 				<Reveal>
 					<div class="flex flex-col">
-						<span class="{item.icon} mb-4 block h-9 w-9 text-navy"></span>
+						<img src={item.icon} alt="" class="mb-4 h-10 w-10" aria-hidden="true" />
 						<h3 class="mb-3.5 text-[20px] lg:text-[24px] leading-snug font-extrabold text-navy">{item.title}</h3>
 						<p class="text-[16px] lg:text-[19px] leading-relaxed text-foreground/70">{item.desc}</p>
 					</div>
@@ -823,7 +738,7 @@
 	<div class="mx-auto mt-16 px-5 md:mt-24 md:max-w-[960px] lg:max-w-[960px] xl:px-0">
 		<Reveal width="full">
 			<div
-				class="grid grid-cols-1 items-center gap-8 rounded-[28px] bg-lilac px-7 py-7  md:gap-10"
+				class="grid grid-cols-1 items-center gap-8 rounded-[28px] bg-lilac px-7 py-7 md:gap-10"
 			>
 
 				<div>
@@ -924,7 +839,8 @@
 
 			<!-- DARK / рекомендуемый -->
 			<Reveal width="full">
-				<div class="flex h-full flex-col rounded-[22px] bg-navy p-9 text-white md:p-10">
+				<div class="relative flex h-full flex-col rounded-[22px] bg-navy p-9 text-white md:p-10">
+					<img src="/heart_2.webp" class="pointer-events-none absolute top-5 right-6 h-10 w-10 rotate-6 opacity-70" alt="" aria-hidden="true" />
 					<span
 						class="mb-5 inline-block w-fit rounded-full bg-primary px-3 py-1 text-[11px] font-extrabold tracking-[0.07em] text-navy uppercase"
 						>Рекомендуемый формат</span
@@ -976,7 +892,7 @@
 			>
 				<div class="icon-[lucide--gift] text-6xl text-primary"></div>
 				<div class="w-full">
-					<h3 class="mb-3 font-caveat  text-2xl font-semibold text-foreground">
+					<h3 class="mb-3 font-caveat text-2xl font-semibold text-foreground">
 						Гайд «Как отдыхать правильно»
 					</h3>
 					<p class="mb-6 leading-relaxed text-foreground">
@@ -1005,6 +921,8 @@
 				<h2 class="font-caveat font-bold text-navy text-[36px] lg:text-[51px]">
 					как мы придём к результату
 				</h2>
+				<img src="/star_3.webp" class="h-7 w-7 shrink-0 -rotate-6" alt="" aria-hidden="true" />
+
 				<span class="hidden h-0.5 flex-1 sm:block">
 					<svg
 						viewBox="0 0 600 22"
@@ -1031,7 +949,7 @@
 					>
 						<div class="relative row-span-2 flex justify-center md:row-span-1">
 							<div
-								class="z-[1] flex h-11 w-11 items-center justify-center rounded-full bg-lilac text-[19px] font-extrabold text-lilac-foreground"
+								class="z-[1] flex max-h-8 max-w-8  min-h-8 min-w-8 items-center justify-center rounded-full bg-lilac text-[19px] font-caveat font-extrabold text-lilac-foreground"
 							>
 								{step.n}
 							</div>
@@ -1076,43 +994,10 @@
 		/></svg
 	>
 	<!-- дудлы -->
-	<svg
-		class="pointer-events-none absolute top-[20%] left-[9%] h-7 w-7 -rotate-12"
-		viewBox="0 0 40 40"
-		aria-hidden="true"
-		><path
-			d="M20 4 C21 13 27 19 36 20 C27 21 21 27 20 36 C19 27 13 21 4 20 C13 19 19 13 20 4 Z"
-			fill="none"
-			stroke="#cdbf9a"
-			stroke-width="2.2"
-			stroke-linejoin="round"
-		/></svg
-	>
-	<svg
-		class="pointer-events-none absolute top-[18%] right-[11%] h-6 w-6 rotate-12"
-		viewBox="0 0 40 40"
-		aria-hidden="true"
-		><path
-			d="M20 4 C21 13 27 19 36 20 C27 21 21 27 20 36 C19 27 13 21 4 20 C13 19 19 13 20 4 Z"
-			fill="none"
-			stroke="#9b8fd0"
-			stroke-width="2.2"
-			stroke-linejoin="round"
-		/></svg
-	>
-	<svg
-		class="pointer-events-none absolute top-[46%] right-[11%] h-8 w-9 -rotate-6"
-		viewBox="0 0 26 24"
-		fill="none"
-		aria-hidden="true"
-		><path
-			d="M13 21 C3.5 14.2 1.6 8.8 4.6 5.3 C7 2.2 11.2 3.1 13 6.6 C15.1 2.9 19.4 2.5 21.6 5.7 C24.2 9.2 21.8 14.4 13 21 Z"
-			fill="none"
-			stroke="var(--color-primary)"
-			stroke-width="2.2"
-			stroke-linejoin="round"
-		/></svg
-	>
+	<img src="/star_2.webp" class="pointer-events-none absolute top-[10%] lg:top-[20%] left-[3%] h-7 w-7 -rotate-12 md:left-[9%]" alt="" aria-hidden="true" />
+	<img src="/star_1.webp" class="pointer-events-none absolute top-[10%] lg:top-[18%] right-[3%] h-6 w-6 rotate-12 md:right-[11%]" alt="" aria-hidden="true" />
+	<img src="/heart_1.webp" class="pointer-events-none absolute top-[66%] lg:top-[46%] right-[3%] h-8 w-9 -rotate-6 lg:right-[11%]" alt="" aria-hidden="true" />
+
 
 	<div class="mx-auto flex max-w-[820px] flex-col items-center px-5">
 		<Reveal>

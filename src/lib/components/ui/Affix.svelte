@@ -49,7 +49,7 @@
 
 {#if show}
 	<div
-		class="fixed right-[40px] bottom-[50px] z-[200] w-[3em] text-center lg:right-[50px] lg:bottom-[50px] bg-background/90 backdrop-blur-sm rounded-4xl max-w-[49px] max-h-[49px] lg:max-w-[66px] lg:max-h-[66px]"
+		class="fixed right-[20px] bottom-[55px] z-[200] w-[3em] text-center lg:right-[50px] lg:bottom-[50px] bg-background/90 backdrop-blur-sm rounded-4xl max-w-[49px] max-h-[49px] lg:max-w-[66px] lg:max-h-[66px]"
 		in:fly={{ y: 40, duration: 300 }}
 		out:fade={{ duration: 300 }}
 	>

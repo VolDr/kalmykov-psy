@@ -57,7 +57,7 @@
 	const groups: Group[] = [
 		{
 			num: '01',
-			icon: 'icon-[lucide--message-circle]',
+			icon: '/getting_started.webp',
 			title: ['Начало', 'работы'],
 			summary: 'Как сделать первый шаг, где и как проходят встречи и чего ожидать на первой сессии.',
 			topics: [
@@ -69,7 +69,7 @@
 		},
 		{
 			num: '02',
-			icon: 'icon-[lucide--clock]',
+			icon: '/session_setup.webp',
 			title: ['Организация', 'встреч'],
 			summary: 'Длительность и частота встреч, оплата, а также правила переноса и отмены сессий.',
 			topics: [
@@ -81,7 +81,7 @@
 		},
 		{
 			num: '03',
-			icon: 'icon-[lucide--lock]',
+			icon: '/privacy.webp',
 			title: ['Конфиденциальность', 'и безопасность'],
 			summary:
 				'Как я сохраняю конфиденциальность, поддерживаю нейтральность и следую этическим принципам в работе.',
@@ -93,7 +93,7 @@
 		},
 		{
 			num: '04',
-			icon: 'icon-[lucide--user-round]',
+			icon: '/process.webp',
 			title: ['Процесс', 'терапии'],
 			summary: 'О продолжительности терапии, обратной связи в процессе и моих отпусках.',
 			topics: [
@@ -104,7 +104,7 @@
 		},
 		{
 			num: '05',
-			icon: 'icon-[lucide--flag]',
+			icon: '/completion.webp',
 			title: ['Завершение', 'работы'],
 			summary: 'Как может завершиться терапия и что важно знать об этом.',
 			topics: [{ label: 'Завершение терапии', key: 'Завершение работы' }]
@@ -148,7 +148,7 @@
 <!-- ═══════════════════ ГЕРОЙ ═══════════════════ -->
 <section class="bg-background pt-24 lg:pt-32">
 	<div
-		class="mx-auto grid grid-cols-1 items-center gap-8 px-5 md:max-w-[760px] lg:max-w-[1600px] lg:grid-cols-[1.1fr_0.9fr] xl:px-0"
+		class="mx-auto grid grid-cols-1 items-center gap-8 px-5 md:max-w-[760px] lg:max-w-[1200px] lg:grid-cols-[1.1fr_0.9fr] xl:px-0"
 	>
 		<Reveal width="full">
 			<div class="flex flex-col">
@@ -171,21 +171,7 @@
 		<!-- иллюстрация: ваза с веточкой -->
 		<Reveal width="full">
 			<div class="hidden lg:flex min-h-[260px] items-center justify-center lg:min-h-[320px]">
-				<svg class="h-auto w-full max-w-[380px]" viewBox="0 0 380 320" fill="none" aria-hidden="true">
-					<circle cx="232" cy="138" r="98" fill="#F6E7CF" />
-					<path d="M188 150 C190 110 196 78 214 50" stroke="var(--color-navy)" stroke-width="2.2" stroke-linecap="round" />
-					<path d="M214 50 C224 38 240 32 256 34" stroke="var(--color-navy)" stroke-width="2.2" stroke-linecap="round" />
-					<path d="M200 96 C212 84 228 82 242 88" stroke="var(--color-navy)" stroke-width="2.2" stroke-linecap="round" />
-					<path d="M194 122 C182 116 170 118 160 128" stroke="var(--color-navy)" stroke-width="2.2" stroke-linecap="round" />
-					<path d="M256 34 C268 26 282 28 288 38 C278 44 264 44 256 34 Z" stroke="var(--color-navy)" stroke-width="2" fill="none" stroke-linejoin="round" />
-					<path d="M242 88 C254 82 268 86 272 96 C261 100 248 97 242 88 Z" stroke="var(--color-navy)" stroke-width="2" fill="none" stroke-linejoin="round" />
-					<path d="M160 128 C148 124 136 128 132 138 C143 142 154 138 160 128 Z" stroke="var(--color-navy)" stroke-width="2" fill="none" stroke-linejoin="round" />
-					<path d="M214 50 C206 38 206 26 214 18 C222 26 222 40 214 50 Z" stroke="var(--color-navy)" stroke-width="2" fill="none" stroke-linejoin="round" />
-					<path d="M174 152 C172 178 178 192 181 206 C166 232 158 252 163 280 C165 298 170 308 186 309 L206 309 C222 308 226 298 228 280 C233 252 224 232 210 206 C213 192 219 178 216 152" stroke="var(--color-navy)" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round" />
-					<ellipse cx="195" cy="152" rx="21" ry="6" stroke="var(--color-navy)" stroke-width="2.2" fill="none" />
-					<path d="M173 170 C185 175 205 175 217 170" stroke="var(--color-navy)" stroke-width="1.6" stroke-linecap="round" opacity="0.5" />
-					<path d="M86 312 C150 320 240 314 318 318" stroke="var(--color-navy)" stroke-width="2" stroke-linecap="round" />
-				</svg>
+				<img src="/vaza.webp" alt="" class="h-auto w-full max-w-[380px]" aria-hidden="true" />
 			</div>
 		</Reveal>
 	</div>
@@ -209,11 +195,7 @@
 
 					<!-- иконка + заголовок -->
 					<div class="col-start-2 flex items-center gap-2 lg:col-start-auto max-h-fit">
-						<span
-							class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#f6e7cf] text-navy"
-						>
-							<span class="{group.icon} h-4 w-4"></span>
-						</span>
+						<img src={group.icon} alt="" class="h-9 w-9 shrink-0" aria-hidden="true" />
 						<h2
 							class="m-0 text-[19px] leading-[1.22] font-extrabold text-navy [hyphens:auto] [overflow-wrap:break-word]"
 						>
@@ -289,26 +271,11 @@
 			<div
 				class="mt-8 grid grid-cols-1 items-center gap-7 rounded-[24px] bg-card px-8 py-8 sm:grid-cols-[auto_1fr] lg:grid-cols-[auto_1fr_auto] lg:px-10"
 			>
-				<svg class="shrink-0" width="40" height="40" viewBox="0 0 40 40" fill="none" aria-hidden="true">
-					<path d="M20 3 C21 13 27 19 37 20 C27 21 21 27 20 37 C19 27 13 21 3 20 C13 19 19 13 20 3 Z" fill="none" stroke="var(--color-primary)" stroke-width="2.4" stroke-linejoin="round" />
-				</svg>
+				<img src="/star_2.webp" class="shrink-0 h-10 w-10" alt="" aria-hidden="true" />
 				<p class="max-w-[560px] text-[17px] leading-relaxed font-medium text-foreground">
 					Если у вас останутся вопросы после прочтения, я с радостью отвечу на них перед нашей первой
 					встречей.
 				</p>
-				<span
-					class="relative font-caveat text-[26px] leading-tight font-bold text-primary sm:col-span-2 lg:col-span-1 lg:text-right"
-				>
-					важно для<br />нашего доверия
-					<svg
-						class="absolute -right-9 top-1 hidden h-7 w-7 lg:block"
-						viewBox="0 0 26 24"
-						fill="none"
-						aria-hidden="true"
-					>
-						<path d="M13 21 C3.5 14.2 1.6 8.8 4.6 5.3 C7 2.2 11.2 3.1 13 6.6 C15.1 2.9 19.4 2.5 21.6 5.7 C24.2 9.2 21.8 14.4 13 21 Z" fill="none" stroke="var(--color-primary)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
-					</svg>
-				</span>
 			</div>
 		</Reveal>
 	</div>
