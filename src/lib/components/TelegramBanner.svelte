@@ -124,14 +124,14 @@
 
 		<button
 			onclick={closeBanner}
-			class="relative z-10  ml-4 lg:ml-7 mt-2 cursor-pointer text-foreground focus:outline-none rotate-2 hover:rotate-4"
+			class="relative z-10  ml-4 lg:ml-7 mt-2 cursor-pointer text-foreground focus:outline-none rotate-2 hover:rotate-4 pt-[5px]"
 			aria-label="Закрыть баннер"
 		>
 			<span class="icon-[lucide--x] h-5 w-5"></span>
 		</button>
 
-		<div class="relative z-10 mx-auto max-w-[80vw] text-center text-[15px] lg:text-[19px]">
-			<p>
+		<div class="relative z-10 mx-auto max-w-[80vw] text-center text-[15px] lg:text-[18px]">
+			<p class="pt-[10px]">
 				{text}
 				<ButtonSvg href={link} open='blank' width='70px' onclick={handleLinkClick} height='30px' style='3' textSize="19px">тык</ButtonSvg>
 			</p>

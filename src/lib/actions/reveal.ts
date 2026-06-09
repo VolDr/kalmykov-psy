@@ -57,18 +57,17 @@ export function reveal(node: HTMLElement, options: RevealOptions = {}) {
 	const observer = new IntersectionObserver(
 		([entry]) => {
 			if (entry.isIntersecting) {
-				// Force reflow to ensure initial state is applied
-				node.offsetHeight;
+				requestAnimationFrame(() => {
+					requestAnimationFrame(() => {
+						node.style.transition = `transform ${duration}ms ${easing} ${delay}ms, opacity ${duration}ms ${easing} ${delay}ms`;
+						node.style.transform = `${axisValue}(0px)`;
+						node.style.opacity = '1';
 
-				// Trigger animation
-				node.style.transition = `transform ${duration}ms ${easing} ${delay}ms, opacity ${duration}ms ${easing} ${delay}ms`;
-				node.style.transform = `${axisValue}(0px)`;
-				node.style.opacity = '1';
-
-				// Cleanup after animation completes
-				setTimeout(() => {
-					node.style.willChange = 'auto';
-				}, duration + delay);
+						setTimeout(() => {
+							node.style.willChange = 'auto';
+						}, duration + delay);
+					});
+				});
 
 				observer.disconnect();
 			}

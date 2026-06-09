@@ -1,7 +1,7 @@
-import type { SurveyConfig } from '$lib/data/surveys/types';
+import type { QuestionnaireConfig } from '$lib/data/questionnaires/types';
 
 
-export const bat23Config: SurveyConfig = {
+export const bat23Config: QuestionnaireConfig = {
     id: 'bat23',
     title: 'BAT-23',
     description: 'Опросник для оценки признаков профессионального выгорания',

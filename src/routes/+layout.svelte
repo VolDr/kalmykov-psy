@@ -3,6 +3,7 @@
 	import Header from '$lib/components/layout/Header.svelte';
 	import Affix from '$lib/components/ui/Affix.svelte';
 	import Footer from '$lib/components/layout/Footer.svelte';
+	import FooterMini from '$lib/components/layout/FooterMini.svelte';
 	import { onNavigate, afterNavigate } from '$app/navigation';
 	import { createProgress } from '$lib/hooks/useProgress.js';
 	import ProgressBar from '$lib/components/ui/ProgressBar.svelte';
@@ -14,11 +15,13 @@
 	let { progress, action } = createProgress();
 
 	let isAdminRoute = $derived(data.pathname?.startsWith('/admin'));
-	let isSurveys = $derived(data.pathname == '/surveys');
+	let isquestionnaires = $derived(data.pathname == '/questionnaires');
 	let isArticles = $derived(data.pathname == '/articles');
 	let isLoginRoute = $derived(data.pathname === '/login');
 	let isUsefulRoute = $derived(data.pathname?.startsWith('/useful'))
-	let burnoutSurveyRoute = $derived(data.pathname === '/useful/burnout-survey');
+	let isAdRoute = $derived(data.pathname?.startsWith('/ads'))
+	let isLegalRoute = $derived(data.pathname === '/oferta' || data.pathname === '/privacy')
+	let burnoutQuestionnaireRoute = $derived(data.pathname === '/useful/burnout-questionnaire');
 
 	let isPaymentResult = $derived(
 		data.pathname?.startsWith('/payment/success') ||
@@ -30,7 +33,7 @@
 	let isCodeRoute = $derived(
 		data.pathname &&
 			/^\/[a-zA-Z0-9]+$/.test(data.pathname) &&
-			!data.pathname.match(/^\/(articles|surveys|online-therapy|sos|boom|login|logout|lma)$/)
+			!data.pathname.match(/^\/(articles|questionnaires|online-therapy|sos|boom|login|logout|lma)$/)
 	);
 
 	// Управление overflow для body на странице login
@@ -75,7 +78,7 @@
 	<link rel="mask-icon" href="/logo.svg" color="#B8A98A" />
 	<meta name="theme-color" content="#f7f5f0" />
 
-	<link rel="preload" href="/_Caveat.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
+	<link rel="preload" href="/Caveat.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
 	<link rel="preload" href="/Aeonik.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
 	<script type="text/javascript">
 		(function (m, e, t, r, i, k, a) {
@@ -128,14 +131,14 @@
 	</script>
 </svelte:head>
 
-{#if !isAdminRoute && !isCodeRoute && !isLoginRoute && !burnoutSurveyRoute && !isUsefulRoute && !isPaymentResult}
+{#if !isAdminRoute && !isCodeRoute && !isLoginRoute && !burnoutQuestionnaireRoute && !isUsefulRoute && !isAdRoute && !isPaymentResult}
 	{#if page.url.pathname !== '/test-landing'}
 		<Header initialMenuColor="white" />
 	{/if}
 
 	<Affix />
 {/if}
-{#if !isAdminRoute && !isCodeRoute && !isLoginRoute && !isSurveys && !isArticles && !burnoutSurveyRoute && !isPaymentResult}
+{#if !isAdminRoute && !isCodeRoute && !isLoginRoute && !isquestionnaires && !isArticles && !burnoutQuestionnaireRoute && !isPaymentResult}
 	<ProgressBar progress={$progress} />
 {/if}
 <Toaster position="top-right" />
@@ -144,9 +147,12 @@
 	{@render children()}
 </main>
 
-{#if !isAdminRoute && !isCodeRoute && !isLoginRoute && !burnoutSurveyRoute && !isPaymentResult && !isUsefulRoute}
+{#if !isAdminRoute && !isCodeRoute && !isLoginRoute && !burnoutQuestionnaireRoute && !isPaymentResult && !isUsefulRoute && !isAdRoute}
 	<TelegramBanner link={telegramChannel.link} text={telegramChannel.text} />
 {/if}
-{#if !isAdminRoute && !isCodeRoute && !isLoginRoute && !isPaymentResult}
+{#if !isAdminRoute && !isCodeRoute && !isLoginRoute && !isPaymentResult && !isAdRoute && !isLegalRoute}
 	<Footer />
+{/if}
+{#if isAdRoute || isLegalRoute}
+	<FooterMini />
 {/if}

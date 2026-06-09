@@ -1,6 +1,6 @@
-import type { SurveyConfig } from '$lib/data/surveys/types';
+import type { QuestionnaireConfig } from '$lib/data/questionnaires/types';
 
-export const cpqConfig: SurveyConfig = {
+export const cpqConfig: QuestionnaireConfig = {
 	id: 'cpq',
 	title: 'Опросник клинического перфекционизма (CPQ)',
 	description: 'Опросник клинического перфекционизма',

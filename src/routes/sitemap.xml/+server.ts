@@ -1,7 +1,7 @@
 import { articleService } from '$lib/server/article.server';
 import { VITE_URL } from '$env/static/private';
 
-const surveys = ['phq9', 'gad7', 'cpq', 'psi', 'ips', 'bat12', 'bat23', 'bat4'];
+const questionnaires = ['phq9', 'gad7', 'cpq', 'psi', 'ips', 'bat12', 'bat23', 'bat4'];
 
 export async function GET() {
 	const articles = await articleService.getAll();
@@ -37,16 +37,16 @@ export async function GET() {
 		)
 		.join('')}
 	<url>
-		<loc>${baseUrl}/surveys</loc>
+		<loc>${baseUrl}/questionnaires</loc>
 		<lastmod>${lastBuildDate}</lastmod>
 		<changefreq>monthly</changefreq>
 		<priority>0.8</priority>
 	</url>
-	${surveys
+	${questionnaires
 		.map(
-			(survey) => `
+			(questionnaire) => `
 	<url>
-		<loc>${baseUrl}/surveys/${survey}</loc>
+		<loc>${baseUrl}/questionnaires/${questionnaire}</loc>
 		<lastmod>${lastBuildDate}</lastmod>
 		<changefreq>monthly</changefreq>
 		<priority>0.7</priority>

@@ -44,5 +44,18 @@ export const handle: Handle = async ({ event, resolve }) => {
 		event.locals.user = null;
 	}
 
-	return resolve(event);
+	const response = await resolve(event);
+
+	const path = event.url.pathname;
+
+	// Hashed assets from Vite build — cache forever (content changes → new URL)
+	if (path.startsWith('/_app/immutable/')) {
+		response.headers.set('Cache-Control', 'public, max-age=31536000, immutable');
+	}
+	// Static files (images, fonts, etc.) — cache 1 week, revalidate with ETag
+	else if (/\.(webp|jpg|jpeg|png|gif|svg|ico|woff2?|ttf|otf)$/i.test(path)) {
+		response.headers.set('Cache-Control', 'public, max-age=604800, must-revalidate');
+	}
+
+	return response;
 };

@@ -58,7 +58,7 @@
 		{
 			num: '01',
 			icon: '/getting_started.webp',
-			title: ['Начало', 'работы'],
+			title: ['Начало работы', ''],
 			summary: 'Как сделать первый шаг, где и как проходят встречи и чего ожидать на первой сессии.',
 			topics: [
 				{ label: 'С чего начать', key: 'С чего начать' },
@@ -70,7 +70,7 @@
 		{
 			num: '02',
 			icon: '/session_setup.webp',
-			title: ['Организация', 'встреч'],
+			title: ['Организация встреч', ''],
 			summary: 'Длительность и частота встреч, оплата, а также правила переноса и отмены сессий.',
 			topics: [
 				{ label: 'Продолжительность сессии', key: 'Продолжительность сессии' },
@@ -94,7 +94,7 @@
 		{
 			num: '04',
 			icon: '/process.webp',
-			title: ['Процесс', 'терапии'],
+			title: ['Процесс терапии', ''],
 			summary: 'О продолжительности терапии, обратной связи в процессе и моих отпусках.',
 			topics: [
 				{ label: 'Длительность работы', key: 'Длительность работы' },
@@ -105,7 +105,7 @@
 		{
 			num: '05',
 			icon: '/completion.webp',
-			title: ['Завершение', 'работы'],
+			title: ['Завершение работы', ''],
 			summary: 'Как может завершиться терапия и что важно знать об этом.',
 			topics: [{ label: 'Завершение терапии', key: 'Завершение работы' }]
 		}
@@ -158,12 +158,11 @@
 					>
 
 				</span>
-				<h1 class="mb-8 font-caveat text-[52px] leading-[1.22] font-bold tracking-[1px] text-navy md:text-[52px]">
+				<h1 class="mb-8 font-caveat text-[52px] leading-[1.22] font-bold tracking-[1px] text-navy lg:text-[72px]">
 					Перед началом<br />работы
 				</h1>
 				<p class="max-w-[440px] text-lg leading-relaxed text-foreground/75 md:text-[19px]">
-					Ниже описано, как устроена работа, какие правила помогают нам сотрудничать и чего можно
-					ожидать от терапии.
+					Ниже описано, как устроена работа и правила, которые помогают нам сотрудничать.
 				</p>
 			</div>
 		</Reveal>
@@ -272,7 +271,7 @@
 				class="mt-8 grid grid-cols-1 items-center gap-7 rounded-[24px] bg-card px-8 py-8 sm:grid-cols-[auto_1fr] lg:grid-cols-[auto_1fr_auto] lg:px-10"
 			>
 				<img src="/star_2.webp" class="shrink-0 h-10 w-10" alt="" aria-hidden="true" />
-				<p class="max-w-[560px] text-[17px] leading-relaxed font-medium text-foreground">
+				<p class="max-w-[960px] text-[17px] leading-relaxed font-medium text-foreground">
 					Если у вас останутся вопросы после прочтения, я с радостью отвечу на них перед нашей первой
 					встречей.
 				</p>

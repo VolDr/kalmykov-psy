@@ -61,9 +61,9 @@
 							aria-label="Как справиться с выгоранием и усталостью"
 						></a>
 						<div class="flex h-14 w-full items-center justify-center opacity-60 transition-all duration-500 group-hover:opacity-100 group-hover:grayscale-0 md:grayscale">
-							<img src="/rg.webp" alt="Российская газета" class="max-h-full max-w-[140px] object-contain" />
+							<img src="/rg.webp" alt="Российская газета" width="512" height="512" class="max-h-full max-w-[140px] object-contain" />
 						</div>
-						<h3 class="фtext-center text-[19px] leading-snug font-bold text-navy transition-colors group-hover:text-primary text-center">
+						<h3 class="фtext-center text-[18px] leading-snug font-bold text-navy transition-colors group-hover:text-primary text-center">
 							Как справиться с выгоранием и усталостью
 						</h3>
 					</div>
@@ -82,9 +82,9 @@
 							aria-label="Практический интенсив «Выгорание: что это и как с ним работать»"
 						></a>
 						<div class="flex h-14 w-full items-center justify-center opacity-60 transition-all duration-500 group-hover:opacity-100 group-hover:grayscale-0 md:grayscale">
-							<img src="/psihodemia.webp" alt="Психодемия" class="max-h-full max-w-[140px] object-contain" />
+							<img src="/psihodemia.webp" alt="Психодемия" width="301" height="345" class="max-h-full max-w-[140px] object-contain" />
 						</div>
-						<h3 class="фtext-center text-[19px] leading-snug font-bold text-navy transition-colors group-hover:text-primary text-center">
+						<h3 class="фtext-center text-[18px] leading-snug font-bold text-navy transition-colors group-hover:text-primary text-center">
 							Практический интенсив «Выгорание: что это и как с ним работать»
 						</h3>
 					</div>
@@ -114,9 +114,9 @@
 							aria-label="Интервью: как я пришёл в профессию"
 						></a>
 						<div class="flex h-14 w-full items-center justify-center opacity-60 transition-all duration-500 group-hover:opacity-100 group-hover:grayscale-0 md:grayscale">
-							<img src="/psihodemia.webp" alt="Психодемия" class="max-h-full max-w-[140px] object-contain" />
+							<img src="/psihodemia.webp" alt="Психодемия" width="301" height="345" class="max-h-full max-w-[140px] object-contain" />
 						</div>
-						<h3 class="фtext-center text-[19px] leading-snug font-bold text-navy transition-colors group-hover:text-primary text-center">
+						<h3 class="фtext-center text-[18px] leading-snug font-bold text-navy transition-colors group-hover:text-primary text-center">
 							Интервью: как я пришёл в профессию
 						</h3>
 					</div>

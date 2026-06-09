@@ -144,6 +144,7 @@
 			<ImageWithShadow
 				src="/2.webp"
 				srcSmall="/2_small.webp"
+				srcSmall1x="/2_small_1x.webp"
 				alt="Психолог"
 				shadowPosition="bottom-right"
 				imgClass="h-[320px] lg:h-[720px] w-[285px] lg:w-[544px]"

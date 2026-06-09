@@ -11,9 +11,9 @@
     'lead_scroll_75',
     'lead_cta_seen',
     'lead_cta_click',
-    'survey_email_submitted',
-    'survey_completed',
-    'survey_telegram_click'
+    'questionnaire_email_submitted',
+    'questionnaire_completed',
+    'questionnaire_telegram_click'
   ];
 
   const goalMap = Object.fromEntries(topGoals.map(g => [g.goal, g.total]));

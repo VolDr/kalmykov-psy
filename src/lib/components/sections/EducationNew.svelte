@@ -26,7 +26,7 @@
 			'Я работаю конкретными методами, а не интуитивно. Эти методы изучены в тысячах исследований и доказали свою эффективность в работе с психологическими запросами — примерно как доказанные схемы лечения в медицине.',
 		Специализации: 'Отдельные темы, в которые я погрузился глубже.',
 		Конференции:
-			'Я регулярно почещаю профессиональные встречи и конференции — там психологи обсуждают новые исследования, разбирают сложные случаи и учатся друг у друга.',
+			'Я регулярно посещаю профессиональные встречи и конференции — там психологи обсуждают новые исследования, разбирают сложные случаи и учатся друг у друга.',
 		Остальное:
 			'Образование, которое напрямую не связано с консультированием, но помогает в работе с людьми..'
 	};
@@ -90,7 +90,7 @@
 						</svg>
 					</span>
 				</div>
-					<p class="mt-3 max-w-[640px] text-[16px] lg:text-[19px] leading-relaxed text-foreground/55">
+					<p class="-mt-7 pl-4  text-[16px] lg:text-[18px] leading-relaxed text-foreground/55">
 						Здесь можно посмотреть мои документы об образовании, если для вас это важно.
 					</p>
 				</div>
@@ -101,7 +101,7 @@
 			{#each educationGroups as group, groupIndex}
 				<div class="education-section {groupIndex > 0 ? 'mt-12' : 'mt-2'}">
 					<div class="flex items-end justify-between pl-4 {categoryExplanations[group.category] ? 'mb-3' : 'mb-6'}">
-						<span class="inline-block rounded-full px-4.5 py-1.5 text-[16px] lg:text-[19px] font-bold {labelStyles[groupIndex % labelStyles.length]}">
+						<span class="inline-block rounded-full px-4.5 py-1.5 text-[16px] lg:text-[18px] font-bold {labelStyles[groupIndex % labelStyles.length]}">
 							{group.category}
 						</span>
 
@@ -126,7 +126,7 @@
 					</div>
 
 					{#if categoryExplanations[group.category]}
-						<p class="mb-6 max-w-[700px] pr-20 pl-4 text-[16px] lg:text-[19px] leading-relaxed text-foreground/60">
+						<p class="mb-6 max-w-[700px] pr-20 pl-4 text-[16px] lg:text-[18px] leading-relaxed text-foreground/60">
 							{categoryExplanations[group.category]}
 						</p>
 					{/if}
@@ -157,10 +157,10 @@
 										</span>
 									{/if}
 
-									<h5 class={cn('text-[16px] lg:text-[19px] leading-snug font-bold text-navy transition-colors', { 'group-hover:text-primary': item.diploma })}>
+									<h5 class={cn('text-[16px] lg:text-[18px] leading-snug font-bold text-navy transition-colors', { 'group-hover:text-primary': item.diploma })}>
 										{item.title}
 									</h5>
-									<p class="mt-3 text-[16px] lg:text-[19px] leading-relaxed text-foreground/60">{item.details}</p>
+									<p class="mt-3 text-[16px] lg:text-[18px] leading-relaxed text-foreground/60">{item.details}</p>
 								</div>
 
 								{#if item.diploma}

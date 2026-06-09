@@ -151,7 +151,7 @@
 								target={link.external ? '_blank' : undefined}
 								rel={link.external ? 'noopener noreferrer' : undefined}
 								class={cn(
-									'nav-link relative block py-1.5 text-[16px] whitespace-nowrap text-foreground no-underline transition-colors select-none hover:text-navy lg:text-[19px]',
+									'nav-link relative block py-1.5 text-[16px] whitespace-nowrap text-foreground no-underline transition-colors select-none hover:text-navy lg:text-[18px]',
 									link.link === page.url.pathname && 'active'
 								)}
 							>
@@ -160,7 +160,7 @@
 						</li>
 					{/each}
 					<ButtonSvg
-				width="180px"
+				width="180px" height='40px'
 								href="/booking"
                            variant="2"
 						>Записаться</ButtonSvg>
@@ -301,13 +301,12 @@
 
 	<!-- кнопка снизу -->
 	<div class="px-4 pt-3 pb-6">
-		<Button
-			href="/booking"
-			variant="primary"
-			class="block w-full rounded-full bg-primary px-5 py-3 text-center text-[16px] font-bold text-white shadow-[0_6px_16px_rgba(233,184,78,0.28)] transition-all duration-200 hover:brightness-95"
-		>
-			Записаться
-		</Button>
+	<ButtonSvg
+				width="180px" height='40px'
+								href="/booking"
+                           variant="2"
+						>Записаться</ButtonSvg>
+					
 	</div>
 </div>
 

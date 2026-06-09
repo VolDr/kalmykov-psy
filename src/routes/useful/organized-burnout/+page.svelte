@@ -243,8 +243,8 @@
 		</div>
 	</section>
 
-	<!-- Image 3: переход к точке входа — корни под расписанием -->
-	<div class="mx-auto mb-10 max-w-[680px] px-5 sm:mb-16" data-reveal>
+
+	<div class="mx-auto mb-10 max-w-[680px] px-5 " data-reveal>
 		<figure class="m-0">
 			<img
 				src="/lmb/3.webp"
@@ -354,7 +354,7 @@
 				</p>
 			</div>
 			<a
-				href="https://t.me/m/hSP1SM5sYjcy"
+				href="https://t.me/m/_KpBREAfOGMy"
 				target="_blank"
 				rel="noopener noreferrer"
 				onclick={() => reachGoal('lead_cta_click')}

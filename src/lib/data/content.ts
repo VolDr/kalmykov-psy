@@ -126,22 +126,22 @@ export const contacts = [
 	}
 ];
 
-type Survey = { title: string; link: string; description: string };
-type Category = { category: string; surveys: Survey[], time: string };
+type Questionnaire = { title: string; link: string; description: string };
+type Category = { category: string; questionnaires: Questionnaire[], time: string };
 
-export const surveyCategories: Category[] = [
+export const questionnaireCategories: Category[] = [
 	{
 		category: 'Депрессия и тревожность',
-		surveys: [
+		questionnaires: [
 			{
 				title: 'Опросник депрессивного состояния (PHQ-9)',
-				link: '/surveys/phq9',
+				link: '/questionnaires/phq9',
 				description: 'Опросник для оценки наличия и тяжести депрессивных симптомов.',
 				time: '5-7 минут'
 			},
 			{
 				title: 'Опросник генерализованного тревожного расстройства (GAD-7)',
-				link: '/surveys/gad7',
+				link: '/questionnaires/gad7',
 				description: 'Опросник для оценки наличия и тяжести симптомов генерализованной тревоги.',
 				time: '2-4 минуты'
 			}
@@ -149,10 +149,10 @@ export const surveyCategories: Category[] = [
 	},
 	{
 		category: 'Перфекционизм',
-		surveys: [
+		questionnaires: [
 			{
 				title: 'Опросник клинического перфекционизма (CPQ)',
-				link: '/surveys/cpq',
+				link: '/questionnaires/cpq',
 				description: 'Оценка уровня перфекционистских тенденций по трём факторам.',
 				time: '3-5 минут'
 			}
@@ -160,16 +160,16 @@ export const surveyCategories: Category[] = [
 	},
 	{
 		category: 'Прокрастинация',
-		surveys: [
+		questionnaires: [
 			{
 				title: 'Шкала прокрастинации (PSI)',
-				link: '/surveys/psi',
+				link: '/questionnaires/psi',
 				description: 'Полная шкала прокрастинации для оценки склонности откладывать дела на потом.',
 				time: '8-10 минут'
 			},
 			{
 				title: 'Шкала иррациональной прокрастинации (IPS)',
-				link: '/surveys/ips',
+				link: '/questionnaires/ips',
 				description:
 					'Короткая шкала для оценки откладывания дел вопреки пониманию негативных последствий.',
 					time: '5-7 минут'
@@ -178,23 +178,23 @@ export const surveyCategories: Category[] = [
 	},
 	{
 		category: 'Профессиональное выгорание',
-		surveys: [
+		questionnaires: [
 			{
 				title: 'Опросник профессионального выгорания (BAT-4)',
-				link: '/surveys/bat4',
+				link: '/questionnaires/bat4',
 				description: 'Ультракороткая версия для группового скрининга профессионального выгорания.',
 				time: '1-2 минуты'
 			},
 			{
 				title: 'Опросник профессионального выгорания (BAT-12)',
-				link: '/surveys/bat12',
+				link: '/questionnaires/bat12',
 				description:
 					'Короткая версия опросника для быстрой оценки и мониторинга профессионального выгорания.',
 					time: '3-5 минут'
 			},
 			{
 				title: 'Опросник профессионального выгорания (BAT-23)',
-				link: '/surveys/bat23',
+				link: '/questionnaires/bat23',
 				description:
 					'Полная версия опросника для детальной диагностики профессионального выгорания.',
 					time: '5-7 минут'

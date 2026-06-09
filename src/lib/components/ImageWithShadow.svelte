@@ -2,6 +2,7 @@
     let {
         src,
         srcSmall,
+        srcSmall1x,
         alt,
         shadowPosition = 'bottom-left',
         imgClass = '',
@@ -11,6 +12,7 @@
     }: {
         src: string;
         srcSmall?: string;
+        srcSmall1x?: string;
         alt: string;
         shadowPosition?: 'bottom-left' | 'bottom-right';
         imgClass?: string;
@@ -34,11 +36,9 @@
 
         <picture>
             {#if srcSmall}
-                <!-- Если есть маленькая картинка, принудительно показываем её до 1024px -->
-                <!-- Мы используем srcset без w-дескрипторов, чтобы браузер не умничал, а просто взял файл -->
-                <source 
-                    media="(max-width: 1023px)" 
-                    srcset={srcSmall} 
+                <source
+                    media="(max-width: 1023px)"
+                    srcset={srcSmall1x ? `${srcSmall1x} 1x, ${srcSmall} 2x` : srcSmall}
                 />
             {/if}
             

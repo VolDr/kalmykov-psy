@@ -1,6 +1,6 @@
-import type { SurveyConfig } from '$lib/data/surveys/types';
+import type { QuestionnaireConfig } from '$lib/data/questionnaires/types';
 
-export const gad7Config: SurveyConfig = {
+export const gad7Config: QuestionnaireConfig = {
 	id: 'gad7',
 	title: 'GAD-7',
 	description: 'Опросник генерализованного тревожного расстройства',

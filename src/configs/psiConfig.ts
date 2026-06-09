@@ -1,6 +1,6 @@
-import type { SurveyConfig } from '$lib/data/surveys/types';
+import type { QuestionnaireConfig } from '$lib/data/questionnaires/types';
 
-export const psiConfig: SurveyConfig = {
+export const psiConfig: QuestionnaireConfig = {
 	id: 'psi',
 	title: 'Шкала прокрастинации (PSI)',
 	description: 'Шкала прокрастинации П. Стила',

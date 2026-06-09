@@ -4,7 +4,7 @@ export const navigationLinks = [
 		link: '/'
 	},
 	{
-		label: 'Процесс',
+		label: 'Процесс консультирования',
 		link: '/online-therapy'
 	},
 	// {
@@ -14,7 +14,7 @@ export const navigationLinks = [
 	// },
 	{
 		label: 'Опросники',
-		link: '/surveys'
+		link: '/questionnaires'
 	},
 	// {
 	// 	label: 'Экстренная помощь',

@@ -167,7 +167,7 @@ html, body {
 	@font-face {
 		font-family: 'Caveat';
 		src:
-			url('/Caveat.ttf') format('woff2');
+			url('/Caveat.woff2') format('woff2');
 		font-display: swap;
 		font-weight: 500 600 700;
 		font-style: normal;
@@ -231,23 +231,13 @@ html, body {
 }
 
 @utility subtitle {
-	font-size: 20px;
-	font-weight: 500;
-
-	@media (width >= 720px) {
-		font-size: 20px;
-		line-height: 27px;
-	}
+	font-size: 16px;
 
 	@media (width >= 960px) {
-		font-size: 22px;
-		line-height: 30px;
+		font-size: 18px;
 	}
 
-	@media (width >= 1200px) {
-		font-size: 24px;
-		line-height: 32px;
-	}
+
 }
 
 /* View Transitions */
