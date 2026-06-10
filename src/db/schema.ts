@@ -374,3 +374,33 @@ export const subscriber = pgTable('Subscriber', {
         .default(sql`CURRENT_TIMESTAMP`)
         .notNull()
 });
+
+export const leadMagnetEventStatusEnum = pgEnum('lead_magnet_event_status', [
+	'pending',
+	'sent',
+	'failed'
+]);
+
+export const leadMagnetEvents = pgTable(
+	'lead_magnet_events',
+	{
+		id: bigserial('id', { mode: 'number' }).primaryKey().notNull(),
+		clientId: bigint('client_id', { mode: 'number' }).notNull(),
+		leadMagnet: text('lead_magnet').notNull(),
+		eventName: text('event_name').notNull(),
+		status: leadMagnetEventStatusEnum('status').default('pending').notNull(),
+		attempts: integer('attempts').default(0).notNull(),
+		lastError: text('last_error'),
+		createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' })
+			.default(sql`CURRENT_TIMESTAMP`)
+			.notNull(),
+		sentAt: timestamp('sent_at', { withTimezone: true, mode: 'string' })
+	},
+	(table) => [
+		uniqueIndex('lead_magnet_events_client_magnet_event_key').on(
+			table.clientId,
+			table.leadMagnet,
+			table.eventName
+		)
+	]
+);

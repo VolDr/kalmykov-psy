@@ -15,7 +15,7 @@
 	import ButtonSvg from '../ui/ButtonSvg.svelte';
 	import TextSvg from '../ui/TextSvg.svelte';
 
-	let openFaq = $state<Record<number, boolean>>({ 0: true, 2: true });
+	let openFaq = $state<Record<number, boolean>>({});
 	let openWhy = $state<Record<number, boolean>>({});
 	let isIntroModalOpen = $state(false);
 
@@ -180,7 +180,7 @@
 			<Reveal width="full">
 				<div class="flex max-w-[420px] flex-col gap-3">
 					<div class="flex items-center gap-4">
-						<ButtonSvg href="#pricing" variant="1" mobileHeight='60px' height='70px'>Записаться на консультацию</ButtonSvg>
+						<ButtonSvg href="#pricing" variant="1" mobileHeight='60px' height='70px' onclick={() => reachGoal('hero_cta_click')}>Записаться на консультацию</ButtonSvg>
 					</div>
 				</div></Reveal
 			>
@@ -853,7 +853,7 @@
 					<!-- футер прижат вниз -->
 					<div class="mt-auto pt-8">
 					<div class="flex justify-center">
-						<ButtonSvg variant="1" href="/booking" mobileHeight='60px' mobileWidth='250px' width='250px' height='70px' >Записаться</ButtonSvg></div>
+						<ButtonSvg variant="1" href="/booking" mobileHeight='60px' mobileWidth='250px' width='250px' height='70px' onclick={() => reachGoal('pricing_single_click')}>Записаться</ButtonSvg></div>
 						<button
 							type="button"
 							onclick={() => {
@@ -897,7 +897,7 @@
 					</ul>
 					<div class="mt-auto pt-8">
 				<div class="flex justify-center">
-  <ButtonSvg variant="4" href="/booking?type=package" mobileHeight='60px' mobileWidth='250px' width='250px' height='70px' >
+  <ButtonSvg variant="4" href="/booking?type=package" mobileHeight='60px' mobileWidth='250px' width='250px' height='70px' onclick={() => reachGoal('pricing_package_click')}>
     Записаться
   </ButtonSvg>
 </div>
@@ -1046,7 +1046,7 @@
 			</p>
 		</Reveal>
 		<Reveal>
-			<ButtonSvg href="#pricing" mobileHeight='60px' mobileWidth='250px' width='250px' height='70px' >Записаться</ButtonSvg>
+			<ButtonSvg href="#pricing" mobileHeight='60px' mobileWidth='250px' width='250px' height='70px' onclick={() => reachGoal('mid_cta_click')}>Записаться</ButtonSvg>
 		</Reveal>
 	</div>
 

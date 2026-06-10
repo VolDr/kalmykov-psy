@@ -73,7 +73,6 @@
 	<meta charset="utf-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
 	<link rel="canonical" href={data.canonicalUrl} />
-	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link rel="icon" href="/favicon.ico" sizes="any" type="image/svg+xml" />
 	<link rel="mask-icon" href="/logo.svg" color="#B8A98A" />
 	<meta name="theme-color" content="#f7f5f0" />
@@ -118,17 +117,7 @@
 			/>
 		</div></noscript
 	>
-	<!-- Google tag (gtag.js) -->
-	<script async src="https://www.googletagmanager.com/gtag/js?id=G-05C2YFPR6B"></script>
-	<script>
-		window.dataLayer = window.dataLayer || [];
-		function gtag() {
-			dataLayer.push(arguments);
-		}
-		gtag('js', new Date());
 
-		gtag('config', 'G-05C2YFPR6B');
-	</script>
 </svelte:head>
 
 {#if !isAdminRoute && !isCodeRoute && !isLoginRoute && !burnoutQuestionnaireRoute && !isUsefulRoute && !isAdRoute && !isPaymentResult}

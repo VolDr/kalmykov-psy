@@ -357,7 +357,7 @@
 				href="https://t.me/m/_KpBREAfOGMy"
 				target="_blank"
 				rel="noopener noreferrer"
-				onclick={() => reachGoal('lead_cta_click')}
+				onclick={() => reachGoal('modal_intro_click')}
 				class="mt-7 inline-block rounded-3xl bg-primary px-8 py-[14px] text-base font-medium tracking-[0.01em] text-primary-foreground no-underline transition-colors duration-200 ease-out hover:bg-primary-light"
 			>
 				Записаться на встречу-знакомство

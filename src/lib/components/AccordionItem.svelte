@@ -47,6 +47,7 @@
 		)}
 		onclick={toggle}
 		aria-expanded={open}
+		autocomplete="off"
 	>
 		<div class="cursor-pointer transition-colors duration-300 group-hover:text-primary min-w-0 lg:min-w-full">
 			{@render header()}

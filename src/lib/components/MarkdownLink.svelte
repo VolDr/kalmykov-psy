@@ -19,7 +19,7 @@
 			class="nav-link relative inline-flex items-start font-semibold text-foreground/80 no-underline  hover:text-foreground/60 {className}"
 		>
 			{part.text}
-			<span class="ml-1 icon-[lucide--external-link] text-xs"></span>
+			<span class="ml-[1px] icon-[lucide--external-link] text-[10px] -mr-[2px]"></span>
 		</a>
 	{:else if 'href' in part}
 		<a

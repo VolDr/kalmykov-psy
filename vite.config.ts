@@ -7,5 +7,8 @@ export default defineConfig({
 	test: {
 		include: ['src/**/*.test.ts'],
 		environment: 'node'
-	}
+	},build: {
+  sourcemap: false,
+  reportCompressedSize: false
+}
 });

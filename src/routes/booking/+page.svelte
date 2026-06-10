@@ -32,6 +32,13 @@
 	let email = $state('');
 	let loading = $state(false);
 	let error = $state('');
+	let formStarted = $state(false);
+
+	function handleFormFocus() {
+		if (formStarted) return;
+		formStarted = true;
+		trackGoal('booking_form_started');
+	}
 
 	const MSK_TZ = 'Europe/Moscow';
 
@@ -85,6 +92,7 @@
 	function goToPayment() {
 		if (!selectedSlot) return;
 		step = 2;
+		trackGoal('booking_step2_reached');
 	}
 
 	const step1Clickable = $derived(step === 2);
@@ -255,12 +263,12 @@
 				<div class="space-y-5">
 					<label class="block">
 						<span class="mb-2 block text-[14px] font-semibold text-navy">Telegram <span class="font-normal text-foreground/45">(для связи по деталям сессии)</span></span>
-						<input type="text" bind:value={telegram} placeholder="@username" autocomplete="off"
+						<input type="text" bind:value={telegram} placeholder="@username" autocomplete="off" onfocus={handleFormFocus}
 							class="w-full rounded-[12px] border border-[#e7ddc7] bg-[#faf7f0] px-4 py-3 text-[15px] text-navy outline-none transition placeholder:text-foreground/35 focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20" />
 					</label>
 					<label class="block">
 						<span class="mb-2 block text-[14px] font-semibold text-navy">Email <span class="font-normal text-foreground/45">(для чека)</span></span>
-						<input type="email" bind:value={email} placeholder="example@mail.ru"
+						<input type="email" bind:value={email} placeholder="example@mail.ru" onfocus={handleFormFocus}
 							class="w-full rounded-[12px] border border-[#e7ddc7] bg-[#faf7f0] px-4 py-3 text-[15px] text-navy outline-none transition placeholder:text-foreground/35 focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20" />
 					</label>
 

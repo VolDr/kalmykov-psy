@@ -1,10 +1,12 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
 	import { initScrollGoals } from '$lib/useScrollGoals';
 	import { reachGoal } from '$lib/metrika';
+	import { setupLeadMagnetTracking } from '$lib/client/leadMagnetTracking';
 	import ButtonSvg from '$lib/components/ui/ButtonSvg.svelte';
 
 	let ctaSection: HTMLElement;
+	let cleanupTracking: (() => void) | undefined;
 
 	onMount(() => {
 		if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
@@ -41,6 +43,25 @@
 			{ threshold: 0.5 }
 		);
 		if (ctaSection) observer.observe(ctaSection);
+
+		// SaleBot lead magnet tracking
+		const params = new URLSearchParams(window.location.search);
+		const rawClientId = params.get('sb_client_id');
+		if (rawClientId) {
+			const clientIdNum = Number(rawClientId);
+			if (Number.isSafeInteger(clientIdNum) && clientIdNum > 0) {
+				cleanupTracking = setupLeadMagnetTracking({
+					clientId: rawClientId,
+					leadMagnet: 'otpusk',
+					readThreshold: 75,
+					minimumReadingTimeMs: 30_000
+				});
+			}
+		}
+	});
+
+	onDestroy(() => {
+		cleanupTracking?.();
 	});
 </script>
 
@@ -444,6 +465,7 @@
 				<div class="flex justify-center">
 					<a
 						href="https://kalmykov-psy.ru/booking"
+						onclick={() => reachGoal('lead_booking_click')}
 						class="block w-full cursor-pointer text-center text-[14px] font-semibold text-muted-foreground underline underline-offset-[3px] transition-colors hover:text-navy lg:text-[16px]"
 					>
 						Вопросов нет, хочу на терапию

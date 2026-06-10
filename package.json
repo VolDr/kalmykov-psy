@@ -64,6 +64,7 @@
 		"prettier-plugin-svelte": "^3.4.0",
 		"prettier-plugin-tailwindcss": "^0.7.1",
 		"shadcn-svelte": "^1.0.11",
+		"sharp": "^0.34.5",
 		"svelte": "^5.41.0",
 		"svelte-adapter-deno": "^0.9.1",
 		"svelte-check": "^4.3.3",
