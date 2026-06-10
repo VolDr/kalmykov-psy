@@ -317,6 +317,8 @@ export const paymentStatusEnum = pgEnum('payment_status', ['pending', 'paid', 'f
 
 export const bookingStatusEnum = pgEnum('booking_status', ['pending_payment', 'confirmed', 'cancelled', 'requires_refund']);
 
+export const bookingTypeEnum = pgEnum('booking_type', ['consultation', 'acquaintance']);
+
 export const availability = pgTable('Availability', {
 	id: bigserial({ mode: 'number' }).primaryKey().notNull(),
 	startAt: timestamp('start_at', { withTimezone: true, mode: 'string' }).notNull(),
@@ -337,6 +339,8 @@ export const booking = pgTable(
 		status: bookingStatusEnum().default('pending_payment').notNull(),
 		lockedUntil: timestamp({ precision: 3, withTimezone: true, mode: 'string' }),
 		paymentId: bigint('payment_id', { mode: 'number' }),
+		type: bookingTypeEnum().default('consultation').notNull(),
+		sbClientId: bigint('sb_client_id', { mode: 'number' }),
 		createdAt: timestamp({ precision: 3, withTimezone: true, mode: 'string' })
 			.default(sql`CURRENT_TIMESTAMP`)
 			.notNull(),

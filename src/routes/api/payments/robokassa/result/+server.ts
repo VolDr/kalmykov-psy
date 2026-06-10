@@ -2,6 +2,7 @@ import type { RequestHandler } from './$types';
 import { markPaid, getPaymentById } from '$lib/server/robokassa.server';
 import { confirmByPaymentId, getBookingByPaymentId } from '$lib/server/booking.server';
 import { telegramService } from '$lib/server/telegram.server';
+import { sendSaleBotCallback } from '$lib/server/salebot.server';
 
 export const POST: RequestHandler = async ({ request }) => {
 	const formData = await request.formData();
@@ -42,6 +43,14 @@ export const POST: RequestHandler = async ({ request }) => {
 				bookedAt: booking.bookedAt,
 				source: 'website'
 			}).catch((e) => console.error('Telegram booking notification failed:', e));
+
+			if (booking.sbClientId) {
+				sendSaleBotCallback({
+					client_id: booking.sbClientId,
+					message: 'consultation_booked',
+					consultation_booked: 1
+				}).catch((e) => console.error('[SaleBot] consultation_booked failed:', e));
+			}
 		}
 	} else if (result === 'not_found') {
 		// Оплата без бронирования (страница /pay — консультация или пакет)

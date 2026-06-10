@@ -8,6 +8,9 @@
 	let ctaSection: HTMLElement;
 	let cleanupTracking: (() => void) | undefined;
 
+	let introHref = $state('/booking?acquaintance');
+	let therapyHref = $state('/booking');
+
 	onMount(() => {
 		if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
 			const targets = document.querySelectorAll('[data-reveal]');
@@ -44,12 +47,14 @@
 		);
 		if (ctaSection) observer.observe(ctaSection);
 
-		// SaleBot lead magnet tracking
+		// SaleBot lead magnet tracking + dynamic CTA links
 		const params = new URLSearchParams(window.location.search);
 		const rawClientId = params.get('sb_client_id');
 		if (rawClientId) {
 			const clientIdNum = Number(rawClientId);
 			if (Number.isSafeInteger(clientIdNum) && clientIdNum > 0) {
+				introHref = `/booking?acquaintance&sb_client_id=${clientIdNum}`;
+				therapyHref = `/booking?sb_client_id=${clientIdNum}`;
 				cleanupTracking = setupLeadMagnetTracking({
 					clientId: rawClientId,
 					leadMagnet: 'otpusk',
@@ -451,8 +456,7 @@
 			</div>
 			<div class="mx-auto mt-2 flex flex-col items-center">
 				<ButtonSvg
-					href="https://t.me/m/_KpBREAfOGMy"
-					open="blank"
+					href={introHref}
 					onclick={() => reachGoal('modal_intro_click')}
 					variant="3"
 					mobileWidth="280px"
@@ -464,7 +468,7 @@
 				</ButtonSvg>
 				<div class="flex justify-center">
 					<a
-						href="https://kalmykov-psy.ru/booking"
+						href={therapyHref}
 						onclick={() => reachGoal('lead_booking_click')}
 						class="block w-full cursor-pointer text-center text-[14px] font-semibold text-muted-foreground underline underline-offset-[3px] transition-colors hover:text-navy lg:text-[16px]"
 					>

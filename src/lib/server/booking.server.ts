@@ -2,6 +2,7 @@ import { db } from '../..';
 import * as schema from '../../db/schema';
 import { eq, and, or, gt, lt } from 'drizzle-orm';
 import { createPayment } from './robokassa.server';
+import { telegramService } from './telegram.server';
 import dayjs from 'dayjs';
 import timezone from 'dayjs/plugin/timezone';
 import utc from 'dayjs/plugin/utc';
@@ -94,6 +95,7 @@ export async function createBooking(params: {
 	clientName: string;
 	originUrl: string;
 	outSum?: string;
+	sbClientId?: number | null;
 }) {
 	const now = nowIso();
 	// 20 min in DB vs 15 min in Robokassa — gives webhook time to arrive before scheduler cancels
@@ -179,6 +181,7 @@ export async function createBooking(params: {
 				status: 'pending_payment',
 				lockedUntil,
 				paymentId,
+				sbClientId: params.sbClientId ?? null,
 				updatedAt: now
 			})
 			.returning({ id: schema.booking.id });
@@ -282,4 +285,92 @@ export async function getBookingByPaymentId(paymentId: number) {
 		.where(eq(schema.booking.paymentId, paymentId))
 		.limit(1);
 	return b ?? null;
+}
+
+export async function createAcquaintanceBooking(params: {
+	availabilityId: number;
+	bookedAt: string;
+	email: string;
+	clientName: string;
+	sbClientId?: number | null;
+}) {
+	const now = nowIso();
+
+	const [avail] = await db
+		.select()
+		.from(schema.availability)
+		.where(eq(schema.availability.id, params.availabilityId))
+		.limit(1);
+
+	if (!avail) throw new Error('Слот не найден');
+
+	const bookedMs = new Date(params.bookedAt).getTime();
+	const startMs = new Date(avail.startAt).getTime();
+	const endMs = new Date(avail.endAt).getTime();
+
+	if (bookedMs < startMs || bookedMs >= endMs) throw new Error('Час вне диапазона доступности');
+
+	const d = new Date(params.bookedAt);
+	if (d.getUTCMinutes() !== 0 || d.getUTCSeconds() !== 0 || d.getUTCMilliseconds() !== 0) {
+		throw new Error('Некорректное время слота');
+	}
+
+	if (bookedMs <= Date.now() + BUFFER_MS) {
+		throw new Error('Забронировать можно минимум за 24 часа до начала');
+	}
+
+	// Cancel expired locks so the unique index doesn't block us
+	await db
+		.update(schema.booking)
+		.set({ status: 'cancelled', updatedAt: now })
+		.where(
+			and(
+				eq(schema.booking.availabilityId, params.availabilityId),
+				eq(schema.booking.bookedAt, params.bookedAt),
+				eq(schema.booking.status, 'pending_payment'),
+				lt(schema.booking.lockedUntil, now)
+			)
+		);
+
+	const existing = await db
+		.select()
+		.from(schema.booking)
+		.where(
+			and(
+				eq(schema.booking.availabilityId, params.availabilityId),
+				eq(schema.booking.bookedAt, params.bookedAt),
+				activeBookingCondition()
+			)
+		)
+		.limit(1);
+
+	if (existing.length > 0) throw new Error('Слот уже занят');
+
+	try {
+		await db.insert(schema.booking).values({
+			availabilityId: params.availabilityId,
+			bookedAt: params.bookedAt,
+			email: params.email,
+			clientName: params.clientName,
+			status: 'confirmed',
+			type: 'acquaintance',
+			sbClientId: params.sbClientId ?? null,
+			updatedAt: now
+		});
+	} catch (err) {
+		// code 23505 = unique_violation (concurrent booking snuck in between check and INSERT)
+		if (typeof err === 'object' && err !== null && (err as Record<string, unknown>).code === '23505') {
+			throw new Error('Слот уже занят');
+		}
+		console.error('createAcquaintanceBooking insert failed:', err);
+		throw new Error('Ошибка сервера. Попробуйте ещё раз.');
+	}
+
+	telegramService
+		.sendAcquaintanceBookingConfirmed({
+			clientName: params.clientName,
+			email: params.email,
+			bookedAt: params.bookedAt
+		})
+		.catch((e) => console.error('Telegram acquaintance notification failed:', e));
 }

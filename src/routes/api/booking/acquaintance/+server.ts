@@ -1,0 +1,73 @@
+import { json } from '@sveltejs/kit';
+import type { RequestHandler } from './$types';
+import { createAcquaintanceBooking } from '$lib/server/booking.server';
+import { isRateLimited } from '$lib/server/rate-limit.server';
+import { sendSaleBotCallback } from '$lib/server/salebot.server';
+
+export const POST: RequestHandler = async ({ request, getClientAddress }) => {
+	const ip = getClientAddress();
+	if (isRateLimited(ip)) {
+		return json({ error: 'Слишком много запросов. Попробуйте через минуту.' }, { status: 429 });
+	}
+
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	let body: any;
+	try {
+		body = await request.json();
+	} catch {
+		return json({ error: 'Некорректный запрос' }, { status: 400 });
+	}
+	const { availabilityId, bookedAt, telegram, email, sbClientId: rawSbClientId } = body;
+
+	const availabilityIdNum = parseInt(String(availabilityId ?? ''), 10);
+	if (isNaN(availabilityIdNum) || availabilityIdNum <= 0 || !bookedAt || !telegram?.trim() || !email?.trim()) {
+		return json({ error: 'Заполните все поля' }, { status: 400 });
+	}
+
+	if (telegram.trim().length > 64) {
+		return json({ error: 'Telegram слишком длинный' }, { status: 400 });
+	}
+
+	if (email.trim().length > 254 || !email.includes('@')) {
+		return json({ error: 'Некорректный email' }, { status: 400 });
+	}
+
+	if (isNaN(new Date(bookedAt).getTime())) {
+		return json({ error: 'Некорректное время слота' }, { status: 400 });
+	}
+
+	// Parse sbClientId — optional, skip SaleBot if absent or invalid
+	const sbClientIdNum =
+		rawSbClientId != null && (typeof rawSbClientId === 'number' || typeof rawSbClientId === 'string')
+			? Number(rawSbClientId)
+			: null;
+	const validSbClientId =
+		sbClientIdNum !== null && Number.isSafeInteger(sbClientIdNum) && sbClientIdNum > 0
+			? sbClientIdNum
+			: null;
+
+	try {
+		await createAcquaintanceBooking({
+			availabilityId: availabilityIdNum,
+			bookedAt,
+			clientName: telegram.trim(),
+			email: email.trim(),
+			sbClientId: validSbClientId
+		});
+
+		// Fire SaleBot intro_booked after confirmed booking (non-blocking)
+		if (validSbClientId !== null) {
+			sendSaleBotCallback({
+				client_id: validSbClientId,
+				message: 'intro_booked',
+				intro_booked: 1
+			}).catch((e) => console.error('[SaleBot] intro_booked failed:', e));
+		}
+
+		return json({ success: true, bookedAt });
+	} catch (err) {
+		const message = err instanceof Error ? err.message : 'Ошибка сервера';
+		const isServerError = message === 'Ошибка сервера. Попробуйте ещё раз.';
+		return json({ error: message }, { status: isServerError ? 500 : 400 });
+	}
+};

@@ -45,10 +45,16 @@ export function setupLeadMagnetTracking({
 	let read75InFlight = false;
 	let read75Sent = !!localStorage.getItem(read75Key);
 
-	// Fire "opened" once per client+magnet combination
+	// Fire "opened" once. Write to localStorage first so concurrent tabs skip it;
+	// clear on failure so the next page load can retry.
 	if (!localStorage.getItem(openedKey)) {
+		localStorage.setItem(openedKey, 'pending');
 		sendEvent(clientId, leadMagnet, 'opened', 0).then((ok) => {
-			if (ok) localStorage.setItem(openedKey, '1');
+			if (ok) {
+				localStorage.setItem(openedKey, '1');
+			} else {
+				localStorage.removeItem(openedKey);
+			}
 		});
 	}
 

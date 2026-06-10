@@ -9,8 +9,7 @@ export const POST: RequestHandler = async ({ request, url, getClientAddress }) =
 		return json({ error: 'Слишком много запросов. Попробуйте через минуту.' }, { status: 429 });
 	}
 
-	const { availabilityId, bookedAt, telegram, email, type } = await request.json();
-	const outSum = type === 'package' ? PACKAGE_PRICE : CONSULTATION_PRICE;
+	const { availabilityId, bookedAt, telegram, email, type, sbClientId: rawSbClientId } = await request.json();
 
 	const availabilityIdNum = parseInt(String(availabilityId ?? ''), 10);
 	if (isNaN(availabilityIdNum) || !bookedAt || !telegram?.trim() || !email?.trim()) {
@@ -29,6 +28,17 @@ export const POST: RequestHandler = async ({ request, url, getClientAddress }) =
 		return json({ error: 'Некорректное время слота' }, { status: 400 });
 	}
 
+	const outSum = type === 'package' ? PACKAGE_PRICE : CONSULTATION_PRICE;
+
+	const sbClientIdNum =
+		rawSbClientId != null && (typeof rawSbClientId === 'number' || typeof rawSbClientId === 'string')
+			? Number(rawSbClientId)
+			: null;
+	const validSbClientId =
+		sbClientIdNum !== null && Number.isSafeInteger(sbClientIdNum) && sbClientIdNum > 0
+			? sbClientIdNum
+			: null;
+
 	try {
 		const payment = await createBooking({
 			availabilityId: availabilityIdNum,
@@ -36,7 +46,8 @@ export const POST: RequestHandler = async ({ request, url, getClientAddress }) =
 			clientName: telegram.trim(),
 			email: email.trim(),
 			originUrl: url.origin,
-			outSum
+			outSum,
+			sbClientId: validSbClientId
 		});
 		return json(payment);
 	} catch (err) {

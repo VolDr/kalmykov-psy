@@ -25,7 +25,10 @@
 	type Step = 1 | 2;
 	type Slot = { startAt: string; availabilityId: number; status: SlotInfo['status'] };
 
+	const isAcquaintance = $derived(data.type === 'acquaintance');
+
 	let step = $state<Step>(1);
+	let bookingSuccess = $state(false);
 	let selectedDate = $state('');
 	let selectedSlot = $state<Slot | null>(null);
 	let telegram = $state('');
@@ -120,9 +123,10 @@
 		if (!selectedSlot || !telegram.trim() || !email.trim()) return;
 		loading = true;
 		error = '';
-		trackGoal('booking_payment_initiated');
+		trackGoal(isAcquaintance ? 'acquaintance_booking_initiated' : 'booking_payment_initiated');
+		const endpoint = isAcquaintance ? '/api/booking/acquaintance' : '/api/booking';
 		try {
-			const res = await fetch('/api/booking', {
+			const res = await fetch(endpoint, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
@@ -130,11 +134,19 @@
 					bookedAt: selectedSlot.startAt,
 					telegram: telegram.trim(),
 					email: email.trim(),
-					type: data.type
+					...(isAcquaintance ? {} : { type: data.type }),
+					...(data.sbClientId ? { sbClientId: data.sbClientId } : {})
 				})
 			});
 			const json = await res.json();
 			if (!res.ok) throw new Error(json.error || 'Ошибка');
+
+			if (isAcquaintance) {
+				bookingSuccess = true;
+				loading = false;
+				trackGoal('acquaintance_booking_confirmed');
+				return;
+			}
 
 			const form = document.createElement('form');
 			form.method = 'POST';
@@ -156,23 +168,28 @@
 </script>
 
 <svelte:head>
-	<title>Запись на консультацию | Андрей Калмыков</title>
+	<title>{isAcquaintance ? 'Встреча-знакомство' : 'Запись на консультацию'} | Андрей Калмыков</title>
 </svelte:head>
 
 <div class="min-h-screen bg-background px-4 py-20 lg:py-28">
 	<div class="mx-auto max-w-3xl">
 		<!-- заголовок -->
-		<div class="mb-7 text-center relative">	<img src="/star_1.webp" class="pointer-events-none absolute left-[24px] top-[29px] lg:top-3 left-1 lg:left-[301px] h-6 w-6 " alt="" aria-hidden="true" />
+		<div class="mb-7 text-center relative">
+			<img src="/star_1.webp" class="pointer-events-none absolute left-[24px] top-[29px] lg:top-3 left-1 lg:left-[301px] h-6 w-6" alt="" aria-hidden="true" />
 			<h1 class="flex items-center justify-center gap-3 font-caveat text-[34px] leading-none font-bold tracking-[0.5px] text-navy md:text-[40px]">
-			
-				Запись на консультацию
+				{isAcquaintance ? 'Встреча-знакомство' : 'Запись на консультацию'}
 			</h1>
-			<p class="mt-2 text-[15px] text-foreground/55">
-				Стоимость: {Number(data.price).toLocaleString('ru-RU')} ₽
-			</p>
+			{#if !isAcquaintance}
+				<p class="mt-2 text-[15px] text-foreground/55">
+					Стоимость: {Number(data.price).toLocaleString('ru-RU')} ₽
+				</p>
+			{:else}
+				<p class="mt-2 text-[15px] text-foreground/55">Бесплатная ознакомительная встреча</p>
+			{/if}
 		</div>
 
-		<!-- шаги -->
+		<!-- шаги (не показываем при успешной записи знакомства) -->
+		{#if !bookingSuccess}
 		<div class="mb-8 flex items-center justify-center gap-3 text-[15px]">
 			<button
 				type="button"
@@ -189,11 +206,26 @@
 				class={cn('flex items-center gap-2', step === 2 ? 'font-bold text-navy' : 'text-foreground/45', step2Clickable ? 'cursor-pointer hover:text-navy' : 'cursor-default')}
 			>
 				<span class={cn('flex h-6 w-6 items-center justify-center rounded-full text-[12px] font-bold transition', step === 2 ? 'bg-primary text-white' : step2Clickable ? 'bg-primary/30 text-navy hover:bg-primary/50' : 'bg-[#e7ddc7] text-foreground/45')}>2</span>
-				Оплата
+				{isAcquaintance ? 'Ваши данные' : 'Оплата'}
 			</button>
 		</div>
+		{/if}
 
 		<div class="rounded-[20px] border border-[#ece3d1] bg-white p-6 shadow-[0_12px_44px_rgba(43,42,78,0.06)] lg:p-8">
+			<!-- УСПЕХ (только для встречи-знакомства) -->
+			{#if bookingSuccess && selectedSlot}
+				<div class="py-8 text-center">
+					<div class="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-primary/15 text-3xl">✅</div>
+					<h2 class="mb-2 font-caveat text-[28px] font-bold text-navy">Вы записаны!</h2>
+					<p class="mb-1 text-[15px] text-foreground/70">
+						{localDateLabel(selectedSlot.startAt)}, {localTime(selectedSlot.startAt)}
+						{#if showMsk}<span class="text-foreground/40">({mskTime(selectedSlot.startAt)} МСК)</span>{/if}
+					</p>
+					<p class="mt-4 text-[14px] text-foreground/50">
+						Я напишу вам в Telegram перед встречей.
+					</p>
+				</div>
+			{:else}
 			<!-- ШАГ 1: календарь + слоты -->
 			{#if step === 1}
 				{#if data.availabilities.length === 0}
@@ -240,7 +272,7 @@
 								</div>
 								{#if selectedSlot}
 									<button onclick={goToPayment} class="mt-5 w-full rounded-[12px] bg-primary px-6 py-3.5 text-[15px] font-bold text-white shadow-[0_8px_20px_rgba(233,184,78,0.3)] transition hover:brightness-[0.97] active:scale-[0.99]">
-										Перейти к оплате
+										{isAcquaintance ? 'Далее' : 'Перейти к оплате'}
 									</button>
 								{/if}
 							{/if}
@@ -267,7 +299,7 @@
 							class="w-full rounded-[12px] border border-[#e7ddc7] bg-[#faf7f0] px-4 py-3 text-[15px] text-navy outline-none transition placeholder:text-foreground/35 focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20" />
 					</label>
 					<label class="block">
-						<span class="mb-2 block text-[14px] font-semibold text-navy">Email <span class="font-normal text-foreground/45">(для чека)</span></span>
+						<span class="mb-2 block text-[14px] font-semibold text-navy">Email <span class="font-normal text-foreground/45">{isAcquaintance ? '(для подтверждения)' : '(для чека)'}</span></span>
 						<input type="email" bind:value={email} placeholder="example@mail.ru" onfocus={handleFormFocus}
 							class="w-full rounded-[12px] border border-[#e7ddc7] bg-[#faf7f0] px-4 py-3 text-[15px] text-navy outline-none transition placeholder:text-foreground/35 focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20" />
 					</label>
@@ -278,12 +310,19 @@
 
 					<button onclick={handlePay} disabled={loading || !telegram.trim() || !email.trim()}
 						class="w-full rounded-[12px] bg-primary px-6 py-3.5 text-[15px] font-bold text-white shadow-[0_8px_20px_rgba(233,184,78,0.3)] transition hover:brightness-[0.97] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-55 disabled:shadow-none">
-						{loading ? 'Перенаправление…' : 'Оплатить'}
+						{#if loading}
+							{isAcquaintance ? 'Записываем…' : 'Перенаправление…'}
+						{:else}
+							{isAcquaintance ? 'Записаться' : 'Оплатить'}
+						{/if}
 					</button>
-					<p class="text-center text-[13px] text-foreground/45">
-						После оплаты слот закрепляется за вами. Оплата через Робокассу.
-					</p>
+					{#if !isAcquaintance}
+						<p class="text-center text-[13px] text-foreground/45">
+							После оплаты слот закрепляется за вами. Оплата через Робокассу.
+						</p>
+					{/if}
 				</div>
+			{/if}
 			{/if}
 		</div>
 	</div>

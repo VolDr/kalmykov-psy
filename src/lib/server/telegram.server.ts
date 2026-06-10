@@ -150,6 +150,23 @@ class TelegramService {
 		return await this.sendNotification(message);
 	}
 
+	async sendAcquaintanceBookingConfirmed(params: {
+		clientName: string;
+		email: string;
+		bookedAt: string;
+	}) {
+		const message = `
+🤝 <b>Новая встреча-знакомство</b>
+
+👤 <b>Клиент:</b> ${tgEscape(params.clientName)}
+📧 <b>Email:</b> ${tgEscape(params.email)}
+📅 <b>Дата:</b> ${dayjs(params.bookedAt).tz('Europe/Moscow').format('DD.MM.YYYY')}
+🕐 <b>Время:</b> ${dayjs(params.bookedAt).tz('Europe/Moscow').format('HH:mm')}
+		`.trim();
+
+		return await this.sendNotification(message);
+	}
+
 	async sendAppointmentReminder(activity: any, client: any, hoursBeforeType: '24h' | '1h') {
 		const timeText = hoursBeforeType === '24h' ? 'за день' : 'за час';
 		const emoji = hoursBeforeType === '24h' ? '🗓' : '⏰';
