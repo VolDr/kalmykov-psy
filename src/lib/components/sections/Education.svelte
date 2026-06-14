@@ -43,6 +43,7 @@
 							{#each group.items as item, i}
 								<svelte:element
 									this={item.diploma ? 'button' : 'div'}
+									role={item.diploma ? 'button' : undefined}
 									onclick={item.diploma ? () => openDiplomaModal(item.diploma!) : undefined}
 									class={cn(
 										'group relative rounded-lg bg-background py-4 pl-4 text-left transition-all',

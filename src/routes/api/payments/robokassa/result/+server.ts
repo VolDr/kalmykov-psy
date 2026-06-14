@@ -44,12 +44,17 @@ export const POST: RequestHandler = async ({ request }) => {
 				source: 'website'
 			}).catch((e) => console.error('Telegram booking notification failed:', e));
 
+			// [DEBUG]
+			console.log('[SaleBot DEBUG] consultation_booked проверка — sbClientId:', booking.sbClientId, '| bookingId:', booking.id);
 			if (booking.sbClientId) {
+				console.log('[SaleBot DEBUG] ✓ sbClientId есть, отправляем consultation_booked для client_id:', booking.sbClientId);
 				sendSaleBotCallback({
 					client_id: booking.sbClientId,
 					message: 'consultation_booked',
 					consultation_booked: 1
 				}).catch((e) => console.error('[SaleBot] consultation_booked failed:', e));
+			} else {
+				console.log('[SaleBot DEBUG] sbClientId отсутствует — consultation_booked не отправляется');
 			}
 		}
 	} else if (result === 'not_found') {

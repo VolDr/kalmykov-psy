@@ -157,10 +157,10 @@
 		<div class="flex flex-col">
 			<Reveal width="full">
 				<h1
-					class="mb-5 md:min-w-[530px] font-caveat text-[36px] leading-[1.18] font-bold text-navy lg:text-[45px]"
+					class="mb-5 md:min-w-[530px] font-caveat text-[34px] leading-[1.18] font-bold text-navy lg:text-[40px]"
 				>
 					Живёте в режиме<br />
-					<TextSvg textSize="45px" variant="3" width="450px" mobileWidth="350px" mobileTextSize="text-[36px]">«дотянуть до пятницы»</TextSvg><br
+					<TextSvg textSize="45px" variant="3" width="450px" mobileWidth="350px" mobileTextSize="text-[34px]">«дотянуть до пятницы»</TextSvg><br
 					/>но выходные уже <br />не восстанавливают?
 				</h1>
 			</Reveal>
@@ -256,7 +256,7 @@
 	<div class="mx-auto px-5 md:max-w-[760px] lg:max-w-[1600px] xl:px-0">
 		<Reveal width="full">
 			<div class="mb-12 flex items-center gap-4 md:gap-6">
-				<h2 class="font-caveat text-[36px] lg:text-[45px] font-bold text-navy">
+				<h2 class="font-caveat text-[34px] lg:text-[40px] font-bold text-navy">
 					узнаёте себя?
 				</h2>
 				<span class="h-0.5 flex-1">
@@ -293,7 +293,7 @@
 							/>
 						</picture>
 						<div>
-							<div class="mb-1.5 font-caveat text-[36px] leading-none font-bold text-primary">
+							<div class="mb-1.5 font-caveat text-[34px] leading-none font-bold text-primary">
 								{card.n}
 							</div>
 							<h3 class="mb-3 text-[18px] lg:text-[20px]  leading-snug font-extrabold text-navy">{card.title}</h3>
@@ -313,7 +313,7 @@
 		<!-- заголовок: рукописный + волнистая линия + звёздочка-сердце -->
 		<Reveal width="full">
 			<div class="mb-12 flex items-center gap-4 md:gap-6">
-				<h2 class="font-caveat text-[36px] lg:text-[45px] font-bold text-navy">
+				<h2 class="font-caveat text-[34px] lg:text-[40px] font-bold text-navy">
 					вам ко мне, если…
 				</h2>
 				<span class="h-0.5 flex-1">
@@ -653,7 +653,7 @@
 		<!-- рукописный заголовок + жёлтый «свуш» снизу -->
 		<Reveal>
 			<div class="relative mb-12 inline-block md:mb-16">
-				<h2 class="font-caveat font-bold text-navy text-[36px] lg:text-[45px]">
+				<h2 class="font-caveat text-[34px] lg:text-[40px] font-bold text-navy">
 					как я работаю
 				</h2>
 				<svg
@@ -691,7 +691,7 @@
 <section class="bg-background py-10 md:py-0 md:pt-24" id="about">
 	<div class="mx-auto px-5 md:max-w-[960px] lg:max-w-[1200px] xl:px-0">
 		<Reveal>
-			<h2 class="mb-10 font-caveat text-[36px] lg:text-[45px] font-bold text-navy">обо мне</h2>
+			<h2 class="mb-10 font-caveat text-[34px] lg:text-[40px] font-bold text-navy">обо мне</h2>
 			<svg
 				class="absolute -bottom-3 left-0 w-full"
 				height="14"
@@ -802,7 +802,7 @@
 	<div class="mx-auto px-5 md:max-w-[760px] lg:max-w-[960px] xl:px-0">
 		<Reveal width="full">
 			<div class="mb-5 flex items-center gap-4 md:gap-6">
-				<h2 class="font-caveat text-[36px] lg:text-[45px] font-bold text-navy">
+				<h2 class="font-caveat text-[34px] lg:text-[40px] font-bold text-navy">
 					формат<br class="md:hidden" /> и стоимость
 				</h2>
 				<span class="h-0.5 flex-1">
@@ -836,7 +836,7 @@
 				<div
 					class="flex h-full flex-col rounded-[22px] border border-navy/12 bg-[#fdfaf3] p-6 lg:px-8"
 				>
-					<h2 class="font-caveat text-[36px] lg:text-[45px] font-bold text-navy md:pt-[35px]">Разовая сессия</h2>
+					<h2 class="font-caveat text-[34px] lg:text-[40px] font-bold text-navy md:pt-[35px]">Разовая сессия</h2>
 					<div class="mt-2 text-[18px] lg:text-[20px]  font-extrabold text-navy">4 000 ₽</div>
 					<p class="mt-5 text-[16px] lg:text-[18px] leading-relaxed text-foreground/75">
 						Если хотите разобраться в конкретной ситуации, познакомиться с подходом или понять,
@@ -876,7 +876,7 @@
 						class="mb-2 inline-block w-fit rounded-full bg-primary px-3 py-1 text-[11px] font-extrabold tracking-[0.07em] text-navy uppercase"
 						>Рекомендуемый формат</span
 					>
-					<h2 class="font-caveat text-[36px] lg:text-[45px] font-bold text-white">Регулярные встречи</h2>
+					<h2 class="font-caveat text-[34px] lg:text-[40px] font-bold text-white">Регулярные встречи</h2>
 					<div class="mt-2 flex items-baseline gap-2">
 						<span class="text-[18px] lg:text-[20px]  font-extrabold">14 000 ₽</span>
 						<span class="text-[16px] lg:text-[18px] font-medium text-white/55">/ 4 сессии</span>
@@ -952,7 +952,7 @@
 	<div class="mx-auto px-5 md:max-w-[760px] lg:max-w-[1200px] xl:px-0">
 		<Reveal width="full">
 			<div class="mb-12 flex items-center gap-4 md:mb-14 md:gap-6">
-				<h2 class="font-caveat font-bold text-navy text-[36px] lg:text-[45px]">
+				<h2 class="font-caveat text-[34px] lg:text-[40px] font-bold text-navy">
 					как мы придём к результату
 				</h2>
 				<img src="/star_3.webp" class="h-7 w-7 shrink-0 object-contain -rotate-6" alt="" aria-hidden="true" />
@@ -1035,7 +1035,7 @@
 
 	<div class="mx-auto flex max-w-[820px] flex-col items-center px-5">
 		<Reveal>
-			<h2 class="font-caveat text-[36px] lg:text-[45px] leading-[1.12] font-bold">
+			<h2 class="font-caveat text-[34px] lg:text-[40px] leading-[1.12] font-bold">
 			Вы уже достаточно долго говорите себе «ещё немного — и станет легче»
 			</h2>
 		</Reveal>
@@ -1064,10 +1064,10 @@
 </section>
 
 <section class="bg-background py-10 md:py-0 md:pt-24" id="faq">
-	<div class="mx-auto px-5 md:max-w-[760px] lg:max-w-[900px] xl:px-0">
+	<div class="mx-auto px-5 md:max-w-[760px] lg:max-w-[960px] xl:px-0">
 		<Reveal>
 			<div class="relative mb-12 inline-block md:mb-14">
-				<h2 class="font-caveat text-[36px] lg:text-[45px] font-bold text-navy">
+				<h2 class="font-caveat text-[34px] lg:text-[40px] font-bold text-navy">
 					вопросы и ответы
 				</h2>
 				<svg
@@ -1136,12 +1136,17 @@
 				handleModalClose('esc');
 			}
 		}}
+		role="button"
+		tabindex="-1"
+		aria-label="Закрыть"
 	>
 		<div
 			class=" relative flex  max-w-[670px] mx-5 lg:mx-0 flex-col gap-6 rounded-2xl bg-card px-5 py-5 shadow-2xl lg:px-8"
 			onclick={(e) => e.stopPropagation()}
+			onkeydown={(e) => e.stopPropagation()}
 			role="dialog"
 			aria-modal="true"
+			tabindex="-1"
 		>
 			<button
 				onclick={() => handleModalClose('button')}
@@ -1180,8 +1185,7 @@
 
 			<div class="mt-2 flex mx-auto">
 				<ButtonSvg
-					href="https://t.me/m/_KpBREAfOGMy"
-					open="blank"
+					href="/booking?acquaintance"
 					onclick={() => reachGoal('modal_intro_click')}
 					variant="1"
 					mobileWidth="250px"

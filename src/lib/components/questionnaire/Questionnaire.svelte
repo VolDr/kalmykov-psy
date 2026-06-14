@@ -82,7 +82,7 @@
 
 	let state = $state(loadState());
 
-	let resultsSection: HTMLElement;
+	let resultsSection: HTMLElement | undefined = $state(undefined);
 	let hasInitialScrolled = false;
 
 	// Save state to localStorage whenever answers or showResults change

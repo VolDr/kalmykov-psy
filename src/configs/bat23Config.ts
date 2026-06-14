@@ -531,8 +531,8 @@ export const bat23Config: QuestionnaireConfig = {
 					{ min: 2.9, max: 5.0, severity: 'Выгорание', color: 'red' }
 				],
 				alternativeInterpretation: [
-					{ min: 1.0, max: 2.09, severity: 'Нет риска', color: 'green' },
-					{ min: 2.1, max: 3.49, severity: 'Риск выгорания', color: 'orange' },
+					{ min: 1.0, max: 3.09, severity: 'Нет риска', color: 'green' },
+					{ min: 3.1, max: 3.49, severity: 'Риск выгорания', color: 'orange' },
 					{ min: 3.5, max: 5.0, severity: 'Выгорание', color: 'red' }
 				],
 				interpretationCondition: (answers) => answers.hasWork === 0,

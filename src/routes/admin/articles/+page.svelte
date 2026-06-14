@@ -180,13 +180,16 @@
 	<div
 		class="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black"
 		onclick={closeEditor}
+		onkeydown={(e) => e.key === 'Escape' && closeEditor()}
 		role="dialog"
 		aria-modal="true"
+		tabindex="-1"
 	>
 		<div
 			class="max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-lg bg-white p-8 shadow-xl"
 			onclick={(e) => e.stopPropagation()}
-			role="document"
+			onkeydown={(e) => e.stopPropagation()}
+			role="presentation"
 		>
 			<div class="mb-6 flex items-center justify-between">
 				<h2 class="text-2xl font-bold text-gray-800">

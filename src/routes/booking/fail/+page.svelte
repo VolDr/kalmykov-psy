@@ -19,7 +19,7 @@
 			</div>
 		</div>
 
-		<h1 class="font-caveat text-[36px] font-bold tracking-[0.5px] text-navy">Оплата не прошла</h1>
+		<h1 class="font-caveat text-[34px] font-bold tracking-[0.5px] text-navy">Оплата не прошла</h1>
 		<p class="mt-4 text-[16px] leading-relaxed text-foreground/70">
 			Время записи освободилось — попробуйте выбрать снова.
 		</p>

@@ -10,6 +10,7 @@
 	import { Toaster } from '$lib/components/ui/sonner';
 	import TelegramBanner from '$lib/components/TelegramBanner.svelte';
 	import { telegramChannel } from '$lib/data/navigation.js';
+	import CookieBanner from '$lib/components/CookieBanner.svelte';
 	import { page } from '$app/state';
 	let { children, data } = $props();
 	let { progress, action } = createProgress();
@@ -33,7 +34,7 @@
 	let isCodeRoute = $derived(
 		data.pathname &&
 			/^\/[a-zA-Z0-9]+$/.test(data.pathname) &&
-			!data.pathname.match(/^\/(articles|questionnaires|online-therapy|sos|boom|login|logout|lma)$/)
+			!data.pathname.match(/^\/(articles|questionnaires|online-therapy|sos|boom|login|logout|lma|info)$/)
 	);
 
 	// Управление overflow для body на странице login
@@ -56,9 +57,8 @@
 	});
 
 	onNavigate((navigation) => {
-		if (!document.startViewTransition) {
-			return;
-		}
+		if (!document.startViewTransition) return;
+		if (navigation.to?.url.hash) return; // хэш-навигация — transition мешает scroll
 
 		return new Promise((resolve) => {
 			document.startViewTransition(async () => {
@@ -131,6 +131,9 @@
 	<ProgressBar progress={$progress} />
 {/if}
 <Toaster position="top-right" />
+{#if !isUsefulRoute}
+	<CookieBanner />
+{/if}
 
 <main use:action class={isLoginRoute ? 'overflow-hidden' : ''}>
 	{@render children()}

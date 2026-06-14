@@ -1,28 +1,23 @@
 import { browser } from '$app/environment';
 
 interface TrackingOptions {
-	clientId: string;
 	leadMagnet: string;
 	readThreshold?: number;
 	minimumReadingTimeMs?: number;
 }
 
-function lsKey(clientId: string, leadMagnet: string, event: string): string {
-	return `salebot_lm_${leadMagnet}_${event}_${clientId}`;
-}
-
 async function sendEvent(
-	clientId: string,
 	leadMagnet: string,
 	event: string,
 	progress: number
 ): Promise<boolean> {
+	// clientId читается сервером из HttpOnly cookie — в тело не передаём
 	try {
 		const res = await fetch('/api/lm-progress', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			keepalive: true,
-			body: JSON.stringify({ clientId, leadMagnet, event, progress })
+			body: JSON.stringify({ leadMagnet, event, progress })
 		});
 		return res.ok;
 	} catch {
@@ -31,35 +26,18 @@ async function sendEvent(
 }
 
 export function setupLeadMagnetTracking({
-	clientId,
 	leadMagnet,
 	readThreshold = 75,
 	minimumReadingTimeMs = 30_000
 }: TrackingOptions): () => void {
 	if (!browser) return () => {};
 
-	const openedKey = lsKey(clientId, leadMagnet, 'opened');
-	const read75Key = lsKey(clientId, leadMagnet, 'read75');
-
-	// In-memory flags prevent parallel requests within the same page load
+	// In-memory флаги предотвращают параллельные запросы в рамках одной загрузки страницы.
+	// Дедупликация между сессиями — на сервере через DB unique constraint.
 	let read75InFlight = false;
-	let read75Sent = !!localStorage.getItem(read75Key);
+	let read75Sent = false;
 
-	// Fire "opened" once. Write to localStorage first so concurrent tabs skip it;
-	// clear on failure so the next page load can retry.
-	if (!localStorage.getItem(openedKey)) {
-		localStorage.setItem(openedKey, 'pending');
-		sendEvent(clientId, leadMagnet, 'opened', 0).then((ok) => {
-			if (ok) {
-				localStorage.setItem(openedKey, '1');
-			} else {
-				localStorage.removeItem(openedKey);
-			}
-		});
-	}
-
-	// If read75 already confirmed — nothing left to track
-	if (read75Sent) return () => {};
+	sendEvent(leadMagnet, 'opened', 0);
 
 	let maxScrollDepth = 0;
 	let timeMet = false;
@@ -74,10 +52,9 @@ export function setupLeadMagnetTracking({
 	function maybeFireRead75() {
 		if (read75Sent || read75InFlight || !timeMet || !scrollMet) return;
 		read75InFlight = true;
-		sendEvent(clientId, leadMagnet, 'read75', readThreshold).then((ok) => {
+		sendEvent(leadMagnet, 'read75', readThreshold).then((ok) => {
 			if (ok) {
 				read75Sent = true;
-				localStorage.setItem(read75Key, '1');
 			} else {
 				read75InFlight = false; // allow retry on next scroll/timer
 			}
@@ -100,8 +77,10 @@ export function setupLeadMagnetTracking({
 	window.addEventListener('scroll', onScroll, { passive: true });
 	window.addEventListener('resize', onResize, { passive: true });
 
-	// Catch document height changes from lazy-loaded images
-	const bodyObserver = new ResizeObserver(() => checkScroll());
+	// Catch document height changes from lazy-loaded images.
+	// requestAnimationFrame откладывает DOM-чтение на следующий кадр —
+	// синхронный доступ к scrollHeight/scrollY из ResizeObserver прерывает CSS smooth scroll в Chrome.
+	const bodyObserver = new ResizeObserver(() => requestAnimationFrame(checkScroll));
 	bodyObserver.observe(document.body);
 
 	// Initial check (page may already be scrolled or short enough)

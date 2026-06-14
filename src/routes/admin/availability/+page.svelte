@@ -10,6 +10,10 @@
 	let endHour = $state(18);
 	let error = $state('');
 
+	let bulkText = $state('');
+	let bulkError = $state('');
+	let bulkResult = $state<{ added: number; removed: number; skipped: number } | null>(null);
+
 	const MSK_TZ = 'Europe/Moscow';
 
 	function dateStr(d: DateValue): string {
@@ -147,6 +151,66 @@
 				</form>
 			{/if}
 		</div>
+	</div>
+
+	<div class="mb-8 rounded-xl border bg-white p-4">
+		<p class="mb-1 text-sm font-medium text-stone-600">Массовый ввод</p>
+		<p class="mb-3 text-xs text-stone-400">
+			Формат: <code class="rounded bg-stone-100 px-1">ADD</code> или <code class="rounded bg-stone-100 px-1">REMOVE</code>, затем строки «дата часы-часы»
+		</p>
+
+		<form
+			method="POST"
+			action="?/bulk"
+			use:enhance={() => {
+				bulkError = '';
+				bulkResult = null;
+				return async ({ result, update }) => {
+					if (result.type === 'failure') {
+						bulkError = (result.data?.bulkError as string) ?? 'Ошибка';
+					} else if (result.type === 'success' && result.data) {
+						bulkResult = {
+							added: result.data.added as number,
+							removed: result.data.removed as number,
+							skipped: result.data.skipped as number
+						};
+						bulkText = '';
+					}
+					await update();
+				};
+			}}
+			class="space-y-3"
+		>
+			<textarea
+				name="text"
+				bind:value={bulkText}
+				rows={8}
+				placeholder={"ADD\n14.06 10-18\n15.06 9-17\n\nREMOVE\n13.06 10-18"}
+				class="w-full rounded-lg border border-stone-200 px-3 py-2 font-mono text-sm focus:border-stone-400 focus:outline-none"
+			></textarea>
+
+			{#if bulkError}
+				<p class="text-sm text-red-500">{bulkError}</p>
+			{/if}
+
+			{#if bulkResult}
+				<p class="text-sm text-stone-600">
+					Добавлено: <span class="font-semibold text-green-700">{bulkResult.added}</span>
+					&nbsp;· Удалено: <span class="font-semibold text-red-600">{bulkResult.removed}</span>
+					{#if bulkResult.skipped > 0}
+						&nbsp;· Пропущено (пересечение): <span class="font-semibold text-stone-500">{bulkResult.skipped}</span>
+					{/if}
+				</p>
+			{/if}
+
+			<button
+				type="submit"
+				disabled={!bulkText.trim()}
+				class="rounded-lg bg-stone-800 px-4 py-2 text-sm font-medium text-white hover:bg-stone-700 disabled:opacity-40"
+			>
+				Применить
+			</button>
+		</form>
 	</div>
 
 	<div class="rounded-xl border bg-white">

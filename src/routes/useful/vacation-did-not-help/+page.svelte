@@ -1,15 +1,23 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
+	import { afterNavigate } from '$app/navigation';
 	import { initScrollGoals } from '$lib/useScrollGoals';
 	import { reachGoal } from '$lib/metrika';
 	import { setupLeadMagnetTracking } from '$lib/client/leadMagnetTracking';
 	import ButtonSvg from '$lib/components/ui/ButtonSvg.svelte';
 
+	let { data } = $props();
+
 	let ctaSection: HTMLElement;
 	let cleanupTracking: (() => void) | undefined;
 
-	let introHref = $state('/booking?acquaintance');
-	let therapyHref = $state('/booking');
+	// sbClientId приходит с сервера (из HttpOnly cookie, установленного /go/v/[clientId])
+	const sbClientId = data.sbClientId;
+
+	const introHref = sbClientId
+		? `/booking?acquaintance&sb_client_id=${sbClientId}`
+		: '/booking?acquaintance';
+	const therapyHref = sbClientId ? `/booking?sb_client_id=${sbClientId}` : '/booking';
 
 	onMount(() => {
 		if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
@@ -47,21 +55,22 @@
 		);
 		if (ctaSection) observer.observe(ctaSection);
 
-		// SaleBot lead magnet tracking + dynamic CTA links
-		const params = new URLSearchParams(window.location.search);
-		const rawClientId = params.get('sb_client_id');
-		if (rawClientId) {
-			const clientIdNum = Number(rawClientId);
-			if (Number.isSafeInteger(clientIdNum) && clientIdNum > 0) {
-				introHref = `/booking?acquaintance&sb_client_id=${clientIdNum}`;
-				therapyHref = `/booking?sb_client_id=${clientIdNum}`;
-				cleanupTracking = setupLeadMagnetTracking({
-					clientId: rawClientId,
-					leadMagnet: 'otpusk',
-					readThreshold: 75,
-					minimumReadingTimeMs: 30_000
-				});
-			}
+		// SaleBot tracking — clientId берётся из HttpOnly cookie на сервере
+		if (sbClientId) {
+			cleanupTracking = setupLeadMagnetTracking({
+				leadMagnet: 'otpusk',
+				readThreshold: 75,
+				minimumReadingTimeMs: 30_000
+			});
+		}
+
+	});
+
+	// afterNavigate стреляет после того как SvelteKit закончил свой scroll —
+	// перебиваем smooth-scroll instant'ом если в URL есть #acquaintance
+	afterNavigate(({ to }) => {
+		if (to?.url.hash === '#acquaintance' && ctaSection) {
+			ctaSection.scrollIntoView({ behavior: 'instant', block: 'start' });
 		}
 	});
 
@@ -113,6 +122,8 @@
 				src="/lma/1.webp"
 				alt="Человек в шезлонге у моря, над головой висит уведомление — 437 непрочитанных"
 				loading="lazy"
+				width="640"
+				height="468"
 				class="block h-auto w-full rounded-[14px]"
 			/>
 		</figure>
@@ -133,8 +144,9 @@
 			</p>
 			<p>
 				Он вернулся в понедельник, открыл ноутбук, увидел 437 непрочитанных сообщений и за два дня
-				наверстал всё с удвоенной скоростью. К пятнице чувствовал себя хуже, чем перед отъездом — и
-				не мог понять, как. «Наверное, просто мало отдохнул», — решил Максим и начал прикидывать, не
+				наверстал всё с удвоенной скоростью. К пятнице чувствовал себя хуже, чем перед отъездом:
+				таски, которые раньше закрывал за час, растягивались на полдня, — и он не мог понять, как
+				так. «Наверное, просто мало отдохнул», — решил Максим и начал прикидывать, не
 				взять ли ещё неделю летом.
 			</p>
 			<p class="mt-2 text-[clamp(17px,1.9vw,19px)] text-muted-foreground italic">
@@ -148,6 +160,8 @@
 						src="/lma/2.webp"
 						alt="Человек за ноутбуком, из которого вылетают задачи: срочно, созвон, важно, дедлайн"
 						loading="lazy"
+						width="640"
+						height="428"
 						class="block h-auto w-full rounded-[14px]"
 					/>
 				</figure>
@@ -186,6 +200,8 @@
 						src="/lma/3.webp"
 						alt="Большая гора с дедлайнами зачёркнута, но человек страдает из-за камешка в ботинке"
 						loading="lazy"
+						width="640"
+						height="428"
 						class="block h-auto w-full rounded-[14px]"
 					/>
 				</figure>
@@ -268,6 +284,8 @@
 						src="/lma/5.webp"
 						alt="Круговая схема цикла выгорания: перегрузка → ещё немного дожму → отпуск → накопилось → рывок → истощение"
 						loading="lazy"
+						width="640"
+						height="428"
 						class="block h-auto w-full rounded-[14px]"
 					/>
 				</figure>
@@ -294,7 +312,8 @@
 			<p>
 				Если ничего не менять, облегчение после отпуска может становиться всё короче. К усталости
 				постепенно добавляются безразличие к работе, раздражение и тихий цинизм: «Как я вообще
-				когда-то этим горел?» Человек всё дальше отходит от того, что для него важно, а привычные
+				когда-то этим горел?» Простые задачи начинают занимать больше времени, в текст приходится
+				вчитываться по два раза. Человек всё дальше отходит от того, что для него важно, а привычные
 				способы справляться помогают всё меньше. В какой-то момент становится непонятно, что делать
 				дальше: прежние способы уже не работают, а других пока нет.
 			</p>
@@ -305,6 +324,8 @@
 						src="/lma/4.webp"
 						alt="Человечка тянут в разные стороны: перегрузка, нет контроля, несправедливость, плохие отношения, нет признания, конфликт ценностей"
 						loading="lazy"
+						width="640"
+						height="428"
 						class="block h-auto w-full rounded-[14px]"
 					/>
 				</figure>
@@ -343,6 +364,7 @@
 					спокойно отдыхать, пока команда продолжает работать. Я знаю эту среду изнутри — потому что
 					сам в ней работал.
 				</p>
+				<p>Я провожу индивидуальные психологические консультации. Формат работы — онлайн-встречи по 50 минут, обычно раз в неделю.</p>
 				<p>
 					Я работаю в КПТ и ACT — подходах, эффективность которых изучена и подтверждена
 					исследованиями, в том числе применительно к выгоранию.
@@ -425,6 +447,8 @@
 						src="/lma/6.webp"
 						alt="Два человека смотрят на карту: контекст → привычные стратегии → новые действия"
 						loading="lazy"
+						width="640"
+						height="428"
 						class="block h-auto w-full rounded-[14px]"
 					/>
 				</figure>
@@ -433,7 +457,7 @@
 	</section>
 
 	<!-- CTA -->
-	<section class="mx-auto mb-14 max-w-[680px] px-5 sm:mb-20" data-reveal bind:this={ctaSection}>
+	<section id="acquaintance" class="mx-auto mb-14 max-w-[680px] scroll-mt-8 px-5 sm:mb-20" data-reveal bind:this={ctaSection}>
 		<div class="rounded-2xl bg-card px-6 py-8 text-center sm:px-12 sm:py-[44px]">
 			<h2
 				class="mb-[22px] font-caveat text-[clamp(26px,2.5vw,32px)] leading-[1.25] font-semibold tracking-[-0.01em]"
@@ -462,7 +486,7 @@
 					mobileWidth="280px"
 					mobileHeight="80px"
 					width="350px"
-					class="mb-3 self-start sm:self-auto"
+					class="mb-3"
 				>
 					Записаться на встречу-знакомство
 				</ButtonSvg>

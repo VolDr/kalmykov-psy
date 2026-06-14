@@ -2,6 +2,8 @@
 	import { onMount } from 'svelte';
 	import { reachGoal } from '$lib/metrika';
 	import ButtonSvg from './ui/ButtonSvg.svelte';
+	import { get } from 'svelte/store';
+	import { cookieBannerDone } from '$lib/stores/cookieConsent';
 
 	interface Props {
 		text: string;
@@ -36,6 +38,34 @@
 	}
 
 	onMount(() => {
+		let scrollCleanup: (() => void) | undefined;
+		const isMobile = window.innerWidth < 640;
+
+		const startBanner = () => {
+			scrollCleanup = initBanner() ?? undefined;
+		};
+
+		if (isMobile) {
+			if (get(cookieBannerDone)) {
+				// куки уже приняты/отклонены — стартуем с задержкой
+				setTimeout(startBanner, 2000);
+			} else {
+				// ждём решения по кукам
+				const unsub = cookieBannerDone.subscribe((done) => {
+					if (done) {
+						unsub();
+						setTimeout(startBanner, 2000);
+					}
+				});
+			}
+			return () => { scrollCleanup?.(); };
+		} else {
+			startBanner();
+			return () => { scrollCleanup?.(); };
+		}
+	});
+
+	function initBanner() {
 		// 1. Проверка localStorage
 		const storedData = localStorage.getItem(STORAGE_KEY);
 		if (storedData) {
@@ -101,13 +131,13 @@
 		return () => {
 			window.removeEventListener('scroll', handleScroll);
 		};
-	});
+	}
 </script>
 
 {#if isVisible}
 	<div
-		class="fixed bottom-4 left-1/2 -translate-x-1/2 z-[100] flex min-h-12 max-w-[70vw] lg:max-w-[550px] items-center justify-between  t-panel w-[600px] h-[70px]"
-		data-open={isShowing ? 'true' : 'false'}
+		class="fixed bottom-4 left-1/2 -translate-x-1/2 z-[100] flex min-h-12 max-w-[70vw] lg:max-w-[550px] items-center justify-between w-[600px] h-[70px]"
+		style="transition: transform 400ms cubic-bezier(0.22,1,0.36,1), opacity 400ms cubic-bezier(0.22,1,0.36,1), filter 400ms; transform: translateY({isShowing ? '0px' : '90px'}); opacity: {isShowing ? 1 : 0}; filter: blur({isShowing ? '0px' : '2px'}); pointer-events: {isShowing ? 'auto' : 'none'};"
 	>
 
 		<svg

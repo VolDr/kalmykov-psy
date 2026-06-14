@@ -4,6 +4,7 @@
   цветовая палитра в тон сайта. Логика/пропсы (subscales, averageScore, color) не изменены.
 -->
 <script lang="ts">
+	import type { Snippet } from 'svelte';
 	import MarkdownLink from '$lib/components/MarkdownLink.svelte';
 	import type { ScoringInterpretation } from '$lib/data/questionnaires/types';
 	import type { SubscaleResult } from '$lib/utils/questionnaire/scoringEngine';
@@ -16,6 +17,7 @@
 		averageScore?: number;
 		maxAverageScore?: number;
 		subscales?: SubscaleResult[];
+		beforeRecommendations?: Snippet;
 	};
 
 	let {
@@ -24,7 +26,8 @@
 		interpretation,
 		maxAverageScore = 5,
 		averageScore,
-		subscales
+		subscales,
+		beforeRecommendations
 	}: Props = $props();
 
 	// Тёплая палитра в тон сайта
@@ -93,7 +96,7 @@
 	<!-- Субшкалы -->
 	{#if subscales && subscales.length > 0}
 		<section>
-			<h3 class="mb-5 text-[18px] font-extrabold tracking-[-0.3px] text-navy md:text-[24px]">
+			<h3 class="mb-5 text-[28px] font-extrabold tracking-[-0.3px] text-navy lg:text-[34px]  font-caveat">
 				Что значат эти цифры?
 			</h3>
 
@@ -146,12 +149,16 @@
 		</section>
 	{/if}
 
+	{#if beforeRecommendations}
+		{@render beforeRecommendations()}
+	{/if}
+
 	<!-- Рекомендации -->
 	<section>
-		<h3 class="mb-4 text-[18px] font-extrabold tracking-[-0.3px] text-navy md:text-[24px]">
+		<h3 class="mb-4 text-[28px] font-extrabold tracking-[-0.3px] text-navy lg:text-[34px] font-caveat text-[clamp(26px,2.5vw,32px)]">
 			Рекомендации
 		</h3>
-		<div class="text-[16px] leading-[1.7] whitespace-pre-line text-foreground/80">
+		<div class="text-[clamp(15px,1.6vw,17px)] leading-[1.7] whitespace-pre-line">
 			<MarkdownLink text={interpretation.recommendation} />
 		</div>
 	</section>

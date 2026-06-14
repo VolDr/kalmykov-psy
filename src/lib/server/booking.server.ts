@@ -290,7 +290,7 @@ export async function getBookingByPaymentId(paymentId: number) {
 export async function createAcquaintanceBooking(params: {
 	availabilityId: number;
 	bookedAt: string;
-	email: string;
+	email?: string;
 	clientName: string;
 	sbClientId?: number | null;
 }) {

@@ -97,8 +97,8 @@
 				<div class="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-primary/15">
 					<svg class="h-8 w-8 text-primary" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
 				</div>
-				<h1 class="font-caveat text-[36px] leading-tight font-bold tracking-[0.5px] text-navy md:text-[44px]">
-					Оплата прошла успешно
+				<h1 class="font-caveat text-[34px] leading-tight font-bold tracking-[0.5px] text-navy md:text-[44px]">
+					Оплата прошла успешно!
 				</h1>
 				{#if data.description}
 					<p class="mt-3 text-[16px] font-semibold text-foreground/70">{data.description}</p>
@@ -110,9 +110,6 @@
 					Свяжусь с вами в течение дня для подтверждения деталей. Можно также
 					<a href="https://t.me/m/LMOE2JTtMDcy" class="font-semibold text-navy underline decoration-primary decoration-2 underline-offset-2 transition hover:text-primary">написать мне в Telegram</a>.
 				</p>
-				<a href="/" class="mt-8 inline-flex items-center justify-center rounded-[12px] border border-[#e0d4ba] bg-white px-6 py-3 text-[15px] font-bold text-navy transition hover:border-primary hover:bg-primary/[0.06]">
-					На главную
-				</a>
 			</div>
 
 			<!-- ваза + сердечко -->
@@ -149,9 +146,6 @@
 			{/if}
 
 			{#if status !== 'pending_payment' || !polling}
-				<a href="/" class="mt-8 inline-flex items-center justify-center rounded-[12px] border border-[#e0d4ba] bg-white px-6 py-3 text-[15px] font-bold text-navy transition hover:border-primary hover:bg-primary/[0.06]">
-					На главную
-				</a>
 			{/if}
 		</div>
 	{/if}

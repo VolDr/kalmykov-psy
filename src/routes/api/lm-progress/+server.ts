@@ -29,7 +29,16 @@ function buildPayload(clientId: number, leadMagnet: LeadMagnet, event: EventName
 	};
 }
 
-export const POST: RequestHandler = async ({ request }) => {
+export const POST: RequestHandler = async ({ request, cookies }) => {
+	// clientId берётся из HttpOnly cookie (установленного /go/v/[clientId]), не из тела запроса
+	const rawCookie = cookies.get('sb_client_id');
+	const clientIdNum = rawCookie ? parseInt(rawCookie, 10) : NaN;
+	console.log('[lm-progress DEBUG] rawCookie:', rawCookie, '| clientIdNum:', clientIdNum);
+	if (!Number.isSafeInteger(clientIdNum) || clientIdNum <= 0) {
+		console.log('[lm-progress DEBUG] нет валидного cookie — skipped');
+		return json({ ok: true, skipped: true });
+	}
+
 	let body: unknown;
 	try {
 		body = await request.json();
@@ -41,21 +50,18 @@ export const POST: RequestHandler = async ({ request }) => {
 		return json({ error: 'Invalid request body' }, { status: 400 });
 	}
 
-	const { clientId: rawClientId, leadMagnet, event, progress } = body as Record<string, unknown>;
-
-	// Validate clientId — must be a positive safe integer
-	const clientIdNum = Number(rawClientId);
-	if (!Number.isSafeInteger(clientIdNum) || clientIdNum <= 0) {
-		return json({ error: 'Invalid clientId' }, { status: 400 });
-	}
+	const { leadMagnet, event, progress } = body as Record<string, unknown>;
+	console.log('[lm-progress DEBUG] clientId:', clientIdNum, '| leadMagnet:', leadMagnet, '| event:', event, '| progress:', progress);
 
 	// Validate leadMagnet
 	if (!(ALLOWED_LEAD_MAGNETS as readonly unknown[]).includes(leadMagnet)) {
+		console.log('[lm-progress DEBUG] невалидный leadMagnet:', leadMagnet);
 		return json({ error: 'Invalid leadMagnet' }, { status: 400 });
 	}
 
 	// Validate event
 	if (!(ALLOWED_EVENTS as readonly unknown[]).includes(event)) {
+		console.log('[lm-progress DEBUG] невалидный event:', event);
 		return json({ error: 'Invalid event' }, { status: 400 });
 	}
 
@@ -63,6 +69,7 @@ export const POST: RequestHandler = async ({ request }) => {
 	if (event === 'read75') {
 		const progressNum = Number(progress);
 		if (!Number.isFinite(progressNum) || progressNum < 75) {
+			console.log('[lm-progress DEBUG] невалидный progress:', progress);
 			return json({ error: 'progress must be >= 75 for read75' }, { status: 400 });
 		}
 	}
@@ -86,7 +93,10 @@ export const POST: RequestHandler = async ({ request }) => {
 			})
 			.returning();
 
+		console.log('[lm-progress DEBUG] DB record:', { id: record.id, status: record.status, attempts: record.attempts });
+
 		if (record.status === 'sent') {
+			console.log('[lm-progress DEBUG] уже отправлено ранее (duplicate) — пропускаем');
 			return json({ success: true, duplicate: true });
 		}
 
@@ -101,13 +111,16 @@ export const POST: RequestHandler = async ({ request }) => {
 			.returning({ id: leadMagnetEvents.id });
 
 		if (acquired.length === 0) {
+			console.log('[lm-progress DEBUG] конкурентный запрос уже обрабатывает — processing');
 			return json({ success: true, processing: true });
 		}
 
 		const payload = buildPayload(clientIdNum, leadMagnet as LeadMagnet, event as EventName);
+		console.log('[lm-progress DEBUG] отправляем в SaleBot payload:', JSON.stringify(payload));
 
 		try {
 			await sendSaleBotCallback(payload);
+			console.log('[lm-progress DEBUG] SaleBot ответил успешно');
 
 			await db
 				.update(leadMagnetEvents)
@@ -117,6 +130,7 @@ export const POST: RequestHandler = async ({ request }) => {
 			return json({ success: true });
 		} catch (saleBotErr) {
 			const errMsg = saleBotErr instanceof Error ? saleBotErr.message : String(saleBotErr);
+			console.error('[lm-progress DEBUG] SaleBot ошибка:', errMsg);
 
 			await db
 				.update(leadMagnetEvents)

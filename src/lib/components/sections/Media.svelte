@@ -33,7 +33,7 @@
 		<div class="px-5 xl:px-0">
 			<Reveal width="full">
 				<div class="mb-11 flex items-center gap-4 md:gap-6">
-					<h2 class="font-caveat text-4xl font-bold whitespace-nowrap text-navy md:text-[40px]">
+					<h2 class="font-caveat font-bold whitespace-nowrap text-navy text-[34px] lg:text-[40px]">
 						я в медиа
 					</h2>
 					<span class="h-0.5 flex-1">

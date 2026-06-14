@@ -4,6 +4,8 @@
   type Mode = 'link' | 'button';
   type ButtonType = 'button' | 'submit' | 'reset';
 
+  import type { Snippet } from 'svelte';
+
   type Props = {
     href?: string;
     mode?: Mode;
@@ -29,6 +31,8 @@
 
     class?: string;
     style?: string;
+
+    children?: Snippet;
 
     [key: string]: any;
   };
@@ -58,6 +62,8 @@
 
     class: className = '',
     style: styleProp = '',
+
+    children,
 
     ...restProps
   }: Props = $props();
@@ -202,7 +208,7 @@
     </svg>
 
     <span class={textClass}>
-      <slot>Записаться</slot>
+      {#if children}{@render children()}{:else}Записаться{/if}
     </span>
   </a>
 {:else}
@@ -224,7 +230,7 @@
     </svg>
 
     <span class={textClass}>
-      <slot>Записаться</slot>
+      {#if children}{@render children()}{:else}Записаться{/if}
     </span>
   </button>
 {/if}

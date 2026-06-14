@@ -136,6 +136,13 @@ html, body {
 	overflow-x: clip;
 }
 
+/* Отключаем scroll anchoring — Chrome по умолчанию корректирует scrollTop когда
+   контент выше viewport меняет размер (шрифты, изображения). Во время smooth scroll
+   эта коррекция прерывает анимацию. overflow-anchor: none устраняет конфликт. */
+html {
+	overflow-anchor: none;
+}
+
 /* Scrollbar */
 ::-webkit-scrollbar {
 	width: 8px;

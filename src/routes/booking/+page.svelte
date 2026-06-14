@@ -120,7 +120,7 @@
 	});
 
 	async function handlePay() {
-		if (!selectedSlot || !telegram.trim() || !email.trim()) return;
+		if (!selectedSlot || !telegram.trim() || (!isAcquaintance && !email.trim())) return;
 		loading = true;
 		error = '';
 		trackGoal(isAcquaintance ? 'acquaintance_booking_initiated' : 'booking_payment_initiated');
@@ -215,14 +215,17 @@
 			<!-- УСПЕХ (только для встречи-знакомства) -->
 			{#if bookingSuccess && selectedSlot}
 				<div class="py-8 text-center">
-					<div class="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-primary/15 text-3xl">✅</div>
-					<h2 class="mb-2 font-caveat text-[28px] font-bold text-navy">Вы записаны!</h2>
-					<p class="mb-1 text-[15px] text-foreground/70">
+					<div class="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-primary/15">
+						<svg class="h-8 w-8 text-primary" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
+					</div>
+					<h2 class="mb-2 font-caveat text-[28px] font-bold text-navy">Встреча забронирована!</h2>
+					<p class="mb-1 text-[15px] font-semibold text-navy">
 						{localDateLabel(selectedSlot.startAt)}, {localTime(selectedSlot.startAt)}
-						{#if showMsk}<span class="text-foreground/40">({mskTime(selectedSlot.startAt)} МСК)</span>{/if}
+						{#if showMsk}<span class="font-normal text-foreground/40">({mskTime(selectedSlot.startAt)} МСК)</span>{/if}
 					</p>
-					<p class="mt-4 text-[14px] text-foreground/50">
-						Я напишу вам в Telegram перед встречей.
+					<p class="mt-4 max-w-[360px] mx-auto text-[15px] leading-relaxed text-foreground/70">
+						Свяжусь с вами в течение дня для подтверждения деталей. Можно также
+						<a href="https://t.me/m/LMOE2JTtMDcy" class="font-semibold text-navy underline decoration-primary decoration-2 underline-offset-2 transition hover:text-primary">написать мне в Telegram</a>.
 					</p>
 				</div>
 			{:else}
@@ -294,21 +297,23 @@
 
 				<div class="space-y-5">
 					<label class="block">
-						<span class="mb-2 block text-[14px] font-semibold text-navy">Telegram <span class="font-normal text-foreground/45">(для связи по деталям сессии)</span></span>
+						<span class="mb-2 block text-[14px] font-semibold text-navy">Telegram <span class="font-normal text-foreground/45">{isAcquaintance ? '(напишу вам перед встречей)' : '(для связи по деталям сессии)'}</span></span>
 						<input type="text" bind:value={telegram} placeholder="@username" autocomplete="off" onfocus={handleFormFocus}
 							class="w-full rounded-[12px] border border-[#e7ddc7] bg-[#faf7f0] px-4 py-3 text-[15px] text-navy outline-none transition placeholder:text-foreground/35 focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20" />
 					</label>
+					{#if !isAcquaintance}
 					<label class="block">
-						<span class="mb-2 block text-[14px] font-semibold text-navy">Email <span class="font-normal text-foreground/45">{isAcquaintance ? '(для подтверждения)' : '(для чека)'}</span></span>
+						<span class="mb-2 block text-[14px] font-semibold text-navy">Email <span class="font-normal text-foreground/45">(для чека)</span></span>
 						<input type="email" bind:value={email} placeholder="example@mail.ru" onfocus={handleFormFocus}
 							class="w-full rounded-[12px] border border-[#e7ddc7] bg-[#faf7f0] px-4 py-3 text-[15px] text-navy outline-none transition placeholder:text-foreground/35 focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20" />
 					</label>
+					{/if}
 
 					{#if error}
 						<p class="rounded-[12px] bg-red-50 px-4 py-3 text-[14px] text-red-600">{error}</p>
 					{/if}
 
-					<button onclick={handlePay} disabled={loading || !telegram.trim() || !email.trim()}
+					<button onclick={handlePay} disabled={loading || !telegram.trim() || (!isAcquaintance && !email.trim())}
 						class="w-full rounded-[12px] bg-primary px-6 py-3.5 text-[15px] font-bold text-white shadow-[0_8px_20px_rgba(233,184,78,0.3)] transition hover:brightness-[0.97] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-55 disabled:shadow-none">
 						{#if loading}
 							{isAcquaintance ? 'Записываем…' : 'Перенаправление…'}

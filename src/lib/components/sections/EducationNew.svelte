@@ -5,8 +5,18 @@
 	import { educationGroups } from '$lib/data/education';
 	import { cn } from '$lib/utils';
 
-	let { isOpen = false }: { isOpen?: boolean } = $props();
+	let { isOpen = false, titleClass = '' }: { isOpen?: boolean; titleClass?: string } = $props();
+	let openFromHash = $state(false);
 	let isModalOpen = $state(false);
+
+	$effect(() => {
+		const checkHash = () => {
+			if (window.location.hash === '#education') openFromHash = true;
+		};
+		checkHash();
+		window.addEventListener('hashchange', checkHash);
+		return () => window.removeEventListener('hashchange', checkHash);
+	});
 	let selectedDiplomaIndex = $state(0);
 
 	const diplomas = $derived(
@@ -76,12 +86,12 @@
 </script>
 
 <div class="w-full scroll-mt-24 pt-2 md:pt-4" id="education">
-	<AccordionItem {isOpen}>
+	<AccordionItem isOpen={isOpen || openFromHash}>
 		{#snippet header()}
 			<Reveal width="full" axis="x">
 				<div class="text-left">
 					<div class="mb-11 flex items-center gap-4 md:gap-6">
-					<h2 class="font-caveat text-4xl font-bold whitespace-nowrap text-navy md:text-[40px]">
+					<h2 class={cn('font-caveat font-bold whitespace-nowrap text-navy text-[34px] lg:text-[40px]', titleClass)}>
 						где я учился
 					</h2>
 					<span class="h-0.5 flex-1">
@@ -138,6 +148,7 @@
 						{#each group.items as item, idx}
 							<svelte:element
 								this={item.diploma ? 'button' : 'div'}
+								role={item.diploma ? 'button' : undefined}
 								onclick={item.diploma ? () => openDiplomaModal(item.diploma!) : undefined}
 								class={cn(
 									'group relative flex w-[85vw] max-w-[320px] shrink-0 snap-start flex-col justify-between rounded-[18px] border p-6 text-left transition-all duration-300 md:p-7',

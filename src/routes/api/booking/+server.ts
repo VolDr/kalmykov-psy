@@ -9,10 +9,17 @@ export const POST: RequestHandler = async ({ request, url, getClientAddress }) =
 		return json({ error: 'Слишком много запросов. Попробуйте через минуту.' }, { status: 429 });
 	}
 
-	const { availabilityId, bookedAt, telegram, email, type, sbClientId: rawSbClientId } = await request.json();
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	let body: any;
+	try {
+		body = await request.json();
+	} catch {
+		return json({ error: 'Некорректный запрос' }, { status: 400 });
+	}
+	const { availabilityId, bookedAt, telegram, email, type, sbClientId: rawSbClientId } = body;
 
 	const availabilityIdNum = parseInt(String(availabilityId ?? ''), 10);
-	if (isNaN(availabilityIdNum) || !bookedAt || !telegram?.trim() || !email?.trim()) {
+	if (isNaN(availabilityIdNum) || availabilityIdNum <= 0 || !bookedAt || !telegram?.trim() || !email?.trim()) {
 		return json({ error: 'Заполните все поля' }, { status: 400 });
 	}
 

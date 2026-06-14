@@ -147,6 +147,10 @@
 	<div
 		class={cn('t-backdrop fixed inset-0 z-50 bg-black/67', isOpenClass && 'is-open', isClosingClass && 'is-closing')}
 		onclick={close}
+		onkeydown={(e) => e.key === 'Escape' && close()}
+		role="button"
+		tabindex="-1"
+		aria-label="Закрыть"
 	>
 		<!-- Content wrapper - centered -->
 		<div class="flex min-h-screen items-center justify-center p-4">
@@ -201,6 +205,8 @@
 					<div
 						class="relative flex h-[max(260px,50svh)] w-[min(90vw,1200px)] items-center justify-center overflow-hidden md:h-[max(400px,70svh)]"
 						onclick={(e) => e.stopPropagation()}
+						onkeydown={(e) => e.stopPropagation()}
+						role="presentation"
 					>
 						{#key currentIndex}
 							<div
@@ -255,8 +261,6 @@
 				{#if diplomas.length > 1}
 					<div
 						class="flex items-center justify-center gap-2"
-						onclick={(e) => e.stopPropagation()}
-						onkeydown={(e) => e.stopPropagation()}
 						role="group"
 						aria-label="Навигация по дипломам"
 					>

@@ -37,7 +37,7 @@
             <div
               class="h-full bg-blue-500 transition-all"
               style="width: {pct}%"
-            />
+            ></div>
           </div>
           <span class="w-16 text-right text-sm">{n}</span>
           <span class="w-10 text-right text-xs text-gray-400">{pct}%</span>

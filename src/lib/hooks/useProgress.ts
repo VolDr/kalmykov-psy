@@ -5,6 +5,7 @@ export function createProgress() {
 
 	function action(node: HTMLElement) {
 		let ro: ResizeObserver | null = null;
+		let rafId: number | null = null;
 
 		const clamp = (v: number, min = 0, max = 1) => Math.max(min, Math.min(max, v));
 
@@ -21,13 +22,24 @@ export function createProgress() {
 			progress.set(clamp(p));
 		};
 
+		// rAF-дебаунс для ResizeObserver: чтение offsetTop/scrollHeight форсирует
+		// synchronous layout reflow. Без rAF это происходит прямо в callback ResizeObserver,
+		// что прерывает CSS smooth scroll animation в Chrome (main-thread scroll engine).
+		const scheduleUpdate = () => {
+			if (rafId !== null) return;
+			rafId = requestAnimationFrame(() => {
+				rafId = null;
+				update();
+			});
+		};
+
 		const onScroll = () => update();
 		const onResize = () => update();
 
 		window.addEventListener('scroll', onScroll, { passive: true });
 		window.addEventListener('resize', onResize);
 
-		ro = new ResizeObserver(update);
+		ro = new ResizeObserver(scheduleUpdate);
 		ro.observe(node);
 
 		// первичная инициализация
@@ -37,9 +49,8 @@ export function createProgress() {
 			destroy() {
 				window.removeEventListener('scroll', onScroll);
 				window.removeEventListener('resize', onResize);
-				if (ro) {
-					ro.disconnect();
-				}
+				if (rafId !== null) cancelAnimationFrame(rafId);
+				if (ro) ro.disconnect();
 			}
 		};
 	}

@@ -20,7 +20,7 @@ export const POST: RequestHandler = async ({ request, getClientAddress }) => {
 	const { availabilityId, bookedAt, telegram, email, sbClientId: rawSbClientId } = body;
 
 	const availabilityIdNum = parseInt(String(availabilityId ?? ''), 10);
-	if (isNaN(availabilityIdNum) || availabilityIdNum <= 0 || !bookedAt || !telegram?.trim() || !email?.trim()) {
+	if (isNaN(availabilityIdNum) || availabilityIdNum <= 0 || !bookedAt || !telegram?.trim()) {
 		return json({ error: 'Заполните все поля' }, { status: 400 });
 	}
 
@@ -28,7 +28,7 @@ export const POST: RequestHandler = async ({ request, getClientAddress }) => {
 		return json({ error: 'Telegram слишком длинный' }, { status: 400 });
 	}
 
-	if (email.trim().length > 254 || !email.includes('@')) {
+	if (email?.trim() && (email.trim().length > 254 || !email.includes('@'))) {
 		return json({ error: 'Некорректный email' }, { status: 400 });
 	}
 
@@ -51,7 +51,7 @@ export const POST: RequestHandler = async ({ request, getClientAddress }) => {
 			availabilityId: availabilityIdNum,
 			bookedAt,
 			clientName: telegram.trim(),
-			email: email.trim(),
+			email: email?.trim(),
 			sbClientId: validSbClientId
 		});
 
