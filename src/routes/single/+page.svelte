@@ -9,6 +9,8 @@
   ════════════════════════════════════════════════════════════════
 -->
 <script lang="ts">
+	import { reachGoal } from '$lib/metrika';
+
 	const PRICE = 4000;
 	const PRICE_DISPLAY = PRICE.toLocaleString('ru-RU');
 
@@ -20,6 +22,7 @@
 		if (!email.trim()) return;
 		loading = true;
 		error = '';
+		reachGoal('single_payment_initiated');
 		try {
 			const res = await fetch('/api/pay', {
 				method: 'POST',

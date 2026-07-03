@@ -17,9 +17,10 @@
 	type Props = {
 		config: QuestionnaireConfig;
 		showEmailStep?: boolean;
+		title?: string;
 	};
 
-	let { config, showEmailStep = true }: Props = $props();
+	let { config, showEmailStep = true, title }: Props = $props();
 
 	const storageKey = `questionnaire-${config.id}-wizard-state`;
 
@@ -163,6 +164,7 @@
 
 	let currentScore = $derived(calculateScore(state.answers, config));
 	let activeWarnings = $derived(evaluateWarnings(state.answers, config));
+	let canGoBack = $derived(state.currentStep > initialStep);
 
 	const dimensionRecs: Record<string, Partial<Record<'orange' | 'red', { title: string; text: string }>>> = {
 		exhaustion: {
@@ -406,6 +408,11 @@
 	{:else if state.currentStep >= 0 && !state.showResults && currentQuestion}
 		<div>
 			<div class="mx-auto max-w-2xl max-w-[760px]">
+				{#if title && !showEmailStep}
+					<h2 class="mb-5 font-caveat text-[28px] font-semibold text-foreground lg:text-[34px]">
+						{title}
+					</h2>
+				{/if}
 				<div class="mb-6">
 					<div class="mb-2 flex justify-end text-xs font-medium text-gray-500">
 						<span>Вопрос {state.currentStep + 1} из {questionSteps.length}</span>
@@ -439,13 +446,15 @@
 					/>
 
 					<div class="mt-6 flex gap-3">
-						<Button
-							variant="secondary"
-							onclick={prevStep}
-							class="flex-1 justify-center border-transparent bg-gray-100 text-foreground hover:bg-gray-200"
-						>
-							Назад
-						</Button>
+						{#if canGoBack}
+							<Button
+								variant="secondary"
+								onclick={prevStep}
+								class="flex-1 justify-center border-transparent bg-gray-100 text-foreground hover:bg-gray-200"
+							>
+								Назад
+							</Button>
+						{/if}
 						<Button
 							variant="primary"
 							onclick={nextStep}
@@ -547,7 +556,7 @@
 								ноутбук «на всякий случай».
 							</p>
 							<p>Я провожу индивидуальные психологические консультации. Формат работы — онлайн-встречи по 50 минут, обычно раз в неделю.</p>
-							<p>В работе я опираюсь на КПТ и ACT — подходы с широкой исследовательской базой.</p>
+							<p>В работе я опираюсь на когнитивно-поведенческие подходы (КПТ и ACT) — с широкой исследовательской базой.</p>
 							<p>
 								На консультациях мы разбираемся, что именно у вас отнимает силы и почему они не
 								восстанавливаются. Смотрим, какие рабочие условия, мысли, правила и привычные

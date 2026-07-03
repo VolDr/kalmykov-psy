@@ -11,6 +11,7 @@
 -->
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { reachGoal } from '$lib/metrika';
 
 	let { data } = $props();
 
@@ -18,9 +19,9 @@
 	let polling = $state(data.bookingStatus === 'pending_payment');
 
 	function fireAnalytics() {
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		const ym = (window as any).ym;
-		if (typeof ym === 'function') ym(105424317, 'reachGoal', 'booking_payment_success');
+		// reachGoal дублирует цель и в Яндекс.Метрику, и в свою БД (/api/analytics).
+		// bookedAt == null → прямая оплата (/pay), иначе — оплата записи на консультацию.
+		reachGoal(data.bookedAt ? 'booking_payment_success' : 'single_payment_success');
 	}
 
 	onMount(() => {

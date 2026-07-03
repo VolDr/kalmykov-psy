@@ -3,39 +3,45 @@ import type { RequestHandler } from './$types';
 import { eq, and, ne, sql } from 'drizzle-orm';
 import { db } from '../../..';
 import { leadMagnetEvents } from '../../../db/schema';
-import { sendSaleBotCallback } from '$lib/server/salebot.server';
+import { addTagsToContact, getContact } from '$lib/server/bot-contacts.server';
+import { triggerScenarioByKey } from '$lib/server/bot-scenarios.server';
 
-const ALLOWED_LEAD_MAGNETS = ['otpusk'] as const;
+// Чтобы подключить новый лид-магнит, достаточно добавить его сюда.
+// На событие контакту вешается тег lm_<name>_<event>, и если существует включённый
+// сценарий с триггером «Диплинк /start=» и значением lm_<name>_<event> — он запускается
+// (например, lm_focus_read75 → послечтенческая прогревочная серия).
+const ALLOWED_LEAD_MAGNETS = ['otpusk', 'focus', 'burnout'] as const;
 const ALLOWED_EVENTS = ['opened', 'read75'] as const;
+
+// read75 повторно обрабатываем не чаще раза в N дней на контакт (см. ветку read75 ниже).
+const READ75_RESEND_AFTER_DAYS = 14;
 
 type LeadMagnet = (typeof ALLOWED_LEAD_MAGNETS)[number];
 type EventName = (typeof ALLOWED_EVENTS)[number];
 
-function buildPayload(clientId: number, leadMagnet: LeadMagnet, event: EventName) {
-	if (event === 'read75') {
-		return {
-			client_id: clientId,
-			message: 'lm_otpusk_read75',
-			lm_otpusk_read75: 1,
-			lm_otpusk_stage: 'after_read',
-			lm_otpusk_progress: 75
-		};
-	}
-	return {
-		client_id: clientId,
-		message: 'lm_otpusk_opened',
-		lm_otpusk_opened: 1,
-		lm_otpusk_stage: 'opened'
-	};
+/** Тег на контакт + запуск сценария по ключу события (если такой сценарий настроен). */
+async function processLeadMagnetEvent(
+	contactId: number,
+	leadMagnet: LeadMagnet,
+	event: EventName
+): Promise<void> {
+	const key = `lm_${leadMagnet}_${event}`;
+	await addTagsToContact(contactId, [key]);
+	await triggerScenarioByKey(key, contactId);
 }
 
 export const POST: RequestHandler = async ({ request, cookies }) => {
-	// clientId берётся из HttpOnly cookie (установленного /go/v/[clientId]), не из тела запроса
+	// contactId (id из bot_contacts) берётся из HttpOnly cookie, установленного /go/*
+	// (в ссылках из бота используется подстановка {contact_id}), не из тела запроса
 	const rawCookie = cookies.get('sb_client_id');
-	const clientIdNum = rawCookie ? parseInt(rawCookie, 10) : NaN;
-	console.log('[lm-progress DEBUG] rawCookie:', rawCookie, '| clientIdNum:', clientIdNum);
-	if (!Number.isSafeInteger(clientIdNum) || clientIdNum <= 0) {
-		console.log('[lm-progress DEBUG] нет валидного cookie — skipped');
+	const contactId = rawCookie ? parseInt(rawCookie, 10) : NaN;
+	if (!Number.isSafeInteger(contactId) || contactId <= 0) {
+		return json({ ok: true, skipped: true });
+	}
+
+	// Старые куки ещё содержат Salebot-ID — контакта с таким id у нас нет, скипаем
+	const contact = await getContact(contactId);
+	if (!contact) {
 		return json({ ok: true, skipped: true });
 	}
 
@@ -51,17 +57,14 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 	}
 
 	const { leadMagnet, event, progress } = body as Record<string, unknown>;
-	console.log('[lm-progress DEBUG] clientId:', clientIdNum, '| leadMagnet:', leadMagnet, '| event:', event, '| progress:', progress);
 
 	// Validate leadMagnet
 	if (!(ALLOWED_LEAD_MAGNETS as readonly unknown[]).includes(leadMagnet)) {
-		console.log('[lm-progress DEBUG] невалидный leadMagnet:', leadMagnet);
 		return json({ error: 'Invalid leadMagnet' }, { status: 400 });
 	}
 
 	// Validate event
 	if (!(ALLOWED_EVENTS as readonly unknown[]).includes(event)) {
-		console.log('[lm-progress DEBUG] невалидный event:', event);
 		return json({ error: 'Invalid event' }, { status: 400 });
 	}
 
@@ -69,18 +72,80 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 	if (event === 'read75') {
 		const progressNum = Number(progress);
 		if (!Number.isFinite(progressNum) || progressNum < 75) {
-			console.log('[lm-progress DEBUG] невалидный progress:', progress);
 			return json({ error: 'progress must be >= 75 for read75' }, { status: 400 });
 		}
 	}
 
+	// read75 — дедуп с окном 2 недели.
+	// Внутри окна повторно НЕ обрабатываем: иначе сценарий заново запустит
+	// послечтенческую прогревочную серию на каждый повторный заход и прочтение.
+	// Если read75 ещё не обрабатывали или прошло ≥ 2 недель — обрабатываем снова
+	// и обновляем sent_at (окно сдвигается от последней обработки).
+	// Спам в рамках одной загрузки страницы дополнительно гасит клиент (флаг read75Sent).
+	if (event === 'read75') {
+		// Свежесть проверяем прямо в SQL (NOW() - make_interval), а не в JS:
+		// sent_at приходит из node-postgres строкой (mode:'string'), и парсить её через
+		// new Date() ненадёжно. Строка возвращается только если есть успешный read75,
+		// обработанный менее READ75_RESEND_AFTER_DAYS назад → значит это дубль.
+		const [recent] = await db
+			.select({ id: leadMagnetEvents.id })
+			.from(leadMagnetEvents)
+			.where(
+				and(
+					eq(leadMagnetEvents.clientId, contactId),
+					eq(leadMagnetEvents.leadMagnet, leadMagnet as string),
+					eq(leadMagnetEvents.eventName, 'read75'),
+					eq(leadMagnetEvents.status, 'sent'),
+					sql`${leadMagnetEvents.sentAt} > NOW() - make_interval(days => ${READ75_RESEND_AFTER_DAYS})`
+				)
+			)
+			.limit(1);
+
+		if (recent) {
+			return json({ success: true, duplicate: true });
+		}
+
+		try {
+			await processLeadMagnetEvent(contactId, leadMagnet as LeadMagnet, 'read75');
+		} catch (err) {
+			console.error('[lm-progress] Ошибка обработки read75:', err);
+			return json({ error: 'Event processing failed' }, { status: 500 });
+		}
+
+		// Отмечаем обработку (сбрасывает 2-недельное окно). Best-effort, на ответ не влияет.
+		try {
+			await db
+				.insert(leadMagnetEvents)
+				.values({
+					clientId: contactId,
+					leadMagnet: leadMagnet as string,
+					eventName: 'read75',
+					status: 'sent',
+					attempts: 1,
+					sentAt: sql`NOW()`
+				})
+				.onConflictDoUpdate({
+					target: [leadMagnetEvents.clientId, leadMagnetEvents.leadMagnet, leadMagnetEvents.eventName],
+					set: {
+						status: 'sent',
+						sentAt: sql`NOW()`,
+						attempts: sql`${leadMagnetEvents.attempts} + 1`
+					}
+				});
+		} catch (dbErr) {
+			console.error('[lm-progress] read75 DB upsert error (не критично):', dbErr);
+		}
+		return json({ success: true });
+	}
+
+	// opened — обрабатываем ОДИН раз на контакт (межсессионный дедуп через DB unique constraint).
 	try {
 		// Atomically create the event record if it doesn't exist yet,
 		// or return the existing one unchanged (no-op update forces RETURNING on conflict).
 		const [record] = await db
 			.insert(leadMagnetEvents)
 			.values({
-				clientId: clientIdNum,
+				clientId: contactId,
 				leadMagnet: leadMagnet as string,
 				eventName: event as string,
 				status: 'pending',
@@ -93,10 +158,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 			})
 			.returning();
 
-		console.log('[lm-progress DEBUG] DB record:', { id: record.id, status: record.status, attempts: record.attempts });
-
 		if (record.status === 'sent') {
-			console.log('[lm-progress DEBUG] уже отправлено ранее (duplicate) — пропускаем');
 			return json({ success: true, duplicate: true });
 		}
 
@@ -111,16 +173,11 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 			.returning({ id: leadMagnetEvents.id });
 
 		if (acquired.length === 0) {
-			console.log('[lm-progress DEBUG] конкурентный запрос уже обрабатывает — processing');
 			return json({ success: true, processing: true });
 		}
 
-		const payload = buildPayload(clientIdNum, leadMagnet as LeadMagnet, event as EventName);
-		console.log('[lm-progress DEBUG] отправляем в SaleBot payload:', JSON.stringify(payload));
-
 		try {
-			await sendSaleBotCallback(payload);
-			console.log('[lm-progress DEBUG] SaleBot ответил успешно');
+			await processLeadMagnetEvent(contactId, leadMagnet as LeadMagnet, event as EventName);
 
 			await db
 				.update(leadMagnetEvents)
@@ -128,16 +185,16 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 				.where(eq(leadMagnetEvents.id, record.id));
 
 			return json({ success: true });
-		} catch (saleBotErr) {
-			const errMsg = saleBotErr instanceof Error ? saleBotErr.message : String(saleBotErr);
-			console.error('[lm-progress DEBUG] SaleBot ошибка:', errMsg);
+		} catch (err) {
+			const errMsg = err instanceof Error ? err.message : String(err);
+			console.error('[lm-progress] Ошибка обработки opened:', errMsg);
 
 			await db
 				.update(leadMagnetEvents)
 				.set({ status: 'failed', lastError: errMsg })
 				.where(eq(leadMagnetEvents.id, record.id));
 
-			return json({ error: 'SaleBot callback failed' }, { status: 502 });
+			return json({ error: 'Event processing failed' }, { status: 500 });
 		}
 	} catch (dbErr) {
 		console.error('[lm-progress] DB error:', dbErr);

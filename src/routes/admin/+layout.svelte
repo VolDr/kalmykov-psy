@@ -36,6 +36,9 @@
 				<a href="/admin/analytics" class="text-sm font-medium text-gray-700 hover:text-gray-900">
 					Воронки
 				</a>
+				<a href="/admin/bot/contacts" class="text-sm font-medium text-gray-700 hover:text-gray-900">
+					Бот
+				</a>
 			</nav>
 			<a
 				href="/admin/record"
@@ -81,6 +84,9 @@
 					</a>
 					<a href="/admin/analytics" class="block rounded-lg px-3 py-2 text-sm hover:bg-gray-100">
 						Воронки
+					</a>
+					<a href="/admin/bot/contacts" class="block rounded-lg px-3 py-2 text-sm hover:bg-gray-100">
+						Бот
 					</a>
 				</nav>
 			</div>

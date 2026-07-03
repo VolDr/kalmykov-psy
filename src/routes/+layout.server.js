@@ -8,7 +8,6 @@ export const load = ({ url, locals }) => {
 
 	return {
 		pathname,
-		canonicalUrl,
-		user: locals.user
+		canonicalUrl
 	};
 };

@@ -152,14 +152,14 @@ export const actions = {
 		}
 
 		let removed = 0;
-		for (const { date, startHour, endHour } of removes) {
+		for (const { date, startHour } of removes) {
 			const startAt = dayjs.tz(`${date} ${String(startHour).padStart(2, '0')}:00:00`, MSK).toISOString();
-			const endAt = dayjs.tz(`${date} ${String(endHour).padStart(2, '0')}:00:00`, MSK).toISOString();
 
-			const result = await db
+			const deleted = await db
 				.delete(schema.availability)
-				.where(and(eq(schema.availability.startAt, startAt), eq(schema.availability.endAt, endAt)));
-			removed++;
+				.where(eq(schema.availability.startAt, startAt))
+				.returning({ id: schema.availability.id });
+			removed += deleted.length;
 		}
 
 		return { bulkSuccess: true, added, removed, skipped };

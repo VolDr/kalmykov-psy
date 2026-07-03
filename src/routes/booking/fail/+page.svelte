@@ -5,6 +5,14 @@
   Редизайн экрана неуспешной оплаты. Центрированный вид в тёплой теме.
   ════════════════════════════════════════════════════════════════
 -->
+<script lang="ts">
+	import { onMount } from 'svelte';
+	import { reachGoal } from '$lib/metrika';
+
+	// Общая страница провала для оплаты записи и прямой оплаты /pay
+	onMount(() => reachGoal('payment_failed'));
+</script>
+
 <svelte:head>
 	<title>Оплата не прошла | Андрей Калмыков</title>
 </svelte:head>

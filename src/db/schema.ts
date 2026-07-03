@@ -17,6 +17,240 @@ import {
 } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
 
+// --- Telegram-бот: CRM-контакты и инбокс (Фаза 1, см. docs/bot.md) ---
+
+export const botMessageDirectionEnum = pgEnum('bot_message_direction', ['in', 'out']);
+
+export const botContacts = pgTable(
+	'bot_contacts',
+	{
+		id: bigserial('id', { mode: 'number' }).primaryKey(),
+		telegramUserId: bigint('telegram_user_id', { mode: 'number' }).notNull(),
+		username: text('username'),
+		firstName: text('first_name'),
+		lastName: text('last_name'),
+		// Свободный текст, не enum — этапы CRM будут меняться без миграций
+		stage: text('stage').default('new').notNull(),
+		tags: text('tags')
+			.array()
+			.default(sql`'{}'::text[]`)
+			.notNull(),
+		notes: text('notes'),
+		botBlocked: boolean('bot_blocked').default(false).notNull(),
+		createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' })
+			.defaultNow()
+			.notNull(),
+		updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'string' })
+			.defaultNow()
+			.notNull(),
+		lastInteractionAt: timestamp('last_interaction_at', { withTimezone: true, mode: 'string' })
+	},
+	(table) => [
+		uniqueIndex('bot_contacts_telegram_user_id_key').on(table.telegramUserId)
+	]
+);
+
+export const botMessages = pgTable(
+	'bot_messages',
+	{
+		id: bigserial('id', { mode: 'number' }).primaryKey(),
+		contactId: bigint('contact_id', { mode: 'number' }).notNull(),
+		direction: botMessageDirectionEnum('direction').notNull(),
+		telegramMessageId: bigint('telegram_message_id', { mode: 'number' }),
+		text: text('text'),
+		// Сырое содержимое апдейта от Telegram — пригодится для отладки
+		payload: jsonb('payload'),
+		// Account.id — заполняется, когда direction='out' и это ручной ответ админа
+		sentByAccountId: text('sent_by_account_id'),
+		createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' })
+			.defaultNow()
+			.notNull()
+	},
+	(table) => [
+		index('bot_messages_contact_created_idx').on(table.contactId, table.createdAt),
+		foreignKey({
+			columns: [table.contactId],
+			foreignColumns: [botContacts.id],
+			name: 'bot_messages_contact_id_fkey'
+		}).onDelete('cascade')
+	]
+);
+
+// --- Telegram-бот: сценарии и кнопки на постах канала (Фаза 2, см. docs/bot.md) ---
+
+export const botScenarioTriggerEnum = pgEnum('bot_scenario_trigger', [
+	// Диплинк t.me/<bot>?start=<payload> — основной триггер для кнопок на постах канала
+	'start_param',
+	// Команда вида /start (без параметра), /help и т.п.
+	'command',
+	// Точное совпадение текста сообщения (без учёта регистра)
+	'text'
+]);
+
+export const botScheduledStepStatusEnum = pgEnum('bot_scheduled_step_status', [
+	'pending',
+	'sent',
+	'failed',
+	'cancelled'
+]);
+
+// funnel — воронка (запускается триггером), broadcast — рассылка (запускается вручную по сегменту)
+export const botScenarioKindEnum = pgEnum('bot_scenario_kind', ['funnel', 'broadcast']);
+
+export const botScenarios = pgTable('bot_scenarios', {
+	id: bigserial('id', { mode: 'number' }).primaryKey(),
+	name: text('name').notNull(),
+	kind: botScenarioKindEnum('kind').default('funnel').notNull(),
+	// Для рассылок триггер необязателен (запуск вручную по сегменту)
+	triggerType: botScenarioTriggerEnum('trigger_type'),
+	triggerValue: text('trigger_value'),
+	enabled: boolean('enabled').default(false).notNull(),
+	// При запуске отменяет все ожидающие шаги других цепочек контакта (кроме защищённых)
+	cancelsOthers: boolean('cancels_others').default(false).notNull(),
+	// «Не отменять»: цепочка переживает отмену со стороны cancelsOthers-сценариев
+	protectedFromCancel: boolean('protected_from_cancel').default(false).notNull(),
+	createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' })
+		.defaultNow()
+		.notNull(),
+	updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'string' })
+		.defaultNow()
+		.notNull()
+});
+
+export const botScenarioSteps = pgTable(
+	'bot_scenario_steps',
+	{
+		id: bigserial('id', { mode: 'number' }).primaryKey(),
+		scenarioId: bigint('scenario_id', { mode: 'number' }).notNull(),
+		position: integer('position').notNull(),
+		// Задержка перед этим шагом относительно предыдущего; 0 — выполняется сразу
+		delaySeconds: integer('delay_seconds').default(0).notNull(),
+		messageText: text('message_text'),
+		// Inline-кнопка под сообщением (обе колонки либо заполнены, либо null)
+		buttonText: text('button_text'),
+		buttonUrl: text('button_url'),
+		// Запустить другую цепочку (сценарий/рассылку) после выполнения этого шага
+		startScenarioId: bigint('start_scenario_id', { mode: 'number' }),
+		addTags: text('add_tags')
+			.array()
+			.default(sql`'{}'::text[]`)
+			.notNull(),
+		setStage: text('set_stage'),
+		createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' })
+			.defaultNow()
+			.notNull()
+	},
+	(table) => [
+		index('bot_scenario_steps_scenario_position_idx').on(table.scenarioId, table.position),
+		foreignKey({
+			columns: [table.scenarioId],
+			foreignColumns: [botScenarios.id],
+			name: 'bot_scenario_steps_scenario_id_fkey'
+		}).onDelete('cascade'),
+		foreignKey({
+			columns: [table.startScenarioId],
+			foreignColumns: [botScenarios.id],
+			name: 'bot_scenario_steps_start_scenario_id_fkey'
+		}).onDelete('set null')
+	]
+);
+
+// История запусков рассылок по сегменту
+export const botBroadcastRuns = pgTable(
+	'bot_broadcast_runs',
+	{
+		id: bigserial('id', { mode: 'number' }).primaryKey(),
+		scenarioId: bigint('scenario_id', { mode: 'number' }).notNull(),
+		requireTags: text('require_tags')
+			.array()
+			.default(sql`'{}'::text[]`)
+			.notNull(),
+		excludeTags: text('exclude_tags')
+			.array()
+			.default(sql`'{}'::text[]`)
+			.notNull(),
+		matchedCount: integer('matched_count').notNull(),
+		createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' })
+			.defaultNow()
+			.notNull()
+	},
+	(table) => [
+		foreignKey({
+			columns: [table.scenarioId],
+			foreignColumns: [botScenarios.id],
+			name: 'bot_broadcast_runs_scenario_id_fkey'
+		}).onDelete('cascade')
+	]
+);
+
+export const botScheduledSteps = pgTable(
+	'bot_scheduled_steps',
+	{
+		id: bigserial('id', { mode: 'number' }).primaryKey(),
+		contactId: bigint('contact_id', { mode: 'number' }).notNull(),
+		scenarioId: bigint('scenario_id', { mode: 'number' }).notNull(),
+		stepId: bigint('step_id', { mode: 'number' }).notNull(),
+		status: botScheduledStepStatusEnum('status').default('pending').notNull(),
+		scheduledAt: timestamp('scheduled_at', { withTimezone: true, mode: 'string' }).notNull(),
+		attempts: integer('attempts').default(0).notNull(),
+		lastError: text('last_error'),
+		createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' })
+			.defaultNow()
+			.notNull(),
+		processedAt: timestamp('processed_at', { withTimezone: true, mode: 'string' })
+	},
+	(table) => [
+		index('bot_scheduled_steps_status_scheduled_idx').on(table.status, table.scheduledAt),
+		index('bot_scheduled_steps_contact_idx').on(table.contactId),
+		foreignKey({
+			columns: [table.contactId],
+			foreignColumns: [botContacts.id],
+			name: 'bot_scheduled_steps_contact_id_fkey'
+		}).onDelete('cascade'),
+		foreignKey({
+			columns: [table.scenarioId],
+			foreignColumns: [botScenarios.id],
+			name: 'bot_scheduled_steps_scenario_id_fkey'
+		}).onDelete('cascade'),
+		foreignKey({
+			columns: [table.stepId],
+			foreignColumns: [botScenarioSteps.id],
+			name: 'bot_scheduled_steps_step_id_fkey'
+		}).onDelete('cascade')
+	]
+);
+
+export const botChannelPosts = pgTable(
+	'bot_channel_posts',
+	{
+		id: bigserial('id', { mode: 'number' }).primaryKey(),
+		// Подпись для админа, чтобы отличать кнопки в списке
+		title: text('title'),
+		// '@channelname' для публичных каналов или '-100…' для приватных
+		chatId: text('chat_id').notNull(),
+		messageId: bigint('message_id', { mode: 'number' }).notNull(),
+		buttonText: text('button_text').notNull(),
+		scenarioId: bigint('scenario_id', { mode: 'number' }).notNull(),
+		requireSubscription: boolean('require_subscription').default(true).notNull(),
+		// Текст алерта при клике без подписки (null — дефолтный); лимит Telegram — 200 символов
+		subscriptionPrompt: text('subscription_prompt'),
+		clicks: integer('clicks').default(0).notNull(),
+		createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' })
+			.defaultNow()
+			.notNull(),
+		updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'string' })
+			.defaultNow()
+			.notNull()
+	},
+	(table) => [
+		foreignKey({
+			columns: [table.scenarioId],
+			foreignColumns: [botScenarios.id],
+			name: 'bot_channel_posts_scenario_id_fkey'
+		}).onDelete('restrict')
+	]
+);
+
 
 export const analyticsEvents = pgTable('analytics_events', {
   id:         bigserial('id', { mode: 'number' }).primaryKey(),

@@ -39,30 +39,23 @@
 
 	onMount(() => {
 		let scrollCleanup: (() => void) | undefined;
-		const isMobile = window.innerWidth < 640;
 
 		const startBanner = () => {
 			scrollCleanup = initBanner() ?? undefined;
 		};
 
-		if (isMobile) {
-			if (get(cookieBannerDone)) {
-				// куки уже приняты/отклонены — стартуем с задержкой
-				setTimeout(startBanner, 2000);
-			} else {
-				// ждём решения по кукам
-				const unsub = cookieBannerDone.subscribe((done) => {
-					if (done) {
-						unsub();
-						setTimeout(startBanner, 2000);
-					}
-				});
-			}
-			return () => { scrollCleanup?.(); };
+		if (get(cookieBannerDone)) {
+			setTimeout(startBanner, 2000);
 		} else {
-			startBanner();
-			return () => { scrollCleanup?.(); };
+			const unsub = cookieBannerDone.subscribe((done) => {
+				if (done) {
+					unsub();
+					setTimeout(startBanner, 2000);
+				}
+			});
 		}
+
+		return () => { scrollCleanup?.(); };
 	});
 
 	function initBanner() {

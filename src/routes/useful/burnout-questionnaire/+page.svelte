@@ -6,5 +6,5 @@ export const ssr = false;
 </script>
 
 <div class="min-h-screen bg-background">
-	<Questionnaire config={bat23Config} showEmailStep={false} />
+	<Questionnaire config={bat23Config} showEmailStep={false} title="Опросник на уровень выгорания" />
 </div>

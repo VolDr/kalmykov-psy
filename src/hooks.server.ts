@@ -10,6 +10,10 @@ if (!dev || process.env.ENABLE_NOTIFICATIONS === 'true') {
 		notificationScheduler.start();
 		console.log('🚀 Планировщик уведомлений запущен');
 	});
+	import('$lib/server/bot-scheduler.server').then(({ botScenarioScheduler }) => {
+		botScenarioScheduler.start();
+		console.log('🤖 Планировщик шагов бота запущен');
+	});
 }
 
 // Throttled cleanup — runs at most once per 60s regardless of server restarts

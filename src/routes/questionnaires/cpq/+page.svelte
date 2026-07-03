@@ -54,16 +54,16 @@
 
 
 			<h1 class="font-caveat mb-5 text-[52px] leading-[0.9] font-bold tracking-[1px] text-navy lg:text-[72px]">
-				{bat4Config.title}
+				{cpqConfig.title}
 			</h1>
 
 			<p class="mb-6 max-w-[460px] text-[18px] leading-[1.45] font-medium text-foreground md:text-[22px]">
-				{bat4Config.description}
+				{cpqConfig.description}
 			</p>
 
 			<div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-[16px] font-medium text-foreground/80">
 				<span class="inline-flex items-center gap-2 whitespace-nowrap">
-					<span class="icon-[lucide--clock] h-[19px] w-[19px] text-foreground/45"></span>{bat4Config.time}
+					<span class="icon-[lucide--clock] h-[19px] w-[19px] text-foreground/45"></span>{cpqConfig.time}
 				</span>
 				<span class="h-1 w-1 rounded-full bg-[#d8cfbc]"></span>
 				<span class="whitespace-nowrap">{questionsCount} {questionsLabel(questionsCount)}</span>

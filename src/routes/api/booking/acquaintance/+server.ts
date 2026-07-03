@@ -2,7 +2,8 @@ import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { createAcquaintanceBooking } from '$lib/server/booking.server';
 import { isRateLimited } from '$lib/server/rate-limit.server';
-import { sendSaleBotCallback } from '$lib/server/salebot.server';
+import { addTagsToContact } from '$lib/server/bot-contacts.server';
+import { triggerScenarioByKey } from '$lib/server/bot-scenarios.server';
 
 export const POST: RequestHandler = async ({ request, getClientAddress }) => {
 	const ip = getClientAddress();
@@ -36,7 +37,7 @@ export const POST: RequestHandler = async ({ request, getClientAddress }) => {
 		return json({ error: 'Некорректное время слота' }, { status: 400 });
 	}
 
-	// Parse sbClientId — optional, skip SaleBot if absent or invalid
+	// Parse sbClientId (id контакта нашего бота) — optional, skip bot trigger if absent or invalid
 	const sbClientIdNum =
 		rawSbClientId != null && (typeof rawSbClientId === 'number' || typeof rawSbClientId === 'string')
 			? Number(rawSbClientId)
@@ -55,13 +56,12 @@ export const POST: RequestHandler = async ({ request, getClientAddress }) => {
 			sbClientId: validSbClientId
 		});
 
-		// Fire SaleBot intro_booked after confirmed booking (non-blocking)
+		// Тег + сценарий intro_booked в нашем боте после подтверждённой брони (non-blocking)
 		if (validSbClientId !== null) {
-			sendSaleBotCallback({
-				client_id: validSbClientId,
-				message: 'intro_booked',
-				intro_booked: 1
-			}).catch((e) => console.error('[SaleBot] intro_booked failed:', e));
+			const contactId = validSbClientId;
+			addTagsToContact(contactId, ['intro_booked'])
+				.then(() => triggerScenarioByKey('intro_booked', contactId))
+				.catch((e) => console.error('[bot] intro_booked trigger failed:', e));
 		}
 
 		return json({ success: true, bookedAt });

@@ -12,5 +12,5 @@ export const GET: RequestHandler = async ({ params, cookies }) => {
 			maxAge: 60 * 60 * 24 * 30 // 30 дней
 		});
 	}
-	redirect(302, '/useful/vacation-did-not-help?to=acquaintance');
+	redirect(302, '/useful/vacation-did-not-help#acquaintance');
 };

@@ -2,7 +2,8 @@ import type { RequestHandler } from './$types';
 import { markPaid, getPaymentById } from '$lib/server/robokassa.server';
 import { confirmByPaymentId, getBookingByPaymentId } from '$lib/server/booking.server';
 import { telegramService } from '$lib/server/telegram.server';
-import { sendSaleBotCallback } from '$lib/server/salebot.server';
+import { addTagsToContact } from '$lib/server/bot-contacts.server';
+import { triggerScenarioByKey } from '$lib/server/bot-scenarios.server';
 
 export const POST: RequestHandler = async ({ request }) => {
 	const formData = await request.formData();
@@ -44,17 +45,12 @@ export const POST: RequestHandler = async ({ request }) => {
 				source: 'website'
 			}).catch((e) => console.error('Telegram booking notification failed:', e));
 
-			// [DEBUG]
-			console.log('[SaleBot DEBUG] consultation_booked проверка — sbClientId:', booking.sbClientId, '| bookingId:', booking.id);
+			// sbClientId — id контакта нашего бота; тег + сценарий consultation_booked
 			if (booking.sbClientId) {
-				console.log('[SaleBot DEBUG] ✓ sbClientId есть, отправляем consultation_booked для client_id:', booking.sbClientId);
-				sendSaleBotCallback({
-					client_id: booking.sbClientId,
-					message: 'consultation_booked',
-					consultation_booked: 1
-				}).catch((e) => console.error('[SaleBot] consultation_booked failed:', e));
-			} else {
-				console.log('[SaleBot DEBUG] sbClientId отсутствует — consultation_booked не отправляется');
+				const contactId = booking.sbClientId;
+				addTagsToContact(contactId, ['consultation_booked'])
+					.then(() => triggerScenarioByKey('consultation_booked', contactId))
+					.catch((e) => console.error('[bot] consultation_booked trigger failed:', e));
 			}
 		}
 	} else if (result === 'not_found') {

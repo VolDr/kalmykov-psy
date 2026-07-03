@@ -18,6 +18,7 @@
 	import { Calendar } from '$lib/components/ui/calendar';
 	import type { DateValue } from '@internationalized/date';
 	import { cn } from '$lib/utils';
+	import { reachGoal } from '$lib/metrika';
 	import type { SlotInfo } from '$lib/server/booking.server';
 
 	let { data } = $props();
@@ -71,11 +72,8 @@
 		return !availableDatesSet.has(s);
 	}
 
-	function trackGoal(goal: string) {
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		const ym = (window as any).ym;
-		if (typeof ym === 'function') ym(105424317, 'reachGoal', goal);
-	}
+	// reachGoal дублирует цель и в Яндекс.Метрику, и в свою БД (/api/analytics)
+	const trackGoal = reachGoal;
 
 	function handleDateChange(date: DateValue | undefined) {
 		if (!date) return;

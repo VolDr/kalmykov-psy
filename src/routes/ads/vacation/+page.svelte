@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { reachGoal } from '$lib/metrika';
 
-	const TG_ARTICLE_URL = 'https://t.me/kalmykov_psy';
+	const TG_ARTICLE_URL = 'https://t.me/kalmykov_psy/60';
 
 	function handleCta() {
-		reachGoal('ad_vacation_cta_click');
+		reachGoal('ad_cta_click', { ad: 'vacation' });
 	}
 </script>
 
@@ -25,8 +25,7 @@
 
 		<!-- заголовок -->
 		<h1 class="mb-[22px] font-caveat text-[clamp(26px,2.5vw,32px)] leading-[1.25] font-semibold tracking-[-0.01em]">
-			Отпуск не помог от выгорания&nbsp;—<br />
-			и дело не в том, что вы плохо отдохнули
+			Отпуск не помог — и дело не в том, что вы плохо отдохнули
 		</h1>
 
 		<!-- разделитель-волна -->
@@ -46,7 +45,7 @@
 				/>
 				<div>
 					<p class="text-[16px] font-extrabold text-navy">Андрей Калмыков</p>
-					<p class="text-[14px] text-foreground/55">клинический психолог</p>
+					<p class="text-[14px] text-foreground/55">клинический психолог с опытом в IT</p>
 				</div>
 			</div>
 
@@ -54,13 +53,15 @@
 				Здравствуйте!
 			</p>
 			<p class="mb-4 text-[16px] leading-relaxed text-foreground/80 md:text-[18px]">
-				Если вы взяли нормальный отпуск, а через несколько дней после возвращения снова чувствуете себя выжатым — причина не в качестве отдыха.
-			</p>
+				Если вы взяли нормальный отпуск, а через несколько дней после возвращения снова чувствуете себя выжатым — причина не в качестве отдыха. </p>
 			<p class="mb-4 text-[16px] leading-relaxed text-foreground/80 md:text-[18px]">
 				<strong class="font-semibold text-navy">Отпуск просто убирает не то, что выматывает вас на самом деле.</strong>
 			</p>
 			<p class="text-[16px] leading-relaxed text-foreground/80 md:text-[18px]">
-				Что именно вас опустошает и что с этим делать — я разобрал в статье по кнопке ниже.
+				Что именно отнимает силы, почему привычные способы справляться делают только хуже и что менять, чтобы выходные и отпуск снова восстанавливали, — я разобрал в статье.
+			</p>
+				<p class="text-[16px] leading-relaxed text-foreground/80 md:text-[18px]">
+				 Получите стьатью в моем Telegram-канале — по кнопке ниже.
 			</p>
 		</div>
 
@@ -75,7 +76,7 @@
 			<svg class="h-5 w-5 shrink-0 text-primary" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
 				<path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12l-6.871 4.326-2.962-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.833.941z"/>
 			</svg>
-			Читать статью в Telegram
+			Забрать статью в Telegram
 			<svg class="h-4 w-4 shrink-0 opacity-60 transition-transform duration-200 " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
 				<polyline points="9 18 15 12 9 6"/>
 			</svg>

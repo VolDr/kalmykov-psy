@@ -43,8 +43,8 @@
 		aria-label="Согласие на использование cookies"
 		aria-modal="false"
 		data-open={open ? 'true' : 'false'}
-		class="t-panel-slide fixed bottom-4 left-1/2 z-[100] -translate-x-1/2 sm:left-4 sm:translate-x-0"
-		style="width: 260px; --panel-translate-y: 80px;"
+		class="t-panel-slide fixed bottom-4 left-1/2 z-[100] -translate-x-1/2"
+		style="width: 520px; --panel-translate-y: 80px;"
 	>
 		<svg
 			viewBox="0 0 260 100"
@@ -58,19 +58,20 @@
 			/>
 		</svg>
 
-		<div class="relative z-10 flex items-center gap-3 px-5 py-4">
-			<p class="flex-1 text-[12px] leading-snug text-foreground/80">
-				На сайте использую cookies, чтобы сайт становился удобнее.
+		<div class="relative z-10 flex items-center gap-3 px-7 py-4">
+			<p class="flex-1 text-[15px] leading-snug text-foreground/80">
+				На сайте используются cookies для улучшения работы.
+				<a href="/privacy" class="underline hover:text-foreground/60">Подробнее</a>
 			</p>
 			<div class="flex shrink-0 flex-col items-center gap-2">
-				<ButtonSvg mode="button" onclick={accept} width="76px" height="34px" variant="3" textSize="13px">
-					Окей
+				<ButtonSvg mode="button" onclick={accept} width="83px" height="36px" variant="3" textSize="15px">
+					Согласен
 				</ButtonSvg>
 				<button
 					onclick={decline}
-					class="text-[11px] text-foreground/40 underline transition-colors hover:text-foreground/70"
+					class="text-[14px] text-foreground/70  transition-colors hover:text-foreground/70 mb-1"
 				>
-					Не хочу
+					Отказаться
 				</button>
 			</div>
 		</div>
