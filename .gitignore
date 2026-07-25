@@ -21,3 +21,6 @@ Thumbs.db
 # Vite
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# Файлы-вложения шагов бота (загружаются в рантайме, живут на сервере)
+/uploads

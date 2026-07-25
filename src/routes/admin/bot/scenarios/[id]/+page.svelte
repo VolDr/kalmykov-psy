@@ -7,7 +7,8 @@
 	function delayParts(seconds: number): { value: number; unit: string } {
 		if (seconds > 0 && seconds % 86400 === 0) return { value: seconds / 86400, unit: 'days' };
 		if (seconds > 0 && seconds % 3600 === 0) return { value: seconds / 3600, unit: 'hours' };
-		return { value: Math.round(seconds / 60), unit: 'minutes' };
+		if (seconds % 60 === 0) return { value: seconds / 60, unit: 'minutes' };
+		return { value: seconds, unit: 'seconds' };
 	}
 
 	const isBroadcast = $derived(data.scenario.kind === 'broadcast');
@@ -80,7 +81,17 @@
 							</div>
 						</div>
 
-						<form method="POST" action="?/updateStep" use:enhance class="space-y-3">
+						<form
+							method="POST"
+							action="?/updateStep"
+							enctype="multipart/form-data"
+							use:enhance={() =>
+								async ({ update }) => {
+									// reset: false — иначе enhance сбрасывает поля к значениям на момент загрузки
+									await update({ reset: false });
+								}}
+							class="space-y-3"
+						>
 							<input type="hidden" name="stepId" value={step.id} />
 							<div class="flex flex-wrap items-end gap-2">
 								<label class="block text-xs font-medium text-stone-500">
@@ -94,6 +105,7 @@
 									/>
 								</label>
 								<select name="delayUnit" value={delay.unit} class="rounded-lg border px-3 py-2 text-sm">
+									<option value="seconds">секунд</option>
 									<option value="minutes">минут</option>
 									<option value="hours">часов</option>
 									<option value="days">дней</option>
@@ -146,6 +158,36 @@
 										class="mt-1 w-72 rounded-lg border px-3 py-2 text-sm"
 									/>
 								</label>
+								<label class="block text-xs font-medium text-stone-500">
+									Запустить цепочку после шага
+									<select
+										name="startScenarioId"
+										value={step.startScenarioId != null ? String(step.startScenarioId) : ''}
+										class="mt-1 w-56 rounded-lg border px-3 py-2 text-sm"
+									>
+										<option value="">— нет</option>
+										{#each data.chainScenarios as chain (chain.id)}
+											<option value={String(chain.id)}>
+												{chain.name}{chain.kind === 'broadcast' ? ' (рассылка)' : ''}
+											</option>
+										{/each}
+									</select>
+								</label>
+							</div>
+							<div class="space-y-1">
+								{#if step.fileName}
+									<p class="text-sm text-stone-600">
+										📎 <span class="font-medium">{step.fileName}</span>
+									</p>
+									<label class="flex items-center gap-2 text-xs text-stone-500">
+										<input type="checkbox" name="removeFile" class="rounded" />
+										Удалить файл при сохранении
+									</label>
+								{/if}
+								<label class="block text-xs font-medium text-stone-500">
+									{step.fileName ? 'Заменить файл' : 'Файл-вложение (бот отправит документом)'}
+									<input type="file" name="file" class="mt-1 block text-sm" />
+								</label>
 							</div>
 							<button
 								type="submit"
@@ -162,6 +204,7 @@
 			<form
 				method="POST"
 				action="?/addStep"
+				enctype="multipart/form-data"
 				use:enhance
 				class="space-y-3 rounded-xl border bg-white p-4"
 			>
@@ -177,6 +220,7 @@
 						/>
 					</label>
 					<select name="delayUnit" class="rounded-lg border px-3 py-2 text-sm">
+						<option value="seconds">секунд</option>
 						<option value="minutes">минут</option>
 						<option value="hours">часов</option>
 						<option value="days">дней</option>
@@ -213,7 +257,22 @@
 							class="mt-1 w-72 rounded-lg border px-3 py-2 text-sm"
 						/>
 					</label>
+					<label class="block text-xs font-medium text-stone-500">
+						Запустить цепочку после шага
+						<select name="startScenarioId" class="mt-1 w-56 rounded-lg border px-3 py-2 text-sm">
+							<option value="">— нет</option>
+							{#each data.chainScenarios as chain (chain.id)}
+								<option value={String(chain.id)}>
+									{chain.name}{chain.kind === 'broadcast' ? ' (рассылка)' : ''}
+								</option>
+							{/each}
+						</select>
+					</label>
 				</div>
+				<label class="block text-xs font-medium text-stone-500">
+					Файл-вложение (бот отправит документом после текста, до 50 МБ)
+					<input type="file" name="file" class="mt-1 block text-sm" />
+				</label>
 				<button
 					type="submit"
 					class="rounded-lg bg-primary px-4 py-2 text-sm text-primary-foreground hover:bg-primary/90"
@@ -228,8 +287,18 @@
 
 		<div>
 			<div class="rounded-xl border bg-white p-4">
-				<h2 class="mb-3 text-sm font-semibold text-stone-600">Настройки сценария</h2>
-				<form method="POST" action="?/updateScenario" use:enhance class="space-y-3">
+				<h2 class="mb-3 text-sm font-semibold text-stone-600">
+					{isBroadcast ? 'Настройки рассылки' : 'Настройки сценария'}
+				</h2>
+				<form
+					method="POST"
+					action="?/updateScenario"
+					use:enhance={() =>
+						async ({ update }) => {
+							await update({ reset: false });
+						}}
+					class="space-y-3"
+				>
 					<label class="block text-xs font-medium text-stone-500">
 						Название
 						<input
@@ -243,9 +312,12 @@
 						Триггер
 						<select
 							name="triggerType"
-							value={data.scenario.triggerType}
+							value={data.scenario.triggerType ?? ''}
 							class="mt-1 w-full rounded-lg border px-3 py-2 text-sm"
 						>
+							{#if isBroadcast}
+								<option value="">— без триггера (запуск вручную)</option>
+							{/if}
 							<option value="start_param">Диплинк /start=</option>
 							<option value="command">Команда</option>
 							<option value="text">Текст</option>
@@ -256,13 +328,52 @@
 						<input
 							type="text"
 							name="triggerValue"
-							value={data.scenario.triggerValue}
+							value={data.scenario.triggerValue ?? ''}
 							class="mt-1 w-full rounded-lg border px-3 py-2 text-sm"
 						/>
 					</label>
 					<label class="flex items-center gap-2 text-sm">
 						<input type="checkbox" name="enabled" checked={data.scenario.enabled} class="rounded" />
-						Сценарий включён
+						{isBroadcast ? 'Рассылка включена' : 'Сценарий включён'}
+					</label>
+					<label class="flex items-start gap-2 text-sm">
+						<input
+							type="checkbox"
+							name="cancelsOthers"
+							checked={data.scenario.cancelsOthers}
+							class="mt-0.5 rounded"
+						/>
+						<span>
+							При запуске отменяет другие цепочки
+							<span class="block text-xs text-stone-400"
+								>Снимает ожидающие сообщения всех незащищённых цепочек контакта (например, прогрев
+								после брони)</span
+							>
+						</span>
+					</label>
+					<label class="flex items-start gap-2 text-sm">
+						<input
+							type="checkbox"
+							name="protectedFromCancel"
+							checked={data.scenario.protectedFromCancel}
+							class="mt-0.5 rounded"
+						/>
+						<span>
+							Не отменять
+							<span class="block text-xs text-stone-400"
+								>Цепочка переживает отмену со стороны других цепочек</span
+							>
+						</span>
+					</label>
+					<label class="block text-xs font-medium text-stone-500">
+						Не запускать чаще раза в N дней (0 — без ограничений)
+						<input
+							type="number"
+							name="cooldownDays"
+							min="0"
+							value={data.scenario.cooldownDays}
+							class="mt-1 w-full rounded-lg border px-3 py-2 text-sm"
+						/>
 					</label>
 					<button
 						type="submit"
@@ -279,6 +390,45 @@
 				</form>
 			</div>
 
+			<div class="mt-4 rounded-xl border bg-white p-4">
+				<h2 class="mb-3 text-sm font-semibold text-stone-600">Запустить по сегменту</h2>
+				<form method="POST" action="?/launch" use:enhance class="space-y-3">
+					<label class="block text-xs font-medium text-stone-500">
+						Есть все теги (через запятую; пусто — все контакты)
+						<input
+							type="text"
+							name="requireTags"
+							placeholder="lm_focus_read75"
+							class="mt-1 w-full rounded-lg border px-3 py-2 text-sm"
+						/>
+					</label>
+					<label class="block text-xs font-medium text-stone-500">
+						Нет ни одного из тегов
+						<input
+							type="text"
+							name="excludeTags"
+							placeholder="intro_booked, digest_2026_07"
+							class="mt-1 w-full rounded-lg border px-3 py-2 text-sm"
+						/>
+					</label>
+					<button
+						type="submit"
+						class="w-full rounded-lg bg-primary px-4 py-2 text-sm text-primary-foreground hover:bg-primary/90"
+					>
+						Запустить сейчас
+					</button>
+					{#if form?.launchCount}
+						<p class="text-xs text-green-600">Поставлено в очередь: {form.launchCount} контактов</p>
+					{/if}
+					{#if form?.launchError}
+						<p class="text-xs text-red-500">{form.launchError}</p>
+					{/if}
+					<p class="text-xs text-stone-400">
+						Заблокировавшие бота исключаются автоматически. Отправка идёт порциями (~200/мин).
+					</p>
+				</form>
+			</div>
+
 			<div class="mt-4 rounded-xl border bg-white p-4 text-sm text-stone-600">
 				<p>В очереди на отправку: <strong>{data.pendingCount}</strong></p>
 				{#if data.scenario.triggerType === 'start_param'}
@@ -287,6 +437,21 @@
 					</p>
 				{/if}
 			</div>
+
+			{#if data.runs.length > 0}
+				<div class="mt-4 rounded-xl border bg-white p-4">
+					<h2 class="mb-2 text-sm font-semibold text-stone-600">Последние запуски</h2>
+					<ul class="space-y-1 text-xs text-stone-500">
+						{#each data.runs as run (run.id)}
+							<li>
+								{formatRunDate(run.createdAt)} — {run.matchedCount} конт.
+								{#if run.requireTags.length}· есть: {run.requireTags.join(', ')}{/if}
+								{#if run.excludeTags.length}· нет: {run.excludeTags.join(', ')}{/if}
+							</li>
+						{/each}
+					</ul>
+				</div>
+			{/if}
 
 			<div class="mt-4 rounded-xl border bg-white p-4 text-xs text-stone-500">
 				<p class="mb-1 font-semibold text-stone-600">Форматирование сообщений</p>
@@ -298,7 +463,8 @@
 				<p class="mb-1 mt-3 font-semibold text-stone-600">Подстановки в сообщениях</p>
 				<p>
 					&#123;contact_id&#125; — id контакта (для персональных ссылок вида
-					/go/f/a/&#123;contact_id&#125;), &#123;first_name&#125; — имя.
+					/go/f/a/&#123;contact_id&#125;), &#123;first_name&#125; — имя. Салеботовский
+					#&#123;client_id&#125; тоже распознаётся. Работает и в тексте, и в ссылке кнопки.
 				</p>
 				<p class="mb-1 mt-3 font-semibold text-stone-600">Событийные ключи с сайта</p>
 				<p>

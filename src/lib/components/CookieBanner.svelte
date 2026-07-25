@@ -43,8 +43,8 @@
 		aria-label="Согласие на использование cookies"
 		aria-modal="false"
 		data-open={open ? 'true' : 'false'}
-		class="t-panel-slide fixed bottom-4 left-1/2 z-[100] -translate-x-1/2"
-		style="width: 520px; --panel-translate-y: 80px;"
+		class="t-panel-slide fixed bottom-4 left-1/2 z-[300] w-[520px] max-w-[calc(100vw-1.5rem)] -translate-x-1/2"
+		style="--panel-translate-y: 80px;"
 	>
 		<svg
 			viewBox="0 0 260 100"
@@ -58,7 +58,7 @@
 			/>
 		</svg>
 
-		<div class="relative z-10 flex items-center gap-3 px-7 py-4">
+		<div class="relative z-10 flex items-center gap-3 px-5 py-4 sm:px-7 z-[999]">
 			<p class="flex-1 text-[15px] leading-snug text-foreground/80">
 				На сайте используются cookies для улучшения работы.
 				<a href="/privacy" class="underline hover:text-foreground/60">Подробнее</a>

@@ -2,7 +2,7 @@ import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { createAcquaintanceBooking } from '$lib/server/booking.server';
 import { isRateLimited } from '$lib/server/rate-limit.server';
-import { addTagsToContact } from '$lib/server/bot-contacts.server';
+import { addTagsToContact, getContactByPublicId } from '$lib/server/bot-contacts.server';
 import { triggerScenarioByKey } from '$lib/server/bot-scenarios.server';
 
 export const POST: RequestHandler = async ({ request, getClientAddress }) => {
@@ -56,11 +56,15 @@ export const POST: RequestHandler = async ({ request, getClientAddress }) => {
 			sbClientId: validSbClientId
 		});
 
-		// Тег + сценарий intro_booked в нашем боте после подтверждённой брони (non-blocking)
+		// Тег + сценарий intro_booked в нашем боте после подтверждённой брони (non-blocking).
+		// sbClientId — публичный id контакта бота
 		if (validSbClientId !== null) {
-			const contactId = validSbClientId;
-			addTagsToContact(contactId, ['intro_booked'])
-				.then(() => triggerScenarioByKey('intro_booked', contactId))
+			getContactByPublicId(validSbClientId)
+				.then(async (contact) => {
+					if (!contact) return;
+					await addTagsToContact(contact.id, ['intro_booked']);
+					await triggerScenarioByKey('intro_booked', contact.id);
+				})
 				.catch((e) => console.error('[bot] intro_booked trigger failed:', e));
 		}
 

@@ -41,8 +41,24 @@ function makeSig(outSum: string, invId: number, pass2: string): string {
 	return createHash('md5').update(`${outSum}:${invId}:${pass2}`).digest('hex');
 }
 
-function makePaymentSig(login: string, outSum: string, invId: number, pass1: string): string {
-	return createHash('md5').update(`${login}:${outSum}:${invId}:${pass1}`).digest('hex');
+function buildReceipt(description: string, outSum: string) {
+	return {
+		items: [
+			{
+				name: description.substring(0, 128),
+				quantity: 1,
+				sum: Math.round(parseFloat(outSum) * 100) / 100,
+				payment_method: 'full_payment',
+				payment_object: 'service',
+				tax: 'none'
+			}
+		]
+	};
+}
+
+function makePaymentSig(login: string, outSum: string, invId: number, pass1: string, description: string): string {
+	const receiptEncoded = encodeURIComponent(JSON.stringify(buildReceipt(description, outSum)));
+	return createHash('md5').update(`${login}:${outSum}:${invId}:${receiptEncoded}:${pass1}`).digest('hex');
 }
 
 // ---------- validateResultSig ----------
@@ -163,7 +179,7 @@ describe('createPayment', () => {
 		});
 
 		const result = await createPayment({ outSum: '4000.00', description: 'Тест' });
-		const expectedSig = makePaymentSig('testlogin', '4000.00', 7, 'testpass1');
+		const expectedSig = makePaymentSig('testlogin', '4000.00', 7, 'testpass1', 'Тест');
 		expect(result.fields.SignatureValue).toBe(expectedSig);
 	});
 

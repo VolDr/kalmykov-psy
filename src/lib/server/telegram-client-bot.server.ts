@@ -9,6 +9,12 @@ import {
 	getChannelPost,
 	incrementChannelPostClicks
 } from './bot-channel-posts.server';
+import {
+	handleQuizCheckCallback,
+	handleQuizDeeplink,
+	QUIZ_CALLBACK_PREFIX,
+	QUIZ_START_PREFIX
+} from './quiz-bot.server';
 
 /** Экранирует спецсимволы HTML для Telegram parse_mode:'HTML' */
 export function tgEscape(s: string): string {
@@ -42,12 +48,20 @@ export const clientBot = new Bot(TELEGRAM_CLIENT_BOT_TOKEN, {
 
 export const clientBotApi: Api = clientBot.api;
 
+// Без bot.catch ошибка обработчика роняет вебхук в 500, и Telegram перепосылает
+// апдейт — дубли входящих в инбоксе и повторные запуски цепочек. Логируем и отвечаем 200.
+clientBot.catch((err) => {
+	console.error('[client-bot] Ошибка обработчика апдейта:', err.error);
+});
+
 let cachedBotUsername: string | null = null;
 
 /** Username бота для диплинков t.me/<bot>?start=… — берём из getMe и кешируем. */
-async function getBotUsername(): Promise<string> {
+export async function getBotUsername(): Promise<string> {
 	if (!cachedBotUsername) {
-		cachedBotUsername = (await clientBotApi.getMe()).username;
+		const username = (await clientBotApi.getMe()).username;
+		if (!username) throw new Error('У бота нет username — диплинки невозможны');
+		cachedBotUsername = username;
 	}
 	return cachedBotUsername;
 }
@@ -65,6 +79,13 @@ clientBot.on('message', async (ctx) => {
 		payload: ctx.update
 	});
 
+	// Диплинк с результатами опросника (/start qr_<token>) — выдача разбора по сферам.
+	// Неизвестный токен — не обрабатываем, юзер получит обычное приветствие по /start.
+	const quizMatch = new RegExp(`^/start\\s+${QUIZ_START_PREFIX}([A-Za-z0-9_-]{1,64})$`).exec(
+		ctx.message.text?.trim() ?? ''
+	);
+	if (quizMatch && (await handleQuizDeeplink(contact, quizMatch[1]))) return;
+
 	// Один триггер может запускать несколько цепочек — запускаем все совпавшие
 	const scenarios = await findTriggeredScenarios(ctx.message.text);
 	for (const scenario of scenarios) {
@@ -76,6 +97,15 @@ clientBot.on('message', async (ctx) => {
 // диплинк t.me/<bot>?start=<payload> через answerCallbackQuery — сценарий запустится,
 // когда юзер нажмёт Start в открывшемся чате с ботом (придёт /start <payload>).
 clientBot.on('callback_query:data', async (ctx) => {
+	// Кнопка «Я подписался» под сообщением о результатах опросника (qz:<token>)
+	if (ctx.callbackQuery.data.startsWith(QUIZ_CALLBACK_PREFIX)) {
+		const token = ctx.callbackQuery.data.slice(QUIZ_CALLBACK_PREFIX.length);
+		const contact = await upsertContactFromTelegramUser(ctx.from);
+		const alert = await handleQuizCheckCallback(contact, token);
+		await ctx.answerCallbackQuery(alert ? { text: alert, show_alert: true } : {});
+		return;
+	}
+
 	const match = /^cp:(\d+)$/.exec(ctx.callbackQuery.data);
 	if (!match) {
 		await ctx.answerCallbackQuery();

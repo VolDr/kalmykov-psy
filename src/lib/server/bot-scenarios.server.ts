@@ -1,9 +1,15 @@
 import { db } from '../..';
 import * as schema from '../../db/schema';
 import { and, asc, eq, gt, lte, sql } from 'drizzle-orm';
-import { GrammyError } from 'grammy';
+import { GrammyError, InputFile } from 'grammy';
 import { clientBotApi, tgFormat } from './telegram-client-bot.server';
-import { getContact, logOutboundMessage, setBotBlocked } from './bot-contacts.server';
+import { absoluteStepFilePath } from './bot-step-files.server';
+import {
+	getContact,
+	logOutboundMessage,
+	pgTextArrayLiteral,
+	setBotBlocked
+} from './bot-contacts.server';
 
 const MAX_ATTEMPTS = 3;
 
@@ -122,6 +128,53 @@ export async function triggerScenarioForContact(
 		return;
 	}
 
+	// Кулдаун «не запускать чаще раза в N дней»: недавний запуск — молча выходим
+	if (scenario.cooldownDays > 0) {
+		const [recent] = await db
+			.select({ id: schema.botScenarioRuns.id })
+			.from(schema.botScenarioRuns)
+			.where(
+				and(
+					eq(schema.botScenarioRuns.contactId, contact.id),
+					eq(schema.botScenarioRuns.scenarioId, scenario.id),
+					sql`${schema.botScenarioRuns.lastStartedAt} > now() - make_interval(days => ${scenario.cooldownDays})`
+				)
+			)
+			.limit(1);
+		if (recent) return;
+
+		// Фиксируем запуск (окно кулдауна отсчитывается от него)
+		const [existing] = await db
+			.select({ id: schema.botScenarioRuns.id })
+			.from(schema.botScenarioRuns)
+			.where(
+				and(
+					eq(schema.botScenarioRuns.contactId, contact.id),
+					eq(schema.botScenarioRuns.scenarioId, scenario.id)
+				)
+			)
+			.limit(1);
+		if (existing) {
+			await db
+				.update(schema.botScenarioRuns)
+				.set({ lastStartedAt: sql`now()` })
+				.where(eq(schema.botScenarioRuns.id, existing.id));
+		} else {
+			try {
+				await db.insert(schema.botScenarioRuns).values({
+					contactId: contact.id,
+					scenarioId: scenario.id,
+					lastStartedAt: sql`now()`
+				});
+			} catch (err) {
+				// Параллельный запуск (двойной /start) уже записал — не роняем обработку
+				if (!(err instanceof Error && err.message.includes('bot_scenario_runs_contact_scenario_key'))) {
+					throw err;
+				}
+			}
+		}
+	}
+
 	await db
 		.update(schema.botScheduledSteps)
 		.set({ status: 'cancelled', processedAt: sql`now()` })
@@ -188,10 +241,15 @@ async function continueScenario(
 	}
 }
 
-/** Подстановки в тексте шага: {contact_id} — для персональных ссылок, {first_name} — имя. */
+/**
+ * Подстановки в тексте/ссылках шага: {contact_id} — для персональных ссылок,
+ * {first_name} — имя. #{client_id} — алиас из Salebot, чтобы скопированные
+ * оттуда тексты работали без правок.
+ */
 function renderStepText(text: string, contact: BotContact): string {
 	return text
-		.replaceAll('{contact_id}', String(contact.id))
+		.replaceAll('{contact_id}', String(contact.publicId))
+		.replaceAll('#{client_id}', String(contact.publicId))
 		.replaceAll('{first_name}', contact.firstName ?? '');
 }
 
@@ -241,6 +299,47 @@ async function executeStep(
 			});
 		} catch (err) {
 			console.error('[bot-scenarios] Шаг отправлен, но не записан в историю:', err);
+		}
+	}
+
+	if (step.filePath) {
+		let sentMessageId: number | undefined;
+		try {
+			// После первой отправки Telegram возвращает file_id — дальше шлём по нему,
+			// без повторной загрузки файла с диска
+			const media =
+				step.fileTelegramId ?? new InputFile(absoluteStepFilePath(step.filePath), step.fileName ?? undefined);
+			const sent = await clientBotApi.sendDocument(contact.telegramUserId, media);
+			sentMessageId = sent.message_id;
+
+			if (!step.fileTelegramId && sent.document?.file_id) {
+				// file_path в условии — защита от кеширования id уже заменённого файла
+				await db
+					.update(schema.botScenarioSteps)
+					.set({ fileTelegramId: sent.document.file_id })
+					.where(
+						and(
+							eq(schema.botScenarioSteps.id, step.id),
+							eq(schema.botScenarioSteps.filePath, step.filePath)
+						)
+					);
+			}
+		} catch (err) {
+			if (err instanceof GrammyError && err.error_code === 403) {
+				await setBotBlocked(contact.id, true);
+				return false;
+			}
+			throw err;
+		}
+
+		try {
+			await logOutboundMessage({
+				contactId: contact.id,
+				text: `📎 ${step.fileName ?? step.filePath}`,
+				telegramMessageId: sentMessageId
+			});
+		} catch (err) {
+			console.error('[bot-scenarios] Файл отправлен, но не записан в историю:', err);
 		}
 	}
 
@@ -297,10 +396,14 @@ export async function launchScenarioForSegment(
 
 	const conditions = [eq(schema.botContacts.botBlocked, false)];
 	if (filter.requireTags.length > 0) {
-		conditions.push(sql`${schema.botContacts.tags} @> ${filter.requireTags}::text[]`);
+		conditions.push(
+			sql`${schema.botContacts.tags} @> ${pgTextArrayLiteral(filter.requireTags)}::text[]`
+		);
 	}
 	if (filter.excludeTags.length > 0) {
-		conditions.push(sql`not (${schema.botContacts.tags} && ${filter.excludeTags}::text[])`);
+		conditions.push(
+			sql`not (${schema.botContacts.tags} && ${pgTextArrayLiteral(filter.excludeTags)}::text[])`
+		);
 	}
 
 	const contacts = await db
@@ -309,24 +412,28 @@ export async function launchScenarioForSegment(
 		.where(and(...conditions));
 
 	if (contacts.length > 0) {
-		await db
-			.update(schema.botScheduledSteps)
-			.set({ status: 'cancelled', processedAt: sql`now()` })
-			.where(
-				and(
-					eq(schema.botScheduledSteps.scenarioId, scenarioId),
-					eq(schema.botScheduledSteps.status, 'pending')
-				)
-			);
+		// Транзакция: иначе падение между отменой и вставкой снимет старую очередь,
+		// не поставив новую — контакты выпадут из рассылки без следа
+		await db.transaction(async (tx) => {
+			await tx
+				.update(schema.botScheduledSteps)
+				.set({ status: 'cancelled', processedAt: sql`now()` })
+				.where(
+					and(
+						eq(schema.botScheduledSteps.scenarioId, scenarioId),
+						eq(schema.botScheduledSteps.status, 'pending')
+					)
+				);
 
-		await db.insert(schema.botScheduledSteps).values(
-			contacts.map((c) => ({
-				contactId: c.id,
-				scenarioId,
-				stepId: firstStep.id,
-				scheduledAt: sql`now() + make_interval(secs => ${firstStep.delaySeconds})`
-			}))
-		);
+			await tx.insert(schema.botScheduledSteps).values(
+				contacts.map((c) => ({
+					contactId: c.id,
+					scenarioId,
+					stepId: firstStep.id,
+					scheduledAt: sql`now() + make_interval(secs => ${firstStep.delaySeconds})`
+				}))
+			);
+		});
 	}
 
 	await db.insert(schema.botBroadcastRuns).values({
@@ -345,39 +452,41 @@ export async function launchScenarioForSegment(
  * если следующего шага нет — записи отменяются.
  */
 export async function deleteStepAndRepointQueue(id: number) {
-	const [step] = await db
-		.select()
-		.from(schema.botScenarioSteps)
-		.where(eq(schema.botScenarioSteps.id, id));
-	if (!step) return;
+	await db.transaction(async (tx) => {
+		const [step] = await tx
+			.select()
+			.from(schema.botScenarioSteps)
+			.where(eq(schema.botScenarioSteps.id, id));
+		if (!step) return;
 
-	const [next] = await db
-		.select()
-		.from(schema.botScenarioSteps)
-		.where(
-			and(
-				eq(schema.botScenarioSteps.scenarioId, step.scenarioId),
-				gt(schema.botScenarioSteps.position, step.position)
+		const [next] = await tx
+			.select()
+			.from(schema.botScenarioSteps)
+			.where(
+				and(
+					eq(schema.botScenarioSteps.scenarioId, step.scenarioId),
+					gt(schema.botScenarioSteps.position, step.position)
+				)
 			)
-		)
-		.orderBy(asc(schema.botScenarioSteps.position))
-		.limit(1);
+			.orderBy(asc(schema.botScenarioSteps.position))
+			.limit(1);
 
-	const pendingOfStep = and(
-		eq(schema.botScheduledSteps.stepId, id),
-		eq(schema.botScheduledSteps.status, 'pending')
-	);
+		const pendingOfStep = and(
+			eq(schema.botScheduledSteps.stepId, id),
+			eq(schema.botScheduledSteps.status, 'pending')
+		);
 
-	if (next) {
-		await db.update(schema.botScheduledSteps).set({ stepId: next.id }).where(pendingOfStep);
-	} else {
-		await db
-			.update(schema.botScheduledSteps)
-			.set({ status: 'cancelled', processedAt: sql`now()` })
-			.where(pendingOfStep);
-	}
+		if (next) {
+			await tx.update(schema.botScheduledSteps).set({ stepId: next.id }).where(pendingOfStep);
+		} else {
+			await tx
+				.update(schema.botScheduledSteps)
+				.set({ status: 'cancelled', processedAt: sql`now()` })
+				.where(pendingOfStep);
+		}
 
-	await db.delete(schema.botScenarioSteps).where(eq(schema.botScenarioSteps.id, id));
+		await tx.delete(schema.botScenarioSteps).where(eq(schema.botScenarioSteps.id, id));
+	});
 }
 
 /**
@@ -416,7 +525,34 @@ export async function processDueScheduledSteps(): Promise<{
 	let errors = 0;
 
 	for (const { scheduled, step, contact, scenario } of due) {
+		// Атомарный захват шага: сдвигаем scheduledAt в будущее — параллельный
+		// процесс (например, старый инстанс во время деплоя) по условию
+		// scheduled_at <= now() этот шаг уже не возьмёт. При падении процесса
+		// шаг останется pending и ретраится через 10 минут.
+		const attempts = scheduled.attempts + 1;
+		const claimed = await db
+			.update(schema.botScheduledSteps)
+			.set({
+				scheduledAt: sql`now() + interval '10 minutes'`,
+				attempts
+			})
+			.where(
+				and(
+					eq(schema.botScheduledSteps.id, scheduled.id),
+					eq(schema.botScheduledSteps.status, 'pending'),
+					lte(schema.botScheduledSteps.scheduledAt, sql`now()`)
+				)
+			)
+			.returning({ id: schema.botScheduledSteps.id });
+		if (claimed.length === 0) continue; // шаг захватил другой процесс
+
 		try {
+			// Шаг завис в ретраях (например, процесс падал на середине отправки)
+			if (attempts > MAX_ATTEMPTS) {
+				await markScheduled(scheduled.id, { status: 'failed', attempts });
+				continue;
+			}
+
 			// Сценарий выключили или юзер заблокировал бота, пока шаг ждал в очереди
 			if (!scenario.enabled || contact.botBlocked) {
 				await markScheduled(scheduled.id, { status: 'cancelled' });
@@ -432,7 +568,7 @@ export async function processDueScheduledSteps(): Promise<{
 			}
 		} catch (err) {
 			errors++;
-			const attempts = scheduled.attempts + 1;
+			// При status='pending' шаг ретраится, когда сдвинутый scheduledAt назреет (~10 мин)
 			await markScheduled(scheduled.id, {
 				status: attempts >= MAX_ATTEMPTS ? 'failed' : 'pending',
 				attempts,

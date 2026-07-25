@@ -2,7 +2,9 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // Mock createBooking before importing the server module
 vi.mock('$lib/server/booking.server', () => ({
-	createBooking: vi.fn()
+	createBooking: vi.fn(),
+	CONSULTATION_PRICE: '4000.00',
+	PACKAGE_PRICE: '10000.00'
 }));
 
 import { POST } from './+server';

@@ -10,8 +10,14 @@ import {
 	validateTrigger
 } from '$lib/server/bot-scenarios.server';
 import { tgFormat, TELEGRAM_MESSAGE_LIMIT } from '$lib/server/telegram-client-bot.server';
+import {
+	deleteStepFileFromDisk,
+	MAX_STEP_FILE_BYTES,
+	saveStepFile
+} from '$lib/server/bot-step-files.server';
 
 const UNIT_SECONDS: Record<string, number> = {
+	seconds: 1,
 	minutes: 60,
 	hours: 3600,
 	days: 86400
@@ -31,7 +37,13 @@ function parseTags(raw: unknown): string[] {
 		.filter(Boolean);
 }
 
-function parseStepFields(form: FormData) {
+/** Файл из multipart-формы; пустой input даёт File с size 0 — это «нет файла» */
+function extractUpload(form: FormData): File | null {
+	const file = form.get('file');
+	return file instanceof File && file.size > 0 && file.name ? file : null;
+}
+
+function parseStepFields(form: FormData, hasFile: boolean) {
 	const delaySeconds = parseDelay(form);
 	if (delaySeconds === null) return { error: 'Некорректная задержка' } as const;
 
@@ -47,8 +59,8 @@ function parseStepFields(form: FormData) {
 		return { error: 'Некорректная цепочка для запуска' } as const;
 	}
 
-	if (!messageText && !setStage && addTags.length === 0 && !startScenarioId) {
-		return { error: 'Шаг должен содержать сообщение, теги, этап или запуск цепочки' } as const;
+	if (!messageText && !hasFile && !setStage && addTags.length === 0 && !startScenarioId) {
+		return { error: 'Шаг должен содержать сообщение, файл, теги, этап или запуск цепочки' } as const;
 	}
 
 	if (messageText && tgFormat(messageText).length > TELEGRAM_MESSAGE_LIMIT) {
@@ -135,8 +147,12 @@ export const actions = {
 		const enabled = form.get('enabled') === 'on';
 		const cancelsOthers = form.get('cancelsOthers') === 'on';
 		const protectedFromCancel = form.get('protectedFromCancel') === 'on';
+		const cooldownDays = parseInt((form.get('cooldownDays') as string) ?? '0', 10);
 
 		if (!name) return fail(400, { scenarioError: 'Укажите название' });
+		if (isNaN(cooldownDays) || cooldownDays < 0) {
+			return fail(400, { scenarioError: 'Кулдаун — целое число дней, 0 = без ограничений' });
+		}
 
 		let triggerType: (typeof schema.botScenarioTriggerEnum.enumValues)[number] | null = null;
 		if (triggerTypeRaw) {
@@ -162,6 +178,7 @@ export const actions = {
 				enabled,
 				cancelsOthers,
 				protectedFromCancel,
+				cooldownDays,
 				updatedAt: sql`now()`
 			})
 			.where(eq(schema.botScenarios.id, id));
@@ -176,7 +193,12 @@ export const actions = {
 		await loadScenarioOr404(id);
 
 		const form = await event.request.formData();
-		const fields = parseStepFields(form);
+		const upload = extractUpload(form);
+		if (upload && upload.size > MAX_STEP_FILE_BYTES) {
+			return fail(400, { stepError: 'Файл больше 50 МБ — Telegram не даст боту его отправить' });
+		}
+
+		const fields = parseStepFields(form, Boolean(upload));
 		if ('error' in fields) return fail(400, { stepError: fields.error });
 		if (fields.startScenarioId === id) {
 			return fail(400, { stepError: 'Цепочка не может запускать саму себя' });
@@ -192,7 +214,8 @@ export const actions = {
 		await db.insert(schema.botScenarioSteps).values({
 			scenarioId: id,
 			position: (last?.position ?? 0) + 1,
-			...fields
+			...fields,
+			...(upload ? await saveStepFile(upload) : {})
 		});
 
 		return { stepSuccess: true };
@@ -204,21 +227,38 @@ export const actions = {
 		const stepId = parseInt(form.get('stepId') as string, 10);
 		if (isNaN(stepId)) return fail(400, { stepError: 'Некорректный ID шага' });
 
-		const fields = parseStepFields(form);
-		if ('error' in fields) return fail(400, { stepError: fields.error });
-
 		const [step] = await db
-			.select({ scenarioId: schema.botScenarioSteps.scenarioId })
+			.select()
 			.from(schema.botScenarioSteps)
 			.where(eq(schema.botScenarioSteps.id, stepId));
 		if (!step) return fail(400, { stepError: 'Шаг не найден' });
+
+		const upload = extractUpload(form);
+		if (upload && upload.size > MAX_STEP_FILE_BYTES) {
+			return fail(400, { stepError: 'Файл больше 50 МБ — Telegram не даст боту его отправить' });
+		}
+		const removeFile = form.get('removeFile') === 'on';
+		const keepsFile = Boolean(upload) || (Boolean(step.filePath) && !removeFile);
+
+		const fields = parseStepFields(form, keepsFile);
+		if ('error' in fields) return fail(400, { stepError: fields.error });
 		if (fields.startScenarioId === step.scenarioId) {
 			return fail(400, { stepError: 'Цепочка не может запускать саму себя' });
 		}
 
+		// Новый файл заменяет старый; смена файла сбрасывает кеш telegram file_id
+		let fileFields = {};
+		if (upload) {
+			fileFields = { ...(await saveStepFile(upload)), fileTelegramId: null };
+			await deleteStepFileFromDisk(step.filePath);
+		} else if (removeFile && step.filePath) {
+			fileFields = { fileName: null, filePath: null, fileTelegramId: null };
+			await deleteStepFileFromDisk(step.filePath);
+		}
+
 		await db
 			.update(schema.botScenarioSteps)
-			.set(fields)
+			.set({ ...fields, ...fileFields })
 			.where(eq(schema.botScenarioSteps.id, stepId));
 
 		return { stepSuccess: true };
@@ -230,8 +270,14 @@ export const actions = {
 		const stepId = parseInt(form.get('stepId') as string, 10);
 		if (isNaN(stepId)) return fail(400, { stepError: 'Некорректный ID шага' });
 
+		const [step] = await db
+			.select({ filePath: schema.botScenarioSteps.filePath })
+			.from(schema.botScenarioSteps)
+			.where(eq(schema.botScenarioSteps.id, stepId));
+
 		// Ожидающие этот шаг контакты переводятся на следующий шаг, а не бросаются
 		await deleteStepAndRepointQueue(stepId);
+		await deleteStepFileFromDisk(step?.filePath);
 
 		return { stepSuccess: true };
 	},

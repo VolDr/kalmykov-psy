@@ -8,7 +8,11 @@
 	const tabs = [
 		{ href: '/admin/bot/contacts', label: 'Контакты' },
 		{ href: '/admin/bot/scenarios', label: 'Сценарии' },
-		{ href: '/admin/bot/posts', label: 'Кнопки на постах' }
+		{ href: '/admin/bot/broadcasts', label: 'Рассылки' },
+		{ href: '/admin/bot/posts', label: 'Кнопки на постах' },
+		{ href: '/admin/bot/clip-articles', label: 'Лид-статьи' },
+		{ href: '/admin/bot/quiz', label: 'Опросник' },
+		{ href: '/admin/bot/instagram', label: 'Instagram' }
 	];
 </script>
 

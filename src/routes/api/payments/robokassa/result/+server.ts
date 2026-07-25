@@ -2,7 +2,7 @@ import type { RequestHandler } from './$types';
 import { markPaid, getPaymentById } from '$lib/server/robokassa.server';
 import { confirmByPaymentId, getBookingByPaymentId } from '$lib/server/booking.server';
 import { telegramService } from '$lib/server/telegram.server';
-import { addTagsToContact } from '$lib/server/bot-contacts.server';
+import { addTagsToContact, getContactByPublicId } from '$lib/server/bot-contacts.server';
 import { triggerScenarioByKey } from '$lib/server/bot-scenarios.server';
 
 export const POST: RequestHandler = async ({ request }) => {
@@ -45,11 +45,14 @@ export const POST: RequestHandler = async ({ request }) => {
 				source: 'website'
 			}).catch((e) => console.error('Telegram booking notification failed:', e));
 
-			// sbClientId — id контакта нашего бота; тег + сценарий consultation_booked
+			// sbClientId — публичный id контакта бота; тег + сценарий consultation_booked
 			if (booking.sbClientId) {
-				const contactId = booking.sbClientId;
-				addTagsToContact(contactId, ['consultation_booked'])
-					.then(() => triggerScenarioByKey('consultation_booked', contactId))
+				getContactByPublicId(booking.sbClientId)
+					.then(async (contact) => {
+						if (!contact) return;
+						await addTagsToContact(contact.id, ['consultation_booked']);
+						await triggerScenarioByKey('consultation_booked', contact.id);
+					})
 					.catch((e) => console.error('[bot] consultation_booked trigger failed:', e));
 			}
 		}

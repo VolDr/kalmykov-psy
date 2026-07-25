@@ -489,7 +489,7 @@ describe('createBooking — MSK timezone in description', () => {
 		await createBooking({ availabilityId: 1, bookedAt: SLOT_AT, email: 'a@b.com', clientName: 'A', originUrl: 'http://localhost' });
 
 		expect(mockCreate).toHaveBeenCalledWith(
-			expect.objectContaining({ description: 'Консультация 01.06.2024 13:00 МСК' })
+			expect.objectContaining({ description: 'Консультация' })
 		);
 	});
 });

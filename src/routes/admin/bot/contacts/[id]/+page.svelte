@@ -54,7 +54,8 @@
 		<a href="/admin/bot/contacts" class="mb-4 inline-block text-sm text-blue-600 hover:underline"
 			>← Все контакты</a
 		>
-		<h1 class="mb-4 text-2xl font-semibold">{displayName(data.contact)}</h1>
+		<h1 class="mb-1 text-2xl font-semibold">{displayName(data.contact)}</h1>
+		<p class="mb-4 text-xs text-stone-400">ID для ссылок ({'{'}contact_id{'}'}): {data.contact.publicId}</p>
 
 		<div
 			bind:this={messagesEl}
@@ -117,7 +118,15 @@
 	<div>
 		<div class="rounded-xl border bg-white p-4">
 			<h2 class="mb-3 text-sm font-semibold text-stone-600">CRM</h2>
-			<form method="POST" action="?/updateCrm" use:enhance class="space-y-3">
+			<form
+				method="POST"
+				action="?/updateCrm"
+				use:enhance={() =>
+					async ({ update }) => {
+						await update({ reset: false });
+					}}
+				class="space-y-3"
+			>
 				<label class="block text-xs font-medium text-stone-500">
 					Этап
 					<input
@@ -153,6 +162,39 @@
 				{/if}
 			</form>
 		</div>
+
+		{#if data.pendingSteps.length > 0}
+			<div class="mt-4 rounded-xl border bg-white p-4">
+				<h2 class="mb-3 text-sm font-semibold text-stone-600">
+					Ожидающие сообщения ({data.pendingSteps.length})
+				</h2>
+				<ul class="space-y-3">
+					{#each data.pendingSteps as step (step.id)}
+						<li class="text-xs">
+							<div class="flex items-start justify-between gap-2">
+								<div class="min-w-0">
+									<p class="font-medium text-stone-600">
+										{formatDateTime(step.scheduledAt)} · {step.scenarioName}
+									</p>
+									{#if step.messageText}
+										<p class="truncate text-stone-400">{step.messageText}</p>
+									{/if}
+								</div>
+								<form method="POST" action="?/cancelScheduled" use:enhance>
+									<input type="hidden" name="scheduledId" value={step.id} />
+									<button type="submit" class="shrink-0 text-red-500 hover:underline">
+										Отменить
+									</button>
+								</form>
+							</div>
+						</li>
+					{/each}
+				</ul>
+				<p class="mt-3 text-xs text-stone-400">
+					Отмена шага останавливает дальнейшую цепочку для этого контакта.
+				</p>
+			</div>
+		{/if}
 
 		{#if data.contact.botBlocked}
 			<div class="mt-4 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-600">

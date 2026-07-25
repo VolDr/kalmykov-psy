@@ -25,6 +25,8 @@ export const botContacts = pgTable(
 	'bot_contacts',
 	{
 		id: bigserial('id', { mode: 'number' }).primaryKey(),
+		// Публичный 9-значный id для ссылок/куки (внутренний id наружу не светим)
+		publicId: bigint('public_id', { mode: 'number' }).notNull(),
 		telegramUserId: bigint('telegram_user_id', { mode: 'number' }).notNull(),
 		username: text('username'),
 		firstName: text('first_name'),
@@ -46,7 +48,8 @@ export const botContacts = pgTable(
 		lastInteractionAt: timestamp('last_interaction_at', { withTimezone: true, mode: 'string' })
 	},
 	(table) => [
-		uniqueIndex('bot_contacts_telegram_user_id_key').on(table.telegramUserId)
+		uniqueIndex('bot_contacts_telegram_user_id_key').on(table.telegramUserId),
+		uniqueIndex('bot_contacts_public_id_key').on(table.publicId)
 	]
 );
 
@@ -109,12 +112,10 @@ export const botScenarios = pgTable('bot_scenarios', {
 	cancelsOthers: boolean('cancels_others').default(false).notNull(),
 	// «Не отменять»: цепочка переживает отмену со стороны cancelsOthers-сценариев
 	protectedFromCancel: boolean('protected_from_cancel').default(false).notNull(),
-	createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' })
-		.defaultNow()
-		.notNull(),
-	updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'string' })
-		.defaultNow()
-		.notNull()
+	// Кулдаун: не запускать для контакта чаще раза в N дней (0 — без ограничений)
+	cooldownDays: integer('cooldown_days').default(0).notNull(),
+	createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+	updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'string' }).defaultNow().notNull()
 });
 
 export const botScenarioSteps = pgTable(
@@ -136,6 +137,11 @@ export const botScenarioSteps = pgTable(
 			.default(sql`'{}'::text[]`)
 			.notNull(),
 		setStage: text('set_stage'),
+		// Файл-вложение: оригинальное имя (для админки и Telegram), имя файла
+		// в uploads/bot-files и кеш telegram file_id после первой отправки
+		fileName: text('file_name'),
+		filePath: text('file_path'),
+		fileTelegramId: text('file_telegram_id'),
 		createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' })
 			.defaultNow()
 			.notNull()
@@ -152,6 +158,32 @@ export const botScenarioSteps = pgTable(
 			foreignColumns: [botScenarios.id],
 			name: 'bot_scenario_steps_start_scenario_id_fkey'
 		}).onDelete('set null')
+	]
+);
+
+// Последний запуск цепочки по контакту — для кулдауна «не чаще раза в N дней»
+export const botScenarioRuns = pgTable(
+	'bot_scenario_runs',
+	{
+		id: bigserial('id', { mode: 'number' }).primaryKey(),
+		contactId: bigint('contact_id', { mode: 'number' }).notNull(),
+		scenarioId: bigint('scenario_id', { mode: 'number' }).notNull(),
+		lastStartedAt: timestamp('last_started_at', { withTimezone: true, mode: 'string' })
+			.defaultNow()
+			.notNull()
+	},
+	(table) => [
+		uniqueIndex('bot_scenario_runs_contact_scenario_key').on(table.contactId, table.scenarioId),
+		foreignKey({
+			columns: [table.contactId],
+			foreignColumns: [botContacts.id],
+			name: 'bot_scenario_runs_contact_id_fkey'
+		}).onDelete('cascade'),
+		foreignKey({
+			columns: [table.scenarioId],
+			foreignColumns: [botScenarios.id],
+			name: 'bot_scenario_runs_scenario_id_fkey'
+		}).onDelete('cascade')
 	]
 );
 
@@ -251,14 +283,172 @@ export const botChannelPosts = pgTable(
 	]
 );
 
+// --- Instagram: автоответы по ключевым словам (комментарии и директ), см. docs/instagram.md ---
+
+export const instagramRuleTriggerEnum = pgEnum('instagram_rule_trigger', [
+	// Комментарий под постом/рилсом: публичный ответ и/или private reply в директ
+	'comment',
+	// Входящее сообщение в директ
+	'dm'
+]);
+
+export const instagramRules = pgTable('instagram_rules', {
+	id: bigserial('id', { mode: 'number' }).primaryKey(),
+	name: text('name').notNull(),
+	triggerType: instagramRuleTriggerEnum('trigger_type').notNull(),
+	// Срабатывает, если текст содержит любое из слов (без учёта регистра)
+	keywords: text('keywords')
+		.array()
+		.default(sql`'{}'::text[]`)
+		.notNull(),
+	// true — текст должен целиком совпадать с ключевым словом, а не содержать его
+	matchExact: boolean('match_exact').default(false).notNull(),
+	// Ограничить правило одним постом/рилсом (media id из Graph API); null — все посты
+	mediaId: text('media_id'),
+	// Публичный ответ под комментарием (только для trigger=comment)
+	commentReplyText: text('comment_reply_text'),
+	// Сообщение в директ: private reply на коммент или ответ в переписке
+	dmText: text('dm_text'),
+	enabled: boolean('enabled').default(false).notNull(),
+	hits: integer('hits').default(0).notNull(),
+	lastHitAt: timestamp('last_hit_at', { withTimezone: true, mode: 'string' }),
+	createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+	updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'string' }).defaultNow().notNull()
+});
+
+// Обработанные comment id / message id — идемпотентность (Meta ретраит вебхуки)
+// и гарантия «не больше одного private reply на комментарий» (лимит Meta).
+export const instagramProcessed = pgTable(
+	'instagram_processed',
+	{
+		id: bigserial('id', { mode: 'number' }).primaryKey(),
+		objectId: text('object_id').notNull(),
+		createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' })
+			.defaultNow()
+			.notNull()
+	},
+	(table) => [uniqueIndex('instagram_processed_object_id_key').on(table.objectId)]
+);
+
+// --- Лид-статьи (клип-лендинги) с опросником и разбором результатов в боте, см. docs/clip-articles.md ---
+
+/** Один «экран» клип-статьи; хранится в jsonb-массиве clip_articles.pages */
+export type ClipArticlePage = {
+	heading?: string;
+	text: string;
+	buttonText?: string;
+	// URL картинки под текстом; путь из static (напр. /lmc/1.webp) или внешний https
+	imageUrl?: string;
+};
+
+export const clipArticles = pgTable(
+	'clip_articles',
+	{
+		id: bigserial('id', { mode: 'number' }).primaryKey(),
+		// Часть URL: /useful/<slug>
+		slug: text('slug').notNull(),
+		title: text('title').notNull(),
+		subtitle: text('subtitle'),
+		enabled: boolean('enabled').default(false).notNull(),
+		pages: jsonb('pages')
+			.$type<ClipArticlePage[]>()
+			.default(sql`'[]'::jsonb`)
+			.notNull(),
+		// Опросник BAT-23 в конце статьи (на сайте показывается только общий результат)
+		quizEnabled: boolean('quiz_enabled').default(true).notNull(),
+		quizButtonText: text('quiz_button_text'),
+		resultHeading: text('result_heading'),
+		// Текст под общим результатом — свой для каждой зоны
+		resultTextGreen: text('result_text_green'),
+		resultTextOrange: text('result_text_orange'),
+		resultTextRed: text('result_text_red'),
+		// Приглашение получить разбор по сферам в боте
+		botCtaText: text('bot_cta_text'),
+		botCtaButtonText: text('bot_cta_button_text'),
+		createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' })
+			.defaultNow()
+			.notNull(),
+		updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'string' }).defaultNow().notNull()
+	},
+	(table) => [uniqueIndex('clip_articles_slug_key').on(table.slug)]
+);
+
+/** Рекомендации по сферам для бота: { exhaustion: { orange: '…', red: '…' }, … } */
+export type QuizSphereRecs = Record<string, Partial<Record<'orange' | 'red', string>>>;
+
+// Настройки выдачи результатов опросника в боте — одна строка (singleton)
+export const quizBotSettings = pgTable('quiz_bot_settings', {
+	id: bigserial('id', { mode: 'number' }).primaryKey(),
+	// Username бота без @ для диплинков; пусто — берётся из getMe()
+	botUsername: text('bot_username'),
+	// '@channelname' или '-100…' — канал для проверки подписки
+	channelChatId: text('channel_chat_id'),
+	// Ссылка для кнопки «Подписаться» (https://t.me/…)
+	channelUrl: text('channel_url'),
+	requireSubscription: boolean('require_subscription').default(true).notNull(),
+	subscribeText: text('subscribe_text'),
+	subscribeButtonText: text('subscribe_button_text'),
+	checkButtonText: text('check_button_text'),
+	// Алерт при клике «я подписался» без подписки; лимит Telegram — 200 символов
+	notSubscribedAlert: text('not_subscribed_alert'),
+	resultsHeaderText: text('results_header_text'),
+	resultsFooterText: text('results_footer_text'),
+	sphereRecs: jsonb('sphere_recs')
+		.$type<QuizSphereRecs>()
+		.default(sql`'{}'::jsonb`)
+		.notNull(),
+	allGreenText: text('all_green_text'),
+	updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'string' }).defaultNow().notNull()
+});
+
+/** Срез результата по субшкале — хранится в jsonb quiz_results.subscales */
+export type QuizSubscaleResult = {
+	id: string;
+	name: string;
+	averageScore: number;
+	severity: string;
+	color: string;
+};
+
+// Результат прохождения опросника на сайте; token — payload диплинка t.me/<бот>?start=qr_<token>
+export const quizResults = pgTable(
+	'quiz_results',
+	{
+		id: bigserial('id', { mode: 'number' }).primaryKey(),
+		token: text('token').notNull(),
+		articleSlug: text('article_slug'),
+		totalScore: doublePrecision('total_score').notNull(),
+		averageScore: doublePrecision('average_score'),
+		severity: text('severity').notNull(),
+		color: text('color').notNull(),
+		subscales: jsonb('subscales')
+			.$type<QuizSubscaleResult[]>()
+			.default(sql`'[]'::jsonb`)
+			.notNull(),
+		// Контакт бота, который забрал результат по диплинку
+		contactId: bigint('contact_id', { mode: 'number' }),
+		deliveredAt: timestamp('delivered_at', { withTimezone: true, mode: 'string' }),
+		createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' })
+			.defaultNow()
+			.notNull()
+	},
+	(table) => [
+		uniqueIndex('quiz_results_token_key').on(table.token),
+		foreignKey({
+			columns: [table.contactId],
+			foreignColumns: [botContacts.id],
+			name: 'quiz_results_contact_id_fkey'
+		}).onDelete('set null')
+	]
+);
 
 export const analyticsEvents = pgTable('analytics_events', {
-  id:         bigserial('id', { mode: 'number' }).primaryKey(),
-  createdAt:  timestamp('created_at').defaultNow().notNull(),
-  goal:       text('goal').notNull(),
-  sessionId:  text('session_id'),
-  page:       text('page'),
-  params:     jsonb('params')
+	id: bigserial('id', { mode: 'number' }).primaryKey(),
+	createdAt: timestamp('created_at').defaultNow().notNull(),
+	goal: text('goal').notNull(),
+	sessionId: text('session_id'),
+	page: text('page'),
+	params: jsonb('params')
 });
 
 export const source = pgTable(
@@ -509,10 +699,6 @@ export const article = pgTable(
 	]
 );
 
-
-
-
-
 export const emailSubscription = pgTable(
 	'EmailSubscription',
 	{
@@ -543,13 +729,20 @@ export const emailSubscription = pgTable(
 	]
 );
 
-
-
-export const subscriberStatusEnum = pgEnum('subscriber_status', ['pending', 'active', 'unsubscribed']);
+export const subscriberStatusEnum = pgEnum('subscriber_status', [
+	'pending',
+	'active',
+	'unsubscribed'
+]);
 
 export const paymentStatusEnum = pgEnum('payment_status', ['pending', 'paid', 'failed']);
 
-export const bookingStatusEnum = pgEnum('booking_status', ['pending_payment', 'confirmed', 'cancelled', 'requires_refund']);
+export const bookingStatusEnum = pgEnum('booking_status', [
+	'pending_payment',
+	'confirmed',
+	'cancelled',
+	'requires_refund'
+]);
 
 export const bookingTypeEnum = pgEnum('booking_type', ['consultation', 'acquaintance']);
 
@@ -601,16 +794,16 @@ export const robokassaPayment = pgTable('RobokassaPayment', {
 });
 
 export const subscriber = pgTable('Subscriber', {
-    id: text().primaryKey().notNull(),
-    email: text().notNull().unique(),
-    status: subscriberStatusEnum().default('pending').notNull(),
-    token: text().unique(),
-    createdAt: timestamp({ precision: 3, mode: 'string' })
-        .default(sql`CURRENT_TIMESTAMP`)
-        .notNull(),
-    updatedAt: timestamp({ precision: 3, mode: 'string' })
-        .default(sql`CURRENT_TIMESTAMP`)
-        .notNull()
+	id: text().primaryKey().notNull(),
+	email: text().notNull().unique(),
+	status: subscriberStatusEnum().default('pending').notNull(),
+	token: text().unique(),
+	createdAt: timestamp({ precision: 3, mode: 'string' })
+		.default(sql`CURRENT_TIMESTAMP`)
+		.notNull(),
+	updatedAt: timestamp({ precision: 3, mode: 'string' })
+		.default(sql`CURRENT_TIMESTAMP`)
+		.notNull()
 });
 
 export const leadMagnetEventStatusEnum = pgEnum('lead_magnet_event_status', [

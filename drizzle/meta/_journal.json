@@ -36,6 +36,48 @@
       "when": 1783089720836,
       "tag": "0004_step_buttons",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1783105588293,
+      "tag": "0005_broadcasts",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1783123787647,
+      "tag": "0006_contact_public_id",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1783124155697,
+      "tag": "0007_scenario_cooldown",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1783204667763,
+      "tag": "0008_instagram_rules",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1783295633665,
+      "tag": "0009_step_files",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1783357074704,
+      "tag": "0010_clip_articles",
+      "breakpoints": true
     }
   ]
 }

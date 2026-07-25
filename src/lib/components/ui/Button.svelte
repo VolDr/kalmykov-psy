@@ -15,6 +15,9 @@
 		class?: string;
 		target?: string;
 		rel?: string;
+		onclick?: (event: MouseEvent) => void;
+		disabled?: boolean;
+		type?: 'button' | 'submit' | 'reset';
 	} = $props();
 
 	const baseClasses =

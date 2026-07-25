@@ -16,15 +16,15 @@ export const POST: RequestHandler = async ({ request, url, getClientAddress }) =
 	} catch {
 		return json({ error: 'Некорректный запрос' }, { status: 400 });
 	}
-	const { availabilityId, bookedAt, telegram, email, type, sbClientId: rawSbClientId } = body;
+	const { availabilityId, bookedAt, clientName, email, type, sbClientId: rawSbClientId } = body;
 
 	const availabilityIdNum = parseInt(String(availabilityId ?? ''), 10);
-	if (isNaN(availabilityIdNum) || availabilityIdNum <= 0 || !bookedAt || !telegram?.trim() || !email?.trim()) {
+	if (isNaN(availabilityIdNum) || availabilityIdNum <= 0 || !bookedAt || !clientName?.trim() || !email?.trim()) {
 		return json({ error: 'Заполните все поля' }, { status: 400 });
 	}
 
-	if (telegram.trim().length > 64) {
-		return json({ error: 'Telegram слишком длинный' }, { status: 400 });
+	if (clientName.trim().length > 100) {
+		return json({ error: 'Имя слишком длинное' }, { status: 400 });
 	}
 
 	if (email.trim().length > 254 || !email.includes('@')) {
@@ -50,7 +50,7 @@ export const POST: RequestHandler = async ({ request, url, getClientAddress }) =
 		const payment = await createBooking({
 			availabilityId: availabilityIdNum,
 			bookedAt,
-			clientName: telegram.trim(),
+			clientName: clientName.trim(),
 			email: email.trim(),
 			originUrl: url.origin,
 			outSum,

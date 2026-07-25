@@ -13,6 +13,10 @@ import {
 	TELEGRAM_MESSAGE_LIMIT
 } from '$lib/server/telegram-client-bot.server';
 import { GrammyError } from 'grammy';
+import { db } from '../../../../..';
+import * as schema from '../../../../../db/schema';
+import { and, asc, eq, sql } from 'drizzle-orm';
+import { requireAuth } from '$lib/server/protected';
 
 async function loadContactOr404(id: number) {
 	const contact = await getContact(id);
@@ -27,11 +31,35 @@ export const load: PageServerLoad = async ({ params }) => {
 	const contact = await loadContactOr404(id);
 	const messages = await listMessages(id);
 
-	return { contact, messages };
+	// Ожидающие отложенные шаги цепочек — с названием цепочки и превью текста
+	const pendingSteps = await db
+		.select({
+			id: schema.botScheduledSteps.id,
+			scheduledAt: schema.botScheduledSteps.scheduledAt,
+			scenarioName: schema.botScenarios.name,
+			messageText: schema.botScenarioSteps.messageText
+		})
+		.from(schema.botScheduledSteps)
+		.innerJoin(schema.botScenarios, eq(schema.botScheduledSteps.scenarioId, schema.botScenarios.id))
+		.innerJoin(
+			schema.botScenarioSteps,
+			eq(schema.botScheduledSteps.stepId, schema.botScenarioSteps.id)
+		)
+		.where(
+			and(
+				eq(schema.botScheduledSteps.contactId, id),
+				eq(schema.botScheduledSteps.status, 'pending')
+			)
+		)
+		.orderBy(asc(schema.botScheduledSteps.scheduledAt));
+
+	return { contact, messages, pendingSteps };
 };
 
 export const actions = {
-	updateCrm: async ({ request, params }) => {
+	updateCrm: async (event) => {
+		requireAuth(event);
+		const { request, params } = event;
 		const id = parseInt(params.id, 10);
 		if (isNaN(id)) return fail(400, { error: 'Некорректный ID' });
 
@@ -50,7 +78,9 @@ export const actions = {
 		return { crmSuccess: true };
 	},
 
-	reply: async ({ request, params, locals }) => {
+	reply: async (event) => {
+		requireAuth(event);
+		const { request, params, locals } = event;
 		const id = parseInt(params.id, 10);
 		if (isNaN(id)) return fail(400, { error: 'Некорректный ID' });
 
@@ -98,5 +128,30 @@ export const actions = {
 		}
 
 		return { replySuccess: true };
+	},
+
+	// Отмена одного ожидающего шага цепочки. Дальше этого шага цепочка для
+	// контакта не пойдёт — продолжение планируется только после отправки.
+	cancelScheduled: async (event) => {
+		requireAuth(event);
+		const id = parseInt(event.params.id, 10);
+		if (isNaN(id)) return fail(400, { error: 'Некорректный ID' });
+
+		const form = await event.request.formData();
+		const scheduledId = parseInt(form.get('scheduledId') as string, 10);
+		if (isNaN(scheduledId)) return fail(400, { error: 'Некорректный ID шага' });
+
+		await db
+			.update(schema.botScheduledSteps)
+			.set({ status: 'cancelled', processedAt: sql`now()` })
+			.where(
+				and(
+					eq(schema.botScheduledSteps.id, scheduledId),
+					eq(schema.botScheduledSteps.contactId, id),
+					eq(schema.botScheduledSteps.status, 'pending')
+				)
+			);
+
+		return { cancelSuccess: true };
 	}
 } satisfies Actions;
