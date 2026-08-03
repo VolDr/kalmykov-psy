@@ -5,11 +5,11 @@
 	// Ссылка готова сразу — без ClientID, если счётчик не ответит. Как только он
 	// ответит, href обновится. Ничего не ждём в момент клика: асинхронный переход
 	// браузер считает незапрошенным и блокирует.
-	let href = $state(botDeepLink('otpusk', null));
+	let href = $state(botDeepLink('otpusk_ad', null));
 
 	$effect(() => {
 		requestMetrikaClientId().then((id) => {
-			if (id) href = botDeepLink('otpusk', id);
+			if (id) href = botDeepLink('otpusk_ad', id);
 		});
 	});
 
