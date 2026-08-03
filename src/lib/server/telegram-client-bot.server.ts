@@ -3,7 +3,15 @@ import { Bot } from 'grammy';
 import { SocksProxyAgent } from 'socks-proxy-agent';
 import { TELEGRAM_CLIENT_BOT_TOKEN } from '$env/static/private';
 import { logInboundMessage, upsertContactFromTelegramUser } from './bot-contacts.server';
-import { findTriggeredScenarios, triggerScenarioForContact } from './bot-scenarios.server';
+import {
+	findTriggeredScenarios,
+	handleSubscriptionGateCallback,
+	parseStartPayload,
+	SUBSCRIPTION_CALLBACK_PREFIX,
+	triggerScenarioForContact
+} from './bot-scenarios.server';
+import { markBotStarted } from './bot-funnel.server';
+import { attachMetrikaClientId } from './bot-contacts.server';
 import {
 	chatIdForApi,
 	getChannelPost,
@@ -71,13 +79,26 @@ clientBot.on('message', async (ctx) => {
 	const from = ctx.from;
 	if (!from) return;
 
-	const contact = await upsertContactFromTelegramUser(from);
+	let contact = await upsertContactFromTelegramUser(from);
 	await logInboundMessage({
 		contactId: contact.id,
 		text: ctx.message.text ?? null,
 		telegramMessageId: ctx.message.message_id,
 		payload: ctx.update
 	});
+
+	// Диплинк t.me/<бот>?start=<ключ>__<clientId>: ClientID Метрики связывает человека
+	// в боте с его визитом на посадочной — без него офлайн-конверсию не к чему
+	// прицепить. Пишем один раз, первый визит не перетираем.
+	const trimmed = ctx.message.text?.trim() ?? '';
+	const payload = trimmed.startsWith('/start') ? trimmed.slice('/start'.length).trim() : '';
+	const { key, metrikaClientId } = payload
+		? parseStartPayload(payload)
+		: { key: '', metrikaClientId: null };
+
+	if (metrikaClientId && !contact.metrikaClientId) {
+		contact = (await attachMetrikaClientId(contact.id, metrikaClientId)) ?? contact;
+	}
 
 	// Диплинк с результатами опросника (/start qr_<token>) — выдача разбора по сферам.
 	// Неизвестный токен — не обрабатываем, юзер получит обычное приветствие по /start.
@@ -88,6 +109,7 @@ clientBot.on('message', async (ctx) => {
 
 	// Один триггер может запускать несколько цепочек — запускаем все совпавшие
 	const scenarios = await findTriggeredScenarios(ctx.message.text);
+	if (scenarios.length > 0) await markBotStarted(contact.id, key || null);
 	for (const scenario of scenarios) {
 		await triggerScenarioForContact(scenario, contact);
 	}
@@ -103,6 +125,30 @@ clientBot.on('callback_query:data', async (ctx) => {
 		const contact = await upsertContactFromTelegramUser(ctx.from);
 		const alert = await handleQuizCheckCallback(contact, token);
 		await ctx.answerCallbackQuery(alert ? { text: alert, show_alert: true } : {});
+		return;
+	}
+
+	// Кнопка «Я подписался» под шагом-шлагбаумом цепочки (sub:<stepId>)
+	if (ctx.callbackQuery.data.startsWith(SUBSCRIPTION_CALLBACK_PREFIX)) {
+		const stepId = Number(ctx.callbackQuery.data.slice(SUBSCRIPTION_CALLBACK_PREFIX.length));
+		if (!Number.isInteger(stepId)) {
+			await ctx.answerCallbackQuery();
+			return;
+		}
+		const contact = await upsertContactFromTelegramUser(ctx.from);
+		const alert = await handleSubscriptionGateCallback(contact, stepId);
+		await ctx.answerCallbackQuery(alert ? { text: alert, show_alert: true } : {});
+
+		// Шлагбаум пройден — снимаем кнопки, иначе человек нажмёт их через неделю
+		// и получит хвост цепочки повторно. Сообщение могло устареть для
+		// редактирования — на выдачу материала это уже не влияет.
+		if (!alert) {
+			try {
+				await ctx.editMessageReplyMarkup();
+			} catch (err) {
+				console.error('[client-bot] Не смог снять клавиатуру шлагбаума:', err);
+			}
+		}
 		return;
 	}
 

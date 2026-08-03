@@ -2,8 +2,12 @@ import { db } from '../..';
 import * as schema from '../../db/schema';
 import { and, asc, eq, gt, lte, sql } from 'drizzle-orm';
 import { GrammyError, InputFile } from 'grammy';
+import type { InlineKeyboardButton } from 'grammy/types';
 import { clientBotApi, tgFormat } from './telegram-client-bot.server';
 import { absoluteStepFilePath } from './bot-step-files.server';
+import { chatIdForApi } from './bot-channel-posts.server';
+import { getQuizBotSettings } from './quiz-results.server';
+import { markGatePassed, markGateShown } from './bot-funnel.server';
 import {
 	getContact,
 	logOutboundMessage,
@@ -12,6 +16,9 @@ import {
 } from './bot-contacts.server';
 
 const MAX_ATTEMPTS = 3;
+
+/** Префикс callback data кнопки «Я подписался» у шага-шлагбаума: sub:<stepId> */
+export const SUBSCRIPTION_CALLBACK_PREFIX = 'sub:';
 
 // Предохранитель от циклов «шаг запускает цепочку» (A → B → A → …)
 const MAX_CHAIN_DEPTH = 5;
@@ -42,6 +49,68 @@ export function validateTrigger(triggerType: string, value: string): string | nu
 }
 
 /**
+ * Канал, подписку на который проверяют условия шагов этой цепочки.
+ * Сначала — канал привязанного к цепочке поста (обычный случай: цепочка выдаёт
+ * материал из конкретного поста), иначе — канал из общих настроек бота.
+ * null — канал не настроен, проверять нечего.
+ */
+async function resolveScenarioChannelChatId(scenarioId: number): Promise<string | null> {
+	const [post] = await db
+		.select({ chatId: schema.botChannelPosts.chatId })
+		.from(schema.botChannelPosts)
+		.where(eq(schema.botChannelPosts.scenarioId, scenarioId))
+		.orderBy(asc(schema.botChannelPosts.id))
+		.limit(1);
+	if (post?.chatId?.trim()) return post.chatId.trim();
+
+	const settings = await getQuizBotSettings();
+	return settings.channelChatId;
+}
+
+/**
+ * Подписан ли контакт на канал цепочки. Ошибка проверки (бот не админ канала,
+ * недоступный API) трактуется в пользу юзера — как в кнопках на постах: лучше
+ * отдать материал лишнему человеку, чем заблокировать всех из-за сбоя.
+ */
+export async function isContactSubscribed(
+	scenarioId: number,
+	telegramUserId: number
+): Promise<boolean> {
+	const chatId = await resolveScenarioChannelChatId(scenarioId);
+	if (!chatId) return true;
+	try {
+		const member = await clientBotApi.getChatMember(chatIdForApi(chatId), telegramUserId);
+		return ['creator', 'administrator', 'member'].includes(member.status);
+	} catch (err) {
+		console.error('[bot-scenarios] getChatMember не удался:', err);
+		return true;
+	}
+}
+
+/** Шаг-шлагбаум: выполнившись, останавливает цепочку до нажатия «Я подписался». */
+function isGateStep(step: BotScenarioStep): boolean {
+	return step.buttonAction === 'check_subscription';
+}
+
+/**
+ * Разбирает payload диплинка: `<ключ>` или `<ключ>__<ClientID Метрики>`.
+ * Двойное подчёркивание — разделитель: в ключах сценариев (`lm_otpusk_read75`)
+ * оно не встречается, поэтому старые диплинки продолжают работать как раньше.
+ * ClientID Метрики — только цифры, всё остальное игнорируем.
+ */
+export function parseStartPayload(payload: string): {
+	key: string;
+	metrikaClientId: string | null;
+} {
+	const separator = payload.indexOf('__');
+	if (separator === -1) return { key: payload, metrikaClientId: null };
+
+	const key = payload.slice(0, separator);
+	const tail = payload.slice(separator + 2);
+	return { key, metrikaClientId: /^\d{1,32}$/.test(tail) ? tail : null };
+}
+
+/**
  * Определяет, какие включённые цепочки запускает входящее сообщение.
  * Один триггер может запускать несколько цепочек — вернутся все совпавшие.
  * Приоритет: /start <payload> → start_param; /команда → command;
@@ -56,9 +125,10 @@ export async function findTriggeredScenarios(
 	const trimmed = text.trim();
 
 	if (trimmed.startsWith('/start')) {
-		const param = trimmed.slice('/start'.length).trim();
-		if (param) {
-			const byParam = await findEnabledScenarios('start_param', param);
+		const payload = trimmed.slice('/start'.length).trim();
+		if (payload) {
+			const { key } = parseStartPayload(payload);
+			const byParam = await findEnabledScenarios('start_param', key);
 			if (byParam.length > 0) return byParam;
 		}
 		return findEnabledScenarios('command', '/start');
@@ -207,8 +277,12 @@ export async function triggerScenarioForContact(
  * шаги без задержки выполняются сразу один за другим, первый шаг с задержкой
  * планируется в bot_scheduled_steps, и обработка останавливается — дальше
  * цепочку продолжит cron после отправки этого шага.
+ *
+ * Шаг с условием, которое не выполнено, пропускается — цепочка идёт дальше.
+ * Шаг-шлагбаум («Проверить подписку») останавливает цепочку: продолжит её
+ * handleSubscriptionGateCallback, когда юзер нажмёт кнопку.
  */
-async function continueScenario(
+export async function continueScenario(
 	contact: BotContact,
 	scenarioId: number,
 	afterPosition: number | null,
@@ -225,8 +299,19 @@ async function continueScenario(
 		)
 		.orderBy(asc(schema.botScenarioSteps.position));
 
+	// Подписку в рамках одного прохода спрашиваем у Telegram максимум один раз
+	let subscribed: boolean | undefined;
+	const subscribedNow = async () => {
+		if (subscribed === undefined) {
+			subscribed = await isContactSubscribed(scenarioId, contact.telegramUserId);
+		}
+		return subscribed;
+	};
+
 	for (const step of steps) {
 		if (step.delaySeconds > 0) {
+			// Условие отложенного шага проверяется не сейчас, а при его отправке
+			// (processDueScheduledSteps) — за время задержки юзер мог подписаться
 			await db.insert(schema.botScheduledSteps).values({
 				contactId: contact.id,
 				scenarioId,
@@ -236,9 +321,50 @@ async function continueScenario(
 			return;
 		}
 
+		if (step.condition) {
+			const met =
+				step.condition === 'subscribed' ? await subscribedNow() : !(await subscribedNow());
+			if (!met) continue;
+		}
+
 		const delivered = await executeStep(contact, step, depth);
 		if (!delivered) return; // юзер заблокировал бота — цепочку останавливаем
+		if (isGateStep(step)) {
+			await markGateShown(contact.id);
+			return; // ждём нажатия «Я подписался»
+		}
 	}
+}
+
+/**
+ * Нажатие «Я подписался» под шагом-шлагбаумом: перепроверяет подписку и, если
+ * она есть, продолжает цепочку со следующего шага. Возвращает текст алерта
+ * (юзер всё ещё не подписан / шаг устарел) или null, если всё прошло.
+ */
+export async function handleSubscriptionGateCallback(
+	contact: BotContact,
+	stepId: number
+): Promise<string | null> {
+	const [step] = await db
+		.select()
+		.from(schema.botScenarioSteps)
+		.where(eq(schema.botScenarioSteps.id, stepId));
+	if (!step) return 'Кнопка больше не активна.';
+
+	const [scenario] = await db
+		.select()
+		.from(schema.botScenarios)
+		.where(eq(schema.botScenarios.id, step.scenarioId));
+	if (!scenario?.enabled) return 'Кнопка больше не активна.';
+
+	if (!(await isContactSubscribed(step.scenarioId, contact.telegramUserId))) {
+		const settings = await getQuizBotSettings();
+		return settings.notSubscribedAlert;
+	}
+
+	await markGatePassed(contact.id);
+	await continueScenario(contact, step.scenarioId, step.position);
+	return null;
 }
 
 /**
@@ -254,6 +380,39 @@ function renderStepText(text: string, contact: BotContact): string {
 }
 
 /**
+ * Клавиатура под сообщением шага. Обычный шаг — одна кнопка-ссылка.
+ * Шаг-шлагбаум — ссылка на канал (button_url) плюс callback-кнопка проверки,
+ * подпись которой берётся из общих настроек бота («Я подписался»).
+ */
+async function buildStepKeyboard(
+	step: BotScenarioStep,
+	contact: BotContact
+): Promise<{ inline_keyboard: InlineKeyboardButton[][] } | null> {
+	if (isGateStep(step)) {
+		const rows: InlineKeyboardButton[][] = [];
+		if (step.buttonText && step.buttonUrl) {
+			rows.push([{ text: step.buttonText, url: renderStepText(step.buttonUrl, contact) }]);
+		}
+		const settings = await getQuizBotSettings();
+		rows.push([
+			{
+				text: settings.checkButtonText,
+				callback_data: `${SUBSCRIPTION_CALLBACK_PREFIX}${step.id}`
+			}
+		]);
+		return { inline_keyboard: rows };
+	}
+
+	if (step.buttonText && step.buttonUrl) {
+		return {
+			inline_keyboard: [[{ text: step.buttonText, url: renderStepText(step.buttonUrl, contact) }]]
+		};
+	}
+
+	return null;
+}
+
+/**
  * Выполняет один шаг: отправляет сообщение (если есть), добавляет теги, меняет
  * этап и запускает связанную цепочку. Возвращает false при блокировке ботом.
  */
@@ -264,19 +423,12 @@ async function executeStep(
 ): Promise<boolean> {
 	if (step.messageText) {
 		const rendered = renderStepText(step.messageText, contact);
+		const replyMarkup = await buildStepKeyboard(step, contact);
 		let sentMessageId: number;
 		try {
 			const sent = await clientBotApi.sendMessage(contact.telegramUserId, tgFormat(rendered), {
 				parse_mode: 'HTML',
-				...(step.buttonText && step.buttonUrl
-					? {
-							reply_markup: {
-								inline_keyboard: [
-									[{ text: step.buttonText, url: renderStepText(step.buttonUrl, contact) }]
-								]
-							}
-						}
-					: {})
+				...(replyMarkup ? { reply_markup: replyMarkup } : {})
 			});
 			sentMessageId = sent.message_id;
 		} catch (err) {
@@ -559,12 +711,32 @@ export async function processDueScheduledSteps(): Promise<{
 				continue;
 			}
 
+			// Условие проверяем здесь, а не при планировании: за время задержки
+			// юзер мог подписаться (или отписаться) — считаем по состоянию сейчас
+			if (step.condition) {
+				const subscribed = await isContactSubscribed(
+					scheduled.scenarioId,
+					contact.telegramUserId
+				);
+				const met = step.condition === 'subscribed' ? subscribed : !subscribed;
+				if (!met) {
+					await markScheduled(scheduled.id, { status: 'cancelled' });
+					await continueScenario(contact, scheduled.scenarioId, step.position);
+					continue;
+				}
+			}
+
 			const delivered = await executeStep(contact, step);
 			await markScheduled(scheduled.id, { status: delivered ? 'sent' : 'cancelled' });
 
 			if (delivered) {
 				sent++;
-				await continueScenario(contact, scheduled.scenarioId, step.position);
+				if (isGateStep(step)) {
+					// Шлагбаум ждёт нажатия «Я подписался» — дальше цепочку двигает callback
+					await markGateShown(contact.id);
+				} else {
+					await continueScenario(contact, scheduled.scenarioId, step.position);
+				}
 			}
 		} catch (err) {
 			errors++;

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import { resolve } from '$app/paths';
 
 	let { data, form } = $props();
 
@@ -128,6 +129,18 @@
 										class="mt-1 w-36 rounded-lg border px-3 py-2 text-sm"
 									/>
 								</label>
+								<label class="block text-xs font-medium text-stone-500">
+									Выполнять шаг
+									<select
+										name="condition"
+										value={step.condition ?? ''}
+										class="mt-1 w-56 rounded-lg border px-3 py-2 text-sm"
+									>
+										<option value="">всегда</option>
+										<option value="subscribed">только если подписан на канал</option>
+										<option value="not_subscribed">только если НЕ подписан на канал</option>
+									</select>
+								</label>
 							</div>
 							<label class="block text-xs font-medium text-stone-500">
 								Сообщение
@@ -159,6 +172,17 @@
 									/>
 								</label>
 								<label class="block text-xs font-medium text-stone-500">
+									Действие кнопки
+									<select
+										name="buttonAction"
+										value={step.buttonAction}
+										class="mt-1 w-64 rounded-lg border px-3 py-2 text-sm"
+									>
+										<option value="url">просто ссылка</option>
+										<option value="check_subscription">проверить подписку и продолжить</option>
+									</select>
+								</label>
+								<label class="block text-xs font-medium text-stone-500">
 									Запустить цепочку после шага
 									<select
 										name="startScenarioId"
@@ -174,6 +198,14 @@
 									</select>
 								</label>
 							</div>
+							{#if step.buttonAction === 'check_subscription'}
+								<p class="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">
+									Шаг-шлагбаум: бот покажет кнопку со ссылкой выше плюс кнопку «Я подписался» и
+									остановит цепочку. Дальше она пойдёт, только когда подписка подтвердится. Текст
+									кнопки проверки и алерта — в
+									<a href={resolve('/admin/bot/quiz')} class="underline">настройках бота</a>.
+								</p>
+							{/if}
 							<div class="space-y-1">
 								{#if step.fileName}
 									<p class="text-sm text-stone-600">
@@ -233,6 +265,14 @@
 						Установить этап
 						<input type="text" name="setStage" class="mt-1 w-36 rounded-lg border px-3 py-2 text-sm" />
 					</label>
+					<label class="block text-xs font-medium text-stone-500">
+						Выполнять шаг
+						<select name="condition" class="mt-1 w-56 rounded-lg border px-3 py-2 text-sm">
+							<option value="">всегда</option>
+							<option value="subscribed">только если подписан на канал</option>
+							<option value="not_subscribed">только если НЕ подписан на канал</option>
+						</select>
+					</label>
 				</div>
 				<label class="block text-xs font-medium text-stone-500">
 					Сообщение
@@ -256,6 +296,13 @@
 							placeholder="https://…"
 							class="mt-1 w-72 rounded-lg border px-3 py-2 text-sm"
 						/>
+					</label>
+					<label class="block text-xs font-medium text-stone-500">
+						Действие кнопки
+						<select name="buttonAction" class="mt-1 w-64 rounded-lg border px-3 py-2 text-sm">
+							<option value="url">просто ссылка</option>
+							<option value="check_subscription">проверить подписку и продолжить</option>
+						</select>
 					</label>
 					<label class="block text-xs font-medium text-stone-500">
 						Запустить цепочку после шага

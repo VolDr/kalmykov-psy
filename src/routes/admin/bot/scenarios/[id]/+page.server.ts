@@ -53,6 +53,20 @@ function parseStepFields(form: FormData, hasFile: boolean) {
 	const buttonUrl = (form.get('buttonUrl') as string)?.trim() || null;
 	const addTags = parseTags(form.get('addTags'));
 
+	const conditionRaw = ((form.get('condition') as string) ?? '').trim();
+	if (conditionRaw && !schema.botStepConditionEnum.enumValues.includes(conditionRaw as never)) {
+		return { error: 'Неизвестное условие шага' } as const;
+	}
+	const condition = conditionRaw
+		? (conditionRaw as (typeof schema.botStepConditionEnum.enumValues)[number])
+		: null;
+
+	const buttonActionRaw = ((form.get('buttonAction') as string) || 'url').trim();
+	if (!schema.botStepButtonActionEnum.enumValues.includes(buttonActionRaw as never)) {
+		return { error: 'Неизвестный тип кнопки' } as const;
+	}
+	const buttonAction = buttonActionRaw as (typeof schema.botStepButtonActionEnum.enumValues)[number];
+
 	const startScenarioRaw = ((form.get('startScenarioId') as string) ?? '').trim();
 	const startScenarioId = startScenarioRaw ? parseInt(startScenarioRaw, 10) : null;
 	if (startScenarioRaw && (startScenarioId === null || isNaN(startScenarioId))) {
@@ -79,7 +93,24 @@ function parseStepFields(form: FormData, hasFile: boolean) {
 		return { error: 'Ссылка кнопки должна начинаться с https://' } as const;
 	}
 
-	return { delaySeconds, messageText, setStage, addTags, buttonText, buttonUrl, startScenarioId } as const;
+	// Шлагбаум без сообщения показать негде: кнопка «Я подписался» вешается под текст
+	if (buttonAction === 'check_subscription' && !messageText) {
+		return {
+			error: 'Для кнопки «Проверить подписку» нужен текст сообщения — под ним она и появится'
+		} as const;
+	}
+
+	return {
+		delaySeconds,
+		messageText,
+		setStage,
+		addTags,
+		buttonText,
+		buttonUrl,
+		condition,
+		buttonAction,
+		startScenarioId
+	} as const;
 }
 
 async function loadScenarioOr404(id: number) {

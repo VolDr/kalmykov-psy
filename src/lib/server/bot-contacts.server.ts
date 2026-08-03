@@ -1,6 +1,6 @@
 import { db } from '../..';
 import * as schema from '../../db/schema';
-import { desc, eq, ilike, or, sql } from 'drizzle-orm';
+import { and, desc, eq, ilike, isNull, or, sql } from 'drizzle-orm';
 
 export type TelegramFrom = {
 	id: number;
@@ -136,6 +136,20 @@ export async function addTagsToContact(id: number, tags: string[]) {
 			updatedAt: sql`now()`
 		})
 		.where(eq(schema.botContacts.id, id));
+}
+
+/**
+ * Привязывает ClientID Метрики к контакту — только если он ещё не привязан.
+ * Первый ClientID не перетираем: человек мог зайти повторно с другого устройства,
+ * а конверсию Директу надо отдать по тому визиту, который за него заплатил.
+ */
+export async function attachMetrikaClientId(id: number, metrikaClientId: string) {
+	const [updated] = await db
+		.update(schema.botContacts)
+		.set({ metrikaClientId, updatedAt: sql`now()` })
+		.where(and(eq(schema.botContacts.id, id), isNull(schema.botContacts.metrikaClientId)))
+		.returning();
+	return updated ?? null;
 }
 
 export async function setBotBlocked(id: number, blocked: boolean) {

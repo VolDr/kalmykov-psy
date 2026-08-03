@@ -4,6 +4,7 @@ import { sql } from 'drizzle-orm';
 import { db } from '../..';
 import * as schema from '../../db/schema';
 import { processDueScheduledSteps } from './bot-scenarios.server';
+import { uploadOfflineConversions } from './bot-funnel.server';
 
 class BotScenarioScheduler {
 	private isStarted = false;
@@ -54,7 +55,23 @@ class BotScenarioScheduler {
 			}
 		});
 
-		this.tasks = [stepsTask, cleanupTask];
+		// Отдаём Директу офлайн-конверсии «дошёл до бота» и «подписался» раз в час.
+		// Без YANDEX_METRIKA_OAUTH_TOKEN выгрузка no-op, события копятся в базе
+		// и уедут при первой успешной попытке.
+		const offlineTask = cron.schedule('7 * * * *', async () => {
+			try {
+				const { sent, expired } = await uploadOfflineConversions();
+				if (sent > 0 || expired > 0) {
+					console.log(
+						`[bot-cron] офлайн-конверсии: отправлено ${sent}, просрочено ${expired}`
+					);
+				}
+			} catch (error) {
+				console.error('[bot-cron] Ошибка выгрузки офлайн-конверсий:', error);
+			}
+		});
+
+		this.tasks = [stepsTask, cleanupTask, offlineTask];
 		this.isStarted = true;
 		console.log('Планировщик шагов бота запущен (проверка каждую минуту)');
 	}

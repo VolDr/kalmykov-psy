@@ -25,6 +25,7 @@
 <div class="p-6">
 	<h1 class="mb-6 text-2xl font-semibold">Сценарии</h1>
 
+
 	<form
 		method="POST"
 		action="?/create"

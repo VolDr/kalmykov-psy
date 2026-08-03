@@ -5,6 +5,7 @@
 	import Footer from '$lib/components/layout/Footer.svelte';
 	import FooterMini from '$lib/components/layout/FooterMini.svelte';
 	import { onNavigate, afterNavigate } from '$app/navigation';
+	import { dev } from '$app/environment';
 	import { createProgress } from '$lib/hooks/useProgress.js';
 	import ProgressBar from '$lib/components/ui/ProgressBar.svelte';
 	import { Toaster } from '$lib/components/ui/sonner';
@@ -79,7 +80,15 @@
 
 	<link rel="preload" href="/Caveat.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
 	<link rel="preload" href="/Aeonik.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
+	<!--
+		Счётчик не грузим в dev-сборке (в т.ч. когда дев-сервер открыт по адресу
+		в локальной сети) и в админке: собственные сессии разработки и работы
+		с CRM попадали в ту же статистику, на которой учатся стратегии Директа.
+		window.ym остаётся undefined — все вызовы reachGoal тихо no-op.
+	-->
+	{#if !dev}
 	<script type="text/javascript">
+		if (!/^\/admin(\/|$)/.test(window.location.pathname)) {
 		(function (m, e, t, r, i, k, a) {
 			m[i] =
 				m[i] ||
@@ -107,6 +116,7 @@
 			accurateTrackBounce: true,
 			trackLinks: true
 		});
+		}
 	</script>
 	<noscript
 		><div>
@@ -117,7 +127,7 @@
 			/>
 		</div></noscript
 	>
-
+	{/if}
 </svelte:head>
 
 {#if !isAdminRoute && !isCodeRoute && !isLoginRoute && !burnoutQuestionnaireRoute && !isUsefulRoute && !isAdRoute && !isPaymentResult}

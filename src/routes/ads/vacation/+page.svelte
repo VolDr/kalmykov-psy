@@ -1,7 +1,17 @@
 <script lang="ts">
 	import { reachGoal } from '$lib/metrika';
+	import { botDeepLink, requestMetrikaClientId } from '$lib/tg-handoff';
 
-	const TG_ARTICLE_URL = 'https://t.me/kalmykov_psy/60';
+	// Ссылка готова сразу — без ClientID, если счётчик не ответит. Как только он
+	// ответит, href обновится. Ничего не ждём в момент клика: асинхронный переход
+	// браузер считает незапрошенным и блокирует.
+	let href = $state(botDeepLink('otpusk', null));
+
+	$effect(() => {
+		requestMetrikaClientId().then((id) => {
+			if (id) href = botDeepLink('otpusk', id);
+		});
+	});
 
 	function handleCta() {
 		reachGoal('ad_cta_click', { ad: 'vacation' });
@@ -61,13 +71,14 @@
 				Что именно отнимает силы, почему привычные способы справляться делают только хуже и что менять, чтобы выходные и отпуск снова восстанавливали, — я разобрал в статье.
 			</p>
 				<p class="text-[16px] leading-relaxed text-foreground/80 md:text-[18px]">
-				 Получите стьатью в моем Telegram-канале — по кнопке ниже.
+				Получите статью в моём Telegram-канале — по кнопке ниже.
 			</p>
 		</div>
 
-		<!-- CTA-кнопка -->
+		<!-- CTA-кнопка. Ссылка внешняя (t.me), resolve() к ней неприменим -->
+		<!-- eslint-disable svelte/no-navigation-without-resolve -->
 		<a
-			href={TG_ARTICLE_URL}
+			{href}
 			target="_blank"
 			rel="noopener noreferrer"
 			onclick={handleCta}
@@ -81,6 +92,7 @@
 				<polyline points="9 18 15 12 9 6"/>
 			</svg>
 		</a>
+		<!-- eslint-enable svelte/no-navigation-without-resolve -->
 
 
 

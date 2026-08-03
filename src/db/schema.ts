@@ -38,6 +38,22 @@ export const botContacts = pgTable(
 			.default(sql`'{}'::text[]`)
 			.notNull(),
 		notes: text('notes'),
+		// ClientID Яндекс Метрики из payload диплинка (t.me/<бот>?start=<ключ>__<clientId>).
+		// Связывает человека в боте с его визитом на посадочной — без него офлайн-конверсию
+		// не к чему прицепить. Пишется один раз, первый визит не перетирается.
+		metrikaClientId: text('metrika_client_id'),
+		// Ключ цепочки, через которую человек пришёл: 'otpusk', 'focus'. Тоже write-once.
+		sourceKey: text('source_key'),
+		// Замер воронки: дошёл до бота → упёрся в шлагбаум подписки → прошёл его
+		botStartedAt: timestamp('bot_started_at', { withTimezone: true, mode: 'string' }),
+		gateShownAt: timestamp('gate_shown_at', { withTimezone: true, mode: 'string' }),
+		gatePassedAt: timestamp('gate_passed_at', { withTimezone: true, mode: 'string' }),
+		// Когда соответствующая офлайн-конверсия уехала в Метрику (null — ещё в очереди)
+		metrikaStartSentAt: timestamp('metrika_start_sent_at', { withTimezone: true, mode: 'string' }),
+		metrikaSubscribedSentAt: timestamp('metrika_subscribed_sent_at', {
+			withTimezone: true,
+			mode: 'string'
+		}),
 		botBlocked: boolean('bot_blocked').default(false).notNull(),
 		createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' })
 			.defaultNow()
@@ -90,6 +106,22 @@ export const botScenarioTriggerEnum = pgEnum('bot_scenario_trigger', [
 	'text'
 ]);
 
+// Условие выполнения шага: пусто — шаг выполняется всегда. Проверяется в момент
+// выполнения шага (для отложенных — когда его достаёт cron), поэтому подписка,
+// оформленная во время задержки, учитывается.
+export const botStepConditionEnum = pgEnum('bot_step_condition', [
+	'subscribed',
+	'not_subscribed'
+]);
+
+// Тип кнопки шага: 'url' — обычная ссылка; 'check_subscription' — «шлагбаум»:
+// под сообщением две кнопки (ссылка на канал из button_url + callback-кнопка
+// button_text), цепочка останавливается и продолжается по нажатию.
+export const botStepButtonActionEnum = pgEnum('bot_step_button_action', [
+	'url',
+	'check_subscription'
+]);
+
 export const botScheduledStepStatusEnum = pgEnum('bot_scheduled_step_status', [
 	'pending',
 	'sent',
@@ -130,6 +162,10 @@ export const botScenarioSteps = pgTable(
 		// Inline-кнопка под сообщением (обе колонки либо заполнены, либо null)
 		buttonText: text('button_text'),
 		buttonUrl: text('button_url'),
+		// null — шаг выполняется всегда; иначе выполняется только при совпадении условия
+		condition: botStepConditionEnum('condition'),
+		// 'check_subscription' превращает кнопку в шлагбаум и останавливает цепочку
+		buttonAction: botStepButtonActionEnum('button_action').default('url').notNull(),
 		// Запустить другую цепочку (сценарий/рассылку) после выполнения этого шага
 		startScenarioId: bigint('start_scenario_id', { mode: 'number' }),
 		addTags: text('add_tags')

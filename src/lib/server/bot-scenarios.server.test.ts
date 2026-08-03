@@ -19,12 +19,16 @@ const mocks = vi.hoisted(() => {
 		scheduled: [] as Row[],
 		broadcastRuns: [] as Row[],
 		scenarioRuns: [] as Row[],
+		channelPosts: [] as Row[],
 		nextScheduledId: 1
 	};
 
 	const sendMessage = vi.fn();
 	const logOutboundMessage = vi.fn();
 	const setBotBlocked = vi.fn();
+	const getChatMember = vi.fn();
+	const markGateShown = vi.fn();
+	const markGatePassed = vi.fn();
 
 	function reset() {
 		state.now = new Date('2026-01-01T10:00:00.000Z');
@@ -34,10 +38,15 @@ const mocks = vi.hoisted(() => {
 		state.scheduled = [];
 		state.broadcastRuns = [];
 		state.scenarioRuns = [];
+		state.channelPosts = [];
 		state.nextScheduledId = 1;
 		sendMessage.mockReset();
 		logOutboundMessage.mockReset();
 		setBotBlocked.mockReset();
+		getChatMember.mockReset();
+		getChatMember.mockResolvedValue({ status: 'member' });
+		markGateShown.mockReset();
+		markGatePassed.mockReset();
 	}
 
 	function iso(date: Date) {
@@ -207,6 +216,8 @@ const mocks = vi.hoisted(() => {
 				return state.broadcastRuns;
 			case 'bot_scenario_runs':
 				return state.scenarioRuns;
+			case 'bot_channel_posts':
+				return state.channelPosts;
 			default:
 				throw new Error(`Unsupported mocked table: ${String(name)}`);
 		}
@@ -377,7 +388,17 @@ const mocks = vi.hoisted(() => {
 		transaction: async <T>(fn: (tx: any) => Promise<T>): Promise<T> => fn(db)
 	};
 
-	return { db, state, reset, sendMessage, logOutboundMessage, setBotBlocked };
+	return {
+		db,
+		state,
+		reset,
+		sendMessage,
+		logOutboundMessage,
+		setBotBlocked,
+		getChatMember,
+		markGateShown,
+		markGatePassed
+	};
 });
 
 vi.mock('drizzle-orm', async (importOriginal) => {
@@ -407,8 +428,23 @@ vi.mock('drizzle-orm', async (importOriginal) => {
 
 vi.mock('../..', () => ({ db: mocks.db }));
 vi.mock('./telegram-client-bot.server', () => ({
-	clientBotApi: { sendMessage: mocks.sendMessage },
+	clientBotApi: { sendMessage: mocks.sendMessage, getChatMember: mocks.getChatMember },
 	tgFormat: (text: string) => text
+}));
+vi.mock('./bot-channel-posts.server', () => ({
+	chatIdForApi: (chatId: string) => (chatId.startsWith('@') ? chatId : Number(chatId))
+}));
+vi.mock('./bot-funnel.server', () => ({
+	markGateShown: mocks.markGateShown,
+	markGatePassed: mocks.markGatePassed,
+	markBotStarted: vi.fn()
+}));
+vi.mock('./quiz-results.server', () => ({
+	getQuizBotSettings: vi.fn(async () => ({
+		channelChatId: null,
+		checkButtonText: 'Я подписался',
+		notSubscribedAlert: 'Подписки пока не вижу'
+	}))
 }));
 vi.mock('./bot-contacts.server', () => ({
 	getContact: vi.fn(),
@@ -434,7 +470,9 @@ import { GrammyError } from 'grammy';
 import {
 	deleteStepAndRepointQueue,
 	findTriggeredScenarios,
+	handleSubscriptionGateCallback,
 	launchScenarioForSegment,
+	parseStartPayload,
 	processDueScheduledSteps,
 	triggerScenarioByKey,
 	triggerScenarioForContact,
@@ -487,6 +525,8 @@ function step(overrides: Record<string, any> = {}) {
 		messageText: 'Сообщение',
 		buttonText: null,
 		buttonUrl: null,
+		condition: null,
+		buttonAction: 'url',
 		startScenarioId: null,
 		addTags: [],
 		setStage: null,
@@ -1260,5 +1300,291 @@ describe('cooldown «не чаще раза в N дней»', () => {
 
 		expect(mocks.sendMessage).toHaveBeenCalledTimes(2);
 		expect(mocks.state.scenarioRuns).toHaveLength(0);
+	});
+});
+
+describe('шлагбаум подписки: условия шагов и кнопка «Я подписался»', () => {
+	beforeEach(() => {
+		mocks.reset();
+		mocks.sendMessage.mockResolvedValue({ message_id: 777 });
+		mocks.logOutboundMessage.mockResolvedValue(undefined);
+		mocks.setBotBlocked.mockResolvedValue(undefined);
+	});
+
+	/** Цепочка: шаг-шлагбаум для неподписанных + шаг с материалом. */
+	function gatedScenario() {
+		const warmup = scenario();
+		const user = contact();
+		const gate = step({
+			id: 100,
+			position: 0,
+			condition: 'not_subscribed',
+			buttonAction: 'check_subscription',
+			messageText: 'Материал для подписчиков канала',
+			buttonText: 'Подписаться на @kalmykov_psy',
+			buttonUrl: 'https://t.me/kalmykov_psy/60'
+		});
+		const material = step({ id: 101, position: 1, messageText: 'А вот и статья, забирайте!' });
+
+		mocks.state.scenarios.push(warmup);
+		mocks.state.contacts.push(user);
+		mocks.state.steps.push(gate, material);
+		// Канал для проверки подписки берётся из привязанного к цепочке поста
+		mocks.state.channelPosts.push({ id: 1, scenarioId: warmup.id, chatId: '@kalmykov_psy' });
+
+		return { warmup, user, gate, material };
+	}
+
+	it('подписанный проходит шлагбаум насквозь и сразу получает материал', async () => {
+		const { warmup, user } = gatedScenario();
+		mocks.getChatMember.mockResolvedValue({ status: 'member' });
+
+		await triggerScenarioForContact(warmup as any, user as any);
+
+		const texts = mocks.sendMessage.mock.calls.map((call) => call[1]);
+		expect(texts).toEqual(['А вот и статья, забирайте!']);
+	});
+
+	it('неподписанный получает шлагбаум, и цепочка на нём останавливается', async () => {
+		const { warmup, user } = gatedScenario();
+		mocks.getChatMember.mockResolvedValue({ status: 'left' });
+
+		await triggerScenarioForContact(warmup as any, user as any);
+
+		const texts = mocks.sendMessage.mock.calls.map((call) => call[1]);
+		expect(texts).toEqual(['Материал для подписчиков канала']);
+	});
+
+	it('под шлагбаумом показываются кнопка-ссылка на канал и кнопка проверки', async () => {
+		const { warmup, user, gate } = gatedScenario();
+		mocks.getChatMember.mockResolvedValue({ status: 'left' });
+
+		await triggerScenarioForContact(warmup as any, user as any);
+
+		expect(mocks.sendMessage.mock.calls[0][2].reply_markup.inline_keyboard).toEqual([
+			[{ text: 'Подписаться на @kalmykov_psy', url: 'https://t.me/kalmykov_psy/60' }],
+			[{ text: 'Я подписался', callback_data: `sub:${gate.id}` }]
+		]);
+	});
+
+	it('«Я подписался» с подтверждённой подпиской продолжает цепочку', async () => {
+		const { user, gate } = gatedScenario();
+		mocks.getChatMember.mockResolvedValue({ status: 'member' });
+
+		const alert = await handleSubscriptionGateCallback(user as any, gate.id);
+
+		expect(alert).toBeNull();
+		expect(mocks.sendMessage.mock.calls.map((call) => call[1])).toEqual([
+			'А вот и статья, забирайте!'
+		]);
+	});
+
+	it('«Я подписался» без подписки возвращает алерт и материал не выдаёт', async () => {
+		const { user, gate } = gatedScenario();
+		mocks.getChatMember.mockResolvedValue({ status: 'left' });
+
+		const alert = await handleSubscriptionGateCallback(user as any, gate.id);
+
+		expect(alert).toBe('Подписки пока не вижу');
+		expect(mocks.sendMessage).not.toHaveBeenCalled();
+	});
+
+	it('сбой getChatMember трактуется в пользу юзера — материал выдаётся', async () => {
+		const { warmup, user } = gatedScenario();
+		mocks.getChatMember.mockRejectedValue(new Error('bot is not an admin'));
+
+		await triggerScenarioForContact(warmup as any, user as any);
+
+		expect(mocks.sendMessage.mock.calls.map((call) => call[1])).toEqual([
+			'А вот и статья, забирайте!'
+		]);
+	});
+
+	it('условие отложенного шага проверяется при отправке, а не при планировании', async () => {
+		const warmup = scenario();
+		const user = contact();
+		// Шаг ждёт час и уходит только тем, кто к этому моменту всё ещё не подписан
+		const reminder = step({
+			id: 100,
+			position: 0,
+			delaySeconds: 3600,
+			condition: 'not_subscribed',
+			messageText: 'Напоминание: материал ждёт'
+		});
+		const next = step({ id: 101, position: 1, messageText: 'Следующий шаг' });
+
+		mocks.state.scenarios.push(warmup);
+		mocks.state.contacts.push(user);
+		mocks.state.steps.push(reminder, next);
+		mocks.state.channelPosts.push({ id: 1, scenarioId: warmup.id, chatId: '@kalmykov_psy' });
+
+		// На момент планирования человек не подписан — шаг всё равно просто встаёт в очередь
+		mocks.getChatMember.mockResolvedValue({ status: 'left' });
+		await triggerScenarioForContact(warmup as any, user as any);
+		expect(mocks.state.scheduled).toHaveLength(1);
+		expect(mocks.getChatMember).not.toHaveBeenCalled();
+
+		// За время задержки подписался — напоминание отменяется, цепочка идёт дальше
+		mocks.getChatMember.mockResolvedValue({ status: 'member' });
+		mocks.state.now = new Date('2026-01-01T11:30:00.000Z');
+		await processDueScheduledSteps();
+
+		expect(mocks.state.scheduled[0].status).toBe('cancelled');
+		expect(mocks.sendMessage.mock.calls.map((call) => call[1])).toEqual(['Следующий шаг']);
+	});
+});
+
+describe('замер воронки бота', () => {
+	beforeEach(() => {
+		mocks.reset();
+		mocks.sendMessage.mockResolvedValue({ message_id: 777 });
+		mocks.logOutboundMessage.mockResolvedValue(undefined);
+		mocks.setBotBlocked.mockResolvedValue(undefined);
+	});
+
+	function gated() {
+		const warmup = scenario();
+		const user = contact({ metrikaClientId: '1783340168351969217' });
+		const gate = step({
+			id: 100,
+			position: 0,
+			condition: 'not_subscribed',
+			buttonAction: 'check_subscription',
+			messageText: 'Материал для подписчиков канала',
+			buttonText: 'Подписаться',
+			buttonUrl: 'https://t.me/kalmykov_psy'
+		});
+		mocks.state.scenarios.push(warmup);
+		mocks.state.contacts.push(user);
+		mocks.state.steps.push(gate, step({ id: 101, position: 1, messageText: 'Статья' }));
+		mocks.state.channelPosts.push({ id: 1, scenarioId: warmup.id, chatId: '@kalmykov_psy' });
+		return { warmup, user, gate };
+	}
+
+	it('шлагбаум отмечает на контакте «упёрся в подписку»', async () => {
+		const { warmup, user } = gated();
+		mocks.getChatMember.mockResolvedValue({ status: 'left' });
+
+		await triggerScenarioForContact(warmup as any, user as any);
+
+		expect(mocks.markGateShown).toHaveBeenCalledWith(user.id);
+		expect(mocks.markGatePassed).not.toHaveBeenCalled();
+	});
+
+	it('подписанный проходит без отметки «упёрся»', async () => {
+		const { warmup, user } = gated();
+		mocks.getChatMember.mockResolvedValue({ status: 'member' });
+
+		await triggerScenarioForContact(warmup as any, user as any);
+
+		expect(mocks.markGateShown).not.toHaveBeenCalled();
+	});
+
+	it('нажатие «Я подписался» отмечает прохождение', async () => {
+		const { user, gate } = gated();
+		mocks.getChatMember.mockResolvedValue({ status: 'member' });
+
+		await handleSubscriptionGateCallback(user as any, gate.id);
+
+		expect(mocks.markGatePassed).toHaveBeenCalledWith(user.id);
+	});
+
+	it('неудачное «Я подписался» ничего не отмечает', async () => {
+		const { user, gate } = gated();
+		mocks.getChatMember.mockResolvedValue({ status: 'left' });
+
+		await handleSubscriptionGateCallback(user as any, gate.id);
+
+		expect(mocks.markGatePassed).not.toHaveBeenCalled();
+	});
+});
+
+describe('parseStartPayload', () => {
+	it('обычный ключ остаётся ключом', () => {
+		expect(parseStartPayload('otpusk')).toEqual({ key: 'otpusk', metrikaClientId: null });
+	});
+
+	it('ключ с подчёркиваниями не ломается', () => {
+		expect(parseStartPayload('lm_otpusk_read75')).toEqual({
+			key: 'lm_otpusk_read75',
+			metrikaClientId: null
+		});
+	});
+
+	it('двойное подчёркивание отделяет ClientID', () => {
+		expect(parseStartPayload('otpusk__1783340168351969217')).toEqual({
+			key: 'otpusk',
+			metrikaClientId: '1783340168351969217'
+		});
+	});
+
+	it('нецифровой хвост игнорируется, ключ сохраняется', () => {
+		expect(parseStartPayload('otpusk__abc')).toEqual({ key: 'otpusk', metrikaClientId: null });
+	});
+
+	it('диплинк с ClientID находит цепочку по ключу', async () => {
+		mocks.reset();
+		mocks.state.scenarios.push(scenario({ triggerType: 'start_param', triggerValue: 'otpusk' }));
+
+		const found = await findTriggeredScenarios('/start otpusk__1783340168351969217');
+
+		expect(found.map((s) => s.triggerValue)).toEqual(['otpusk']);
+	});
+});
+
+describe('шлагбаум: повторные нажатия и отложенные шаги', () => {
+	beforeEach(() => {
+		mocks.reset();
+		mocks.sendMessage.mockResolvedValue({ message_id: 777 });
+		mocks.logOutboundMessage.mockResolvedValue(undefined);
+		mocks.setBotBlocked.mockResolvedValue(undefined);
+	});
+
+	function gateAndMaterial(gateOverrides: Record<string, any> = {}) {
+		const warmup = scenario();
+		const user = contact();
+		const gate = step({
+			id: 100,
+			position: 0,
+			condition: 'not_subscribed',
+			buttonAction: 'check_subscription',
+			messageText: 'Материал для подписчиков',
+			buttonText: 'Подписаться',
+			buttonUrl: 'https://t.me/kalmykov_psy',
+			...gateOverrides
+		});
+		mocks.state.scenarios.push(warmup);
+		mocks.state.contacts.push(user);
+		mocks.state.steps.push(gate, step({ id: 101, position: 1, messageText: 'Статья' }));
+		mocks.state.channelPosts.push({ id: 1, scenarioId: warmup.id, chatId: '@kalmykov_psy' });
+		return { warmup, user, gate };
+	}
+
+	it('шлагбаум второй цепочки не блокируется отметкой от первой', async () => {
+		// Человек уже проходил шлагбаум в другой воронке — gate_passed_at заполнен.
+		// Это метка аналитики, она не должна мешать выдать материал во второй.
+		const { user, gate } = gateAndMaterial();
+		mocks.getChatMember.mockResolvedValue({ status: 'member' });
+
+		const alert = await handleSubscriptionGateCallback(user as any, gate.id);
+
+		expect(alert).toBeNull();
+		expect(mocks.sendMessage.mock.calls.map((c) => c[1])).toEqual(['Статья']);
+	});
+
+	it('отложенный шлагбаум тоже отмечается в воронке', async () => {
+		const { warmup, user } = gateAndMaterial({ delaySeconds: 3600 });
+		mocks.getChatMember.mockResolvedValue({ status: 'left' });
+
+		await triggerScenarioForContact(warmup as any, user as any);
+		expect(mocks.state.scheduled).toHaveLength(1);
+		expect(mocks.markGateShown).not.toHaveBeenCalled();
+
+		mocks.state.now = new Date('2026-01-01T11:30:00.000Z');
+		await processDueScheduledSteps();
+
+		expect(mocks.markGateShown).toHaveBeenCalledWith(user.id);
+		// И хвост цепочки не поехал — ждём нажатия кнопки
+		expect(mocks.sendMessage.mock.calls.map((c) => c[1])).toEqual(['Материал для подписчиков']);
 	});
 });
