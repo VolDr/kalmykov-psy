@@ -5,7 +5,6 @@
 	import Footer from '$lib/components/layout/Footer.svelte';
 	import FooterMini from '$lib/components/layout/FooterMini.svelte';
 	import { onNavigate, afterNavigate } from '$app/navigation';
-	import { dev } from '$app/environment';
 	import { createProgress } from '$lib/hooks/useProgress.js';
 	import ProgressBar from '$lib/components/ui/ProgressBar.svelte';
 	import { Toaster } from '$lib/components/ui/sonner';
@@ -80,15 +79,26 @@
 
 	<link rel="preload" href="/Caveat.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
 	<link rel="preload" href="/Aeonik.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
-	<!--
-		Счётчик не грузим в dev-сборке (в т.ч. когда дев-сервер открыт по адресу
-		в локальной сети) и в админке: собственные сессии разработки и работы
-		с CRM попадали в ту же статистику, на которой учатся стратегии Директа.
-		window.ym остаётся undefined — все вызовы reachGoal тихо no-op.
-	-->
-	{#if !dev}
 	<script type="text/javascript">
-		if (!/^\/admin(\/|$)/.test(window.location.pathname)) {
+		// Счётчик не грузим на локальных адресах (включая дев-сервер, открытый по IP
+		// в локальной сети для проверки с телефона) и в админке: собственные сессии
+		// разработки и работы с CRM попадали в ту же статистику, на которой учатся
+		// стратегии Директа. window.ym остаётся undefined — reachGoal тихо no-op.
+		//
+		// Проверка именно такая — «исключаем локальное», а не «разрешаем прод»:
+		// при любой ошибке в условии счётчик продолжит работать. Обратная логика
+		// однажды уже молча убила сбор данных на всём сайте.
+		var mtHost = window.location.hostname;
+		var mtIsLocal =
+			mtHost === 'localhost' ||
+			mtHost === '127.0.0.1' ||
+			mtHost === '[::1]' ||
+			mtHost.endsWith('.local') ||
+			/^192\.168\./.test(mtHost) ||
+			/^10\./.test(mtHost) ||
+			/^172\.(1[6-9]|2\d|3[01])\./.test(mtHost);
+
+		if (!mtIsLocal && !/^\/admin(\/|$)/.test(window.location.pathname)) {
 		(function (m, e, t, r, i, k, a) {
 			m[i] =
 				m[i] ||
@@ -127,7 +137,6 @@
 			/>
 		</div></noscript
 	>
-	{/if}
 </svelte:head>
 
 {#if !isAdminRoute && !isCodeRoute && !isLoginRoute && !burnoutQuestionnaireRoute && !isUsefulRoute && !isAdRoute && !isPaymentResult}
