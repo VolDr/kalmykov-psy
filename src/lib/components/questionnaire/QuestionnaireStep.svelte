@@ -18,9 +18,20 @@
 		config: QuestionnaireConfig;
 		showEmailStep?: boolean;
 		title?: string;
+		/** Опросник дошёл до результатов — страница может отправить своё событие */
+		oncomplete?: () => void;
+		/** Прокручивать к началу результатов. Выключается, когда страница сама
+		 *  ведёт человека в другое место (например, в блок «Что делать дальше») */
+		autoScrollToResults?: boolean;
 	};
 
-	let { config, showEmailStep = true, title }: Props = $props();
+	let {
+		config,
+		showEmailStep = true,
+		title,
+		oncomplete,
+		autoScrollToResults = true
+	}: Props = $props();
 
 	const storageKey = `questionnaire-${config.id}-wizard-state`;
 
@@ -125,8 +136,9 @@
 
 	$effect(() => {
 		if (state.showResults && resultsSection && !hasInitialScrolled) {
-			resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
 			hasInitialScrolled = true;
+			if (autoScrollToResults)
+				resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
 		}
 	});
 
@@ -166,7 +178,10 @@
 	let activeWarnings = $derived(evaluateWarnings(state.answers, config));
 	let canGoBack = $derived(state.currentStep > initialStep);
 
-	const dimensionRecs: Record<string, Partial<Record<'orange' | 'red', { title: string; text: string }>>> = {
+	const dimensionRecs: Record<
+		string,
+		Partial<Record<'orange' | 'red', { title: string; text: string }>>
+	> = {
 		exhaustion: {
 			orange: {
 				title: 'Истощение уже заметно',
@@ -291,12 +306,16 @@
 				questions_answered: state.currentStep + 1,
 				email_provided: !!state.email
 			});
+			oncomplete?.();
 			sendResultsEmail();
 		}
 	}
 
 	function prevStep() {
-		if (state.currentStep > -1) {
+		// initialStep, а не -1: при showEmailStep=false шага -1 не существует,
+		// и уход на него (стрелкой влево или Backspace с первого вопроса)
+		// оставлял пустой экран
+		if (state.currentStep > initialStep) {
 			let prevIdx = state.currentStep - 1;
 
 			while (prevIdx >= 0) {
@@ -306,7 +325,7 @@
 				prevIdx--;
 			}
 
-			state.currentStep = prevIdx;
+			state.currentStep = Math.max(prevIdx, initialStep);
 
 			if (state.showResults) {
 				state.showResults = false;
@@ -320,7 +339,10 @@
 		state.answers = {};
 		state.email = '';
 		state.consent = false;
-		state.currentStep = -1;
+		// Именно initialStep, а не -1: шаг -1 — это экран сбора email, и когда
+		// showEmailStep=false, ему в разметке не соответствует ни одна ветка —
+		// получался пустой экран до перезагрузки
+		state.currentStep = initialStep;
 		state.showResults = false;
 		state.copied = false;
 		hasInitialScrolled = false;
@@ -514,7 +536,9 @@
 								sub.interpretation.color === 'red' || sub.interpretation.color === 'darkred'
 									? 'red'
 									: 'orange'}
-							{@const rec = recKey ? (dimensionRecs[recKey]?.[zone] ?? dimensionRecs[recKey]?.red) : null}
+							{@const rec = recKey
+								? (dimensionRecs[recKey]?.[zone] ?? dimensionRecs[recKey]?.red)
+								: null}
 							{#if rec}
 								<div class="rounded-2xl bg-card px-6 py-6 sm:px-8 sm:py-7">
 									<div class="mb-3 flex items-start gap-2.5">
@@ -555,8 +579,14 @@
 								нужно долго объяснять, почему вечером тянет проверить рабочий чат, а в отпуск берут
 								ноутбук «на всякий случай».
 							</p>
-							<p>Я провожу индивидуальные психологические консультации. Формат работы — онлайн-встречи по 50 минут, обычно раз в неделю.</p>
-							<p>В работе я опираюсь на когнитивно-поведенческие подходы (КПТ и ACT) — с широкой исследовательской базой.</p>
+							<p>
+								Я провожу индивидуальные психологические консультации. Формат работы —
+								онлайн-встречи по 50 минут, обычно раз в неделю.
+							</p>
+							<p>
+								В работе я опираюсь на когнитивно-поведенческие подходы (КПТ и ACT) — с широкой
+								исследовательской базой.
+							</p>
 							<p>
 								На консультациях мы разбираемся, что именно у вас отнимает силы и почему они не
 								восстанавливаются. Смотрим, какие рабочие условия, мысли, правила и привычные
@@ -570,8 +600,9 @@
 				</section>
 			{/if}
 
-			<!-- CTA — три варианта в зависимости от зоны результата, в стиле секции «Рекомендации» -->
-			<section class="mt-8 md:mt-10">
+			<!-- CTA — три варианта в зависимости от зоны результата, в стиле секции «Рекомендации».
+			     id — цель ссылки /useful/burnout-questionnaire?to=acquaintance из бота -->
+			<section id="acquaintance" class="mt-8 scroll-mt-8 md:mt-10">
 				{#if currentScore.interpretation.color === 'green'}
 					<!-- Зелёная зона: канал -->
 					<h3
@@ -633,7 +664,8 @@
 							</p>
 						{/if}
 						<p>
-							Начать можно со встречи-знакомства. Это короткая встреча, чтобы проверить, подходим ли мы друг другу:
+							Начать можно со встречи-знакомства. Это короткая встреча, чтобы проверить, подходим ли
+							мы друг другу:
 						</p>
 						<ul class="flex flex-col gap-1">
 							<li>— вы расскажете, что вас беспокоит;</li>

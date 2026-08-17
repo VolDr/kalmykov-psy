@@ -165,8 +165,10 @@
     )
   );
 
+  // text-center и leading-tight нужны, когда подпись не влезла в одну строку:
+  // без них строки выравниваются по левому краю и вылезают из плашки
   const textClass = cn(
-    'relative z-10 rotate-[0.25deg]',
+    'relative z-10 rotate-[0.25deg] text-center leading-tight',
     'text-[length:var(--button-svg-text-size)] font-bold tracking-[-0.03em]',
     'text-[var(--button-svg-text-color)]'
   );

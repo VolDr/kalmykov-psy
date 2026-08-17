@@ -6,7 +6,11 @@ interface TrackingOptions {
 	minimumReadingTimeMs?: number;
 }
 
-async function sendEvent(
+/**
+ * Разовая отправка события лид-магнита. Для статей вызывается изнутри
+ * setupLeadMagnetTracking, для опросника — напрямую со страницы.
+ */
+export async function sendEvent(
 	leadMagnet: string,
 	event: string,
 	progress: number
@@ -44,7 +48,8 @@ export function setupLeadMagnetTracking({
 	let scrollMet = false;
 
 	function getScrollDepth(): number {
-		const scrollable = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+		const scrollable =
+			document.documentElement.scrollHeight - document.documentElement.clientHeight;
 		if (scrollable <= 0) return 100;
 		return Math.min(100, (window.scrollY / scrollable) * 100);
 	}
