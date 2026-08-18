@@ -65,24 +65,39 @@
 	const availableDatesSet = $derived(new Set(slotsByLocalDate.keys()));
 
 	// ── подсказка «расписание на следующий месяц» ──────────────────────────
-	// Показывается только на текущем месяце, только когда до его конца осталось
-	// меньше LAST_DAYS_THRESHOLD дней и только если на следующий месяц
-	// действительно есть свободные слоты.
-	const LAST_DAYS_THRESHOLD = 10;
+	// Показывается, когда все условия совпали:
+	//   1) до конца текущего месяца осталось меньше LAST_DAYS_THRESHOLD дней;
+	//   2) в текущем месяце осталось меньше FREE_DAYS_THRESHOLD дней со
+	//      свободными окошками (расписание на месяц подходит к концу);
+	//   3) на следующий месяц свободные окошки действительно есть;
+	//   4) календарь открыт именно на текущем месяце.
+	const LAST_DAYS_THRESHOLD = 14;
+	const FREE_DAYS_THRESHOLD = 7;
 	let calendarPlaceholder = $state<DateValue | undefined>(undefined);
 
-	const hasNextMonthSlots = $derived.by(() => {
-		const now = new Date();
-		const next = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-		const prefix = `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, '0')}-`;
-		for (const [date, slots] of slotsByLocalDate) {
-			if (date.startsWith(prefix) && slots.some((s) => s.status === 'available')) return true;
+	function monthPrefix(d: Date): string {
+		return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-`;
+	}
+
+	/** Сколько дней со свободными окошками осталось в месяце (прошедшие даты в расписание не попадают). */
+	function countFreeDays(prefix: string, byDate: Map<string, Slot[]>): number {
+		let n = 0;
+		for (const [date, slots] of byDate) {
+			if (date.startsWith(prefix) && slots.some((sl) => sl.status === 'available')) n++;
 		}
-		return false;
+		return n;
+	}
+
+	const freeDaysThisMonth = $derived(countFreeDays(monthPrefix(new Date()), slotsByLocalDate));
+
+	const freeDaysNextMonth = $derived.by(() => {
+		const now = new Date();
+		return countFreeDays(monthPrefix(new Date(now.getFullYear(), now.getMonth() + 1, 1)), slotsByLocalDate);
 	});
 
 	const showNextMonthHint = $derived.by(() => {
-		if (!hasNextMonthSlots) return false;
+		if (freeDaysNextMonth === 0) return false;
+		if (freeDaysThisMonth >= FREE_DAYS_THRESHOLD) return false;
 		const now = new Date();
 		const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
 		if (daysInMonth - now.getDate() >= LAST_DAYS_THRESHOLD) return false;
@@ -91,6 +106,34 @@
 		if (!p) return true;
 		return p.year === now.getFullYear() && p.month === now.getMonth() + 1;
 	});
+
+	// Диагностика подсказки: открыть /booking?debughint=1 и смотреть консоль.
+	// Без параметра ничего не пишется — на боевой странице логов нет.
+	$effect(() => {
+		if (!new URLSearchParams(location.search).has('debughint')) return;
+		const now = new Date();
+		const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+		const daysLeft = daysInMonth - now.getDate();
+		const p = calendarPlaceholder;
+		console.log('[hint] подсказка «следующий месяц»', {
+			сегодня: now.toString(),
+			днейДоКонцаМесяца: daysLeft,
+			[`✓ осталось меньше ${LAST_DAYS_THRESHOLD} дней`]: daysLeft < LAST_DAYS_THRESHOLD,
+			свободныхДнейВЭтомМесяце: freeDaysThisMonth,
+			[`✓ свободных дней меньше ${FREE_DAYS_THRESHOLD}`]: freeDaysThisMonth < FREE_DAYS_THRESHOLD,
+			свободныхДнейВСледующемМесяце: freeDaysNextMonth,
+			'✓ есть слоты в следующем месяце': freeDaysNextMonth > 0,
+			месяцКалендаря: p ? `${p.year}-${String(p.month).padStart(2, '0')}` : 'ещё не задан',
+			'✓ открыт текущий месяц':
+				!p || (p.year === now.getFullYear() && p.month === now.getMonth() + 1),
+			даты_со_свободными_окошками: [...slotsByLocalDate.entries()]
+				.filter(([, sl]) => sl.some((x) => x.status === 'available'))
+				.map(([d]) => d)
+				.sort(),
+			ИТОГ_показывать: showNextMonthHint
+		});
+	});
+
 	const slotsForSelectedDate = $derived(
 		(slotsByLocalDate.get(selectedDate) ?? []).filter((s) => s.status === 'available')
 	);
