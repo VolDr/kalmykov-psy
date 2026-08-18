@@ -63,6 +63,34 @@
 	});
 
 	const availableDatesSet = $derived(new Set(slotsByLocalDate.keys()));
+
+	// ── подсказка «расписание на следующий месяц» ──────────────────────────
+	// Показывается только на текущем месяце, только когда до его конца осталось
+	// меньше LAST_DAYS_THRESHOLD дней и только если на следующий месяц
+	// действительно есть свободные слоты.
+	const LAST_DAYS_THRESHOLD = 10;
+	let calendarPlaceholder = $state<DateValue | undefined>(undefined);
+
+	const hasNextMonthSlots = $derived.by(() => {
+		const now = new Date();
+		const next = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+		const prefix = `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, '0')}-`;
+		for (const [date, slots] of slotsByLocalDate) {
+			if (date.startsWith(prefix) && slots.some((s) => s.status === 'available')) return true;
+		}
+		return false;
+	});
+
+	const showNextMonthHint = $derived.by(() => {
+		if (!hasNextMonthSlots) return false;
+		const now = new Date();
+		const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+		if (daysInMonth - now.getDate() >= LAST_DAYS_THRESHOLD) return false;
+		const p = calendarPlaceholder;
+		// пока календарь не сообщил месяц — он открыт на текущем
+		if (!p) return true;
+		return p.year === now.getFullYear() && p.month === now.getMonth() + 1;
+	});
 	const slotsForSelectedDate = $derived(
 		(slotsByLocalDate.get(selectedDate) ?? []).filter((s) => s.status === 'available')
 	);
@@ -235,12 +263,63 @@
 					<div class="grid grid-cols-1 gap-7 md:grid-cols-[300px_1fr] md:gap-9">
 						<!-- календарь (стандартный Bits-UI Calendar) -->
 						<div class="flex justify-center md:justify-start">
-							<Calendar
-								type="single"
-								locale="ru"
-								{isDateUnavailable}
-								onValueChange={handleDateChange}
-							/>
+							<div class={cn('relative', showNextMonthHint && 'mt-[96px] md:mt-[84px]')}>
+								{#if showNextMonthHint}
+									<!-- облачко-подсказка со стрелкой на кнопку «следующий месяц» -->
+									<svg
+										viewBox="0 0 210 135"
+										aria-hidden="true"
+										class="hint-wiggle pointer-events-none absolute right-0 bottom-[calc(100%-42px)] z-10 w-[190px] text-navy"
+									>
+										<!-- облачко + текст: слегка повёрнуты, как бейджи на главной -->
+										<g transform="rotate(-3.5 96 37)">
+											<path
+												d="M 26 10 C 70 6, 130 7, 166 11 C 184 13, 187 26, 186 37 C 185 49, 183 63, 164 65 C 122 68, 62 67, 28 64 C 10 62, 5 49, 6 37 C 7 25, 10 12, 26 10 Z"
+												fill="#ded5f4"
+											/>
+											<text
+												x="96"
+												y="31"
+												text-anchor="middle"
+												font-family="inherit"
+												font-size="15"
+												font-weight="700"
+												letter-spacing="-0.4"
+												fill="#322d43">Доступно расписание</text
+											>
+											<text
+												x="96"
+												y="51"
+												text-anchor="middle"
+												font-family="inherit"
+												font-size="15"
+												font-weight="700"
+												letter-spacing="-0.4"
+												fill="#322d43">на следующий месяц</text
+											>
+										</g>
+										<!-- стрелка: одной дугой к кнопке, останавливается чуть выше неё -->
+										<g
+											fill="none"
+											stroke="currentColor"
+											stroke-width="2.4"
+											stroke-linecap="round"
+											stroke-linejoin="round"
+										>
+											<path d="M 118 68 C 140 74, 158 86, 172 96" />
+											<path d="M 172 96 L 167.4 86" />
+											<path d="M 172 96 L 161.1 94.9" />
+										</g>
+									</svg>
+								{/if}
+								<Calendar
+									type="single"
+									locale="ru"
+									bind:placeholder={calendarPlaceholder}
+									{isDateUnavailable}
+									onValueChange={handleDateChange}
+								/>
+							</div>
 						</div>
 
 						<!-- слоты -->
@@ -330,3 +409,38 @@
 		</div>
 	</div>
 </div>
+
+<style>
+	/* лёгкое покачивание облачка раз в несколько секунд;
+	   центр вращения — у острия стрелки, поэтому она остаётся на кнопке */
+	.hint-wiggle {
+		transform-origin: 82% 71%;
+		animation: hint-wiggle 6s ease-in-out infinite;
+	}
+
+	@keyframes hint-wiggle {
+		0%,
+		82%,
+		100% {
+			transform: rotate(0deg);
+		}
+		86% {
+			transform: rotate(-4deg);
+		}
+		90% {
+			transform: rotate(3deg);
+		}
+		94% {
+			transform: rotate(-2deg);
+		}
+		97% {
+			transform: rotate(1deg);
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.hint-wiggle {
+			animation: none;
+		}
+	}
+</style>
