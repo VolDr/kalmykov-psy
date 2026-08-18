@@ -78,6 +78,48 @@
       "when": 1783357074704,
       "tag": "0010_clip_articles",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1785739200000,
+      "tag": "0011_step_conditions",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1785739201000,
+      "tag": "0012_contact_funnel",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1785740527000,
+      "tag": "0013_subscription_gates",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1786980524679,
+      "tag": "0014_callback_idempotency",
+      "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1786980524680,
+      "tag": "0015_skipped_step_status",
+      "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1787001900000,
+      "tag": "0016_chain_depth_and_quiz_delivery",
+      "breakpoints": true
     }
   ]
 }

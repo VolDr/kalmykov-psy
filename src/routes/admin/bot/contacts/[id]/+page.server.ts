@@ -143,7 +143,11 @@ export const actions = {
 
 		await db
 			.update(schema.botScheduledSteps)
-			.set({ status: 'cancelled', processedAt: sql`now()` })
+			.set({
+				status: 'cancelled',
+				cancellationReason: 'cancelled_manually',
+				processedAt: sql`now()`
+			})
 			.where(
 				and(
 					eq(schema.botScheduledSteps.id, scheduledId),

@@ -2,7 +2,7 @@ import { randomBytes } from 'node:crypto';
 import { db } from '../..';
 import * as schema from '../../db/schema';
 import type { QuizSphereRecs, QuizSubscaleResult } from '../../db/schema';
-import { eq, sql } from 'drizzle-orm';
+import { and, eq, isNotNull, isNull, or, sql } from 'drizzle-orm';
 import { DEFAULT_QUIZ_BOT_TEXTS, DEFAULT_SPHERE_RECS } from './quiz-messages';
 
 export type QuizResult = typeof schema.quizResults.$inferSelect;
@@ -38,6 +38,61 @@ export async function getQuizResultByToken(token: string): Promise<QuizResult | 
 	return result ?? null;
 }
 
+/**
+ * Захватывает право на первую выдачу разбора. Атомарно: побеждает ровно один
+ * процесс, остальные получают false и молча отходят — иначе два одновременных
+ * нажатия «Я подписался» слали бы человеку два полных разбора и дважды
+ * запускали побочные эффекты (теги, прогревочную цепочку).
+ *
+ * Заодно это и метка для подметания: пара delivery_started_at + delivered_at
+ * отличает «упало на середине» (повторить) от «человек ещё не прошёл шлагбаум»
+ * (повторять нечего). Захват старше staleMinutes считается брошенным.
+ */
+export async function claimQuizDelivery(id: number, staleMinutes = 5): Promise<boolean> {
+	const claimed = await db
+		.update(schema.quizResults)
+		.set({ deliveryStartedAt: sql`now()` })
+		.where(
+			and(
+				eq(schema.quizResults.id, id),
+				isNull(schema.quizResults.deliveredAt),
+				or(
+					isNull(schema.quizResults.deliveryStartedAt),
+					sql`${schema.quizResults.deliveryStartedAt} < now() - make_interval(mins => ${staleMinutes})`
+				)
+			)
+		)
+		.returning({ id: schema.quizResults.id });
+	return claimed.length > 0;
+}
+
+/**
+ * Разборы, выдача которых началась и не завершилась: процесс перезапустили или
+ * Telegram отвалился на середине. Свежие пропускаем — их, возможно, прямо
+ * сейчас и отправляют.
+ *
+ * Контакт приходит тем же запросом, и заблокировавшие бота отсеиваются прямо в
+ * SQL: доставить им нельзя, а место в выборке они занимали бы вечно и вытесняли
+ * тех, кому доотправить реально надо. Разблокируется — снова попадёт в выборку.
+ * Удалённые контакты отсеиваются сами: contact_id у них обнуляется по FK.
+ */
+export async function findStalledQuizDeliveries(staleMinutes = 5, limit = 50) {
+	const rows = await db
+		.select({ result: schema.quizResults, contact: schema.botContacts })
+		.from(schema.quizResults)
+		.innerJoin(schema.botContacts, eq(schema.quizResults.contactId, schema.botContacts.id))
+		.where(
+			and(
+				isNotNull(schema.quizResults.deliveryStartedAt),
+				isNull(schema.quizResults.deliveredAt),
+				eq(schema.botContacts.botBlocked, false),
+				sql`${schema.quizResults.deliveryStartedAt} < now() - make_interval(mins => ${staleMinutes})`
+			)
+		)
+		.limit(limit);
+	return rows;
+}
+
 export async function markQuizResultDelivered(id: number, contactId: number) {
 	await db
 		.update(schema.quizResults)
@@ -45,12 +100,28 @@ export async function markQuizResultDelivered(id: number, contactId: number) {
 		.where(eq(schema.quizResults.id, id));
 }
 
-/** Привязывает результат к контакту при первом заходе по диплинку (до проверки подписки). */
-export async function claimQuizResult(id: number, contactId: number) {
-	await db
+/**
+ * Привязывает результат к контакту при первом заходе по диплинку (до проверки
+ * подписки) и отвечает, вправе ли этот контакт его получить.
+ *
+ * Токен в ссылке t.me/<бот>?start=qr_<token> — предъявительский, а за ним стоят
+ * результаты психологического опросника. Ссылку пересылают, поэтому владельца
+ * фиксируем ровно один раз: привязка проходит только при пустом contact_id,
+ * дальше результат отдаётся исключительно этому контакту. Условие в WHERE, а не
+ * в коде, чтобы два одновременных перехода не перетёрли владельца.
+ */
+export async function claimQuizResult(id: number, contactId: number): Promise<boolean> {
+	const claimed = await db
 		.update(schema.quizResults)
 		.set({ contactId })
-		.where(eq(schema.quizResults.id, id));
+		.where(
+			and(
+				eq(schema.quizResults.id, id),
+				or(isNull(schema.quizResults.contactId), eq(schema.quizResults.contactId, contactId))
+			)
+		)
+		.returning({ id: schema.quizResults.id });
+	return claimed.length > 0;
 }
 
 // --- Настройки выдачи результатов в боте (singleton-строка) ---

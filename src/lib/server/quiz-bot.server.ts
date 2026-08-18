@@ -2,6 +2,8 @@ import { GrammyError } from 'grammy';
 import type { InlineKeyboardButton } from 'grammy/types';
 import * as schema from '../../db/schema';
 import {
+	apiDeadline,
+	CALLBACK_SUBSCRIPTION_TIMEOUT_MS,
 	clientBotApi,
 	tgFormat,
 	TELEGRAM_MESSAGE_LIMIT
@@ -10,7 +12,9 @@ import { chatIdForApi } from './bot-channel-posts.server';
 import { addTagsToContact, logOutboundMessage, setBotBlocked } from './bot-contacts.server';
 import { triggerScenarioByKey } from './bot-scenarios.server';
 import {
+	claimQuizDelivery,
 	claimQuizResult,
+	findStalledQuizDeliveries,
 	getQuizBotSettings,
 	getQuizResultByToken,
 	markQuizResultDelivered,
@@ -18,6 +22,7 @@ import {
 	type QuizResult
 } from './quiz-results.server';
 import { buildQuizResultBlocks, packMessages } from './quiz-messages';
+import { logSafeError } from './log-error.server';
 
 type BotContact = typeof schema.botContacts.$inferSelect;
 
@@ -33,19 +38,39 @@ const RESULTS_DELIVERED_SCENARIO_KEY = 'quiz_results_delivered';
  * Подписан ли юзер на канал из настроек. Ошибка проверки (бот не админ канала
  * и т.п.) трактуется в пользу юзера — как в кнопках на постах.
  */
-async function isSubscribed(settings: QuizBotSettings, telegramUserId: number): Promise<boolean> {
+async function isSubscribed(
+	settings: QuizBotSettings,
+	telegramUserId: number,
+	timeoutMs?: number
+): Promise<boolean> {
 	if (!settings.requireSubscription || !settings.channelChatId) return true;
 	try {
 		const member = await clientBotApi.getChatMember(
 			chatIdForApi(settings.channelChatId),
-			telegramUserId
+			telegramUserId,
+			apiDeadline(timeoutMs)
 		);
 		return ['creator', 'administrator', 'member'].includes(member.status);
 	} catch (err) {
-		console.error('[quiz-bot] getChatMember не удался:', err);
+		logSafeError('[quiz-bot] getChatMember не удался:', err);
 		return true;
 	}
 }
+
+/**
+ * Можно ли выдавать разбор прямо сейчас. Первая выдача захватывается атомарно,
+ * чтобы два одновременных нажатия не прислали человеку два полных разбора и не
+ * запустили дважды побочные эффекты. Повторный заход за уже выданным разбором —
+ * это чтение по собственной ссылке, его не блокируем.
+ */
+async function mayDeliver(result: QuizResult): Promise<boolean> {
+	if (result.deliveredAt) return true;
+	return claimQuizDelivery(result.id);
+}
+
+/** Ответ тому, кто открыл чужую ссылку на результаты (её переслали). */
+const FOREIGN_RESULT_TEXT =
+	'Эта ссылка уже привязана к другому человеку. Пройдите опросник сами — и я пришлю ваш разбор.';
 
 /** Отправляет сообщение с логом в инбокс; false — юзер заблокировал бота. */
 async function sendAndLog(
@@ -65,7 +90,7 @@ async function sendAndLog(
 				telegramMessageId: sent.message_id
 			});
 		} catch (err) {
-			console.error('[quiz-bot] Сообщение отправлено, но не записано в историю:', err);
+			logSafeError('[quiz-bot] Сообщение отправлено, но не записано в историю:', err);
 		}
 		return true;
 	} catch (err) {
@@ -108,9 +133,12 @@ async function deliverQuizResults(
 
 	if (alreadyDelivered) return;
 
-	await markQuizResultDelivered(result.id, contact.id);
+	// Галочка «выдано» — последней. Она гасит подметание, поэтому если поставить
+	// её раньше тегов и прогрева, их падение потеряется навсегда: восстановление
+	// увидит запись завершённой и чинить не станет.
 	await addTagsToContact(contact.id, ['quiz_burnout', `quiz_burnout_${result.color}`]);
 	await triggerScenarioByKey(RESULTS_DELIVERED_SCENARIO_KEY, contact.id);
+	await markQuizResultDelivered(result.id, contact.id);
 }
 
 /**
@@ -122,11 +150,15 @@ export async function handleQuizDeeplink(contact: BotContact, token: string): Pr
 	const result = await getQuizResultByToken(token);
 	if (!result) return false;
 
-	await claimQuizResult(result.id, contact.id);
+	// Ссылку могли переслать: результаты отдаём только тому, кто пришёл по ней первым
+	if (!(await claimQuizResult(result.id, contact.id))) {
+		await sendAndLog(contact, FOREIGN_RESULT_TEXT);
+		return true;
+	}
 
 	const settings = await getQuizBotSettings();
 	if (await isSubscribed(settings, contact.telegramUserId)) {
-		await deliverQuizResults(contact, result, settings);
+		if (await mayDeliver(result)) await deliverQuizResults(contact, result, settings);
 		return true;
 	}
 
@@ -143,21 +175,71 @@ export async function handleQuizDeeplink(contact: BotContact, token: string): Pr
 }
 
 /**
- * Клик «Я подписался» (callback qz:<token>): перепроверяем подписку; подписан —
- * выдаём разбор, нет — алерт. Возвращает текст алерта или null (алерт не нужен).
+ * Клик «Я подписался» (callback qz:<token>): перепроверяем подписку и решаем,
+ * можно ли выдавать разбор. Сама выдача — отдельным шагом (deliverQuizResults),
+ * потому что у Telegram есть считаные секунды на ответ по callback, а разбор
+ * это несколько сообщений подряд: пока они уходили, кнопка успевала протухнуть
+ * и апдейт прилетал повторно.
+ *
+ * `alert` — что показать человеку, `deliver` — выдавать ли разбор после ответа.
  */
 export async function handleQuizCheckCallback(
 	contact: BotContact,
 	token: string
-): Promise<string | null> {
+): Promise<{ alert: string | null; deliver: (() => Promise<void>) | null }> {
 	const result = await getQuizResultByToken(token);
-	if (!result) return 'Не нашёл результаты — пройдите опросник ещё раз, пожалуйста.';
-
-	const settings = await getQuizBotSettings();
-	if (!(await isSubscribed(settings, contact.telegramUserId))) {
-		return settings.notSubscribedAlert;
+	if (!result) {
+		return { alert: 'Не нашёл результаты — пройдите опросник ещё раз, пожалуйста.', deliver: null };
 	}
 
-	await deliverQuizResults(contact, result, settings);
-	return null;
+	if (!(await claimQuizResult(result.id, contact.id))) {
+		return { alert: FOREIGN_RESULT_TEXT, deliver: null };
+	}
+
+	const settings = await getQuizBotSettings();
+	const subscribed = await isSubscribed(
+		settings,
+		contact.telegramUserId,
+		CALLBACK_SUBSCRIPTION_TIMEOUT_MS
+	);
+	if (!subscribed) {
+		return { alert: settings.notSubscribedAlert, deliver: null };
+	}
+
+	// Захват ДО ответа Telegram, а не внутри deliver(): выдача уходит в фон, и
+	// если процесс перезапустят сразу после ответа, следа не останется совсем —
+	// кнопку мы уже сняли, а Telegram апдейт не повторит.
+	if (!(await mayDeliver(result))) return { alert: null, deliver: null };
+
+	return { alert: null, deliver: () => deliverQuizResults(contact, result, settings) };
+}
+
+/**
+ * Доигрывает разборы, выдача которых оборвалась (рестарт процесса, сбой сети).
+ * Вызывается кроном: сам callback отвечает Telegram сразу и шлёт разбор в фоне,
+ * поэтому без этого подметания оборванная выдача терялась бы навсегда — кнопка
+ * к тому моменту уже снята, и повторить её человеку нечем.
+ *
+ * Повтор шлёт блоки заново: гарантия at-least-once, как и у очереди шагов.
+ */
+export async function retryStalledQuizDeliveries(): Promise<number> {
+	const stalled = await findStalledQuizDeliveries();
+	if (stalled.length === 0) return 0;
+
+	const settings = await getQuizBotSettings();
+	let recovered = 0;
+
+	for (const { result, contact } of stalled) {
+		// Перезахватываем: иначе два инстанса подметания доиграли бы один разбор дважды
+		if (!(await claimQuizDelivery(result.id))) continue;
+
+		try {
+			await deliverQuizResults(contact, result, settings);
+			recovered++;
+		} catch (err) {
+			logSafeError(`[quiz-bot] Не смог доиграть разбор ${result.id}:`, err);
+		}
+	}
+
+	return recovered;
 }

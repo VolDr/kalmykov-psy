@@ -1,13 +1,19 @@
 import { db } from '../..';
 import * as schema from '../../db/schema';
-import { and, asc, eq, gt, lte, sql } from 'drizzle-orm';
+import { and, asc, eq, gt, lte, ne, sql, type SQL } from 'drizzle-orm';
 import { GrammyError, InputFile } from 'grammy';
 import type { InlineKeyboardButton } from 'grammy/types';
-import { clientBotApi, tgFormat } from './telegram-client-bot.server';
+import {
+	apiDeadline,
+	CALLBACK_SUBSCRIPTION_TIMEOUT_MS,
+	clientBotApi,
+	tgFormat
+} from './telegram-client-bot.server';
 import { absoluteStepFilePath } from './bot-step-files.server';
 import { chatIdForApi } from './bot-channel-posts.server';
 import { getQuizBotSettings } from './quiz-results.server';
 import { markGatePassed, markGateShown } from './bot-funnel.server';
+import { logSafeError } from './log-error.server';
 import {
 	getContact,
 	logOutboundMessage,
@@ -20,12 +26,60 @@ const MAX_ATTEMPTS = 3;
 /** Префикс callback data кнопки «Я подписался» у шага-шлагбаума: sub:<stepId> */
 export const SUBSCRIPTION_CALLBACK_PREFIX = 'sub:';
 
+const GATE_CALLBACK_CONSTRAINT = 'bot_scheduled_steps_gate_callback_key';
+const SCENARIO_RUN_CONSTRAINT = 'bot_scenario_runs_contact_scenario_key';
+
+/**
+ * Причины отмены, за которыми стоит временная поломка, а не решение системы:
+ * повторное нажатие «Я подписался» имеет право поднять такое продолжение.
+ */
+const REVIVABLE_CANCELLATIONS = ['scenario_disabled', 'contact_blocked'];
+
+/**
+ * Единственная причина отмены, о которой стоит сказать человеку при повторном
+ * нажатии: отправку снял администратор. Остальные (`scenario_restarted`,
+ * `cancelled_by_scenario`, `broadcast_restarted`, `step_deleted_no_successor`)
+ * системные — цепочку заменили новее либо хвоста уже не существует, чинить
+ * там нечего, и алерт «напишите администратору» только пугает.
+ */
+const MANUAL_CANCELLATION = 'cancelled_manually';
+
 // Предохранитель от циклов «шаг запускает цепочку» (A → B → A → …)
 const MAX_CHAIN_DEPTH = 5;
 
 type BotContact = typeof schema.botContacts.$inferSelect;
 type BotScenario = typeof schema.botScenarios.$inferSelect;
 type BotScenarioStep = typeof schema.botScenarioSteps.$inferSelect;
+type BotScheduledStep = typeof schema.botScheduledSteps.$inferSelect;
+
+type SubscriptionGateCallbackResult = {
+	alert: string | null;
+	/** id задания очереди, которое можно выполнить прямо сейчас, не дожидаясь крона */
+	continuationId: number | null;
+	accepted: boolean;
+};
+
+/**
+ * Общий контекст одного синхронного прохода по цепочке: глубина вложенных
+ * запусков (предохранитель от циклов) и ответ Telegram о подписке, чтобы не
+ * спрашивать getChatMember через прокси на каждом шаге. Память живёт ровно
+ * один проход, поэтому «подписался прямо сейчас» не может застрять в кеше.
+ */
+type ChainContext = { depth: number; subscription: Map<string, boolean> };
+
+/** db или транзакция — обе умеют select/insert/update, которые здесь нужны. */
+type DbExecutor = typeof db | Parameters<Parameters<typeof db.transaction>[0]>[0];
+
+type MarkScheduledData = {
+	status: (typeof schema.botScheduledStepStatusEnum.enumValues)[number];
+	attempts?: number;
+	lastError?: string;
+	cancellationReason?: string;
+};
+
+function newChainContext(depth = 0): ChainContext {
+	return { depth, subscription: new Map() };
+}
 
 /**
  * Проверяет значение триггера для типа. Возвращает текст ошибки или null.
@@ -74,17 +128,50 @@ async function resolveScenarioChannelChatId(scenarioId: number): Promise<string 
  */
 export async function isContactSubscribed(
 	scenarioId: number,
-	telegramUserId: number
+	telegramUserId: number,
+	timeoutMs?: number
 ): Promise<boolean> {
 	const chatId = await resolveScenarioChannelChatId(scenarioId);
 	if (!chatId) return true;
 	try {
-		const member = await clientBotApi.getChatMember(chatIdForApi(chatId), telegramUserId);
+		const member = await clientBotApi.getChatMember(
+			chatIdForApi(chatId),
+			telegramUserId,
+			apiDeadline(timeoutMs)
+		);
 		return ['creator', 'administrator', 'member'].includes(member.status);
 	} catch (err) {
-		console.error('[bot-scenarios] getChatMember не удался:', err);
+		logSafeError('[bot-scenarios] getChatMember не удался:', err);
 		return true;
 	}
+}
+
+/**
+ * Не сняли ли задание, пока мы его выполняли. Захват не выводит запись из
+ * pending, поэтому отмена может прилететь в любой момент отправки.
+ */
+async function isStillPending(id: number): Promise<boolean> {
+	const [row] = await db
+		.select({ status: schema.botScheduledSteps.status })
+		.from(schema.botScheduledSteps)
+		.where(eq(schema.botScheduledSteps.id, id))
+		.limit(1);
+	return row?.status === 'pending';
+}
+
+/** isContactSubscribed с памятью на один проход по цепочке (см. ChainContext). */
+async function subscribedInChain(
+	scenarioId: number,
+	telegramUserId: number,
+	chain: ChainContext
+): Promise<boolean> {
+	const key = `${scenarioId}:${telegramUserId}`;
+	const remembered = chain.subscription.get(key);
+	if (remembered !== undefined) return remembered;
+
+	const subscribed = await isContactSubscribed(scenarioId, telegramUserId);
+	chain.subscription.set(key, subscribed);
+	return subscribed;
 }
 
 /** Шаг-шлагбаум: выполнившись, останавливает цепочку до нажатия «Я подписался». */
@@ -238,16 +325,18 @@ export async function triggerScenarioForContact(
 				});
 			} catch (err) {
 				// Параллельный запуск (двойной /start) уже записал — не роняем обработку
-				if (!(err instanceof Error && err.message.includes('bot_scenario_runs_contact_scenario_key'))) {
-					throw err;
-				}
+				if (!isConstraintViolation(err, SCENARIO_RUN_CONSTRAINT)) throw err;
 			}
 		}
 	}
 
 	await db
 		.update(schema.botScheduledSteps)
-		.set({ status: 'cancelled', processedAt: sql`now()` })
+		.set({
+			status: 'cancelled',
+			cancellationReason: 'scenario_restarted',
+			processedAt: sql`now()`
+		})
 		.where(
 			and(
 				eq(schema.botScheduledSteps.contactId, contact.id),
@@ -259,7 +348,11 @@ export async function triggerScenarioForContact(
 	if (scenario.cancelsOthers) {
 		await db
 			.update(schema.botScheduledSteps)
-			.set({ status: 'cancelled', processedAt: sql`now()` })
+			.set({
+				status: 'cancelled',
+				cancellationReason: 'cancelled_by_scenario',
+				processedAt: sql`now()`
+			})
 			.where(
 				and(
 					eq(schema.botScheduledSteps.contactId, contact.id),
@@ -269,26 +362,49 @@ export async function triggerScenarioForContact(
 			);
 	}
 
-	await continueScenario(contact, scenario.id, null, depth);
+	await continueScenario(contact, scenario.id, null, newChainContext(depth));
 }
 
 /**
- * Выполняет шаги цепочки после позиции `afterPosition` (null — с начала):
- * шаги без задержки выполняются сразу один за другим, первый шаг с задержкой
- * планируется в bot_scheduled_steps, и обработка останавливается — дальше
- * цепочку продолжит cron после отправки этого шага.
+ * Продвигает цепочку на один шаг после позиции `afterPosition` (null — с начала).
  *
- * Шаг с условием, которое не выполнено, пропускается — цепочка идёт дальше.
- * Шаг-шлагбаум («Проверить подписку») останавливает цепочку: продолжит её
- * handleSubscriptionGateCallback, когда юзер нажмёт кнопку.
+ * Каждый шаг сначала становится записью в bot_scheduled_steps и только потом
+ * выполняется — даже шаг без задержки. Это стоит одной вставки, но даёт всему
+ * тракту (а не только отложенным шагам) чекпоинты частичной доставки и ретрай
+ * кроном: если процесс упадёт на середине цепочки, запись останется pending и
+ * цепочка доедет, а не оборвётся молча.
+ *
+ * Шаг без задержки выполняется здесь же, синхронно, поэтому для человека ничего
+ * не меняется: после /start сообщения приходят мгновенно. Дальше цепочку
+ * двигает сам runScheduledStep — рекурсивно, шаг за шагом.
  */
 export async function continueScenario(
 	contact: BotContact,
 	scenarioId: number,
 	afterPosition: number | null,
-	depth = 0
+	chain: ChainContext = newChainContext()
 ) {
-	const steps = await db
+	const queuedId = await enqueueNextStep(db, contact, scenarioId, afterPosition, chain);
+	if (queuedId !== null) await runScheduledStep(queuedId, chain);
+}
+
+/**
+ * Ставит в очередь ближайший шаг после `afterPosition`. Возвращает id задания,
+ * которое надо выполнить прямо сейчас, или null — если шагов больше нет либо
+ * ближайший отложенный (его заберёт cron).
+ *
+ * Принимает `tx`, чтобы постановку следующего шага можно было выполнить в одной
+ * транзакции с завершением текущего: иначе падение между этими двумя записями
+ * обрывает цепочку навсегда — текущий шаг уже `sent`, а следующего ещё нет.
+ */
+async function enqueueNextStep(
+	tx: DbExecutor,
+	contact: BotContact,
+	scenarioId: number,
+	afterPosition: number | null,
+	chain: ChainContext
+): Promise<number | null> {
+	const [step] = await tx
 		.select()
 		.from(schema.botScenarioSteps)
 		.where(
@@ -297,74 +413,195 @@ export async function continueScenario(
 				gt(schema.botScenarioSteps.position, afterPosition ?? -1)
 			)
 		)
-		.orderBy(asc(schema.botScenarioSteps.position));
+		.orderBy(asc(schema.botScenarioSteps.position))
+		.limit(1);
+	if (!step) return null;
 
-	// Подписку в рамках одного прохода спрашиваем у Telegram максимум один раз
-	let subscribed: boolean | undefined;
-	const subscribedNow = async () => {
-		if (subscribed === undefined) {
-			subscribed = await isContactSubscribed(scenarioId, contact.telegramUserId);
-		}
-		return subscribed;
-	};
+	// Условие шага проверяется не сейчас, а в момент выполнения: за время
+	// задержки юзер мог подписаться (или отписаться) — считаем по состоянию тогда
+	const [queued] = await tx
+		.insert(schema.botScheduledSteps)
+		.values({
+			contactId: contact.id,
+			scenarioId,
+			stepId: step.id,
+			// Глубину несёт сама запись — переживает задержку и рестарт процесса
+			chainDepth: chain.depth,
+			scheduledAt:
+				step.delaySeconds > 0
+					? sql`now() + make_interval(secs => ${step.delaySeconds})`
+					: sql`now()`
+		})
+		.returning({ id: schema.botScheduledSteps.id });
 
-	for (const step of steps) {
-		if (step.delaySeconds > 0) {
-			// Условие отложенного шага проверяется не сейчас, а при его отправке
-			// (processDueScheduledSteps) — за время задержки юзер мог подписаться
-			await db.insert(schema.botScheduledSteps).values({
-				contactId: contact.id,
-				scenarioId,
-				stepId: step.id,
-				scheduledAt: sql`now() + make_interval(secs => ${step.delaySeconds})`
-			});
-			return;
-		}
-
-		if (step.condition) {
-			const met =
-				step.condition === 'subscribed' ? await subscribedNow() : !(await subscribedNow());
-			if (!met) continue;
-		}
-
-		const delivered = await executeStep(contact, step, depth);
-		if (!delivered) return; // юзер заблокировал бота — цепочку останавливаем
-		if (isGateStep(step)) {
-			await markGateShown(contact.id);
-			return; // ждём нажатия «Я подписался»
-		}
-	}
+	return step.delaySeconds > 0 ? null : queued.id;
 }
 
 /**
  * Нажатие «Я подписался» под шагом-шлагбаумом: перепроверяет подписку и, если
- * она есть, продолжает цепочку со следующего шага. Возвращает текст алерта
- * (юзер всё ещё не подписан / шаг устарел) или null, если всё прошло.
+ * она есть, ставит следующий шаг в надёжную очередь. Сам callback сможет
+ * ответить Telegram сразу, а очередь продолжит цепочку независимо от webhook.
+ * sourceMessageId вместе с contactId и stepId защищает от повторной доставки
+ * одного и того же нажатия Telegram'ом.
  */
 export async function handleSubscriptionGateCallback(
 	contact: BotContact,
-	stepId: number
-): Promise<string | null> {
+	stepId: number,
+	sourceMessageId: number
+): Promise<SubscriptionGateCallbackResult> {
 	const [step] = await db
 		.select()
 		.from(schema.botScenarioSteps)
 		.where(eq(schema.botScenarioSteps.id, stepId));
-	if (!step) return 'Кнопка больше не активна.';
+	if (!step) {
+		return { alert: 'Кнопка больше не активна.', continuationId: null, accepted: false };
+	}
 
 	const [scenario] = await db
 		.select()
 		.from(schema.botScenarios)
 		.where(eq(schema.botScenarios.id, step.scenarioId));
-	if (!scenario?.enabled) return 'Кнопка больше не активна.';
+	if (!scenario?.enabled) {
+		return { alert: 'Кнопка больше не активна.', continuationId: null, accepted: false };
+	}
 
-	if (!(await isContactSubscribed(step.scenarioId, contact.telegramUserId))) {
+	const subscribed = await isContactSubscribed(
+		step.scenarioId,
+		contact.telegramUserId,
+		CALLBACK_SUBSCRIPTION_TIMEOUT_MS
+	);
+	if (!subscribed) {
 		const settings = await getQuizBotSettings();
-		return settings.notSubscribedAlert;
+		return { alert: settings.notSubscribedAlert, continuationId: null, accepted: false };
+	}
+
+	const [nextStep] = await db
+		.select()
+		.from(schema.botScenarioSteps)
+		.where(
+			and(
+				eq(schema.botScenarioSteps.scenarioId, step.scenarioId),
+				gt(schema.botScenarioSteps.position, step.position)
+			)
+		)
+		.orderBy(asc(schema.botScenarioSteps.position))
+		.limit(1);
+
+	// Порядок важен: сначала ставим продолжение, потом снимаем всё остальное.
+	//
+	// Вставка заодно и распознаёт повторную доставку одного и того же нажатия:
+	// уникальный индекс не даст поставить хвост дважды. Если бы отмена шла
+	// первой, копия апдейта от Telegram сняла бы хвост, поставленный оригиналом,
+	// и человек не получил бы вообще ничего.
+	let queuedId: number | null = null;
+	let continuationId: number | null = null;
+	if (nextStep) {
+		try {
+			const [queued] = await db
+				.insert(schema.botScheduledSteps)
+				.values({
+					contactId: contact.id,
+					scenarioId: step.scenarioId,
+					stepId: nextStep.id,
+					sourceStepId: step.id,
+					sourceMessageId,
+					// Глубина с нуля: шлагбаум разрывает автоматическую цепочку — за
+					// каждым продолжением стоит отдельное нажатие живого человека
+					chainDepth: 0,
+					scheduledAt:
+						nextStep.delaySeconds > 0
+							? sql`now() + make_interval(secs => ${nextStep.delaySeconds})`
+							: sql`now()`
+				})
+				.returning({ id: schema.botScheduledSteps.id });
+			queuedId = queued.id;
+			// Отложенный хвост выполнит cron, торопить нечего
+			continuationId = nextStep.delaySeconds > 0 ? null : queued.id;
+		} catch (err) {
+			if (!isConstraintViolation(err, GATE_CALLBACK_CONSTRAINT)) throw err;
+
+			const [existing] = await db
+				.select()
+				.from(schema.botScheduledSteps)
+				.where(
+					and(
+						eq(schema.botScheduledSteps.contactId, contact.id),
+						eq(schema.botScheduledSteps.sourceStepId, step.id),
+						eq(schema.botScheduledSteps.sourceMessageId, sourceMessageId)
+					)
+				)
+				.limit(1);
+
+			if (!existing) throw err;
+
+			const revivable =
+				existing.status === 'failed' ||
+				(existing.status === 'cancelled' &&
+					REVIVABLE_CANCELLATIONS.includes(existing.cancellationReason ?? ''));
+
+			if (revivable) {
+				const [revived] = await db
+					.update(schema.botScheduledSteps)
+					.set({
+						status: 'pending',
+						scheduledAt: sql`now()`,
+						attempts: 0,
+						lastError: null,
+						cancellationReason: null,
+						processedAt: null
+					})
+					.where(
+						and(
+							eq(schema.botScheduledSteps.id, existing.id),
+							eq(schema.botScheduledSteps.status, existing.status)
+						)
+					)
+					.returning({ id: schema.botScheduledSteps.id });
+				queuedId = revived?.id ?? null;
+				continuationId = queuedId;
+			} else if (existing.cancellationReason === MANUAL_CANCELLATION) {
+				return {
+					alert: 'Не удалось продолжить отправку. Напишите боту или администратору.',
+					continuationId: null,
+					accepted: false
+				};
+			}
+		}
+	}
+
+	// Кнопка ведёт себя как повторный /start: всё незавершённое по этой цепочке
+	// снимаем, чтобы нажатие по старому сообщению не пустило вторую копию
+	// параллельно уже идущей. Кроме, разумеется, только что поставленного хвоста.
+	if (queuedId !== null) {
+		await db
+			.update(schema.botScheduledSteps)
+			.set({
+				status: 'cancelled',
+				cancellationReason: 'gate_restarted',
+				processedAt: sql`now()`
+			})
+			.where(
+				and(
+					eq(schema.botScheduledSteps.contactId, contact.id),
+					eq(schema.botScheduledSteps.scenarioId, step.scenarioId),
+					eq(schema.botScheduledSteps.status, 'pending'),
+					ne(schema.botScheduledSteps.id, queuedId)
+				)
+			);
 	}
 
 	await markGatePassed(contact.id);
-	await continueScenario(contact, step.scenarioId, step.position);
-	return null;
+	return { alert: null, continuationId, accepted: true };
+}
+
+function isConstraintViolation(error: unknown, constraint: string): boolean {
+	let current: unknown = error;
+	for (let depth = 0; depth < 4 && current && typeof current === 'object'; depth++) {
+		const record = current as { code?: unknown; constraint?: unknown; cause?: unknown };
+		if (record.code === '23505' && record.constraint === constraint) return true;
+		current = record.cause;
+	}
+	return false;
 }
 
 /**
@@ -419,9 +656,10 @@ async function buildStepKeyboard(
 async function executeStep(
 	contact: BotContact,
 	step: BotScenarioStep,
-	depth = 0
+	depth = 0,
+	scheduled?: BotScheduledStep
 ): Promise<boolean> {
-	if (step.messageText) {
+	if (step.messageText && !scheduled?.messageTelegramId) {
 		const rendered = renderStepText(step.messageText, contact);
 		const replyMarkup = await buildStepKeyboard(step, contact);
 		let sentMessageId: number;
@@ -441,6 +679,16 @@ async function executeStep(
 			throw err;
 		}
 
+		// Сначала фиксируем необратимый внешний эффект. Если позже упадут теги,
+		// этап или связанная цепочка, ретрай не отправит это сообщение повторно.
+		if (scheduled) {
+			await db
+				.update(schema.botScheduledSteps)
+				.set({ messageTelegramId: sentMessageId })
+				.where(eq(schema.botScheduledSteps.id, scheduled.id));
+			scheduled.messageTelegramId = sentMessageId;
+		}
+
 		// Сообщение уже доставлено — ошибка записи в историю не должна ронять шаг,
 		// иначе ретрай очереди отправит клиенту дубль
 		try {
@@ -454,27 +702,42 @@ async function executeStep(
 		}
 	}
 
-	if (step.filePath) {
+	if (step.filePath && !scheduled?.fileTelegramMessageId) {
 		let sentMessageId: number | undefined;
 		try {
 			// После первой отправки Telegram возвращает file_id — дальше шлём по нему,
 			// без повторной загрузки файла с диска
 			const media =
-				step.fileTelegramId ?? new InputFile(absoluteStepFilePath(step.filePath), step.fileName ?? undefined);
+				step.fileTelegramId ??
+				new InputFile(absoluteStepFilePath(step.filePath), step.fileName ?? undefined);
 			const sent = await clientBotApi.sendDocument(contact.telegramUserId, media);
 			sentMessageId = sent.message_id;
 
+			if (scheduled) {
+				await db
+					.update(schema.botScheduledSteps)
+					.set({ fileTelegramMessageId: sentMessageId })
+					.where(eq(schema.botScheduledSteps.id, scheduled.id));
+				scheduled.fileTelegramMessageId = sentMessageId;
+			}
+
 			if (!step.fileTelegramId && sent.document?.file_id) {
 				// file_path в условии — защита от кеширования id уже заменённого файла
-				await db
-					.update(schema.botScenarioSteps)
-					.set({ fileTelegramId: sent.document.file_id })
-					.where(
-						and(
-							eq(schema.botScenarioSteps.id, step.id),
-							eq(schema.botScenarioSteps.filePath, step.filePath)
-						)
-					);
+				try {
+					await db
+						.update(schema.botScenarioSteps)
+						.set({ fileTelegramId: sent.document.file_id })
+						.where(
+							and(
+								eq(schema.botScenarioSteps.id, step.id),
+								eq(schema.botScenarioSteps.filePath, step.filePath)
+							)
+						);
+				} catch (err) {
+					// Файл уже у пользователя и отмечен в queued-задании. Ошибка кеша
+					// file_id не должна превращать успешную доставку в повторную.
+					console.error('[bot-scenarios] Не смог закешировать Telegram file_id:', err);
+				}
 			}
 		} catch (err) {
 			if (err instanceof GrammyError && err.error_code === 403) {
@@ -495,7 +758,17 @@ async function executeStep(
 		}
 	}
 
-	if (step.addTags.length > 0 || step.setStage) {
+	// Отправку не отозвать, а вот обратимые последствия — можно. Если задание сняли,
+	// пока уходило сообщение, теги, этап и дочернюю цепочку применять уже нельзя:
+	// администратор отменял именно их.
+	if (scheduled && !(await isStillPending(scheduled.id))) {
+		console.warn(
+			`[bot-scenarios] Задание ${scheduled.id} отменили во время отправки — эффекты шага не применяю`
+		);
+		return true;
+	}
+
+	if ((step.addTags.length > 0 || step.setStage) && !scheduled?.effectsAppliedAt) {
 		const tags = Array.from(new Set([...contact.tags, ...step.addTags]));
 		await db
 			.update(schema.botContacts)
@@ -506,21 +779,32 @@ async function executeStep(
 			})
 			.where(eq(schema.botContacts.id, contact.id));
 		contact.tags = tags;
+		if (scheduled) {
+			await db
+				.update(schema.botScheduledSteps)
+				.set({ effectsAppliedAt: sql`now()` })
+				.where(eq(schema.botScheduledSteps.id, scheduled.id));
+			scheduled.effectsAppliedAt = new Date().toISOString();
+		}
 	}
 
 	// Запуск связанной цепочки (например, «не догрелся → классическая рассылка»)
-	if (step.startScenarioId) {
+	if (step.startScenarioId && !scheduled?.childScenarioStartedAt) {
 		const [chained] = await db
 			.select()
 			.from(schema.botScenarios)
 			.where(
-				and(
-					eq(schema.botScenarios.id, step.startScenarioId),
-					eq(schema.botScenarios.enabled, true)
-				)
+				and(eq(schema.botScenarios.id, step.startScenarioId), eq(schema.botScenarios.enabled, true))
 			);
 		if (chained) {
 			await triggerScenarioForContact(chained, contact, depth + 1);
+		}
+		if (scheduled) {
+			await db
+				.update(schema.botScheduledSteps)
+				.set({ childScenarioStartedAt: sql`now()` })
+				.where(eq(schema.botScheduledSteps.id, scheduled.id));
+			scheduled.childScenarioStartedAt = new Date().toISOString();
 		}
 	}
 
@@ -569,7 +853,11 @@ export async function launchScenarioForSegment(
 		await db.transaction(async (tx) => {
 			await tx
 				.update(schema.botScheduledSteps)
-				.set({ status: 'cancelled', processedAt: sql`now()` })
+				.set({
+					status: 'cancelled',
+					cancellationReason: 'broadcast_restarted',
+					processedAt: sql`now()`
+				})
 				.where(
 					and(
 						eq(schema.botScheduledSteps.scenarioId, scenarioId),
@@ -633,7 +921,11 @@ export async function deleteStepAndRepointQueue(id: number) {
 		} else {
 			await tx
 				.update(schema.botScheduledSteps)
-				.set({ status: 'cancelled', processedAt: sql`now()` })
+				.set({
+					status: 'cancelled',
+					cancellationReason: 'step_deleted_no_successor',
+					processedAt: sql`now()`
+				})
 				.where(pendingOfStep);
 		}
 
@@ -641,16 +933,20 @@ export async function deleteStepAndRepointQueue(id: number) {
 	});
 }
 
+/** Задание очереди вместе со всем, что нужно для его выполнения. */
+type DueScheduledStep = {
+	scheduled: BotScheduledStep;
+	step: BotScenarioStep;
+	contact: BotContact;
+	scenario: BotScenario;
+};
+
 /**
- * Обрабатывает назревшие отложенные шаги (вызывается cron'ом раз в минуту).
- * После успешной отправки продолжает цепочку сценария с следующего шага.
+ * Задания очереди, готовые к выполнению прямо сейчас. `extra` сужает выборку
+ * до одной записи, когда её надо выполнить адресно (см. runScheduledStep).
  */
-export async function processDueScheduledSteps(): Promise<{
-	processed: number;
-	sent: number;
-	errors: number;
-}> {
-	const due = await db
+function selectDueScheduledSteps(extra?: SQL) {
+	return db
 		.select({
 			scheduled: schema.botScheduledSteps,
 			step: schema.botScenarioSteps,
@@ -667,101 +963,234 @@ export async function processDueScheduledSteps(): Promise<{
 		.where(
 			and(
 				eq(schema.botScheduledSteps.status, 'pending'),
+				lte(schema.botScheduledSteps.scheduledAt, sql`now()`),
+				...(extra ? [extra] : [])
+			)
+		);
+}
+
+/**
+ * Атомарный захват задания: сдвигаем scheduledAt в будущее — параллельный
+ * процесс (cron, другой инстанс во время деплоя, соседний webhook) по условию
+ * scheduled_at <= now() эту запись уже не возьмёт. При падении процесса запись
+ * останется pending и ретраится через 10 минут.
+ * Возвращает номер попытки или null, если задание перехватили.
+ */
+async function claimScheduledStep(scheduled: BotScheduledStep): Promise<number | null> {
+	const attempts = scheduled.attempts + 1;
+	const claimed = await db
+		.update(schema.botScheduledSteps)
+		.set({
+			scheduledAt: sql`now() + interval '10 minutes'`,
+			attempts
+		})
+		.where(
+			and(
+				eq(schema.botScheduledSteps.id, scheduled.id),
+				eq(schema.botScheduledSteps.status, 'pending'),
 				lte(schema.botScheduledSteps.scheduledAt, sql`now()`)
 			)
 		)
+		.returning({ id: schema.botScheduledSteps.id });
+	return claimed.length > 0 ? attempts : null;
+}
+
+/**
+ * Выполняет уже захваченное задание и, если шаг доставлен, продвигает цепочку
+ * дальше. Ошибки не пробрасывает: запись остаётся pending (или failed после
+ * MAX_ATTEMPTS), и её подберёт cron. `delivered` — сообщение ушло человеку,
+ * `failed` — шаг упал и будет ретраиться (нужно только для счётчиков крона).
+ */
+async function runClaimedStep(
+	{ scheduled, step, contact, scenario }: DueScheduledStep,
+	attempts: number,
+	chain: ChainContext
+): Promise<{ delivered: boolean; failed: boolean }> {
+	try {
+		// Шаг завис в ретраях (например, процесс падал на середине отправки)
+		if (attempts > MAX_ATTEMPTS) {
+			await markScheduled(scheduled.id, { status: 'failed', attempts });
+			return { delivered: false, failed: false };
+		}
+
+		// Сценарий выключили или юзер заблокировал бота, пока шаг ждал в очереди
+		if (!scenario.enabled) {
+			await markScheduled(scheduled.id, {
+				status: 'cancelled',
+				cancellationReason: 'scenario_disabled'
+			});
+			return { delivered: false, failed: false };
+		}
+		if (contact.botBlocked) {
+			await markScheduled(scheduled.id, {
+				status: 'cancelled',
+				cancellationReason: 'contact_blocked'
+			});
+			return { delivered: false, failed: false };
+		}
+
+		// Условие проверяем здесь, а не при планировании: за время задержки
+		// юзер мог подписаться (или отписаться) — считаем по состоянию сейчас
+		if (step.condition) {
+			const subscribed = await subscribedInChain(
+				scheduled.scenarioId,
+				contact.telegramUserId,
+				chain
+			);
+			const met = step.condition === 'subscribed' ? subscribed : !subscribed;
+			if (!met) {
+				// Отдельный терминальный статус: шаг не отправляли (значит не 'sent'),
+				// но и не сломался (значит не 'cancelled', и повторное нажатие
+				// «Я подписался» не должно пытаться его оживить).
+				const nextId = await finishAndEnqueueNext(scheduled.id, { status: 'skipped' }, (tx) =>
+					enqueueNextStep(tx, contact, scheduled.scenarioId, step.position, chain)
+				);
+				if (nextId !== null) await runScheduledStep(nextId, chain);
+				return { delivered: false, failed: false };
+			}
+		}
+
+		const delivered = await executeStep(contact, step, chain.depth, scheduled);
+
+		if (!delivered) {
+			await markScheduled(scheduled.id, {
+				status: 'cancelled',
+				cancellationReason: 'contact_blocked'
+			});
+			return { delivered: false, failed: false };
+		}
+
+		// Шлагбаум ждёт нажатия «Я подписался» — дальше цепочку двигает callback,
+		// ставить следующий шаг сейчас нечего
+		if (isGateStep(step)) {
+			if (await markScheduled(scheduled.id, { status: 'sent' })) {
+				await markGateShown(contact.id);
+			}
+			return { delivered: true, failed: false };
+		}
+
+		const nextId = await finishAndEnqueueNext(scheduled.id, { status: 'sent' }, (tx) =>
+			enqueueNextStep(tx, contact, scheduled.scenarioId, step.position, chain)
+		);
+		if (nextId !== null) await runScheduledStep(nextId, chain);
+		return { delivered: true, failed: false };
+	} catch (err) {
+		// При status='pending' шаг ретраится, когда сдвинутый scheduledAt назреет (~10 мин)
+		logSafeError(`[bot-scenarios] Шаг очереди ${scheduled.id} упал:`, err);
+		await markScheduled(scheduled.id, {
+			status: attempts >= MAX_ATTEMPTS ? 'failed' : 'pending',
+			attempts,
+			lastError: err instanceof Error ? err.message : String(err)
+		});
+		return { delivered: false, failed: true };
+	}
+}
+
+/**
+ * Выполняет одно конкретное задание очереди немедленно, не трогая остальные.
+ *
+ * Нужно там, где человек ждёт ответа прямо сейчас: нажал «Я подписался» или
+ * прислал /start. Гонять ради этого общую очередь нельзя — задание встало бы
+ * в хвост назревшей рассылки и материал приехал бы через минуты.
+ */
+export async function runScheduledStep(id: number, chain?: ChainContext): Promise<boolean> {
+	const [due] = await selectDueScheduledSteps(eq(schema.botScheduledSteps.id, id)).limit(1);
+	if (!due) return false; // ещё не назрело, отменено или уже выполнено
+
+	const { delivered } = await runDueRow(due, chain);
+	return delivered;
+}
+
+/**
+ * Захватывает и выполняет назревшее задание. Глубину цепочки берём из самой
+ * записи, если её не передал синхронный проход: только так предохранитель от
+ * циклов (см. MAX_CHAIN_DEPTH в triggerScenarioForContact) переживает задержку
+ * между шагами и продолжает считать сквозь тики крона.
+ */
+async function runDueRow(
+	due: DueScheduledStep,
+	chain?: ChainContext
+): Promise<{ delivered: boolean; failed: boolean }> {
+	const attempts = await claimScheduledStep(due.scheduled);
+	if (attempts === null) return { delivered: false, failed: false }; // захватил другой процесс
+
+	return runClaimedStep(due, attempts, chain ?? newChainContext(due.scheduled.chainDepth));
+}
+
+/**
+ * Обрабатывает назревшие отложенные шаги (вызывается cron'ом раз в минуту).
+ * После успешной отправки продолжает цепочку сценария с следующего шага.
+ */
+export async function processDueScheduledSteps(): Promise<{
+	processed: number;
+	sent: number;
+	errors: number;
+}> {
+	const due = await selectDueScheduledSteps()
 		.orderBy(asc(schema.botScheduledSteps.scheduledAt))
 		.limit(200);
 
 	let sent = 0;
 	let errors = 0;
 
-	for (const { scheduled, step, contact, scenario } of due) {
-		// Атомарный захват шага: сдвигаем scheduledAt в будущее — параллельный
-		// процесс (например, старый инстанс во время деплоя) по условию
-		// scheduled_at <= now() этот шаг уже не возьмёт. При падении процесса
-		// шаг останется pending и ретраится через 10 минут.
-		const attempts = scheduled.attempts + 1;
-		const claimed = await db
-			.update(schema.botScheduledSteps)
-			.set({
-				scheduledAt: sql`now() + interval '10 minutes'`,
-				attempts
-			})
-			.where(
-				and(
-					eq(schema.botScheduledSteps.id, scheduled.id),
-					eq(schema.botScheduledSteps.status, 'pending'),
-					lte(schema.botScheduledSteps.scheduledAt, sql`now()`)
-				)
-			)
-			.returning({ id: schema.botScheduledSteps.id });
-		if (claimed.length === 0) continue; // шаг захватил другой процесс
-
-		try {
-			// Шаг завис в ретраях (например, процесс падал на середине отправки)
-			if (attempts > MAX_ATTEMPTS) {
-				await markScheduled(scheduled.id, { status: 'failed', attempts });
-				continue;
-			}
-
-			// Сценарий выключили или юзер заблокировал бота, пока шаг ждал в очереди
-			if (!scenario.enabled || contact.botBlocked) {
-				await markScheduled(scheduled.id, { status: 'cancelled' });
-				continue;
-			}
-
-			// Условие проверяем здесь, а не при планировании: за время задержки
-			// юзер мог подписаться (или отписаться) — считаем по состоянию сейчас
-			if (step.condition) {
-				const subscribed = await isContactSubscribed(
-					scheduled.scenarioId,
-					contact.telegramUserId
-				);
-				const met = step.condition === 'subscribed' ? subscribed : !subscribed;
-				if (!met) {
-					await markScheduled(scheduled.id, { status: 'cancelled' });
-					await continueScenario(contact, scheduled.scenarioId, step.position);
-					continue;
-				}
-			}
-
-			const delivered = await executeStep(contact, step);
-			await markScheduled(scheduled.id, { status: delivered ? 'sent' : 'cancelled' });
-
-			if (delivered) {
-				sent++;
-				if (isGateStep(step)) {
-					// Шлагбаум ждёт нажатия «Я подписался» — дальше цепочку двигает callback
-					await markGateShown(contact.id);
-				} else {
-					await continueScenario(contact, scheduled.scenarioId, step.position);
-				}
-			}
-		} catch (err) {
-			errors++;
-			// При status='pending' шаг ретраится, когда сдвинутый scheduledAt назреет (~10 мин)
-			await markScheduled(scheduled.id, {
-				status: attempts >= MAX_ATTEMPTS ? 'failed' : 'pending',
-				attempts,
-				lastError: err instanceof Error ? err.message : String(err)
-			});
-		}
+	for (const row of due) {
+		// Контекст каждому заданию свой: ответ Telegram о подписке одного контакта
+		// не должен переезжать на соседнего, а глубина берётся из самой записи
+		const result = await runDueRow(row);
+		if (result.delivered) sent++;
+		if (result.failed) errors++;
 	}
 
 	return { processed: due.length, sent, errors };
 }
 
+/**
+ * Переводит задание в терминальный статус — но только если оно всё ещё pending.
+ *
+ * Захват шага не выводит запись из pending (двигается лишь scheduledAt), поэтому
+ * пока идёт отправка, администратор или перезапуск цепочки могут пометить её
+ * cancelled. Без этой проверки воркер затирал бы отмену обратно в 'sent' и вёл
+ * человека по цепочке, которую уже сняли. Возвращает false, если статус
+ * перехватили: отправку не вернуть, но продолжать цепочку в таком случае нельзя.
+ */
 async function markScheduled(
 	id: number,
-	data: {
-		status: (typeof schema.botScheduledStepStatusEnum.enumValues)[number];
-		attempts?: number;
-		lastError?: string;
-	}
-) {
-	await db
+	data: MarkScheduledData,
+	executor: DbExecutor = db
+): Promise<boolean> {
+	const updated = await executor
 		.update(schema.botScheduledSteps)
 		.set({ ...data, processedAt: sql`now()` })
-		.where(eq(schema.botScheduledSteps.id, id));
+		.where(and(eq(schema.botScheduledSteps.id, id), eq(schema.botScheduledSteps.status, 'pending')))
+		.returning({ id: schema.botScheduledSteps.id });
+	return updated.length > 0;
+}
+
+/**
+ * Завершает текущее задание и ставит следующее — одной транзакцией.
+ *
+ * Порознь эти две записи оставляют дыру, в которую цепочка проваливается
+ * навсегда: текущий шаг уже 'sent', вставка следующего упала, а вернуть текущий
+ * в 'pending' уже нельзя — markScheduled обновляет только pending. В очереди не
+ * остаётся ничего, что могло бы цепочку продолжить.
+ *
+ * Возвращает id следующего задания к немедленному выполнению или null — если
+ * шагов больше нет, следующий отложен, либо текущее задание успели отменить.
+ */
+async function finishAndEnqueueNext(
+	id: number,
+	data: MarkScheduledData,
+	enqueue: (tx: DbExecutor) => Promise<number | null>
+): Promise<number | null> {
+	return db.transaction(async (tx) => {
+		if (!(await markScheduled(id, data, tx))) {
+			// Задание отменили, пока шаг отправлялся: отправку не вернуть, но хвост
+			// снятой цепочки продолжать нельзя
+			console.warn(
+				`[bot-scenarios] Задание ${id} отменили во время отправки — цепочку не продолжаю`
+			);
+			return null;
+		}
+		return enqueue(tx);
+	});
 }

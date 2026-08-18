@@ -109,10 +109,7 @@ export const botScenarioTriggerEnum = pgEnum('bot_scenario_trigger', [
 // Условие выполнения шага: пусто — шаг выполняется всегда. Проверяется в момент
 // выполнения шага (для отложенных — когда его достаёт cron), поэтому подписка,
 // оформленная во время задержки, учитывается.
-export const botStepConditionEnum = pgEnum('bot_step_condition', [
-	'subscribed',
-	'not_subscribed'
-]);
+export const botStepConditionEnum = pgEnum('bot_step_condition', ['subscribed', 'not_subscribed']);
 
 // Тип кнопки шага: 'url' — обычная ссылка; 'check_subscription' — «шлагбаум»:
 // под сообщением две кнопки (ссылка на канал из button_url + callback-кнопка
@@ -122,9 +119,13 @@ export const botStepButtonActionEnum = pgEnum('bot_step_button_action', [
 	'check_subscription'
 ]);
 
+// skipped — условие шага не выполнилось, отправлять было нечего. Это не 'sent'
+// (сообщение не уходило, иначе статистика врёт) и не 'cancelled' (ничего не
+// ломалось, поднимать такую запись повторным нажатием кнопки не нужно).
 export const botScheduledStepStatusEnum = pgEnum('bot_scheduled_step_status', [
 	'pending',
 	'sent',
+	'skipped',
 	'failed',
 	'cancelled'
 ]);
@@ -258,10 +259,29 @@ export const botScheduledSteps = pgTable(
 		contactId: bigint('contact_id', { mode: 'number' }).notNull(),
 		scenarioId: bigint('scenario_id', { mode: 'number' }).notNull(),
 		stepId: bigint('step_id', { mode: 'number' }).notNull(),
+		// Для продолжений после callback-шлагбаума: связывает задание с исходной
+		// кнопкой и сообщением. Тройка contact + sourceStep + sourceMessage
+		// не даёт повторной доставке одного callback поставить дублирующий хвост.
+		sourceStepId: bigint('source_step_id', { mode: 'number' }),
+		sourceMessageId: bigint('source_message_id', { mode: 'number' }),
+		// Глубина вложенных запусков «шаг стартует другую цепочку». Живёт в строке,
+		// а не в памяти процесса: иначе цикл A → B → A с задержкой сбрасывал бы
+		// счётчик на каждом проходе крона и крутился бы вечно мимо MAX_CHAIN_DEPTH.
+		chainDepth: integer('chain_depth').default(0).notNull(),
 		status: botScheduledStepStatusEnum('status').default('pending').notNull(),
 		scheduledAt: timestamp('scheduled_at', { withTimezone: true, mode: 'string' }).notNull(),
 		attempts: integer('attempts').default(0).notNull(),
 		lastError: text('last_error'),
+		cancellationReason: text('cancellation_reason'),
+		// Контрольные точки queued-выполнения: повтор после частичной ошибки
+		// пропускает уже доставленные в Telegram части шага и применённые эффекты.
+		messageTelegramId: bigint('message_telegram_id', { mode: 'number' }),
+		fileTelegramMessageId: bigint('file_telegram_message_id', { mode: 'number' }),
+		effectsAppliedAt: timestamp('effects_applied_at', { withTimezone: true, mode: 'string' }),
+		childScenarioStartedAt: timestamp('child_scenario_started_at', {
+			withTimezone: true,
+			mode: 'string'
+		}),
 		createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' })
 			.defaultNow()
 			.notNull(),
@@ -270,6 +290,12 @@ export const botScheduledSteps = pgTable(
 	(table) => [
 		index('bot_scheduled_steps_status_scheduled_idx').on(table.status, table.scheduledAt),
 		index('bot_scheduled_steps_contact_idx').on(table.contactId),
+		// Частичный намеренно: обычные шаги очереди приходят с пустым source_step_id,
+		// и хотя NULL'ы в уникальном индексе Postgres и так считает различными,
+		// полагаться на это неявно не стоит — заодно индекс не хранит всю рассылку.
+		uniqueIndex('bot_scheduled_steps_gate_callback_key')
+			.on(table.contactId, table.sourceStepId, table.sourceMessageId)
+			.where(sql`${table.sourceStepId} is not null`),
 		foreignKey({
 			columns: [table.contactId],
 			foreignColumns: [botContacts.id],
@@ -284,7 +310,16 @@ export const botScheduledSteps = pgTable(
 			columns: [table.stepId],
 			foreignColumns: [botScenarioSteps.id],
 			name: 'bot_scheduled_steps_step_id_fkey'
-		}).onDelete('cascade')
+		}).onDelete('cascade'),
+		// set null, а не cascade: удаление шага-шлагбаума не должно уносить уже
+		// поставленные хвосты. Побочный эффект — такая запись выпадает из
+		// уникального индекса выше и теряет защиту от повторного callback, но
+		// нажимать там уже нечего: кнопка жила в сообщении удалённого шага.
+		foreignKey({
+			columns: [table.sourceStepId],
+			foreignColumns: [botScenarioSteps.id],
+			name: 'bot_scheduled_steps_source_step_id_fkey'
+		}).onDelete('set null')
 	]
 );
 
@@ -404,7 +439,9 @@ export const clipArticles = pgTable(
 		createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' })
 			.defaultNow()
 			.notNull(),
-		updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'string' }).defaultNow().notNull()
+		updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'string' })
+			.defaultNow()
+			.notNull()
 	},
 	(table) => [uniqueIndex('clip_articles_slug_key').on(table.slug)]
 );
@@ -463,6 +500,10 @@ export const quizResults = pgTable(
 			.notNull(),
 		// Контакт бота, который забрал результат по диплинку
 		contactId: bigint('contact_id', { mode: 'number' }),
+		// Момент, когда выдача разбора началась. Отделяет «упало на середине»
+		// (есть start, нет delivered — такое надо повторить) от «человек ещё не
+		// прошёл шлагбаум подписки» (нет ни того, ни другого — повторять нечего).
+		deliveryStartedAt: timestamp('delivery_started_at', { withTimezone: true, mode: 'string' }),
 		deliveredAt: timestamp('delivered_at', { withTimezone: true, mode: 'string' }),
 		createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' })
 			.defaultNow()

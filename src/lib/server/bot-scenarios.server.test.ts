@@ -4,7 +4,7 @@ const mocks = vi.hoisted(() => {
 	type Row = Record<string, any>;
 	type Condition =
 		| { __testOp: 'and'; conditions: Condition[] }
-		| { __testOp: 'eq' | 'gt' | 'lte'; left: any; right: any }
+		| { __testOp: 'eq' | 'ne' | 'gt' | 'lte'; left: any; right: any }
 		| { __testSql: true; strings: string[]; values: any[] };
 
 	const tableNameSymbol = Symbol.for('drizzle:Name');
@@ -20,7 +20,9 @@ const mocks = vi.hoisted(() => {
 		broadcastRuns: [] as Row[],
 		scenarioRuns: [] as Row[],
 		channelPosts: [] as Row[],
-		nextScheduledId: 1
+		nextScheduledId: 1,
+		failNextContactUpdate: false,
+		failNextScheduledInsert: false
 	};
 
 	const sendMessage = vi.fn();
@@ -40,6 +42,8 @@ const mocks = vi.hoisted(() => {
 		state.scenarioRuns = [];
 		state.channelPosts = [];
 		state.nextScheduledId = 1;
+		state.failNextContactUpdate = false;
+		state.failNextScheduledInsert = false;
 		sendMessage.mockReset();
 		logOutboundMessage.mockReset();
 		setBotBlocked.mockReset();
@@ -66,9 +70,16 @@ const mocks = vi.hoisted(() => {
 		contact_id: 'contactId',
 		scenario_id: 'scenarioId',
 		step_id: 'stepId',
+		source_step_id: 'sourceStepId',
+		source_message_id: 'sourceMessageId',
 		scheduled_at: 'scheduledAt',
 		processed_at: 'processedAt',
 		last_error: 'lastError',
+		cancellation_reason: 'cancellationReason',
+		message_telegram_id: 'messageTelegramId',
+		file_telegram_message_id: 'fileTelegramMessageId',
+		effects_applied_at: 'effectsAppliedAt',
+		child_scenario_started_at: 'childScenarioStartedAt',
 		created_at: 'createdAt',
 		delay_seconds: 'delaySeconds',
 		message_text: 'messageText',
@@ -166,9 +177,7 @@ const mocks = vi.hoisted(() => {
 		// Кулдаун: last_started_at > now() - make_interval(days => N)
 		if (text.includes('make_interval') && columnNames.includes('last_started_at')) {
 			const days = Number(condition.values.find((v) => typeof v === 'number') ?? 0);
-			return (
-				asComparable(row.lastStartedAt) > state.now.getTime() - days * 24 * 60 * 60 * 1000
-			);
+			return asComparable(row.lastStartedAt) > state.now.getTime() - days * 24 * 60 * 60 * 1000;
 		}
 
 		// tags @> requireTags — контакт содержит все нужные теги
@@ -195,10 +204,16 @@ const mocks = vi.hoisted(() => {
 				return condition.conditions.every((item) => matches(row, item));
 			case 'eq':
 				return valueFor(row, condition.left) === resolveSql(condition.right);
+			case 'ne':
+				return valueFor(row, condition.left) !== resolveSql(condition.right);
 			case 'gt':
-				return asComparable(valueFor(row, condition.left)) > asComparable(resolveSql(condition.right));
+				return (
+					asComparable(valueFor(row, condition.left)) > asComparable(resolveSql(condition.right))
+				);
 			case 'lte':
-				return asComparable(valueFor(row, condition.left)) <= asComparable(resolveSql(condition.right));
+				return (
+					asComparable(valueFor(row, condition.left)) <= asComparable(resolveSql(condition.right))
+				);
 		}
 	}
 
@@ -320,6 +335,10 @@ const mocks = vi.hoisted(() => {
 
 		private run(): Row[] {
 			const patch = normalisePatch(this.data);
+			if (tableName(this.table) === 'bot_contacts' && state.failNextContactUpdate) {
+				state.failNextContactUpdate = false;
+				throw new Error('temporary contact update failure');
+			}
 			const updated: Row[] = [];
 			for (const row of rowsFor(tableName(this.table))) {
 				if (matches(row, this.condition)) {
@@ -338,13 +357,33 @@ const mocks = vi.hoisted(() => {
 		}
 	}
 
+	// Вставка возвращает thenable с .returning() — движок пользуется обеими формами
+	class InsertResult implements PromiseLike<Row[]> {
+		constructor(private readonly result: Promise<Row[]>) {}
+
+		returning(_selection?: any) {
+			return this.result;
+		}
+
+		then<TResult1 = Row[], TResult2 = never>(
+			onfulfilled?: ((value: Row[]) => TResult1 | PromiseLike<TResult1>) | null,
+			onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | null
+		) {
+			return this.result.then(onfulfilled, onrejected);
+		}
+	}
+
 	class InsertBuilder {
 		constructor(private readonly table: any) {}
 
 		values(values: Row | Row[]) {
 			const table = tableName(this.table);
+			if (table === 'bot_scheduled_steps' && state.failNextScheduledInsert) {
+				state.failNextScheduledInsert = false;
+				return new InsertResult(Promise.reject(new Error('temporary scheduled insert failure')));
+			}
 			const rows = Array.isArray(values) ? values : [values];
-			const inserted = rows.map((row) => {
+			const inserted: Row[] = rows.map((row) => {
 				const normalised = normalisePatch(row);
 
 				if (table === 'bot_scheduled_steps') {
@@ -353,6 +392,11 @@ const mocks = vi.hoisted(() => {
 						status: 'pending',
 						attempts: 0,
 						lastError: null,
+						cancellationReason: null,
+						messageTelegramId: null,
+						fileTelegramMessageId: null,
+						effectsAppliedAt: null,
+						childScenarioStartedAt: null,
 						createdAt: iso(state.now),
 						processedAt: null,
 						...normalised
@@ -362,8 +406,32 @@ const mocks = vi.hoisted(() => {
 				return { id: rowsFor(table).length + 1, createdAt: iso(state.now), ...normalised };
 			});
 
+			if (table === 'bot_scheduled_steps') {
+				const duplicate = inserted.some(
+					(row) =>
+						row.sourceStepId != null &&
+						row.sourceMessageId != null &&
+						state.scheduled.some(
+							(existing) =>
+								existing.contactId === row.contactId &&
+								existing.sourceStepId === row.sourceStepId &&
+								existing.sourceMessageId === row.sourceMessageId
+						)
+				);
+				if (duplicate) {
+					return new InsertResult(
+						Promise.reject(
+							Object.assign(new Error('duplicate gate callback'), {
+								code: '23505',
+								constraint: 'bot_scheduled_steps_gate_callback_key'
+							})
+						)
+					);
+				}
+			}
+
 			rowsFor(table).push(...inserted);
-			return Promise.resolve(inserted);
+			return new InsertResult(Promise.resolve(inserted));
 		}
 	}
 
@@ -384,8 +452,26 @@ const mocks = vi.hoisted(() => {
 		update: (table: any) => new UpdateBuilder(table),
 		insert: (table: any) => new InsertBuilder(table),
 		delete: (table: any) => new DeleteBuilder(table),
-		// В моке транзакция — просто вызов колбэка с тем же db
-		transaction: async <T>(fn: (tx: any) => Promise<T>): Promise<T> => fn(db)
+		// Транзакция с настоящим откатом: без него нельзя проверить, что падение
+		// вставки следующего шага не оставляет текущий в терминальном статусе
+		transaction: async <T>(fn: (tx: any) => Promise<T>): Promise<T> => {
+			const snapshot = {
+				contacts: structuredClone(state.contacts),
+				scenarios: structuredClone(state.scenarios),
+				steps: structuredClone(state.steps),
+				scheduled: structuredClone(state.scheduled),
+				broadcastRuns: structuredClone(state.broadcastRuns),
+				scenarioRuns: structuredClone(state.scenarioRuns),
+				channelPosts: structuredClone(state.channelPosts),
+				nextScheduledId: state.nextScheduledId
+			};
+			try {
+				return await fn(db);
+			} catch (err) {
+				Object.assign(state, snapshot);
+				throw err;
+			}
+		}
 	};
 
 	return {
@@ -420,6 +506,7 @@ vi.mock('drizzle-orm', async (importOriginal) => {
 			conditions: conditions.filter(Boolean)
 		}),
 		eq: (left: any, right: any) => ({ __testOp: 'eq', left, right }),
+		ne: (left: any, right: any) => ({ __testOp: 'ne', left, right }),
 		gt: (left: any, right: any) => ({ __testOp: 'gt', left, right }),
 		lte: (left: any, right: any) => ({ __testOp: 'lte', left, right }),
 		asc: (column: any) => ({ __testOrder: 'asc', column })
@@ -429,6 +516,8 @@ vi.mock('drizzle-orm', async (importOriginal) => {
 vi.mock('../..', () => ({ db: mocks.db }));
 vi.mock('./telegram-client-bot.server', () => ({
 	clientBotApi: { sendMessage: mocks.sendMessage, getChatMember: mocks.getChatMember },
+	apiDeadline: () => undefined,
+	CALLBACK_SUBSCRIPTION_TIMEOUT_MS: 3_000,
 	tgFormat: (text: string) => text
 }));
 vi.mock('./bot-channel-posts.server', () => ({
@@ -463,7 +552,9 @@ vi.mock('grammy', () => {
 			this.error_code = error_code;
 		}
 	}
-	return { GrammyError };
+	// HttpError нужен log-error.server.ts для распознавания сетевых сбоев
+	class HttpError extends Error {}
+	return { GrammyError, HttpError };
 });
 
 import { GrammyError } from 'grammy';
@@ -474,6 +565,7 @@ import {
 	launchScenarioForSegment,
 	parseStartPayload,
 	processDueScheduledSteps,
+	runScheduledStep,
 	triggerScenarioByKey,
 	triggerScenarioForContact,
 	validateTrigger
@@ -545,6 +637,14 @@ function scheduled(overrides: Record<string, any> = {}) {
 		scheduledAt: mocks.state.now.toISOString(),
 		attempts: 0,
 		lastError: null,
+		cancellationReason: null,
+		sourceStepId: null,
+		sourceMessageId: null,
+		chainDepth: 0,
+		messageTelegramId: null,
+		fileTelegramMessageId: null,
+		effectsAppliedAt: null,
+		childScenarioStartedAt: null,
 		createdAt: mocks.state.now.toISOString(),
 		processedAt: null,
 		...overrides
@@ -615,18 +715,14 @@ describe('findTriggeredScenarios', () => {
 	});
 
 	it('returns /start command scenarios when no deep link param', async () => {
-		mocks.state.scenarios.push(
-			scenario({ id: 2, triggerType: 'command', triggerValue: '/start' })
-		);
+		mocks.state.scenarios.push(scenario({ id: 2, triggerType: 'command', triggerValue: '/start' }));
 
 		const result = await findTriggeredScenarios('/start');
 		expect(result.map((s) => s.id)).toEqual([2]);
 	});
 
 	it('returns command scenario for matching command', async () => {
-		mocks.state.scenarios.push(
-			scenario({ id: 5, triggerType: 'command', triggerValue: '/help' })
-		);
+		mocks.state.scenarios.push(scenario({ id: 5, triggerType: 'command', triggerValue: '/help' }));
 
 		const result = await findTriggeredScenarios('/help');
 		expect(result.map((s) => s.id)).toEqual([5]);
@@ -735,7 +831,12 @@ describe('bot scenario queue mechanics', () => {
 	it('sends due scheduled steps, marks them as sent and schedules the next delayed step', async () => {
 		const warmup = scenario();
 		const user = contact({ telegramUserId: 1001 });
-		const current = step({ id: 100, scenarioId: warmup.id, position: 0, messageText: 'Первый шаг' });
+		const current = step({
+			id: 100,
+			scenarioId: warmup.id,
+			position: 0,
+			messageText: 'Первый шаг'
+		});
 		const next = step({
 			id: 101,
 			scenarioId: warmup.id,
@@ -905,9 +1006,7 @@ describe('bot scenario queue mechanics', () => {
 		mocks.state.scenarios.push(disabledScenario);
 		mocks.state.contacts.push(user);
 		mocks.state.steps.push(current);
-		mocks.state.scheduled.push(
-			scheduled({ id: 1, scheduledAt: '2026-01-01T09:59:00.000Z' })
-		);
+		mocks.state.scheduled.push(scheduled({ id: 1, scheduledAt: '2026-01-01T09:59:00.000Z' }));
 
 		const result = await processDueScheduledSteps();
 
@@ -924,9 +1023,7 @@ describe('bot scenario queue mechanics', () => {
 		mocks.state.scenarios.push(warmup);
 		mocks.state.contacts.push(blockedUser);
 		mocks.state.steps.push(current);
-		mocks.state.scheduled.push(
-			scheduled({ id: 1, scheduledAt: '2026-01-01T09:59:00.000Z' })
-		);
+		mocks.state.scheduled.push(scheduled({ id: 1, scheduledAt: '2026-01-01T09:59:00.000Z' }));
 
 		const result = await processDueScheduledSteps();
 
@@ -943,9 +1040,7 @@ describe('bot scenario queue mechanics', () => {
 		mocks.state.scenarios.push(warmup);
 		mocks.state.contacts.push(user);
 		mocks.state.steps.push(current);
-		mocks.state.scheduled.push(
-			scheduled({ id: 1, scheduledAt: '2026-01-01T09:59:00.000Z' })
-		);
+		mocks.state.scheduled.push(scheduled({ id: 1, scheduledAt: '2026-01-01T09:59:00.000Z' }));
 
 		// Мок grammy принимает (error_code, message) — сигнатура реального класса другая
 		const BlockedError = GrammyError as unknown as new (code: number, message: string) => Error;
@@ -958,6 +1053,32 @@ describe('bot scenario queue mechanics', () => {
 		expect(result).toEqual({ processed: 1, sent: 0, errors: 0 });
 		expect(mocks.setBotBlocked).toHaveBeenCalledWith(user.id, true);
 		expect(mocks.state.scheduled[0].status).toBe('cancelled');
+	});
+
+	it('не отправляет сообщение повторно, если после доставки временно упали эффекты шага', async () => {
+		const warmup = scenario();
+		const user = contact({ tags: [] });
+		const current = step({ id: 100, messageText: 'Материал', addTags: ['received'] });
+
+		mocks.state.scenarios.push(warmup);
+		mocks.state.contacts.push(user);
+		mocks.state.steps.push(current);
+		mocks.state.scheduled.push(scheduled({ id: 1, scheduledAt: '2026-01-01T09:59:00.000Z' }));
+		mocks.state.failNextContactUpdate = true;
+
+		await processDueScheduledSteps();
+
+		expect(mocks.sendMessage).toHaveBeenCalledTimes(1);
+		expect(mocks.state.scheduled[0]).toEqual(
+			expect.objectContaining({ status: 'pending', messageTelegramId: 777 })
+		);
+
+		mocks.state.now = new Date(mocks.state.now.getTime() + 11 * 60 * 1000);
+		await processDueScheduledSteps();
+
+		expect(mocks.sendMessage).toHaveBeenCalledTimes(1);
+		expect(mocks.state.contacts[0].tags).toContain('received');
+		expect(mocks.state.scheduled[0].status).toBe('sent');
 	});
 
 	it('increments attempts on transient error and marks as failed after MAX_ATTEMPTS', async () => {
@@ -988,6 +1109,220 @@ describe('bot scenario queue mechanics', () => {
 		await processDueScheduledSteps();
 		expect(mocks.state.scheduled[0].attempts).toBe(3);
 		expect(mocks.state.scheduled[0].status).toBe('failed');
+	});
+
+	it('падение вставки следующего шага не хоронит цепочку', async () => {
+		const warmup = scenario();
+		const user = contact();
+		mocks.state.scenarios.push(warmup);
+		mocks.state.contacts.push(user);
+		mocks.state.steps.push(
+			step({ id: 100, scenarioId: warmup.id, position: 0, messageText: 'Первое' }),
+			step({ id: 101, scenarioId: warmup.id, position: 1, messageText: 'Второе' })
+		);
+		mocks.state.scheduled.push(
+			scheduled({
+				id: 1,
+				contactId: user.id,
+				scenarioId: warmup.id,
+				stepId: 100,
+				scheduledAt: '2026-01-01T09:59:59.000Z'
+			})
+		);
+
+		// Первое сообщение доставлено, но постановка следующего шага падает
+		mocks.state.failNextScheduledInsert = true;
+		await processDueScheduledSteps();
+
+		expect(mocks.sendMessage).toHaveBeenCalledTimes(1);
+		// Транзакция откатила пометку 'sent': иначе в очереди не осталось бы
+		// ничего, чем продолжить цепочку, и хвост потерялся бы навсегда
+		expect(mocks.state.scheduled).toHaveLength(1);
+		expect(mocks.state.scheduled[0]).toEqual(
+			expect.objectContaining({ status: 'pending', attempts: 1 })
+		);
+		// Чекпоинт уцелел — на ретрае сообщение не уйдёт повторно
+		expect(mocks.state.scheduled[0].messageTelegramId).toBe(777);
+
+		mocks.state.now = new Date(mocks.state.now.getTime() + 11 * 60 * 1000);
+		await processDueScheduledSteps();
+
+		expect(mocks.sendMessage.mock.calls.map((call) => call[1])).toEqual(['Первое', 'Второе']);
+		expect(mocks.state.scheduled.map((row) => row.status)).toEqual(['sent', 'sent']);
+	});
+
+	it('цикл сценариев с задержкой упирается в предохранитель, а не крутится вечно', async () => {
+		// A запускает B, B запускает A — и оба шага с задержкой, то есть каждый
+		// проход идёт через отдельный тик крона. Пока глубина жила в памяти
+		// процесса, она сбрасывалась на каждом тике и цикл был бесконечным.
+		const a = scenario({ id: 10, triggerValue: 'a' });
+		const b = scenario({ id: 20, triggerValue: 'b' });
+		const user = contact();
+		mocks.state.scenarios.push(a, b);
+		mocks.state.contacts.push(user);
+		mocks.state.steps.push(
+			step({ id: 100, scenarioId: a.id, position: 0, delaySeconds: 60, startScenarioId: b.id }),
+			step({ id: 200, scenarioId: b.id, position: 0, delaySeconds: 60, startScenarioId: a.id })
+		);
+
+		await triggerScenarioForContact(a as any, user as any);
+
+		// Крутим цикл заведомо дольше, чем MAX_CHAIN_DEPTH
+		for (let tick = 0; tick < 20; tick++) {
+			mocks.state.now = new Date(mocks.state.now.getTime() + 61 * 1000);
+			await processDueScheduledSteps();
+		}
+
+		// Глубина досчитала до предела сквозь тики крона и запуск цепочки прекратился
+		expect(mocks.state.scheduled.map((row) => row.chainDepth)).toEqual([0, 1, 2, 3, 4, 5]);
+		// Без сохранённой глубины записи плодились бы на каждом тике
+		expect(mocks.state.scheduled).toHaveLength(6);
+		// Без предохранителя записи плодились бы на каждом тике
+		expect(mocks.state.scheduled.length).toBeLessThan(20);
+	});
+
+	it('отмену во время отправки не затирает статусом sent и цепочку не продолжает', async () => {
+		const warmup = scenario();
+		const user = contact();
+		const current = step({ id: 100, scenarioId: warmup.id, position: 0, messageText: 'Первое' });
+		const next = step({ id: 101, scenarioId: warmup.id, position: 1, messageText: 'Второе' });
+
+		mocks.state.scenarios.push(warmup);
+		mocks.state.contacts.push(user);
+		mocks.state.steps.push(current, next);
+		mocks.state.scheduled.push(
+			scheduled({
+				id: 1,
+				contactId: user.id,
+				scenarioId: warmup.id,
+				stepId: current.id,
+				scheduledAt: '2026-01-01T09:59:59.000Z'
+			})
+		);
+
+		// Захват шага оставляет запись в pending, поэтому админ успевает её снять
+		// ровно в тот момент, когда сообщение уже ушло в Telegram
+		mocks.sendMessage.mockImplementation(async () => {
+			mocks.state.scheduled[0].status = 'cancelled';
+			mocks.state.scheduled[0].cancellationReason = 'cancelled_manually';
+			return { message_id: 555 };
+		});
+
+		await processDueScheduledSteps();
+
+		expect(mocks.state.scheduled[0].status).toBe('cancelled');
+		// Второй шаг в очередь не встал — отменённая цепочка не поехала дальше
+		expect(mocks.state.scheduled).toHaveLength(1);
+		expect(mocks.sendMessage).toHaveBeenCalledTimes(1);
+	});
+
+	it('отмена во время отправки не даёт примениться тегам, этапу и дочерней цепочке', async () => {
+		const warmup = scenario();
+		const child = scenario({ id: 30, triggerValue: 'child' });
+		const user = contact({ stage: 'new', tags: [] });
+		// Шаг с обратимыми последствиями: их админ и отменял
+		const heavy = step({
+			id: 100,
+			scenarioId: warmup.id,
+			position: 0,
+			messageText: 'Первое',
+			addTags: ['получил_материал'],
+			setStage: 'warm',
+			startScenarioId: child.id
+		});
+		const childStep = step({
+			id: 300,
+			scenarioId: child.id,
+			position: 0,
+			messageText: 'Из дочерней цепочки'
+		});
+
+		mocks.state.scenarios.push(warmup, child);
+		mocks.state.contacts.push(user);
+		mocks.state.steps.push(heavy, childStep);
+		mocks.state.scheduled.push(
+			scheduled({
+				id: 1,
+				contactId: user.id,
+				scenarioId: warmup.id,
+				stepId: heavy.id,
+				scheduledAt: '2026-01-01T09:59:59.000Z'
+			})
+		);
+
+		mocks.sendMessage.mockImplementation(async () => {
+			mocks.state.scheduled[0].status = 'cancelled';
+			mocks.state.scheduled[0].cancellationReason = 'cancelled_manually';
+			return { message_id: 555 };
+		});
+
+		await processDueScheduledSteps();
+
+		// Отправку не отозвать, а вот всё обратимое применяться не должно
+		expect(mocks.sendMessage).toHaveBeenCalledTimes(1);
+		expect(mocks.state.contacts[0].tags).toEqual([]);
+		expect(mocks.state.contacts[0].stage).toBe('new');
+		expect(mocks.state.scheduled[0].effectsAppliedAt).toBeNull();
+		expect(mocks.state.scheduled[0].childScenarioStartedAt).toBeNull();
+		expect(mocks.state.scheduled).toHaveLength(1);
+	});
+
+	it('шаги без задержки уходят сразу, но проходят через очередь', async () => {
+		const warmup = scenario();
+		const user = contact();
+		mocks.state.scenarios.push(warmup);
+		mocks.state.contacts.push(user);
+		mocks.state.steps.push(
+			step({ id: 100, scenarioId: warmup.id, position: 0, messageText: 'Первое' }),
+			step({ id: 101, scenarioId: warmup.id, position: 1, messageText: 'Второе' })
+		);
+
+		await triggerScenarioForContact(warmup as any, user as any);
+
+		// Для человека ничего не изменилось — оба сообщения ушли в том же вызове
+		expect(mocks.sendMessage.mock.calls.map((call) => call[1])).toEqual(['Первое', 'Второе']);
+		// А в базе остался след, по которому цепочку можно доиграть после сбоя
+		expect(mocks.state.scheduled.map((row) => [row.stepId, row.status])).toEqual([
+			[100, 'sent'],
+			[101, 'sent']
+		]);
+	});
+
+	it('обрыв в середине цепочки без задержек доигрывается кроном, а не теряется', async () => {
+		const warmup = scenario();
+		const user = contact();
+		mocks.state.scenarios.push(warmup);
+		mocks.state.contacts.push(user);
+		mocks.state.steps.push(
+			step({ id: 100, scenarioId: warmup.id, position: 0, messageText: 'Первое' }),
+			step({ id: 101, scenarioId: warmup.id, position: 1, messageText: 'Второе' })
+		);
+
+		// Второй шаг падает на сетевой ошибке уже после доставки первого
+		mocks.sendMessage
+			.mockResolvedValueOnce({ message_id: 1 })
+			.mockRejectedValueOnce(new Error('socks proxy unreachable'))
+			.mockResolvedValue({ message_id: 2 });
+
+		await triggerScenarioForContact(warmup as any, user as any);
+
+		expect(mocks.sendMessage).toHaveBeenCalledTimes(2);
+		expect(mocks.state.scheduled[0].status).toBe('sent');
+		// Раньше здесь цепочка обрывалась молча: inline-путь не имел ни ретраев,
+		// ни следа в базе. Теперь упавший шаг ждёт своей очереди.
+		expect(mocks.state.scheduled[1]).toEqual(
+			expect.objectContaining({ stepId: 101, status: 'pending', attempts: 1 })
+		);
+
+		mocks.state.now = new Date(mocks.state.now.getTime() + 11 * 60 * 1000);
+		await processDueScheduledSteps();
+
+		expect(mocks.sendMessage.mock.calls.map((call) => call[1])).toEqual([
+			'Первое',
+			'Второе',
+			'Второе'
+		]);
+		expect(mocks.state.scheduled[1].status).toBe('sent');
 	});
 });
 
@@ -1080,11 +1415,9 @@ describe('renderStepText substitutions', () => {
 
 		await triggerScenarioForContact(sc as any, user as any);
 
-		expect(mocks.sendMessage).toHaveBeenCalledWith(
-			1001,
-			'Ваша ссылка: ?id=987654321',
-			{ parse_mode: 'HTML' }
-		);
+		expect(mocks.sendMessage).toHaveBeenCalledWith(1001, 'Ваша ссылка: ?id=987654321', {
+			parse_mode: 'HTML'
+		});
 	});
 
 	it('substitutes {first_name} in message text', async () => {
@@ -1126,11 +1459,9 @@ describe('renderStepText substitutions', () => {
 
 		await triggerScenarioForContact(sc as any, user as any);
 
-		expect(mocks.sendMessage).toHaveBeenCalledWith(
-			1001,
-			'Ваш id: 555666777',
-			{ parse_mode: 'HTML' }
-		);
+		expect(mocks.sendMessage).toHaveBeenCalledWith(1001, 'Ваш id: 555666777', {
+			parse_mode: 'HTML'
+		});
 	});
 
 	it('substitutes {contact_id} in button URL', async () => {
@@ -1234,7 +1565,10 @@ describe('launchScenarioForSegment', () => {
 		mocks.state.steps.push(firstStep);
 		mocks.state.contacts.push(clean, excluded);
 
-		const count = await launchScenarioForSegment(50, { requireTags: [], excludeTags: ['unsubscribed'] });
+		const count = await launchScenarioForSegment(50, {
+			requireTags: [],
+			excludeTags: ['unsubscribed']
+		});
 
 		expect(count).toBe(1);
 		expect(mocks.state.scheduled[0].contactId).toBe(clean.id);
@@ -1371,22 +1705,231 @@ describe('шлагбаум подписки: условия шагов и кно
 		const { user, gate } = gatedScenario();
 		mocks.getChatMember.mockResolvedValue({ status: 'member' });
 
-		const alert = await handleSubscriptionGateCallback(user as any, gate.id);
+		const result = await handleSubscriptionGateCallback(user as any, gate.id, 777);
 
-		expect(alert).toBeNull();
+		expect(result).toEqual({ alert: null, continuationId: expect.any(Number), accepted: true });
+		// Callback только ставит хвост в надёжную очередь и не ждёт отправку материала.
+		expect(mocks.sendMessage).not.toHaveBeenCalled();
+		await runScheduledStep(result.continuationId as number);
 		expect(mocks.sendMessage.mock.calls.map((call) => call[1])).toEqual([
 			'А вот и статья, забирайте!'
 		]);
+	});
+
+	it('материал выдаётся адресно, не дожидаясь назревшей рассылки', async () => {
+		const { warmup, user, gate } = gatedScenario();
+		mocks.getChatMember.mockResolvedValue({ status: 'member' });
+
+		// Впереди в очереди уже стоит назревшая рассылка — раньше материал уезжал
+		// в её хвост и человек ждал, пока она разойдётся
+		const other = contact({ id: 900, telegramUserId: 9000 });
+		mocks.state.contacts.push(other);
+		mocks.state.scheduled.push(
+			scheduled({
+				id: 500,
+				contactId: other.id,
+				scenarioId: warmup.id,
+				stepId: gate.id,
+				scheduledAt: '2026-01-01T09:00:00.000Z'
+			})
+		);
+
+		const { continuationId } = await handleSubscriptionGateCallback(user as any, gate.id, 777);
+		await runScheduledStep(continuationId as number);
+
+		expect(mocks.sendMessage.mock.calls.map((call) => call[1])).toEqual([
+			'А вот и статья, забирайте!'
+		]);
+		// Чужое задание не тронуто — его заберёт cron своим чередом
+		expect(mocks.state.scheduled.find((row) => row.id === 500)?.status).toBe('pending');
+	});
+
+	it('отложенный хвост шлагбаума не выполняется в момент нажатия', async () => {
+		const { user, gate, material } = gatedScenario();
+		mocks.getChatMember.mockResolvedValue({ status: 'member' });
+		material.delaySeconds = 3600;
+
+		const result = await handleSubscriptionGateCallback(user as any, gate.id, 777);
+
+		// Торопить нечего: задание встало в очередь на час вперёд
+		expect(result).toEqual({ alert: null, continuationId: null, accepted: true });
+		expect(mocks.state.scheduled).toHaveLength(1);
+		expect(mocks.state.scheduled[0].scheduledAt).toBe('2026-01-01T11:00:00.000Z');
+		expect(mocks.sendMessage).not.toHaveBeenCalled();
 	});
 
 	it('«Я подписался» без подписки возвращает алерт и материал не выдаёт', async () => {
 		const { user, gate } = gatedScenario();
 		mocks.getChatMember.mockResolvedValue({ status: 'left' });
 
-		const alert = await handleSubscriptionGateCallback(user as any, gate.id);
+		const result = await handleSubscriptionGateCallback(user as any, gate.id, 777);
 
-		expect(alert).toBe('Подписки пока не вижу');
+		expect(result).toEqual({
+			alert: 'Подписки пока не вижу',
+			continuationId: null,
+			accepted: false
+		});
 		expect(mocks.sendMessage).not.toHaveBeenCalled();
+	});
+
+	it('повтор одного callback не ставит хвост цепочки второй раз', async () => {
+		const { user, gate } = gatedScenario();
+		mocks.getChatMember.mockResolvedValue({ status: 'member' });
+
+		const first = await handleSubscriptionGateCallback(user as any, gate.id, 777);
+		const retry = await handleSubscriptionGateCallback(user as any, gate.id, 777);
+
+		expect(first.continuationId).toEqual(expect.any(Number));
+		expect(retry).toEqual({ alert: null, continuationId: null, accepted: true });
+		expect(mocks.state.scheduled).toHaveLength(1);
+	});
+
+	it('повторная доставка того же callback не снимает уже поставленный хвост', async () => {
+		const { user, gate, material } = gatedScenario();
+		mocks.getChatMember.mockResolvedValue({ status: 'member' });
+		material.delaySeconds = 3600; // хвост ждёт в очереди, его видно
+
+		await handleSubscriptionGateCallback(user as any, gate.id, 777);
+		expect(mocks.state.scheduled[0].status).toBe('pending');
+
+		// Telegram переслал тот же update повторно — перезапуск цепочки не должен
+		// принять собственную запись этого нажатия за «идущий параллельный прогон»
+		await handleSubscriptionGateCallback(user as any, gate.id, 777);
+
+		expect(mocks.state.scheduled).toHaveLength(1);
+		expect(mocks.state.scheduled[0].status).toBe('pending');
+	});
+
+	it('нажатие по старой кнопке снимает идущий прогон, а не пускает вторую копию', async () => {
+		const { warmup, user, gate, material } = gatedScenario();
+		mocks.getChatMember.mockResolvedValue({ status: 'member' });
+
+		// Человек уже зашёл заново (по рекламе) — свежий прогон в работе
+		mocks.state.scheduled.push(
+			scheduled({
+				id: 50,
+				contactId: user.id,
+				scenarioId: warmup.id,
+				stepId: material.id,
+				scheduledAt: '2026-01-01T12:00:00.000Z'
+			})
+		);
+
+		// ...и теперь жмёт кнопку под старым сообщением
+		const { continuationId } = await handleSubscriptionGateCallback(user as any, gate.id, 777);
+		await runScheduledStep(continuationId as number);
+
+		// Старый прогон снят, материал ушёл ровно один раз
+		expect(mocks.state.scheduled.find((row) => row.id === 50)).toEqual(
+			expect.objectContaining({ status: 'cancelled', cancellationReason: 'gate_restarted' })
+		);
+		expect(mocks.sendMessage.mock.calls.map((call) => call[1])).toEqual([
+			'А вот и статья, забирайте!'
+		]);
+	});
+
+	it('повтор callback восстанавливает окончательно упавшее продолжение', async () => {
+		const { warmup, user, gate, material } = gatedScenario();
+		mocks.getChatMember.mockResolvedValue({ status: 'member' });
+		mocks.state.scheduled.push(
+			scheduled({
+				contactId: user.id,
+				scenarioId: warmup.id,
+				stepId: material.id,
+				sourceStepId: gate.id,
+				sourceMessageId: 777,
+				status: 'failed',
+				attempts: 3,
+				lastError: 'temporary failure'
+			})
+		);
+
+		const result = await handleSubscriptionGateCallback(user as any, gate.id, 777);
+
+		expect(result).toEqual({ alert: null, continuationId: expect.any(Number), accepted: true });
+		expect(mocks.state.scheduled[0]).toEqual(
+			expect.objectContaining({
+				status: 'pending',
+				attempts: 0,
+				lastError: null,
+				processedAt: null
+			})
+		);
+	});
+
+	it('повтор callback восстанавливает технически отменённое продолжение', async () => {
+		const { warmup, user, gate, material } = gatedScenario();
+		mocks.getChatMember.mockResolvedValue({ status: 'member' });
+		mocks.state.scheduled.push(
+			scheduled({
+				contactId: user.id,
+				scenarioId: warmup.id,
+				stepId: material.id,
+				sourceStepId: gate.id,
+				sourceMessageId: 777,
+				status: 'cancelled',
+				cancellationReason: 'scenario_disabled'
+			})
+		);
+
+		const result = await handleSubscriptionGateCallback(user as any, gate.id, 777);
+
+		expect(result).toEqual({ alert: null, continuationId: expect.any(Number), accepted: true });
+		expect(mocks.state.scheduled[0]).toEqual(
+			expect.objectContaining({
+				status: 'pending',
+				attempts: 0,
+				cancellationReason: null,
+				processedAt: null
+			})
+		);
+	});
+
+	it('ручную отмену не маскирует под успешную выдачу', async () => {
+		const { warmup, user, gate, material } = gatedScenario();
+		mocks.getChatMember.mockResolvedValue({ status: 'member' });
+		mocks.state.scheduled.push(
+			scheduled({
+				contactId: user.id,
+				scenarioId: warmup.id,
+				stepId: material.id,
+				sourceStepId: gate.id,
+				sourceMessageId: 777,
+				status: 'cancelled',
+				cancellationReason: 'cancelled_manually'
+			})
+		);
+
+		const result = await handleSubscriptionGateCallback(user as any, gate.id, 777);
+
+		expect(result).toEqual({
+			alert: 'Не удалось продолжить отправку. Напишите боту или администратору.',
+			continuationId: null,
+			accepted: false
+		});
+		expect(mocks.state.scheduled[0].status).toBe('cancelled');
+	});
+
+	it('системную отмену не превращает в тревожный алерт', async () => {
+		const { warmup, user, gate, material } = gatedScenario();
+		mocks.getChatMember.mockResolvedValue({ status: 'member' });
+		// Цепочку перезапустили — старый хвост сняли мы сами, чинить нечего
+		mocks.state.scheduled.push(
+			scheduled({
+				contactId: user.id,
+				scenarioId: warmup.id,
+				stepId: material.id,
+				sourceStepId: gate.id,
+				sourceMessageId: 777,
+				status: 'cancelled',
+				cancellationReason: 'scenario_restarted'
+			})
+		);
+
+		const result = await handleSubscriptionGateCallback(user as any, gate.id, 777);
+
+		expect(result).toEqual({ alert: null, continuationId: null, accepted: true });
+		expect(mocks.state.scheduled[0].status).toBe('cancelled');
 	});
 
 	it('сбой getChatMember трактуется в пользу юзера — материал выдаётся', async () => {
@@ -1424,12 +1967,14 @@ describe('шлагбаум подписки: условия шагов и кно
 		expect(mocks.state.scheduled).toHaveLength(1);
 		expect(mocks.getChatMember).not.toHaveBeenCalled();
 
-		// За время задержки подписался — напоминание отменяется, цепочка идёт дальше
+		// За время задержки подписался — напоминание пропускается, цепочка идёт дальше
 		mocks.getChatMember.mockResolvedValue({ status: 'member' });
 		mocks.state.now = new Date('2026-01-01T11:30:00.000Z');
 		await processDueScheduledSteps();
 
-		expect(mocks.state.scheduled[0].status).toBe('cancelled');
+		// Именно skipped, а не sent: сообщение не уходило и статистику занижать нельзя
+		expect(mocks.state.scheduled[0].status).toBe('skipped');
+		expect(mocks.state.scheduled[1].status).toBe('sent');
 		expect(mocks.sendMessage.mock.calls.map((call) => call[1])).toEqual(['Следующий шаг']);
 	});
 });
@@ -1484,7 +2029,7 @@ describe('замер воронки бота', () => {
 		const { user, gate } = gated();
 		mocks.getChatMember.mockResolvedValue({ status: 'member' });
 
-		await handleSubscriptionGateCallback(user as any, gate.id);
+		await handleSubscriptionGateCallback(user as any, gate.id, 777);
 
 		expect(mocks.markGatePassed).toHaveBeenCalledWith(user.id);
 	});
@@ -1493,7 +2038,7 @@ describe('замер воронки бота', () => {
 		const { user, gate } = gated();
 		mocks.getChatMember.mockResolvedValue({ status: 'left' });
 
-		await handleSubscriptionGateCallback(user as any, gate.id);
+		await handleSubscriptionGateCallback(user as any, gate.id, 777);
 
 		expect(mocks.markGatePassed).not.toHaveBeenCalled();
 	});
@@ -1566,9 +2111,10 @@ describe('шлагбаум: повторные нажатия и отложен�
 		const { user, gate } = gateAndMaterial();
 		mocks.getChatMember.mockResolvedValue({ status: 'member' });
 
-		const alert = await handleSubscriptionGateCallback(user as any, gate.id);
+		const result = await handleSubscriptionGateCallback(user as any, gate.id, 777);
 
-		expect(alert).toBeNull();
+		expect(result).toEqual({ alert: null, continuationId: expect.any(Number), accepted: true });
+		await processDueScheduledSteps();
 		expect(mocks.sendMessage.mock.calls.map((c) => c[1])).toEqual(['Статья']);
 	});
 
