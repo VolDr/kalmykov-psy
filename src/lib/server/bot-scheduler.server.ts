@@ -6,10 +6,12 @@ import * as schema from '../../db/schema';
 import { processDueScheduledSteps } from './bot-scenarios.server';
 import { uploadOfflineConversions } from './bot-funnel.server';
 import { retryStalledQuizDeliveries } from './quiz-bot.server';
+import { startApiWarmup } from './telegram-client-bot.server';
 
 class BotScenarioScheduler {
 	private isStarted = false;
 	private tasks: ReturnType<typeof cron.schedule>[] = [];
+	private stopWarmup: (() => void) | null = null;
 
 	start() {
 		if (this.isStarted) {
@@ -101,6 +103,7 @@ class BotScenarioScheduler {
 		});
 
 		this.tasks = [stepsTask, cleanupTask, offlineTask];
+		this.stopWarmup = startApiWarmup();
 		this.isStarted = true;
 		console.log('Планировщик шагов бота запущен (проверка каждую минуту)');
 	}
@@ -108,6 +111,8 @@ class BotScenarioScheduler {
 	stop() {
 		for (const task of this.tasks) task.stop();
 		this.tasks = [];
+		this.stopWarmup?.();
+		this.stopWarmup = null;
 		this.isStarted = false;
 		console.log('Планировщик шагов бота остановлен');
 	}

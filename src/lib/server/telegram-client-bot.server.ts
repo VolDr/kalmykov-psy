@@ -1,4 +1,5 @@
-import type { Api } from 'grammy';
+import { AsyncLocalStorage } from 'node:async_hooks';
+import type { Api, Context } from 'grammy';
 import { Bot, GrammyError } from 'grammy';
 import { SocksProxyAgent } from 'socks-proxy-agent';
 import { TELEGRAM_CLIENT_BOT_TOKEN } from '$env/static/private';
@@ -50,7 +51,26 @@ export function tgFormat(text: string): string {
 
 // Исходящие запросы к Telegram Bot API с этого хостинга требуют SOCKS5-прокси —
 // тот же прокси, что использует личный бот уведомлений (telegram.server.ts).
-const agent = new SocksProxyAgent('socks5://127.0.0.1:1080');
+// keepAlive обязателен: без него каждый вызов заново поднимал соединение через
+// туннель и заново делал TLS с api.telegram.org — замер (check-telegram-path.sh)
+// показал ~0.7 с на вызов против ~0.1 с по уже открытому соединению.
+// timeout — сколько живёт простаивающее соединение в пуле.
+//
+// connect() агент зовёт только когда в пуле нет свободного соединения, поэтому
+// счётчик показывает, какие вызовы шли холодными (см. [tg-api] в логе).
+let connectionsOpened = 0;
+
+class CountingSocksAgent extends SocksProxyAgent {
+	override connect(...args: Parameters<SocksProxyAgent['connect']>) {
+		connectionsOpened++;
+		return super.connect(...args);
+	}
+}
+
+const agent = new CountingSocksAgent('socks5://127.0.0.1:1080', {
+	keepAlive: true,
+	timeout: 60_000
+});
 
 export const clientBot = new Bot(TELEGRAM_CLIENT_BOT_TOKEN, {
 	client: {
@@ -65,6 +85,67 @@ export const clientBot = new Bot(TELEGRAM_CLIENT_BOT_TOKEN, {
 });
 
 export const clientBotApi: Api = clientBot.api;
+
+interface UpdateTrace {
+	updateId: number;
+	apiCalls: number;
+	apiMs: number;
+}
+
+const updateTrace = new AsyncLocalStorage<UpdateTrace>();
+
+// Каждый вызов Bot API на пути апдейта — строка лога: метод, время, было ли
+// соединение новым. Вызовы вне апдейта (cron, прогрев, админка) не пишем: там
+// никто не ждёт ответа, а рассылка засыпала бы лог. Фоновые продолжения после
+// ответа на кнопку наследуют контекст апдейта и тоже попадают в лог.
+clientBot.api.config.use(async (prev, method, payload, signal) => {
+	const trace = updateTrace.getStore();
+	if (!trace) return prev(method, payload, signal);
+
+	const openedBefore = connectionsOpened;
+	const startedAt = performance.now();
+	let outcome = 'сбой сети';
+	try {
+		const res = await prev(method, payload, signal);
+		outcome = res.ok ? 'ok' : `ошибка ${res.error_code}`;
+		return res;
+	} finally {
+		const ms = Math.round(performance.now() - startedAt);
+		trace.apiCalls++;
+		trace.apiMs += ms;
+		const fresh = connectionsOpened > openedBefore ? ', новое соединение' : '';
+		console.log(`[tg-api] update ${trace.updateId}: ${method} ${ms} мс, ${outcome}${fresh}`);
+	}
+});
+
+/**
+ * Апдейты приходят редко, и без трафика соединение из пула закрылось бы к
+ * приходу следующего человека — его первый вызов снова платил бы за холодный
+ * TLS через туннель. Дешёвый getMe держит соединение тёплым (чаще, чем истекает
+ * timeout агента). Заодно это пульс туннеля: в лог пишем только смену состояния.
+ */
+const WARMUP_INTERVAL_MS = 25_000;
+
+export function startApiWarmup(): () => void {
+	let healthy = true;
+	let inFlight = false;
+	const timer = setInterval(async () => {
+		if (inFlight) return;
+		inFlight = true;
+		try {
+			await clientBotApi.getMe();
+			if (!healthy) console.log('[client-bot] Bot API снова доступен');
+			healthy = true;
+		} catch (error) {
+			if (healthy) logSafeError('[client-bot] Bot API недоступен (прогрев соединения):', error);
+			healthy = false;
+		} finally {
+			inFlight = false;
+		}
+	}, WARMUP_INTERVAL_MS);
+	timer.unref();
+	return () => clearInterval(timer);
+}
 
 /**
  * Дедлайн на один вызов Bot API (последний аргумент любого метода grammy).
@@ -97,24 +178,41 @@ clientBot.catch((err) => {
  */
 const SLOW_UPDATE_MS = 5_000;
 
+/**
+ * Вид апдейта для лога. Без текста сообщений и без payload: в /start qr_<token>
+ * и в callback data (qz:<token>) лежат токены, по которым отдаются результаты
+ * опросника, — в логах им не место.
+ */
+function updateKind(ctx: Context): string {
+	if (ctx.callbackQuery) return `callback ${ctx.callbackQuery.data?.split(':')[0] ?? ''}`.trim();
+	const text = ctx.message?.text;
+	if (text?.startsWith('/')) return text.split(/\s/)[0];
+	if (ctx.message) return 'message';
+	return Object.keys(ctx.update).find((key) => key !== 'update_id') ?? 'unknown';
+}
+
 // Сам предохранитель по таймауту знает только факт, но не контекст: тело запроса
 // к тому моменту уже прочитано. Замеряем здесь, где есть и update_id, и автор.
+// Итог по апдейту пишем всегда: сколько заняло целиком, сколько из этого ушло
+// на Bot API, остальное — база и логика.
 clientBot.use(async (ctx, next) => {
+	const trace: UpdateTrace = { updateId: ctx.update.update_id, apiCalls: 0, apiMs: 0 };
 	const startedAt = Date.now();
 	try {
-		await next();
+		await updateTrace.run(trace, next);
 	} finally {
 		const ms = Date.now() - startedAt;
-		if (ms >= SLOW_UPDATE_MS) {
-			console.warn('[client-bot] Медленная обработка update', {
-				updateId: ctx.update.update_id,
-				from: ctx.from?.id,
-				// Только вид кнопки. В callback data лежит токен (qz:<token>), по
-				// которому отдаются результаты опросника, — в логах ему не место.
-				callback: ctx.callbackQuery?.data?.split(':')[0],
-				ms
-			});
-		}
+		const summary = {
+			updateId: trace.updateId,
+			from: ctx.from?.id,
+			kind: updateKind(ctx),
+			ms,
+			apiCalls: trace.apiCalls,
+			apiMs: trace.apiMs,
+			otherMs: Math.max(0, ms - trace.apiMs)
+		};
+		if (ms >= SLOW_UPDATE_MS) console.warn('[client-bot] Медленная обработка update', summary);
+		else console.log('[client-bot] update обработан', summary);
 	}
 });
 
