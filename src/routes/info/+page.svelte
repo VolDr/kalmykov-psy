@@ -24,6 +24,32 @@
 	import { reachGoal } from '$lib/metrika';
 	import { fade, slide } from 'svelte/transition';
 
+	const siteUrl = import.meta.env.VITE_URL || 'https://kalmykov-psy.ru';
+	const pageUrl = `${siteUrl}/info`;
+	const personJsonLd = JSON.stringify({
+		'@context': 'https://schema.org',
+		'@type': 'ProfilePage',
+		name: 'Андрей Калмыков — психолог',
+		url: pageUrl,
+		mainEntity: {
+			'@type': 'Person',
+			'@id': `${pageUrl}#person`,
+			name: 'Андрей Калмыков',
+			url: pageUrl,
+			image: `${siteUrl}/main.webp`,
+			jobTitle: 'Психолог',
+			knowsAbout: [
+				'Профессиональное выгорание',
+				'Прокрастинация',
+				'Тревога',
+				'Депрессия',
+				'Когнитивно-поведенческая терапия',
+				'Терапия принятия и ответственности'
+			],
+			sameAs: ['https://www.b17.ru/kalmykov_andrei/', 'https://t.me/kalmykov_psy']
+		}
+	}).replace(/</g, '\\u003c');
+
 	let openFaq = $state<Record<number, boolean>>({});
 	let isIntroModalOpen = $state(false);
 
@@ -70,58 +96,58 @@
 			desc: 'Конечная цель — вы больше не нуждаетесь в терапии. Вы понимаете, что с вами происходит, знаете что делать и не возвращаетесь в ту же яму снова.'
 		}
 	];
-const problems = [
-	{
-		icon: 'icon-[lucide--zap]',
-		title: 'работа и самореализация',
-		items: [
-			'Выгорание и хроническая усталость',
-			'Прокрастинация',
-			'Перфекционизм и синдром самозванца',
-			'Потеря мотивации',
-			'Карьерные кризисы',
-			'Сложности с балансом между работой и жизнью'
-		]
-	},
-	{
-		icon: 'icon-[lucide--orbit]',
-		title: 'тревога, депрессия и эмоциональное состояние',
-		items: [
-			'Постоянная тревога и беспокойство',
-			'Панические атаки',
-			'Навязчивые мысли и руминации',
-			'Эмоциональное истощение',
-			'Депрессия и сниженное настроение',
-			'Потеря интереса к жизни',
-			'Нарушения сна'
-		]
-	},
-	{
-		icon: 'icon-[lucide--search]',
-		title: 'отношения и общение',
-		items: [
-			'Расставания и разводы',
-			'Сложности в отношениях с партнёром',
-			'Конфликты в семье и на работе',
-			'Трудности с личными границами',
-			'Страх отвержения',
-			'Одиночество и сложности в общении'
-		]
-	},
-	{
-		icon: 'icon-[lucide--leaf]',
-		title: 'отношения с собой и жизненные кризисы',
-		items: [
-			'Жёсткая самокритика',
-			'Неуверенность в себе',
-			'Сложные жизненные решения',
-			'Кризис смысла',
-			'Ощущение, что жизнь проходит мимо',
-			'Адаптация к серьёзным изменениям',
-			'Желание лучше понять себя'
-		]
-	}
-];
+	const problems = [
+		{
+			icon: 'icon-[lucide--zap]',
+			title: 'работа и самореализация',
+			items: [
+				'Выгорание и хроническая усталость',
+				'Прокрастинация',
+				'Перфекционизм и синдром самозванца',
+				'Потеря мотивации',
+				'Карьерные кризисы',
+				'Сложности с балансом между работой и жизнью'
+			]
+		},
+		{
+			icon: 'icon-[lucide--orbit]',
+			title: 'тревога, депрессия и эмоциональное состояние',
+			items: [
+				'Постоянная тревога и беспокойство',
+				'Панические атаки',
+				'Навязчивые мысли и руминации',
+				'Эмоциональное истощение',
+				'Депрессия и сниженное настроение',
+				'Потеря интереса к жизни',
+				'Нарушения сна'
+			]
+		},
+		{
+			icon: 'icon-[lucide--search]',
+			title: 'отношения и общение',
+			items: [
+				'Расставания и разводы',
+				'Сложности в отношениях с партнёром',
+				'Конфликты в семье и на работе',
+				'Трудности с личными границами',
+				'Страх отвержения',
+				'Одиночество и сложности в общении'
+			]
+		},
+		{
+			icon: 'icon-[lucide--leaf]',
+			title: 'отношения с собой и жизненные кризисы',
+			items: [
+				'Жёсткая самокритика',
+				'Неуверенность в себе',
+				'Сложные жизненные решения',
+				'Кризис смысла',
+				'Ощущение, что жизнь проходит мимо',
+				'Адаптация к серьёзным изменениям',
+				'Желание лучше понять себя'
+			]
+		}
+	];
 </script>
 
 <svelte:head>
@@ -130,6 +156,7 @@ const problems = [
 		name="description"
 		content="Кто я, с чем работаю, образование и стоимость консультаций. Психолог для выгорающих специалистов цифровых профессий."
 	/>
+	<meta name="robots" content="index, follow, max-image-preview:large" />
 	<meta property="og:title" content="Коротко обо мне | Андрей Калмыков" />
 	<meta
 		property="og:description"
@@ -140,6 +167,7 @@ const problems = [
 	<meta property="og:site_name" content="Андрей Калмыков — Психолог" />
 	<meta property="og:image" content="{import.meta.env.VITE_URL}/header.webp" />
 	<meta name="twitter:card" content="summary_large_image" />
+	{@html `<script type="application/ld+json">${personJsonLd}</script>`}
 </svelte:head>
 
 <!-- ═══════════════════ 1. КТО Я ═══════════════════ -->
@@ -173,7 +201,7 @@ const problems = [
 					Помогаю людям проходить через сложные периоды жизни и двигаться к тому, что для них важно.
 				</p>
 				<p class="mb-5 text-[16px] leading-relaxed text-foreground/80 lg:text-[18px]">
-					Работаю в подходах с доказанной эффективноостью.
+					Работаю в подходах с доказанной эффективностью.
 				</p>
 			</Reveal>
 
@@ -238,18 +266,16 @@ const problems = [
 						clip-path="url(#blobClip)"
 					/>
 				</svg>
-
-				
 			</div></Reveal
 		>
 	</div>
 </section>
 
 <!-- ═══════════════════ 2. С ЧЕМ РАБОТАЮ ═══════════════════ -->
-<section class="bg-background py-14 md:pb-20 max-w-[1600px] mx-auto px-5 xl:px-0">
+<section class="mx-auto max-w-[1600px] bg-background px-5 py-14 md:pb-20 xl:px-0">
 	<Reveal width="full">
 		<div class="mx-auto mb-10 flex items-center gap-4 md:max-w-[760px] md:gap-6 lg:max-w-[1210px]">
-			<h2 class="font-caveatfont-bold whitespace-nowrap text-navy text-[34px] lg:text-[40px] ">
+			<h2 class="font-caveatfont-bold text-[34px] whitespace-nowrap text-navy lg:text-[40px]">
 				с чем работаю
 			</h2>
 			<span class="h-0.5 flex-1">
@@ -357,9 +383,7 @@ const problems = [
 		<!-- рукописный заголовок + жёлтый «свуш» снизу -->
 		<Reveal>
 			<div class="relative mb-12 inline-block md:mb-16">
-				<h2 class="font-caveat text-[34px] lg:text-[40px] font-bold text-navy">
-					как я работаю
-				</h2>
+				<h2 class="font-caveat text-[34px] font-bold text-navy lg:text-[40px]">как я работаю</h2>
 				<svg
 					class="absolute right-[-6px] -bottom-3 left-0 w-full"
 					height="14"
@@ -383,8 +407,10 @@ const problems = [
 				<Reveal>
 					<div class="flex flex-col">
 						<img src={item.icon} alt="" class="mb-4 h-10 w-10" aria-hidden="true" />
-						<h3 class="mb-3.5 text-[18px] lg:text-[20px]  leading-snug font-extrabold text-navy">{item.title}</h3>
-						<p class="text-[16px] lg:text-[18px] leading-relaxed text-foreground/70">{item.desc}</p>
+						<h3 class="mb-3.5 text-[18px] leading-snug font-extrabold text-navy lg:text-[20px]">
+							{item.title}
+						</h3>
+						<p class="text-[16px] leading-relaxed text-foreground/70 lg:text-[18px]">{item.desc}</p>
 					</div>
 				</Reveal>
 			{/each}
@@ -401,10 +427,15 @@ const problems = [
 	<div class="mx-auto px-5 md:max-w-[760px] lg:max-w-[1200px] xl:px-0">
 		<Reveal width="full">
 			<div class="mb-12 flex items-center gap-4 md:mb-14 md:gap-6">
-				<h2 class="font-caveat text-[34px] lg:text-[40px] font-bold text-navy">
+				<h2 class="font-caveat text-[34px] font-bold text-navy lg:text-[40px]">
 					как мы придём к результату
 				</h2>
-				<img src="/star_3.webp" class="h-7 w-7 shrink-0 object-contain -rotate-6" alt="" aria-hidden="true" />
+				<img
+					src="/star_3.webp"
+					class="h-7 w-7 shrink-0 -rotate-6 object-contain"
+					alt=""
+					aria-hidden="true"
+				/>
 
 				<span class="hidden h-0.5 flex-1 sm:block">
 					<svg
@@ -432,7 +463,7 @@ const problems = [
 					>
 						<div class="relative row-span-2 flex justify-center md:row-span-1">
 							<div
-								class="z-[1] flex max-h-8 max-w-8  min-h-8 min-w-8 items-center justify-center rounded-full bg-lilac text-[18px] font-caveat font-extrabold text-lilac-foreground"
+								class="z-[1] flex max-h-8 min-h-8 max-w-8 min-w-8 items-center justify-center rounded-full bg-lilac font-caveat text-[18px] font-extrabold text-lilac-foreground"
 							>
 								{step.n}
 							</div>
@@ -445,16 +476,16 @@ const problems = [
 						</div>
 
 						<div class="self-start pt-1.5">
-							<h3 class=" text-[18px] lg:text-[20px]  leading-snug">{step.title}</h3>
+							<h3 class=" text-[18px] leading-snug lg:text-[20px]">{step.title}</h3>
 							{#if step.time}
-								<div class="text-[16px] lg:text-[18px] leading-relaxed text-foreground/50">
+								<div class="text-[16px] leading-relaxed text-foreground/50 lg:text-[18px]">
 									{step.time}
 								</div>
 							{/if}
 						</div>
 
 						<p
-							class="col-start-2 self-start pt-0 text-[16px] lg:text-[18px] leading-relaxed text-foreground/75 md:col-start-3 md:pt-1.5 pb-5 lg:pb-10"
+							class="col-start-2 self-start pt-0 pb-5 text-[16px] leading-relaxed text-foreground/75 md:col-start-3 md:pt-1.5 lg:pb-10 lg:text-[18px]"
 						>
 							{step.desc}
 						</p>
@@ -469,7 +500,7 @@ const problems = [
 	<div class="mx-auto px-5 md:max-w-[760px] lg:max-w-[960px] xl:px-0">
 		<Reveal width="full">
 			<div class="mb-5 flex items-center gap-4 md:gap-6">
-				<h2 class="font-caveat text-[34px] lg:text-[40px] font-bold text-navy">
+				<h2 class="font-caveat text-[34px] font-bold text-navy lg:text-[40px]">
 					формат<br class="md:hidden" /> и стоимость
 				</h2>
 				<span class="h-0.5 flex-1">
@@ -490,7 +521,7 @@ const problems = [
 			</div>
 		</Reveal>
 		<Reveal>
-			<p class="mb-9 text-[16px] lg:text-[18px] text-foreground/60">
+			<p class="mb-9 text-[16px] text-foreground/60 lg:text-[18px]">
 				Индивидуальные психологические консультации. Одна встреча — 50 минут, онлайн, в удобное для
 				вас время.
 			</p>
@@ -503,13 +534,15 @@ const problems = [
 				<div
 					class="flex h-full flex-col rounded-[22px] border border-navy/12 bg-[#fdfaf3] p-6 lg:px-8"
 				>
-					<h2 class="font-caveat text-[34px] lg:text-[40px] font-bold text-navy md:pt-[35px]">Разовая сессия</h2>
-					<div class="mt-2 text-[18px] lg:text-[20px]  font-extrabold text-navy">4 000 ₽</div>
-					<p class="mt-5 text-[16px] lg:text-[18px] leading-relaxed text-foreground/75">
+					<h2 class="font-caveat text-[34px] font-bold text-navy md:pt-[35px] lg:text-[40px]">
+						Разовая сессия
+					</h2>
+					<div class="mt-2 text-[18px] font-extrabold text-navy lg:text-[20px]">4 000 ₽</div>
+					<p class="mt-5 text-[16px] leading-relaxed text-foreground/75 lg:text-[18px]">
 						Если хотите разобраться в конкретной ситуации, познакомиться с подходом или понять,
 						нужна ли вам терапия вообще.
 					</p>
-					<ul class="mt-6 flex flex-col gap-2.5 text-[14px] lg:text-[16px] text-foreground/80">
+					<ul class="mt-6 flex flex-col gap-2.5 text-[14px] text-foreground/80 lg:text-[16px]">
 						<li class="flex items-center gap-2.5">
 							<span class="h-1.5 w-1.5 rounded-full bg-primary"></span>50 минут
 						</li>
@@ -519,15 +552,24 @@ const problems = [
 					</ul>
 					<!-- футер прижат вниз -->
 					<div class="mt-auto pt-8">
-					<div class="flex justify-center">
-						<ButtonSvg variant="1" href="/booking" mobileHeight='60px' mobileWidth='250px' width='250px' height='70px' onclick={() => reachGoal('pricing_single_click')}>Записаться</ButtonSvg></div>
+						<div class="flex justify-center">
+							<ButtonSvg
+								variant="1"
+								href="/booking"
+								mobileHeight="60px"
+								mobileWidth="250px"
+								width="250px"
+								height="70px"
+								onclick={() => reachGoal('pricing_single_click')}>Записаться</ButtonSvg
+							>
+						</div>
 						<button
 							type="button"
 							onclick={() => {
 								isIntroModalOpen = true;
 								reachGoal('pricing_intro_click');
 							}}
-							class="mt-4 block w-full cursor-pointer text-center text-[14px] lg:text-[16px] font-semibold text-muted-foreground underline underline-offset-[3px] transition-colors hover:text-navy"
+							class="mt-4 block w-full cursor-pointer text-center text-[14px] font-semibold text-muted-foreground underline underline-offset-[3px] transition-colors hover:text-navy lg:text-[16px]"
 						>
 							Хочу познакомиться
 						</button>
@@ -537,21 +579,30 @@ const problems = [
 
 			<!-- DARK / рекомендуемый -->
 			<Reveal width="full">
-				<div class="relative flex h-full flex-col rounded-[22px] bg-navy  text-white p-6 lg:px-8">
-					<img src="/heart_2.webp" width="629" height="572" class="pointer-events-none absolute top-5 right-6 h-10 w-10 object-contain rotate-6 opacity-70" alt="" aria-hidden="true" />
+				<div class="relative flex h-full flex-col rounded-[22px] bg-navy p-6 text-white lg:px-8">
+					<img
+						src="/heart_2.webp"
+						width="629"
+						height="572"
+						class="pointer-events-none absolute top-5 right-6 h-10 w-10 rotate-6 object-contain opacity-70"
+						alt=""
+						aria-hidden="true"
+					/>
 					<span
 						class="mb-2 inline-block w-fit rounded-full bg-primary px-3 py-1 text-[11px] font-extrabold tracking-[0.07em] text-navy uppercase"
 						>Рекомендуемый формат</span
 					>
-					<h2 class="font-caveat text-[34px] lg:text-[40px] font-bold text-white">Регулярные встречи</h2>
+					<h2 class="font-caveat text-[34px] font-bold text-white lg:text-[40px]">
+						Регулярные встречи
+					</h2>
 					<div class="mt-2 flex items-baseline gap-2">
-						<span class="text-[18px] lg:text-[20px]  font-extrabold">14 000 ₽</span>
-						<span class="text-[16px] lg:text-[18px] font-medium text-white/55">/ 4 сессии</span>
+						<span class="text-[18px] font-extrabold lg:text-[20px]">14 000 ₽</span>
+						<span class="text-[16px] font-medium text-white/55 lg:text-[18px]">/ 4 сессии</span>
 					</div>
-					<p class="mt-5 text-[16px] lg:text-[18px] leading-relaxed text-white/75">
+					<p class="mt-5 text-[16px] leading-relaxed text-white/75 lg:text-[18px]">
 						Для устойчивых изменений, а не временного облегчения.
 					</p>
-					<ul class="mt-6 flex flex-col gap-2.5 text-[16px] lg:text-[18px] text-white/90">
+					<ul class="mt-6 flex flex-col gap-2.5 text-[16px] text-white/90 lg:text-[18px]">
 						<li class="flex items-center gap-2.5">
 							<span class="h-1.5 w-1.5 rounded-full bg-primary"></span>Система трекинга прогресса
 						</li>
@@ -563,18 +614,26 @@ const problems = [
 						</li>
 					</ul>
 					<div class="mt-auto pt-8">
-				<div class="flex justify-center">
-  <ButtonSvg variant="4" href="/booking?type=package" mobileHeight='60px' mobileWidth='250px' width='250px' height='70px' onclick={() => reachGoal('pricing_package_click')}>
-    Записаться
-  </ButtonSvg>
-</div>
+						<div class="flex justify-center">
+							<ButtonSvg
+								variant="4"
+								href="/booking?type=package"
+								mobileHeight="60px"
+								mobileWidth="250px"
+								width="250px"
+								height="70px"
+								onclick={() => reachGoal('pricing_package_click')}
+							>
+								Записаться
+							</ButtonSvg>
+						</div>
 						<button
 							type="button"
 							onclick={() => {
 								isIntroModalOpen = true;
 								reachGoal('pricing_intro_click');
 							}}
-							class="mt-4 block w-full cursor-pointer text-center text-[16px] lg:text-[18px] font-semibold text-white/60 underline underline-offset-[3px] transition-colors hover:text-white"
+							class="mt-4 block w-full cursor-pointer text-center text-[16px] font-semibold text-white/60 underline underline-offset-[3px] transition-colors hover:text-white lg:text-[18px]"
 						>
 							Хочу познакомиться
 						</button>
@@ -588,9 +647,7 @@ const problems = [
 	<div class="mx-auto px-5 md:max-w-[760px] lg:max-w-[960px] xl:px-0">
 		<Reveal>
 			<div class="relative mb-12 inline-block md:mb-14">
-				<h2 class="font-caveat text-[34px] lg:text-[40px] font-bold text-navy">
-					вопросы и ответы
-				</h2>
+				<h2 class="font-caveat text-[34px] font-bold text-navy lg:text-[40px]">вопросы и ответы</h2>
 				<svg
 					class="absolute -bottom-3 left-0 w-full"
 					height="14"
@@ -618,16 +675,24 @@ const problems = [
 							aria-expanded={openFaq[i] ? 'true' : 'false'}
 							class="group flex w-full cursor-pointer items-center gap-4 py-5 text-left"
 						>
-							<span class="font-caveat text-[26px] leading-none font-bold text-primary">0{i + 1}</span>
-							<span class="flex-1 text-[16px] lg:text-[18px] font-bold text-navy transition-colors group-hover:text-primary">{item.q}</span>
-							<span class="shrink-0 text-navy transition-transform duration-300" class:rotate-180={openFaq[i]}>
+							<span class="font-caveat text-[26px] leading-none font-bold text-primary"
+								>0{i + 1}</span
+							>
+							<span
+								class="flex-1 text-[16px] font-bold text-navy transition-colors group-hover:text-primary lg:text-[18px]"
+								>{item.q}</span
+							>
+							<span
+								class="shrink-0 text-navy transition-transform duration-300"
+								class:rotate-180={openFaq[i]}
+							>
 								<span class="icon-[lucide--chevron-down] h-5 w-5 text-navy"></span>
 							</span>
 						</button>
 						{#if openFaq[i]}
 							<div
 								transition:slide={{ duration: 300 }}
-								class="pb-6 pl-[42px] text-[16px] lg:text-[18px] leading-relaxed text-foreground/75"
+								class="pb-6 pl-[42px] text-[16px] leading-relaxed text-foreground/75 lg:text-[18px]"
 							>
 								{@html item.a}
 							</div>
@@ -654,7 +719,7 @@ const problems = [
 		aria-label="Закрыть"
 	>
 		<div
-			class=" relative flex  max-w-[670px] mx-5 lg:mx-0 flex-col gap-6 rounded-2xl bg-card px-5 py-5 shadow-2xl lg:px-8"
+			class=" relative mx-5 flex max-w-[670px] flex-col gap-6 rounded-2xl bg-card px-5 py-5 shadow-2xl lg:mx-0 lg:px-8"
 			onclick={(e) => e.stopPropagation()}
 			onkeydown={(e) => e.stopPropagation()}
 			role="dialog"
@@ -663,8 +728,11 @@ const problems = [
 		>
 			<button
 				type="button"
-				onclick={(e) => { e.stopPropagation(); handleModalClose('button'); }}
-				class="absolute top-2 right-2 z-10 cursor-pointer p-2 text-foreground/70 transition-colors rotate-2 hover:rotate-4"
+				onclick={(e) => {
+					e.stopPropagation();
+					handleModalClose('button');
+				}}
+				class="absolute top-2 right-2 z-10 rotate-2 cursor-pointer p-2 text-foreground/70 transition-colors hover:rotate-4"
 				aria-label="Закрыть"
 			>
 				<svg class="h-5 w-5 lg:h-6 lg:w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -677,11 +745,13 @@ const problems = [
 				</svg>
 			</button>
 
-			<div class="space-y-2 pt-6 lg: pt-8">
-				<h3 class=" text-[18px] lg:text-[20px]  leading-relaxed text-foreground">
+			<div class="lg: space-y-2 pt-6 pt-8">
+				<h3 class=" text-[18px] leading-relaxed text-foreground lg:text-[20px]">
 					Встреча-знакомство: проверим, подходим ли мы друг другу
 				</h3>
-				<ul class="mt-3 list-none space-y-1 text-[16px] lg:text-[18px] leading-relaxed text-foreground/75">
+				<ul
+					class="mt-3 list-none space-y-1 text-[16px] leading-relaxed text-foreground/75 lg:text-[18px]"
+				>
 					<li class="relative pl-6 before:absolute before:left-0 before:content-['—']">
 						вы расскажете, что вас беспокоит
 					</li>
@@ -697,7 +767,7 @@ const problems = [
 				</ul>
 			</div>
 
-			<div class="mt-2 flex mx-auto">
+			<div class="mx-auto mt-2 flex">
 				<ButtonSvg
 					href="/booking?acquaintance"
 					onclick={() => reachGoal('modal_intro_click')}
@@ -705,7 +775,7 @@ const problems = [
 					mobileWidth="250px"
 					mobileHeight="60px"
 					width="250px"
-					class="self-start sm:self-auto mb-3"
+					class="mb-3 self-start sm:self-auto"
 				>
 					Записаться
 				</ButtonSvg>
