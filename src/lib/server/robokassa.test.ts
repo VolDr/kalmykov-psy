@@ -181,6 +181,9 @@ describe('createPayment', () => {
 		const result = await createPayment({ outSum: '4000.00', description: 'Тест' });
 		const expectedSig = makePaymentSig('testlogin', '4000.00', 7, 'testpass1', 'Тест');
 		expect(result.fields.SignatureValue).toBe(expectedSig);
+		expect(result.fields.Receipt).toBe(
+			encodeURIComponent(JSON.stringify(buildReceipt('Тест', '4000.00')))
+		);
 	});
 
 	it('sets IsTest=1 in test mode', async () => {

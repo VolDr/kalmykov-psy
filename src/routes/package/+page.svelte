@@ -1,4 +1,6 @@
 <script lang="ts">
+	import PaymentLegalNotice from '$lib/components/PaymentLegalNotice.svelte';
+
 	const PRICE = 14000;
 	const PRICE_DISPLAY = PRICE.toLocaleString('ru-RU');
 
@@ -78,9 +80,9 @@
 				</button>
 			</div>
 
-			<p class="mt-6 text-center text-xs text-stone-400">
-				Оплата через Робокассу · Безопасное соединение
-			</p>
+			<div class="mt-6">
+				<PaymentLegalNotice />
+			</div>
 		</div>
 	</div>
 </div>

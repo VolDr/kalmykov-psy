@@ -12,16 +12,25 @@
 
 	let bulkText = $state('');
 	let bulkError = $state('');
-	let bulkResult = $state<{ added: number; removed: number; skipped: number } | null>(null);
+	let bulkSubmitting = $state(false);
+	let bulkResult = $state<{
+		added: number;
+		removed: number;
+		replaced: number;
+	} | null>(null);
 
 	const MSK_TZ = 'Europe/Moscow';
+	const BULK_PLACEHOLDER = 'ADD\n14.06 10-18\n15.06 9-17\n\nREMOVE\n13.06 10-18';
 
 	function dateStr(d: DateValue): string {
 		return `${d.year}-${String(d.month).padStart(2, '0')}-${String(d.day).padStart(2, '0')}`;
 	}
 
 	function handleCalendarChange(dates: DateValue[] | undefined) {
-		if (!dates) { selectedDates = new Set(); return; }
+		if (!dates) {
+			selectedDates = new Set();
+			return;
+		}
 		selectedDates = new Set(dates.map(dateStr));
 	}
 
@@ -64,13 +73,19 @@
 		<div class="rounded-xl border bg-white p-4">
 			<p class="mb-1 text-sm font-medium text-stone-600">Выберите даты (МСК)</p>
 			<p class="mb-3 text-xs text-stone-400">Кликайте по датам для выбора/снятия</p>
-			<Calendar type="multiple" value={calendarValue} onValueChange={handleCalendarChange} locale="ru" />
+			<Calendar
+				type="multiple"
+				value={calendarValue}
+				onValueChange={handleCalendarChange}
+				locale="ru"
+			/>
 			{#if selectedDates.size > 0}
 				<button
 					type="button"
 					onclick={() => (selectedDates = new Set())}
 					class="mt-3 text-xs text-stone-400 hover:text-red-500"
-				>Сбросить все ({selectedDates.size})</button>
+					>Сбросить все ({selectedDates.size})</button
+				>
 			{/if}
 		</div>
 
@@ -81,11 +96,13 @@
 				</div>
 			{:else}
 				<p class="mb-4 text-sm font-medium text-stone-600">
-					Добавить слот на <span class="font-semibold text-stone-800">{selectedDates.size} {selectedDates.size === 1 ? 'дату' : 'дат'}</span>
+					Добавить слот на <span class="font-semibold text-stone-800"
+						>{selectedDates.size} {selectedDates.size === 1 ? 'дату' : 'дат'}</span
+					>
 				</p>
 
 				<div class="mb-4 flex flex-wrap gap-1.5">
-					{#each [...selectedDates].sort() as d}
+					{#each [...selectedDates].sort() as d (d)}
 						<span class="rounded-full bg-stone-100 px-2.5 py-0.5 text-xs text-stone-600">{d}</span>
 					{/each}
 				</div>
@@ -106,7 +123,7 @@
 					}}
 					class="space-y-4"
 				>
-					{#each [...selectedDates] as d}
+					{#each [...selectedDates] as d (d)}
 						<input type="hidden" name="date" value={d} />
 					{/each}
 
@@ -118,7 +135,7 @@
 								bind:value={startHour}
 								class="w-full rounded-lg border border-stone-200 px-3 py-2 text-sm focus:border-stone-400 focus:outline-none"
 							>
-								{#each hours as h}
+								{#each hours as h (h)}
 									<option value={h}>{String(h).padStart(2, '0')}:00</option>
 								{/each}
 							</select>
@@ -131,7 +148,7 @@
 								bind:value={endHour}
 								class="w-full rounded-lg border border-stone-200 px-3 py-2 text-sm focus:border-stone-400 focus:outline-none"
 							>
-								{#each hours as h}
+								{#each hours as h (h)}
 									<option value={h}>{String(h).padStart(2, '0')}:00</option>
 								{/each}
 							</select>
@@ -156,7 +173,10 @@
 	<div class="mb-8 rounded-xl border bg-white p-4">
 		<p class="mb-1 text-sm font-medium text-stone-600">Массовый ввод</p>
 		<p class="mb-3 text-xs text-stone-400">
-			Формат: <code class="rounded bg-stone-100 px-1">ADD</code> или <code class="rounded bg-stone-100 px-1">REMOVE</code>, затем строки «дата часы-часы»
+			Формат: <code class="rounded bg-stone-100 px-1">ADD</code> или
+			<code class="rounded bg-stone-100 px-1">REMOVE</code>, затем строки «дата часы-часы». Команды
+			выполняются сверху вниз: ADD заменяет пересекающиеся слоты, REMOVE вырезает указанное время из
+			существующих слотов.
 		</p>
 
 		<form
@@ -165,14 +185,16 @@
 			use:enhance={() => {
 				bulkError = '';
 				bulkResult = null;
+				bulkSubmitting = true;
 				return async ({ result, update }) => {
+					bulkSubmitting = false;
 					if (result.type === 'failure') {
 						bulkError = (result.data?.bulkError as string) ?? 'Ошибка';
 					} else if (result.type === 'success' && result.data) {
 						bulkResult = {
 							added: result.data.added as number,
 							removed: result.data.removed as number,
-							skipped: result.data.skipped as number
+							replaced: result.data.replaced as number
 						};
 						bulkText = '';
 					}
@@ -185,27 +207,30 @@
 				name="text"
 				bind:value={bulkText}
 				rows={8}
-				placeholder={"ADD\n14.06 10-18\n15.06 9-17\n\nREMOVE\n13.06 10-18"}
+				placeholder={BULK_PLACEHOLDER}
 				class="w-full rounded-lg border border-stone-200 px-3 py-2 font-mono text-sm focus:border-stone-400 focus:outline-none"
 			></textarea>
 
 			{#if bulkError}
-				<p class="text-sm text-red-500">{bulkError}</p>
+				<p class="text-sm whitespace-pre-line text-red-500">{bulkError}</p>
 			{/if}
 
 			{#if bulkResult}
 				<p class="text-sm text-stone-600">
 					Добавлено: <span class="font-semibold text-green-700">{bulkResult.added}</span>
-					&nbsp;· Удалено: <span class="font-semibold text-red-600">{bulkResult.removed}</span>
-					{#if bulkResult.skipped > 0}
-						&nbsp;· Пропущено (пересечение): <span class="font-semibold text-stone-500">{bulkResult.skipped}</span>
+					&nbsp;· Обработано по REMOVE:
+					<span class="font-semibold text-red-600">{bulkResult.removed}</span>
+					{#if bulkResult.replaced > 0}
+						&nbsp;· Заменено при ADD: <span class="font-semibold text-stone-500"
+							>{bulkResult.replaced}</span
+						>
 					{/if}
 				</p>
 			{/if}
 
 			<button
 				type="submit"
-				disabled={!bulkText.trim()}
+				disabled={!bulkText.trim() || bulkSubmitting}
 				class="rounded-lg bg-stone-800 px-4 py-2 text-sm font-medium text-white hover:bg-stone-700 disabled:opacity-40"
 			>
 				Применить
@@ -222,7 +247,7 @@
 			<p class="px-4 py-8 text-center text-sm text-stone-400">Слотов пока нет</p>
 		{:else}
 			<div class="divide-y">
-				{#each data.availabilities as slot}
+				{#each data.availabilities as slot (slot.id)}
 					<div class="flex items-center justify-between px-4 py-3">
 						<div>
 							<span class="font-medium">{mskDate(slot.startAt)}</span>

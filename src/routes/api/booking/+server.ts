@@ -16,15 +16,29 @@ export const POST: RequestHandler = async ({ request, url, getClientAddress }) =
 	} catch {
 		return json({ error: 'Некорректный запрос' }, { status: 400 });
 	}
-	const { availabilityId, bookedAt, clientName, email, type, sbClientId: rawSbClientId } = body;
+	const { availabilityId, bookedAt, email, type, sbClientId: rawSbClientId } = body;
+	// The booking form asks for a Telegram contact. Keep accepting clientName so
+	// older clients that still use the previous API contract continue to work.
+	const telegram =
+		typeof body.telegram === 'string'
+			? body.telegram.trim()
+			: typeof body.clientName === 'string'
+				? body.clientName.trim()
+				: '';
 
 	const availabilityIdNum = parseInt(String(availabilityId ?? ''), 10);
-	if (isNaN(availabilityIdNum) || availabilityIdNum <= 0 || !bookedAt || !clientName?.trim() || !email?.trim()) {
+	if (
+		isNaN(availabilityIdNum) ||
+		availabilityIdNum <= 0 ||
+		!bookedAt ||
+		!telegram ||
+		!email?.trim()
+	) {
 		return json({ error: 'Заполните все поля' }, { status: 400 });
 	}
 
-	if (clientName.trim().length > 100) {
-		return json({ error: 'Имя слишком длинное' }, { status: 400 });
+	if (telegram.length > 64) {
+		return json({ error: 'Telegram слишком длинный' }, { status: 400 });
 	}
 
 	if (email.trim().length > 254 || !email.includes('@')) {
@@ -38,7 +52,8 @@ export const POST: RequestHandler = async ({ request, url, getClientAddress }) =
 	const outSum = type === 'package' ? PACKAGE_PRICE : CONSULTATION_PRICE;
 
 	const sbClientIdNum =
-		rawSbClientId != null && (typeof rawSbClientId === 'number' || typeof rawSbClientId === 'string')
+		rawSbClientId != null &&
+		(typeof rawSbClientId === 'number' || typeof rawSbClientId === 'string')
 			? Number(rawSbClientId)
 			: null;
 	const validSbClientId =
@@ -50,7 +65,7 @@ export const POST: RequestHandler = async ({ request, url, getClientAddress }) =
 		const payment = await createBooking({
 			availabilityId: availabilityIdNum,
 			bookedAt,
-			clientName: clientName.trim(),
+			clientName: telegram,
 			email: email.trim(),
 			originUrl: url.origin,
 			outSum,

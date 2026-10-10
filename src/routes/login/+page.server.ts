@@ -9,10 +9,13 @@ const loginSchema = z.object({
 	password: z.string().min(1, { message: 'Введите пароль' })
 });
 
+// Куда попадает администратор после входа
+const AFTER_LOGIN_PATH = '/admin/bookings';
+
 export const load: PageServerLoad = async ({ locals }) => {
 	console.log(locals);
 	if (locals.user) {
-		throw redirect(303, '/admin/manage-records');
+		throw redirect(303, AFTER_LOGIN_PATH);
 	}
 	return {};
 };
@@ -51,6 +54,6 @@ export const actions = {
 
 		await createSession(cookies, validatedUsername);
 
-		throw redirect(303, '/admin/manage-records');
+		throw redirect(303, AFTER_LOGIN_PATH);
 	}
 } satisfies Actions;

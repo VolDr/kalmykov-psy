@@ -4,7 +4,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 vi.mock('$lib/server/booking.server', () => ({
 	createBooking: vi.fn(),
 	CONSULTATION_PRICE: '4000.00',
-	PACKAGE_PRICE: '10000.00'
+	PACKAGE_PRICE: '14000.00'
 }));
 
 import { POST } from './+server';
@@ -61,7 +61,7 @@ function makeRequest(body: Record<string, unknown>, ip = '127.0.0.1') {
 		},
 		url: new URL('http://localhost/api/booking'),
 		getClientAddress: () => ip
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	} as any);
 }
 
@@ -74,7 +74,7 @@ describe('POST /api/booking — validation', () => {
 	const validBody = {
 		availabilityId: 1,
 		bookedAt: new Date(Date.now() + 3 * 60 * 60 * 1000).toISOString(),
-		clientName: 'Иван Иванов',
+		telegram: '@ivan',
 		email: 'ivan@example.com'
 	};
 
@@ -97,8 +97,8 @@ describe('POST /api/booking — validation', () => {
 		expect(res.status).toBe(400);
 	});
 
-	it('returns 400 when clientName is blank', async () => {
-		const res = await makeRequest({ ...validBody, clientName: '   ' });
+	it('returns 400 when telegram is blank', async () => {
+		const res = await makeRequest({ ...validBody, telegram: '   ' });
 		expect(res.status).toBe(400);
 		const body = await res.json();
 		expect(body.error).toMatch(/поля/i);
@@ -109,11 +109,11 @@ describe('POST /api/booking — validation', () => {
 		expect(res.status).toBe(400);
 	});
 
-	it('returns 400 when clientName exceeds 100 characters', async () => {
-		const res = await makeRequest({ ...validBody, clientName: 'А'.repeat(101) });
+	it('returns 400 when telegram exceeds 64 characters', async () => {
+		const res = await makeRequest({ ...validBody, telegram: 'a'.repeat(65) });
 		expect(res.status).toBe(400);
 		const body = await res.json();
-		expect(body.error).toMatch(/имя/i);
+		expect(body.error).toMatch(/telegram/i);
 	});
 
 	it('returns 400 when email exceeds 254 characters', async () => {
@@ -158,7 +158,7 @@ describe('POST /api/booking — createBooking integration', () => {
 	const validBody = {
 		availabilityId: 1,
 		bookedAt: new Date(Date.now() + 3 * 60 * 60 * 1000).toISOString(),
-		clientName: 'Иван Иванов',
+		telegram: '@ivan',
 		email: 'ivan@example.com'
 	};
 
@@ -181,17 +181,32 @@ describe('POST /api/booking — createBooking integration', () => {
 		expect(body.error).toBe('Слот уже занят');
 	});
 
-	it('trims clientName and email before passing to createBooking', async () => {
+	it('maps and trims telegram and email before passing to createBooking', async () => {
 		const fakePayment = { url: 'https://robokassa.ru', fields: { InvId: '1' } };
 		mockCreateBooking.mockResolvedValueOnce(fakePayment);
 
-		await makeRequest({ ...validBody, clientName: '  Иван  ', email: '  ivan@example.com  ' });
+		await makeRequest({
+			...validBody,
+			telegram: '  @ivan  ',
+			email: '  ivan@example.com  ',
+			type: 'package'
+		});
 
 		expect(mockCreateBooking).toHaveBeenCalledWith(
 			expect.objectContaining({
-				clientName: 'Иван',
-				email: 'ivan@example.com'
+				clientName: '@ivan',
+				email: 'ivan@example.com',
+				outSum: '14000.00'
 			})
 		);
+	});
+
+	it('keeps accepting clientName from older clients', async () => {
+		const fakePayment = { url: 'https://robokassa.ru', fields: { InvId: '2' } };
+		mockCreateBooking.mockResolvedValueOnce(fakePayment);
+
+		await makeRequest({ ...validBody, telegram: undefined, clientName: '  Иван  ' });
+
+		expect(mockCreateBooking).toHaveBeenCalledWith(expect.objectContaining({ clientName: 'Иван' }));
 	});
 });

@@ -84,7 +84,10 @@ export async function createPayment(params: {
 			OutSum: params.outSum,
 			InvId: String(payment.id),
 			Description: payment.description,
-			Receipt: receiptJson,
+			// Robokassa verifies the signature against the URL-encoded Receipt value.
+			// The browser will encode this form value once more for transport; Robokassa
+			// decodes that layer and receives exactly the value used in paymentSig().
+			Receipt: receiptEncoded,
 			SignatureValue: sig,
 			IsTest: isTestMode() ? '1' : '0',
 			ExpirationDate: expirationDate,

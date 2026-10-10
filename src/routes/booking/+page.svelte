@@ -19,6 +19,7 @@
 	import type { DateValue } from '@internationalized/date';
 	import { cn } from '$lib/utils';
 	import { reachGoal } from '$lib/metrika';
+	import PaymentLegalNotice from '$lib/components/PaymentLegalNotice.svelte';
 	import type { SlotInfo } from '$lib/server/booking.server';
 
 	let { data } = $props();
@@ -245,15 +246,15 @@
 		<!-- заголовок -->
 		<div class="mb-7 text-center relative">
 			<img src="/star_1.webp" class="pointer-events-none absolute left-[24px] top-[29px] lg:top-3 left-1 lg:left-[301px] h-6 w-6" alt="" aria-hidden="true" />
-			<h1 class="flex items-center justify-center gap-3 font-caveat text-[34px] leading-none font-bold tracking-[0.5px] text-navy md:text-[40px]">
+			<h1 class="flex items-center justify-center gap-3 font-caveat text-[34px] leading-none font-semibold tracking-[0.5px] text-navy md:text-[40px]">
 				{isAcquaintance ? 'Встреча-знакомство' : 'Запись на консультацию'}
 			</h1>
 			{#if !isAcquaintance}
-				<p class="mt-2 text-[15px] text-foreground/55">
+				<p class="mt-2 text-[15px] text-foreground/71">
 					Стоимость: {Number(data.price).toLocaleString('ru-RU')} ₽
 				</p>
 			{:else}
-				<p class="mt-2 text-[15px] text-foreground/55">Бесплатная ознакомительная встреча</p>
+				<p class="mt-2 text-[15px] text-foreground/71">Бесплатная ознакомительная встреча</p>
 			{/if}
 		</div>
 
@@ -263,18 +264,18 @@
 			<button
 				type="button"
 				onclick={() => { if (step1Clickable) step = 1; }}
-				class={cn('flex items-center gap-2', step === 1 ? 'font-bold text-navy' : 'text-foreground/45', step1Clickable ? 'cursor-pointer hover:text-navy' : 'cursor-default')}
+				class={cn('flex items-center gap-2', step === 1 ? 'font-semibold text-navy' : 'text-foreground/45', step1Clickable ? 'cursor-pointer hover:text-navy' : 'cursor-default')}
 			>
-				<span class={cn('flex h-6 w-6 items-center justify-center rounded-full text-[12px] font-bold transition', step === 1 ? 'bg-primary text-white' : step1Clickable ? 'bg-primary/30 text-navy hover:bg-primary/50' : 'bg-[#e7ddc7] text-foreground/45')}>1</span>
+				<span class={cn('flex h-6 w-6 items-center justify-center rounded-full text-[12px] font-semibold transition', step === 1 ? 'bg-primary text-white' : step1Clickable ? 'bg-primary/30 text-navy hover:bg-primary/50' : 'bg-[#e7ddc7] text-foreground/45')}>1</span>
 				Дата и время
 			</button>
 			<span class="text-[#d8cfbc]">—</span>
 			<button
 				type="button"
 				onclick={() => { if (step2Clickable) goToPayment(); }}
-				class={cn('flex items-center gap-2', step === 2 ? 'font-bold text-navy' : 'text-foreground/45', step2Clickable ? 'cursor-pointer hover:text-navy' : 'cursor-default')}
+				class={cn('flex items-center gap-2', step === 2 ? 'font-semibold text-navy' : 'text-foreground/45', step2Clickable ? 'cursor-pointer hover:text-navy' : 'cursor-default')}
 			>
-				<span class={cn('flex h-6 w-6 items-center justify-center rounded-full text-[12px] font-bold transition', step === 2 ? 'bg-primary text-white' : step2Clickable ? 'bg-primary/30 text-navy hover:bg-primary/50' : 'bg-[#e7ddc7] text-foreground/45')}>2</span>
+				<span class={cn('flex h-6 w-6 items-center justify-center rounded-full text-[12px] font-semibold transition', step === 2 ? 'bg-primary text-white' : step2Clickable ? 'bg-primary/30 text-navy hover:bg-primary/50' : 'bg-[#e7ddc7] text-foreground/45')}>2</span>
 				{isAcquaintance ? 'Ваши данные' : 'Оплата'}
 			</button>
 		</div>
@@ -287,12 +288,12 @@
 					<div class="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-primary/15">
 						<svg class="h-8 w-8 text-primary" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
 					</div>
-					<h2 class="mb-2 font-caveat text-[28px] font-bold text-navy">Встреча забронирована!</h2>
+					<h2 class="mb-2 font-caveat text-[28px] font-semibold text-navy">Встреча забронирована!</h2>
 					<p class="mb-1 text-[15px] font-semibold text-navy">
 						{localDateLabel(selectedSlot.startAt)}, {localTime(selectedSlot.startAt)}
 						{#if showMsk}<span class="font-normal text-foreground/40">({mskTime(selectedSlot.startAt)} МСК)</span>{/if}
 					</p>
-					<p class="mt-4 max-w-[360px] mx-auto text-[15px] leading-relaxed text-foreground/70">
+					<p class="mt-4 max-w-[360px] mx-auto text-[15px] leading-relaxed text-foreground/75">
 						Свяжусь с вами в течение дня для подтверждения деталей. Можно также
 						<a href="https://t.me/m/LMOE2JTtMDcy" class="font-semibold text-navy underline decoration-primary decoration-2 underline-offset-2 transition hover:text-primary">написать мне в Telegram</a>.
 					</p>
@@ -306,7 +307,7 @@
 					<div class="grid grid-cols-1 gap-7 md:grid-cols-[300px_1fr] md:gap-9">
 						<!-- календарь (стандартный Bits-UI Calendar) -->
 						<div class="flex justify-center md:justify-start">
-							<div class={cn('relative', showNextMonthHint && 'mt-[96px] md:mt-[84px]')}>
+							<div class={cn('relative')}>
 								{#if showNextMonthHint}
 									<!-- облачко-подсказка со стрелкой на кнопку «следующий месяц» -->
 									<svg
@@ -394,7 +395,7 @@
 									{/each}
 								</div>
 								{#if selectedSlot}
-									<button onclick={goToPayment} class="mt-5 w-full rounded-[12px] bg-primary px-6 py-3.5 text-[15px] font-bold text-white shadow-[0_8px_20px_rgba(233,184,78,0.3)] transition hover:brightness-[0.97] active:scale-[0.99]">
+									<button onclick={goToPayment} class="mt-5 w-full rounded-[12px] bg-primary px-6 py-3.5 text-[15px] font-semibold text-white shadow-[0_8px_20px_rgba(233,184,78,0.3)] transition hover:brightness-[0.97] active:scale-[0.99]">
 										{isAcquaintance ? 'Далее' : 'Перейти к оплате'}
 									</button>
 								{/if}
@@ -434,7 +435,7 @@
 					{/if}
 
 					<button onclick={handlePay} disabled={loading || !telegram.trim() || (!isAcquaintance && !email.trim())}
-						class="w-full rounded-[12px] bg-primary px-6 py-3.5 text-[15px] font-bold text-white shadow-[0_8px_20px_rgba(233,184,78,0.3)] transition hover:brightness-[0.97] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-55 disabled:shadow-none">
+						class="w-full rounded-[12px] bg-primary px-6 py-3.5 text-[15px] font-semibold text-white shadow-[0_8px_20px_rgba(233,184,78,0.3)] transition hover:brightness-[0.97] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-55 disabled:shadow-none">
 						{#if loading}
 							{isAcquaintance ? 'Записываем…' : 'Перенаправление…'}
 						{:else}
@@ -442,9 +443,8 @@
 						{/if}
 					</button>
 					{#if !isAcquaintance}
-						<p class="text-center text-[13px] text-foreground/45">
-							После оплаты слот закрепляется за вами. Оплата через Робокассу.
-						</p>
+						<p class="text-center text-[13px] text-foreground/45">После оплаты слот закрепляется за вами.</p>
+						<PaymentLegalNotice />
 					{/if}
 				</div>
 			{/if}

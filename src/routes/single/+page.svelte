@@ -10,6 +10,7 @@
 -->
 <script lang="ts">
 	import { reachGoal } from '$lib/metrika';
+	import PaymentLegalNotice from '$lib/components/PaymentLegalNotice.svelte';
 
 	const PRICE = 4000;
 	const PRICE_DISPLAY = PRICE.toLocaleString('ru-RU');
@@ -85,7 +86,9 @@
 						{loading ? 'Перенаправление…' : `Оплатить ${PRICE_DISPLAY} ₽`}
 					</button>
 				</div>
-				<p class="mt-5 text-center text-[13px] text-foreground/45">Оплата через Робокассу <br> Безопасное соединение</p>
+				<div class="mt-5">
+					<PaymentLegalNotice />
+				</div>
 			</div>
 		</div>
 
