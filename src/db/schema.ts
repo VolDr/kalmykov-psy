@@ -912,3 +912,57 @@ export const leadMagnetEvents = pgTable(
 		)
 	]
 );
+
+// --- Викторины для игры с друзьями (/play, конструктор — /admin/quizzes) ---
+
+export type GameQuestion =
+	| {
+			// Выбор из вариантов; у старых записей поле type отсутствует
+			type?: 'choice';
+			text: string;
+			options: string[];
+			// Индекс верного варианта в options
+			correct: number;
+			// Картинка к вопросу: https-ссылка или путь от корня сайта (необязательно)
+			image?: string;
+			// Пояснение, которое показывается после закрытия вопроса (необязательно)
+			explanation?: string;
+	  }
+	| {
+			// Несколько верных вариантов: очки (верно − неверно отмеченные) / число верных, не ниже нуля
+			type: 'multi';
+			text: string;
+			options: string[];
+			// Индексы верных вариантов в options
+			correct: number[];
+			// Картинка к вопросу: https-ссылка или путь от корня сайта (необязательно)
+			image?: string;
+			// Пояснение, которое показывается после закрытия вопроса (необязательно)
+			explanation?: string;
+	  }
+	| {
+			// Прямой ввод: игрок печатает ответ сам
+			type: 'text';
+			text: string;
+			// Все засчитываемые написания верного ответа
+			answers: string[];
+			// Картинка к вопросу: https-ссылка или путь от корня сайта (необязательно)
+			image?: string;
+			// Пояснение, которое показывается после закрытия вопроса (необязательно)
+			explanation?: string;
+	  };
+
+export const gameQuizzes = pgTable('game_quizzes', {
+	id: bigserial('id', { mode: 'number' }).primaryKey(),
+	title: text('title').notNull(),
+	description: text('description'),
+	// Секунд на вопрос
+	timeLimit: integer('time_limit').default(20).notNull(),
+	published: boolean('published').default(false).notNull(),
+	questions: jsonb('questions')
+		.$type<GameQuestion[]>()
+		.default(sql`'[]'::jsonb`)
+		.notNull(),
+	createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+	updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'string' }).defaultNow().notNull()
+});

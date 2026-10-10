@@ -20,7 +20,8 @@
 	let isArticles = $derived(data.pathname == '/articles');
 	let isLoginRoute = $derived(data.pathname === '/login');
 	let isUsefulRoute = $derived(data.pathname?.startsWith('/useful'))
-	let isAdRoute = $derived(data.pathname?.startsWith('/ads'))
+	let isPlayRoute = $derived(data.pathname?.startsWith('/play'));
+	let isAdRoute = $derived(data.pathname?.startsWith('/ads') || data.pathname?.startsWith('/play'))
 	let isLegalRoute = $derived(data.pathname === '/oferta' || data.pathname === '/privacy')
 	let burnoutQuestionnaireRoute = $derived(data.pathname === '/useful/burnout-questionnaire');
 
@@ -83,7 +84,9 @@
 		// Счётчик не грузим на локальных адресах (включая дев-сервер, открытый по IP
 		// в локальной сети для проверки с телефона) и в админке: собственные сессии
 		// разработки и работы с CRM попадали в ту же статистику, на которой учатся
-		// стратегии Директа. window.ym остаётся undefined — reachGoal тихо no-op.
+		// стратегии Директа. То же для /play: игра с друзьями — не посетители сайта, а
+		// вебвизор не должен записывать имена и ответы игроков.
+		// window.ym остаётся undefined — reachGoal тихо no-op.
 		//
 		// Проверка именно такая — «исключаем локальное», а не «разрешаем прод»:
 		// при любой ошибке в условии счётчик продолжит работать. Обратная логика
@@ -98,7 +101,7 @@
 			/^10\./.test(mtHost) ||
 			/^172\.(1[6-9]|2\d|3[01])\./.test(mtHost);
 
-		if (!mtIsLocal && !/^\/admin(\/|$)/.test(window.location.pathname)) {
+		if (!mtIsLocal && !/^\/(admin|play)(\/|$)/.test(window.location.pathname)) {
 		(function (m, e, t, r, i, k, a) {
 			m[i] =
 				m[i] ||
@@ -150,7 +153,7 @@
 	<ProgressBar progress={$progress} />
 {/if}
 <Toaster position="top-right" />
-{#if !isUsefulRoute}
+{#if !isUsefulRoute && !isPlayRoute}
 	<CookieBanner />
 {/if}
 
