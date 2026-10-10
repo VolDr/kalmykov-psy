@@ -120,6 +120,34 @@
       "when": 1787001900000,
       "tag": "0016_chain_depth_and_quiz_delivery",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1787264288890,
+      "tag": "0017_post_analytics_dashboard",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1789318800000,
+      "tag": "0018_quiz_results_site_contact",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1789405200000,
+      "tag": "0019_game_quizzes",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1789491600000,
+      "tag": "0020_broadcast_runs_only_idle",
+      "breakpoints": true
     }
   ]
 }

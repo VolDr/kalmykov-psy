@@ -12,6 +12,7 @@ import {
 	index,
 	doublePrecision,
 	integer,
+	date,
 	jsonb,
 	pgEnum
 } from 'drizzle-orm/pg-core';
@@ -238,6 +239,8 @@ export const botBroadcastRuns = pgTable(
 			.array()
 			.default(sql`'{}'::text[]`)
 			.notNull(),
+		// Запуск шёл с галочкой «только тем, у кого нет активной цепочки»
+		onlyIdle: boolean('only_idle').default(false).notNull(),
 		matchedCount: integer('matched_count').notNull(),
 		createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' })
 			.defaultNow()
@@ -446,8 +449,8 @@ export const clipArticles = pgTable(
 	(table) => [uniqueIndex('clip_articles_slug_key').on(table.slug)]
 );
 
-/** Рекомендации по сферам для бота: { exhaustion: { orange: '…', red: '…' }, … } */
-export type QuizSphereRecs = Record<string, Partial<Record<'orange' | 'red', string>>>;
+/** Рекомендации по сферам для бота: { exhaustion: { green: '…', orange: '…', red: '…' }, … } */
+export type QuizSphereRecs = Record<string, Partial<Record<'green' | 'orange' | 'red', string>>>;
 
 // Настройки выдачи результатов опросника в боте — одна строка (singleton)
 export const quizBotSettings = pgTable('quiz_bot_settings', {
@@ -465,11 +468,16 @@ export const quizBotSettings = pgTable('quiz_bot_settings', {
 	// Алерт при клике «я подписался» без подписки; лимит Telegram — 200 символов
 	notSubscribedAlert: text('not_subscribed_alert'),
 	resultsHeaderText: text('results_header_text'),
+	// Не используется: завершение с CTA больше не отправляется в разборе — призыв
+	// записаться ставится шагом цепочки quiz_results_delivered. Колонка оставлена,
+	// чтобы не делать миграцию ради удаления.
 	resultsFooterText: text('results_footer_text'),
 	sphereRecs: jsonb('sphere_recs')
 		.$type<QuizSphereRecs>()
 		.default(sql`'{}'::jsonb`)
 		.notNull(),
+	// Не используется: вместо общего «всё в зелёной зоне» у каждой сферы свой
+	// текст зелёной зоны в sphere_recs. Колонка оставлена по той же причине.
 	allGreenText: text('all_green_text'),
 	updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'string' }).defaultNow().notNull()
 });
@@ -500,6 +508,11 @@ export const quizResults = pgTable(
 			.notNull(),
 		// Контакт бота, который забрал результат по диплинку
 		contactId: bigint('contact_id', { mode: 'number' }),
+		// Контакт, чья cookie sb_client_id стояла, когда опросник проходили на сайте
+		// (человек пришёл по ссылке из бота). Это не владелец: забрать результат по
+		// токену может и другой. Нужен напоминанию /start quiz_result, у которого
+		// токена нет — только контакт, получивший сообщение.
+		siteContactId: bigint('site_contact_id', { mode: 'number' }),
 		// Момент, когда выдача разбора началась. Отделяет «упало на середине»
 		// (есть start, нет delivered — такое надо повторить) от «человек ещё не
 		// прошёл шлагбаум подписки» (нет ни того, ни другого — повторять нечего).
@@ -515,7 +528,13 @@ export const quizResults = pgTable(
 			columns: [table.contactId],
 			foreignColumns: [botContacts.id],
 			name: 'quiz_results_contact_id_fkey'
-		}).onDelete('set null')
+		}).onDelete('set null'),
+		foreignKey({
+			columns: [table.siteContactId],
+			foreignColumns: [botContacts.id],
+			name: 'quiz_results_site_contact_id_fkey'
+		}).onDelete('set null'),
+		index('quiz_results_site_contact_id_idx').on(table.siteContactId)
 	]
 );
 
@@ -912,6 +931,45 @@ export const leadMagnetEvents = pgTable(
 		)
 	]
 );
+
+// --- Аналитика Telegram-постов: вкладки II–IV в /admin/posts ---
+
+// Посты хранятся отдельно от агрегированного снимка: таблица, поиск и сортировка
+// работают с типизированными колонками, а не разбирают большой JSONB на каждый запрос.
+export const postAnalyticsPosts = pgTable(
+	'post_analytics_posts',
+	{
+		telegramMessageId: integer('telegram_message_id').primaryKey(),
+		publishedAt: date('published_at', { mode: 'string' }).notNull(),
+		text: text('text').notNull(),
+		theme: text('theme').notNull(),
+		format: text('format').notNull(),
+		views: integer('views').notNull(),
+		engagementRate: doublePrecision('engagement_rate').notNull(),
+		score: doublePrecision('score').notNull(),
+		tier: text('tier').notNull(),
+		createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' })
+			.defaultNow()
+			.notNull()
+	},
+	(table) => [
+		index('post_analytics_posts_published_at_idx').on(table.publishedAt),
+		index('post_analytics_posts_theme_idx').on(table.theme),
+		index('post_analytics_posts_score_idx').on(table.score)
+	]
+);
+
+// Снимки содержат агрегаты, рекомендации, шаблоны и карту экспертизы. Они
+// обновляются атомарно и допускают развитие формата отчёта без миграции на каждый
+// новый аналитический показатель.
+export const postAnalyticsDatasets = pgTable('post_analytics_datasets', {
+	key: text('key').primaryKey(),
+	label: text('label').notNull(),
+	version: integer('version').default(1).notNull(),
+	payload: jsonb('payload').$type<Record<string, unknown>>().notNull(),
+	sourceGeneratedAt: date('source_generated_at', { mode: 'string' }),
+	updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'string' }).defaultNow().notNull()
+});
 
 // --- Викторины для игры с друзьями (/play, конструктор — /admin/quizzes) ---
 
