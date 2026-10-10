@@ -36,6 +36,9 @@
 				<a href="/admin/analytics" class="text-sm font-medium text-gray-700 hover:text-gray-900">
 					Воронки
 				</a>
+				<a href="/admin/posts" class="text-sm font-medium text-gray-700 hover:text-gray-900">
+					Посты
+				</a>
 				<a href="/admin/quizzes" class="text-sm font-medium text-gray-700 hover:text-gray-900">
 					Викторины
 				</a>
@@ -76,7 +79,10 @@
 					<a href="/admin/articles" class="block rounded-lg px-3 py-2 text-sm hover:bg-gray-100">
 						Статьи
 					</a>
-					<a href="/admin/availability" class="block rounded-lg px-3 py-2 text-sm hover:bg-gray-100">
+					<a
+						href="/admin/availability"
+						class="block rounded-lg px-3 py-2 text-sm hover:bg-gray-100"
+					>
 						Расписание
 					</a>
 					<a href="/admin/bookings" class="block rounded-lg px-3 py-2 text-sm hover:bg-gray-100">
@@ -88,10 +94,16 @@
 					<a href="/admin/analytics" class="block rounded-lg px-3 py-2 text-sm hover:bg-gray-100">
 						Воронки
 					</a>
+					<a href="/admin/posts" class="block rounded-lg px-3 py-2 text-sm hover:bg-gray-100">
+						Посты
+					</a>
 					<a href="/admin/quizzes" class="block rounded-lg px-3 py-2 text-sm hover:bg-gray-100">
 						Викторины
 					</a>
-					<a href="/admin/bot/contacts" class="block rounded-lg px-3 py-2 text-sm hover:bg-gray-100">
+					<a
+						href="/admin/bot/contacts"
+						class="block rounded-lg px-3 py-2 text-sm hover:bg-gray-100"
+					>
 						Бот
 					</a>
 				</nav>
