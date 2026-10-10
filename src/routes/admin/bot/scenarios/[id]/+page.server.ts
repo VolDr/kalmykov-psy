@@ -7,7 +7,9 @@ import { requireAuth } from '$lib/server/protected';
 import {
 	deleteStepAndRepointQueue,
 	launchScenarioForSegment,
-	validateTrigger
+	previewSegment,
+	validateTrigger,
+	type SegmentFilter
 } from '$lib/server/bot-scenarios.server';
 import { tgFormat, TELEGRAM_MESSAGE_LIMIT } from '$lib/server/telegram-client-bot.server';
 import {
@@ -35,6 +37,14 @@ function parseTags(raw: unknown): string[] {
 		.split(',')
 		.map((t) => t.trim())
 		.filter(Boolean);
+}
+
+function parseSegmentFilter(form: FormData): SegmentFilter {
+	return {
+		requireTags: parseTags(form.get('requireTags')),
+		excludeTags: parseTags(form.get('excludeTags')),
+		onlyIdle: form.get('onlyIdle') === 'on'
+	};
 }
 
 /** Файл из multipart-формы; пустой input даёт File с size 0 — это «нет файла» */
@@ -372,17 +382,29 @@ export const actions = {
 			return fail(400, { launchError: 'Сначала включите цепочку — выключенная не отправляется' });
 		}
 
-		const form = await event.request.formData();
-		const requireTags = parseTags(form.get('requireTags'));
-		const excludeTags = parseTags(form.get('excludeTags'));
+		const filter = parseSegmentFilter(await event.request.formData());
 
-		const count = await launchScenarioForSegment(id, { requireTags, excludeTags });
+		const count = await launchScenarioForSegment(id, filter);
 		if (count === 0) {
 			return fail(400, {
-				launchError: 'Никому не отправлено: сегмент пуст или в цепочке нет шагов'
+				launchError: filter.onlyIdle
+					? 'Никому не отправлено: сегмент пуст, все заняты другими цепочками или в цепочке нет шагов'
+					: 'Никому не отправлено: сегмент пуст или в цепочке нет шагов'
 			});
 		}
 
 		return { launchCount: count };
+	},
+
+	// Ничего не отправляет: показывает, сколько контактов получит запуск
+	previewLaunch: async (event) => {
+		requireAuth(event);
+		const id = parseInt(event.params.id, 10);
+		if (isNaN(id)) return fail(400, { launchError: 'Некорректный ID' });
+
+		await loadScenarioOr404(id);
+		const preview = await previewSegment(parseSegmentFilter(await event.request.formData()));
+
+		return { launchPreview: preview };
 	}
 } satisfies Actions;

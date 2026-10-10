@@ -2,7 +2,7 @@ import { randomBytes } from 'node:crypto';
 import { db } from '../..';
 import * as schema from '../../db/schema';
 import type { QuizSphereRecs, QuizSubscaleResult } from '../../db/schema';
-import { and, eq, isNotNull, isNull, or, sql } from 'drizzle-orm';
+import { and, desc, eq, isNotNull, isNull, or, sql } from 'drizzle-orm';
 import { DEFAULT_QUIZ_BOT_TEXTS, DEFAULT_SPHERE_RECS } from './quiz-messages';
 
 export type QuizResult = typeof schema.quizResults.$inferSelect;
@@ -22,12 +22,36 @@ export async function createQuizResult(data: {
 	severity: string;
 	color: string;
 	subscales: QuizSubscaleResult[];
+	siteContactId?: number | null;
 }): Promise<QuizResult> {
 	const [result] = await db
 		.insert(schema.quizResults)
 		.values({ ...data, token: randomToken() })
 		.returning();
 	return result;
+}
+
+/**
+ * Последний результат, пройденный на сайте с cookie этого контакта, который он
+ * вправе забрать: ничей или уже его. Для напоминания /start quiz_result — у
+ * ссылки из цепочки нет токена, человек известен боту только как контакт.
+ * Результаты, уже забранные кем-то другим по токену, не отдаём.
+ */
+export async function findLatestQuizResultForSiteContact(
+	contactId: number
+): Promise<QuizResult | null> {
+	const [result] = await db
+		.select()
+		.from(schema.quizResults)
+		.where(
+			and(
+				eq(schema.quizResults.siteContactId, contactId),
+				or(isNull(schema.quizResults.contactId), eq(schema.quizResults.contactId, contactId))
+			)
+		)
+		.orderBy(desc(schema.quizResults.createdAt))
+		.limit(1);
+	return result ?? null;
 }
 
 export async function getQuizResultByToken(token: string): Promise<QuizResult | null> {
@@ -136,9 +160,7 @@ export type QuizBotSettings = {
 	checkButtonText: string;
 	notSubscribedAlert: string;
 	resultsHeaderText: string;
-	resultsFooterText: string;
 	sphereRecs: QuizSphereRecs;
-	allGreenText: string;
 };
 
 /**
@@ -159,10 +181,7 @@ export async function getQuizBotSettings(): Promise<QuizBotSettings> {
 		notSubscribedAlert:
 			row?.notSubscribedAlert?.trim() || DEFAULT_QUIZ_BOT_TEXTS.notSubscribedAlert,
 		resultsHeaderText: row?.resultsHeaderText?.trim() || DEFAULT_QUIZ_BOT_TEXTS.resultsHeaderText,
-		resultsFooterText: row?.resultsFooterText?.trim() || DEFAULT_QUIZ_BOT_TEXTS.resultsFooterText,
-		sphereRecs:
-			row && Object.keys(row.sphereRecs).length > 0 ? row.sphereRecs : DEFAULT_SPHERE_RECS,
-		allGreenText: row?.allGreenText?.trim() || DEFAULT_QUIZ_BOT_TEXTS.allGreenText
+		sphereRecs: row && Object.keys(row.sphereRecs).length > 0 ? row.sphereRecs : DEFAULT_SPHERE_RECS
 	};
 }
 

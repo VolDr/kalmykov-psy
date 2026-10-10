@@ -23,6 +23,9 @@
 		/** Прокручивать к началу результатов. Выключается, когда страница сама
 		 *  ведёт человека в другое место (например, в блок «Что делать дальше») */
 		autoScrollToResults?: boolean;
+		/** Контакт бота (cookie от /go/*). /booking cookie не читает, поэтому id
+		 *  дописывается в ссылки записи — иначе бронь не привяжется к контакту */
+		sbClientId?: number | null;
 	};
 
 	let {
@@ -30,8 +33,14 @@
 		showEmailStep = true,
 		title,
 		oncomplete,
-		autoScrollToResults = true
+		autoScrollToResults = true,
+		sbClientId = null
 	}: Props = $props();
+
+	const introHref = $derived(
+		sbClientId ? `/booking?acquaintance&sb_client_id=${sbClientId}` : '/booking?acquaintance'
+	);
+	const therapyHref = $derived(sbClientId ? `/booking?sb_client_id=${sbClientId}` : '/booking');
 
 	const storageKey = `questionnaire-${config.id}-wizard-state`;
 
@@ -435,8 +444,8 @@
 						{title}
 					</h2>
 				{/if}
-				<div class="mb-6">
-					<div class="mb-2 flex justify-end text-xs font-medium text-gray-500">
+				<div class="mb-3 md:mb-6">
+					<div class="mb-1.5 flex justify-end text-xs font-medium text-gray-500 md:mb-2">
 						<span>Вопрос {state.currentStep + 1} из {questionSteps.length}</span>
 					</div>
 					<div class="h-1.5 w-full overflow-hidden rounded-full bg-gray-200">
@@ -449,7 +458,7 @@
 
 				{#if currentSubheadingText}
 					<div
-						class="mb-4 rounded-lg bg-background px-3 py-3 text-center text-sm font-medium text-foreground/80 md:text-base"
+						class="mb-3 rounded-lg bg-background px-3 py-2 text-center text-[13px] leading-snug font-medium text-foreground/80 md:mb-4 md:py-3 md:text-base"
 					>
 						{currentSubheadingText}
 					</div>
@@ -467,7 +476,10 @@
 						answers={state.answers}
 					/>
 
-					<div class="mt-6 flex gap-3">
+					<!-- На мобильном прилипают к низу экрана: «Далее» видна без прокрутки -->
+					<div
+						class="sticky bottom-0 z-10 -mx-4 mt-4 -mb-4 flex gap-3 rounded-b-xl border-t border-gray-100 bg-white px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] md:static md:mx-0 md:mt-6 md:mb-0 md:rounded-none md:border-0 md:bg-transparent md:p-0"
+					>
 						{#if canGoBack}
 							<Button
 								variant="secondary"
@@ -676,7 +688,7 @@
 					</div>
 					<div class="mt-6 flex flex-col items-center">
 						<ButtonSvg
-							href="/booking?acquaintance"
+							href={introHref}
 							onclick={() => reachGoal('modal_intro_click')}
 							variant="3"
 							mobileWidth="280px"
@@ -688,7 +700,7 @@
 						</ButtonSvg>
 						<div class="flex justify-center">
 							<a
-								href="/booking"
+								href={therapyHref}
 								onclick={() => reachGoal('lead_booking_click')}
 								class="block w-full cursor-pointer text-center text-[14px] font-semibold text-muted-foreground underline underline-offset-[3px] transition-colors hover:text-navy lg:text-[16px]"
 							>

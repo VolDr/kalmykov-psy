@@ -180,6 +180,12 @@ const mocks = vi.hoisted(() => {
 			return asComparable(row.lastStartedAt) > state.now.getTime() - days * 24 * 60 * 60 * 1000;
 		}
 
+		// onlyIdle: not exists (… bot_scheduled_steps … status = 'pending') — у контакта
+		// нет ни одного ожидающего шага
+		if (text.includes('not exists')) {
+			return !state.scheduled.some((s) => s.contactId === row.id && s.status === 'pending');
+		}
+
 		// tags @> requireTags — контакт содержит все нужные теги
 		if (text.includes('@>')) {
 			const required = condition.values.map(parseArrayValue).find(Boolean) ?? [];
@@ -563,6 +569,7 @@ import {
 	findTriggeredScenarios,
 	handleSubscriptionGateCallback,
 	launchScenarioForSegment,
+	previewSegment,
 	parseStartPayload,
 	processDueScheduledSteps,
 	runScheduledStep,
@@ -662,6 +669,11 @@ describe('validateTrigger', () => {
 
 	it('rejects start_param longer than 64 characters', () => {
 		expect(validateTrigger('start_param', 'a'.repeat(65))).not.toBeNull();
+	});
+
+	it('cp_<число> зарезервирован кнопками постов', () => {
+		expect(validateTrigger('start_param', 'cp_12')).not.toBeNull();
+		expect(validateTrigger('start_param', 'cp_otpusk')).toBeNull();
 	});
 
 	it('accepts valid command', () => {
@@ -1572,6 +1584,112 @@ describe('launchScenarioForSegment', () => {
 
 		expect(count).toBe(1);
 		expect(mocks.state.scheduled[0].contactId).toBe(clean.id);
+	});
+
+	describe('onlyIdle', () => {
+		const idle = { requireTags: [], excludeTags: [], onlyIdle: true };
+
+		function seed() {
+			mocks.state.scenarios.push(scenario({ id: 50 }), scenario({ id: 60 }));
+			mocks.state.steps.push(
+				step({ id: 200, scenarioId: 50, position: 0 }),
+				step({ id: 300, scenarioId: 60, position: 0 })
+			);
+			mocks.state.contacts.push(
+				contact({ id: 1, botBlocked: false }), // свободен
+				contact({ id: 2, botBlocked: false }), // идёт по этой же рассылке
+				contact({ id: 3, botBlocked: false }), // идёт по другой цепочке
+				contact({ id: 4, botBlocked: false }) // цепочка закончилась (sent)
+			);
+			mocks.state.scheduled.push(
+				scheduled({ id: 91, contactId: 2, scenarioId: 50, stepId: 200, status: 'pending' }),
+				scheduled({ id: 92, contactId: 3, scenarioId: 60, stepId: 300, status: 'pending' }),
+				scheduled({ id: 93, contactId: 4, scenarioId: 60, stepId: 300, status: 'sent' })
+			);
+		}
+
+		it('skips contacts with pending steps in any chain, including this one', async () => {
+			seed();
+
+			const count = await launchScenarioForSegment(50, idle);
+
+			expect(count).toBe(2);
+			const created = mocks.state.scheduled
+				.filter((s) => ![91, 92, 93].includes(s.id))
+				.map((s) => s.contactId);
+			expect(created.sort()).toEqual([1, 4]);
+		});
+
+		it('does not cancel pending steps of the broadcast being relaunched', async () => {
+			seed();
+
+			await launchScenarioForSegment(50, idle);
+
+			expect(mocks.state.scheduled.find((s) => s.id === 91)?.status).toBe('pending');
+			expect(mocks.state.scheduled.find((s) => s.id === 92)?.status).toBe('pending');
+		});
+
+		it('treats a contact stuck at an unpassed subscription gate as idle', async () => {
+			mocks.state.scenarios.push(scenario({ id: 50 }));
+			mocks.state.steps.push(step({ id: 200, scenarioId: 50, position: 0 }));
+			mocks.state.contacts.push(
+				contact({ id: 1, botBlocked: false, gateShownAt: '2026-01-01T09:00:00.000Z' })
+			);
+			mocks.state.scheduled.push(
+				scheduled({ id: 91, contactId: 1, scenarioId: 50, stepId: 200, status: 'sent' })
+			);
+
+			expect(await launchScenarioForSegment(50, idle)).toBe(1);
+		});
+
+		it('records the flag in the broadcast run history', async () => {
+			seed();
+
+			await launchScenarioForSegment(50, idle);
+			await launchScenarioForSegment(50, { requireTags: [], excludeTags: [] });
+
+			expect(mocks.state.broadcastRuns.map((run) => run.onlyIdle)).toEqual([true, false]);
+		});
+
+		it('without the flag keeps restarting the broadcast for everyone', async () => {
+			seed();
+
+			const count = await launchScenarioForSegment(50, {
+				requireTags: [],
+				excludeTags: []
+			});
+
+			expect(count).toBe(4);
+			expect(mocks.state.scheduled.find((s) => s.id === 91)?.status).toBe('cancelled');
+			expect(mocks.state.scheduled.find((s) => s.id === 92)?.status).toBe('pending');
+		});
+	});
+
+	describe('previewSegment', () => {
+		beforeEach(() => {
+			mocks.state.contacts.push(
+				contact({ id: 1, botBlocked: false }),
+				contact({ id: 2, botBlocked: false }),
+				contact({ id: 3, botBlocked: true })
+			);
+			mocks.state.scheduled.push(
+				scheduled({ id: 91, contactId: 2, scenarioId: 60, stepId: 300, status: 'pending' })
+			);
+		});
+
+		it('reports matched, busy and willReceive without writing anything', async () => {
+			const result = await previewSegment({ requireTags: [], excludeTags: [], onlyIdle: true });
+
+			expect(result).toEqual({ matched: 2, busy: 1, willReceive: 1 });
+			expect(mocks.state.scheduled).toHaveLength(1);
+			expect(mocks.state.broadcastRuns).toHaveLength(0);
+		});
+
+		it('has no busy contacts when the flag is off', async () => {
+			const result = await previewSegment({ requireTags: [], excludeTags: [] });
+
+			expect(result).toEqual({ matched: 2, busy: 0, willReceive: 2 });
+		});
 	});
 
 	it('records a broadcast run entry regardless of matched contacts count', async () => {

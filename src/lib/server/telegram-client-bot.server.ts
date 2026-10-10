@@ -18,12 +18,15 @@ import { attachMetrikaClientId } from './bot-contacts.server';
 import {
 	chatIdForApi,
 	getChannelPost,
-	incrementChannelPostClicks
+	incrementChannelPostClicks,
+	parsePostStartKey
 } from './bot-channel-posts.server';
 import {
 	handleQuizCheckCallback,
 	handleQuizDeeplink,
+	handleQuizResultReminder,
 	QUIZ_CALLBACK_PREFIX,
+	QUIZ_RESULT_START_KEY,
 	QUIZ_START_PREFIX
 } from './quiz-bot.server';
 
@@ -279,6 +282,26 @@ clientBot.on('message', async (ctx) => {
 	);
 	if (quizMatch && (await handleQuizDeeplink(contact, quizMatch[1]))) return;
 
+	// Кнопка напоминания «не забрали разбор» (/start quiz_result): токена нет,
+	// результат ищется по контакту, прошедшему опросник с cookie из бота
+	if (key === QUIZ_RESULT_START_KEY && (await handleQuizResultReminder(contact))) return;
+
+	// Кнопка поста канала (/start cp_<id>) — прямая ссылка, само нажатие до бота
+	// не доходит, поэтому клик считаем здесь. Подписку проверяет шлагбаум цепочки.
+	// Пост сняли или цепочку выключили — ниже сработает обычное приветствие /start.
+	const postId = parsePostStartKey(key);
+	if (postId !== null) {
+		const row = await getChannelPost(postId);
+		if (row?.scenario.enabled) {
+			await markBotStarted(contact.id, key);
+			void incrementChannelPostClicks(postId).catch((error) =>
+				logSafeError('[client-bot] Не смог увеличить счётчик кликов:', error)
+			);
+			await triggerScenarioForContact(row.scenario, contact);
+			return;
+		}
+	}
+
 	// Один триггер может запускать несколько цепочек — запускаем все совпавшие
 	const scenarios = await findTriggeredScenarios(ctx.message.text);
 	if (scenarios.length > 0) await markBotStarted(contact.id, key || null);
@@ -287,9 +310,10 @@ clientBot.on('message', async (ctx) => {
 	}
 });
 
-// Клик по кнопке на посте канала: проверяем подписку через getChatMember и отдаём
-// диплинк t.me/<bot>?start=<payload> через answerCallbackQuery — сценарий запустится,
-// когда юзер нажмёт Start в открывшемся чате с ботом (придёт /start <payload>).
+// Старые кнопки на постах (cp:<id>, до перехода на прямые ссылки): проверяем
+// подписку через getChatMember и отдаём диплинк t.me/<bot>?start=<payload> через
+// answerCallbackQuery — сценарий запустится, когда юзер нажмёт Start в чате с
+// ботом. Нужно, пока посты не переведены кнопкой в админке «Кнопки на постах».
 clientBot.on('callback_query:data', async (ctx) => {
 	// Кнопка «Я подписался» под сообщением о результатах опросника (qz:<token>)
 	if (ctx.callbackQuery.data.startsWith(QUIZ_CALLBACK_PREFIX)) {

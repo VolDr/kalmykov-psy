@@ -95,7 +95,7 @@ params     jsonb
 `lead_cta_seen`, `lead_booking_click`, `modal_intro_click`, плюс скролл-цели через `data-scroll-goal`.
 
 **Баннеры / реклама:**
-`telegram_banner_click` ([TelegramBanner.svelte](../src/lib/components/TelegramBanner.svelte)), `ad_cta_click` (params: `ad` — `vacation` | `attention`) — единая цель для всех страниц `ads/*` ([ads/vacation](../src/routes/ads/vacation/+page.svelte), [ads/attention](../src/routes/ads/attention/+page.svelte)).
+`telegram_banner_click` ([TelegramBanner.svelte](../src/lib/components/TelegramBanner.svelte)), `ad_cta_click` (params: `ad` — `vacation` | `attention` | `attention-quiz`) — единая цель для всех страниц `ads/*` ([ads/vacation](../src/routes/ads/vacation/+page.svelte), [ads/attention](../src/routes/ads/attention/+page.svelte), [ads/attention-quiz](../src/routes/ads/attention-quiz/+page.svelte)). Питч у `attention` и `attention-quiz` общий ([AttentionAdPitch.svelte](../src/lib/components/leadmagnet/AttentionAdPitch.svelte)) — различаются только ключ сценария в диплинке (`focus_ad` / `focus_quiz_ad`) и метка `ad`.
 
 **Опросники (`QuestionnaireStep.svelte`):**
 `questionnaire_email_submitted`, `questionnaire_progress_25/50/75`, `questionnaire_completed` (params: `result`, `questions_answered`, `email_provided`), `questionnaire_telegram_click`.
@@ -135,6 +135,10 @@ params     jsonb
 | `/go/t/[clientId]` | `/useful/organized-burnout` |
 | `/go/q/[clientId]` | `/useful/burnout-questionnaire` |
 | `/go/q/a/[clientId]`, `/go/t/a/[clientId]` | (варианты `…/a/` — поток «знакомство») |
+| `/go/f/[clientId]`, `/go/f/a/[clientId]` | `/useful/focus-attention` (вариант A A/B-теста) |
+| `/go/fq/[clientId]` | `/useful/focus-attention-quiz` (вариант B: лонгрид + опросник) |
+| `/go/fq/a/[clientId]` | `/useful/focus-attention-quiz#acquaintance` (сразу к кнопке опросника) |
+| `/go/r/[clientId]` | `/useful/discuss-result` (после разбора: про психолога и запись) |
 
 `clientId` валидируется (`Number.isSafeInteger && > 0`). Cookie **HttpOnly** — клиентский JS его не читает, только сервер.
 
@@ -145,10 +149,15 @@ params     jsonb
 
 Отправляет POST на `/api/lm-progress` с `{ leadMagnet, event, progress }`. `clientId` в тело НЕ кладётся — сервер читает его из cookie. Глубина скролла пересчитывается на scroll/resize и через `ResizeObserver` на body (ловит ленивую подгрузку картинок). In-memory флаги (`read75InFlight`, `read75Sent`) гасят дубли в рамках одной загрузки.
 
+### Отладка статусов в браузере: `?debuglm`
+[src/lib/client/lmDebug.ts](../src/lib/client/lmDebug.ts). Дописать `?debuglm` к адресу страницы `/useful/...` и перезагрузить — в консоли появятся строки `[lm]`: отправка `opened` / `read75` / `completed` и ответ сервера (цепочка запущена / нет сценария / пропуск без cookie), выполнение условий read75, сохранение результата опросника, ссылки записи на `/useful/discuss-result`. Флаг живёт до закрытия вкладки. Без параметра ничего не пишется.
+
+Серверные строки: `[lm-progress]`, `[quiz-results]`, `[quiz-bot] quiz_result`, `[go/fq]`, `[go/r]`.
+
 ### Серверная обработка: `/api/lm-progress`
 [src/routes/api/lm-progress/+server.ts](../src/routes/api/lm-progress/+server.ts):
 1. Берёт `clientId` из cookie `sb_client_id`; нет валидного — тихо `{ ok, skipped }`.
-2. Валидирует `leadMagnet` (whitelist `ALLOWED_LEAD_MAGNETS`: `['otpusk', 'focus', 'burnout']`) и `event` (`['opened','read75']`).
+2. Валидирует `leadMagnet` (whitelist `ALLOWED_LEAD_MAGNETS`: `['otpusk', 'focus', 'focusq', 'burnout', 'quiz']`) и `event` (`['opened','read75','completed']`; `completed` — опросник пройден до экрана результатов).
 3. Атомарный upsert в `lead_magnet_events` с `onConflictDoUpdate` (no-op SET ради RETURNING). Если строка уже `sent` → дубль, выход.
 4. Атомарный инкремент `attempts` с условием `status != 'sent'` — защита от гонок. 0 строк → конкурентный запрос уже обрабатывает.
 5. Шлёт callback в SaleBot ([salebot.server.ts](../src/lib/server/salebot.server.ts) → `POST chatter.salebot.pro/api/<KEY>/callback`). Успех → `status='sent'`, `sent_at=NOW()`. Ошибка → `status='failed'`, `last_error`.
@@ -183,6 +192,7 @@ UNIQUE (client_id, lead_magnet, event_name)   -- межсессионная де
 | `useful/vacation-did-not-help` | `otpusk` | `/go/v/`, `/go/v/a/` | `lm_otpusk_opened`, `lm_otpusk_read75`, `lm_otpusk_stage`, `lm_otpusk_progress` |
 | `useful/organized-burnout` | `burnout` | `/go/t/` | `lm_burnout_opened`, `lm_burnout_read75`, `lm_burnout_stage`, `lm_burnout_progress` |
 | `useful/focus-attention` | `focus` | — (через `?sb_client_id=`) | `lm_focus_opened`, `lm_focus_read75`, `lm_focus_stage`, `lm_focus_progress` |
+| `useful/focus-attention-quiz` (вариант B A/B-теста) | `focusq` | `/go/fq/` | `lm_focusq_opened`, `lm_focusq_read75`, `lm_focusq_completed` (опросник пройден) — свои цепочки, отдельно от варианта A |
 
 > ⚠️ Для каждого имени в **SaleBot** должны быть заведены обработчики на `message` (`lm_<lm>_opened` / `lm_<lm>_read75`) и переменные `lm_<lm>_*`, иначе колбек уходит, но бот ничего не делает.
 

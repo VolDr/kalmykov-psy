@@ -14,6 +14,7 @@ import { triggerScenarioByKey } from './bot-scenarios.server';
 import {
 	claimQuizDelivery,
 	claimQuizResult,
+	findLatestQuizResultForSiteContact,
 	findStalledQuizDeliveries,
 	getQuizBotSettings,
 	getQuizResultByToken,
@@ -69,6 +70,15 @@ async function mayDeliver(result: QuizResult): Promise<boolean> {
 }
 
 /** Ответ тому, кто открыл чужую ссылку на результаты (её переслали). */
+/**
+ * Payload кнопки напоминания: https://t.me/<бот>?start=quiz_result. Ставится в
+ * цепочку lm_<магнит>_completed — «вы прошли опросник, но не забрали разбор».
+ */
+export const QUIZ_RESULT_START_KEY = 'quiz_result';
+
+const NO_PENDING_RESULT_TEXT =
+	'Не нашёл ваших результатов опросника. Если проходили его на сайте — нажмите там кнопку «Получить разбор в боте», и я пришлю разбор.';
+
 const FOREIGN_RESULT_TEXT =
 	'Эта ссылка уже привязана к другому человеку. Пройдите опросник сами — и я пришлю ваш разбор.';
 
@@ -103,10 +113,11 @@ async function sendAndLog(
 }
 
 /**
- * Отправляет разбор по сферам: сводка, рекомендации, футер (склеенные по лимиту
- * Telegram). Сами сообщения шлём и при повторном заходе (юзер открыл ссылку, чтобы
- * их увидеть), но теги и прогревочную цепочку — только при ПЕРВОЙ выдаче
- * (по deliveredAt): повторный /start иначе перезапускал бы цепочку с начала.
+ * Отправляет разбор по сферам: сводка и рекомендации (склеенные по лимиту
+ * Telegram). Теги и цепочку quiz_results_delivered запускаем при каждой выдаче,
+ * в том числе когда человек открыл ссылку повторно, — как события лид-магнитов в
+ * /api/lm-progress. Частоту перезапуска решает кулдаун в настройках самой цепочки
+ * («не запускать чаще раза в N дней»): без него повторный заход начнёт её сначала.
  */
 async function deliverQuizResults(
 	contact: BotContact,
@@ -131,14 +142,19 @@ async function deliverQuizResults(
 		if (!delivered) return;
 	}
 
-	if (alreadyDelivered) return;
-
 	// Галочка «выдано» — последней. Она гасит подметание, поэтому если поставить
 	// её раньше тегов и прогрева, их падение потеряется навсегда: восстановление
-	// увидит запись завершённой и чинить не станет.
+	// увидит запись завершённой и чинить не станет. При повторной выдаче её не
+	// трогаем, чтобы в delivered_at осталось время первой.
 	await addTagsToContact(contact.id, ['quiz_burnout', `quiz_burnout_${result.color}`]);
-	await triggerScenarioByKey(RESULTS_DELIVERED_SCENARIO_KEY, contact.id);
-	await markQuizResultDelivered(result.id, contact.id);
+	const triggered = await triggerScenarioByKey(RESULTS_DELIVERED_SCENARIO_KEY, contact.id);
+	if (!alreadyDelivered) await markQuizResultDelivered(result.id, contact.id);
+	console.log(
+		`[quiz-bot] разбор ${result.id} выдан контакту ${contact.id} ${alreadyDelivered ? 'повторно' : 'впервые'}: теги quiz_burnout, quiz_burnout_${result.color}; ` +
+			(triggered
+				? `цепочки ${RESULTS_DELIVERED_SCENARIO_KEY} запущены (если не отсеял кулдаун — см. [bot-scenarios])`
+				: `цепочка ${RESULTS_DELIVERED_SCENARIO_KEY} НЕ запущена — нет включённого сценария с таким ключом или бот заблокирован`)
+	);
 }
 
 /**
@@ -158,7 +174,13 @@ export async function handleQuizDeeplink(contact: BotContact, token: string): Pr
 
 	const settings = await getQuizBotSettings();
 	if (await isSubscribed(settings, contact.telegramUserId)) {
-		if (await mayDeliver(result)) await deliverQuizResults(contact, result, settings);
+		if (await mayDeliver(result)) {
+			await deliverQuizResults(contact, result, settings);
+		} else {
+			console.log(
+				`[quiz-bot] разбор ${result.id}: выдачу уже ведёт другой запрос — этот пропущен (контакт ${contact.id})`
+			);
+		}
 		return true;
 	}
 
@@ -172,6 +194,25 @@ export async function handleQuizDeeplink(contact: BotContact, token: string): Pr
 
 	await sendAndLog(contact, settings.subscribeText, { inline_keyboard: buttons });
 	return true;
+}
+
+/**
+ * Обработка /start quiz_result — кнопки из цепочки-напоминания. Токена в ссылке
+ * нет (она одна на всех), поэтому берём последний результат, пройденный на
+ * сайте с cookie этого контакта, и дальше всё как по обычному диплинку:
+ * привязка, шлагбаум подписки, разбор, теги, цепочка quiz_results_delivered.
+ */
+export async function handleQuizResultReminder(contact: BotContact): Promise<boolean> {
+	const result = await findLatestQuizResultForSiteContact(contact.id);
+	if (!result) {
+		console.log(`[quiz-bot] quiz_result: контакт ${contact.id} — незабранных результатов нет`);
+		await sendAndLog(contact, NO_PENDING_RESULT_TEXT);
+		return true;
+	}
+	console.log(
+		`[quiz-bot] quiz_result: контакт ${contact.id} → результат ${result.id} (${result.articleSlug}, ${result.deliveredAt ? 'уже выдан, покажем снова' : 'ещё не выдан'})`
+	);
+	return handleQuizDeeplink(contact, result.token);
 }
 
 /**

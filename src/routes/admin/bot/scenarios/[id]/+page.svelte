@@ -1,8 +1,21 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { resolve } from '$app/paths';
+	import type { SubmitFunction } from '@sveltejs/kit';
 
 	let { data, form } = $props();
+
+	// Предпросмотр устаревает, как только в форме запуска что-то поменяли
+	let launchDirty = $state(false);
+
+	// Без сброса формы: иначе после предпросмотра или запуска поля очистятся, и
+	// следующее нажатие «Запустить» уйдёт всем контактам
+	const keepLaunchForm: SubmitFunction =
+		() =>
+		async ({ update }) => {
+			await update({ reset: false });
+			launchDirty = false;
+		};
 
 	// Раскладываем секунды в удобную пару значение+единица для формы
 	function delayParts(seconds: number): { value: number; unit: string } {
@@ -49,7 +62,7 @@
 					{@const delay = delayParts(step.delaySeconds)}
 					<div class="rounded-xl border bg-white p-4">
 						<div class="mb-2 flex items-center justify-between">
-							<span class="text-xs font-medium uppercase text-stone-400">Шаг {i + 1}</span>
+							<span class="text-xs font-medium text-stone-400 uppercase">Шаг {i + 1}</span>
 							<div class="flex items-center gap-2">
 								<form method="POST" action="?/moveStep" use:enhance>
 									<input type="hidden" name="stepId" value={step.id} />
@@ -77,7 +90,8 @@
 								</form>
 								<form method="POST" action="?/deleteStep" use:enhance>
 									<input type="hidden" name="stepId" value={step.id} />
-									<button type="submit" class="text-xs text-red-500 hover:underline">Удалить</button>
+									<button type="submit" class="text-xs text-red-500 hover:underline">Удалить</button
+									>
 								</form>
 							</div>
 						</div>
@@ -105,7 +119,11 @@
 										class="mt-1 w-24 rounded-lg border px-3 py-2 text-sm"
 									/>
 								</label>
-								<select name="delayUnit" value={delay.unit} class="rounded-lg border px-3 py-2 text-sm">
+								<select
+									name="delayUnit"
+									value={delay.unit}
+									class="rounded-lg border px-3 py-2 text-sm"
+								>
 									<option value="seconds">секунд</option>
 									<option value="minutes">минут</option>
 									<option value="hours">часов</option>
@@ -232,7 +250,7 @@
 				{/each}
 			</div>
 
-			<h2 class="mb-3 mt-8 text-sm font-semibold text-stone-600">Добавить шаг</h2>
+			<h2 class="mt-8 mb-3 text-sm font-semibold text-stone-600">Добавить шаг</h2>
 			<form
 				method="POST"
 				action="?/addStep"
@@ -259,11 +277,19 @@
 					</select>
 					<label class="block text-xs font-medium text-stone-500">
 						Добавить теги (через запятую)
-						<input type="text" name="addTags" class="mt-1 w-48 rounded-lg border px-3 py-2 text-sm" />
+						<input
+							type="text"
+							name="addTags"
+							class="mt-1 w-48 rounded-lg border px-3 py-2 text-sm"
+						/>
 					</label>
 					<label class="block text-xs font-medium text-stone-500">
 						Установить этап
-						<input type="text" name="setStage" class="mt-1 w-36 rounded-lg border px-3 py-2 text-sm" />
+						<input
+							type="text"
+							name="setStage"
+							class="mt-1 w-36 rounded-lg border px-3 py-2 text-sm"
+						/>
 					</label>
 					<label class="block text-xs font-medium text-stone-500">
 						Выполнять шаг
@@ -286,7 +312,11 @@
 				<div class="flex flex-wrap gap-2">
 					<label class="block text-xs font-medium text-stone-500">
 						Текст кнопки (необязательно)
-						<input type="text" name="buttonText" class="mt-1 w-44 rounded-lg border px-3 py-2 text-sm" />
+						<input
+							type="text"
+							name="buttonText"
+							class="mt-1 w-44 rounded-lg border px-3 py-2 text-sm"
+						/>
 					</label>
 					<label class="block text-xs font-medium text-stone-500">
 						Ссылка кнопки
@@ -439,7 +469,13 @@
 
 			<div class="mt-4 rounded-xl border bg-white p-4">
 				<h2 class="mb-3 text-sm font-semibold text-stone-600">Запустить по сегменту</h2>
-				<form method="POST" action="?/launch" use:enhance class="space-y-3">
+				<form
+					method="POST"
+					action="?/launch"
+					use:enhance={keepLaunchForm}
+					oninput={() => (launchDirty = true)}
+					class="space-y-3"
+				>
 					<label class="block text-xs font-medium text-stone-500">
 						Есть все теги (через запятую; пусто — все контакты)
 						<input
@@ -458,6 +494,31 @@
 							class="mt-1 w-full rounded-lg border px-3 py-2 text-sm"
 						/>
 					</label>
+					<label class="flex items-start gap-2 text-xs text-stone-600">
+						<input type="checkbox" name="onlyIdle" class="mt-0.5 rounded" />
+						<span>
+							Только тем, у кого нет активной цепочки
+							<span class="block text-stone-400">
+								Активная — есть ожидающие шаги любой цепочки, в том числе этой же. Они дойдут до
+								конца, их очередь не отменяется. Застрявшие на непройденном шлагбауме подписки
+								считаются свободными.
+							</span>
+						</span>
+					</label>
+					<button
+						type="submit"
+						formaction="?/previewLaunch"
+						class="w-full rounded-lg border bg-white px-4 py-2 text-sm hover:bg-stone-50"
+					>
+						Проверить, кому уйдёт
+					</button>
+					{#if form?.launchPreview && !launchDirty}
+						<p class="text-xs text-stone-600">
+							Подходит под сегмент: <strong>{form.launchPreview.matched}</strong>, получат:
+							<strong>{form.launchPreview.willReceive}</strong>{#if form.launchPreview.busy > 0},
+								пропущено как занятые: <strong>{form.launchPreview.busy}</strong>{/if}
+						</p>
+					{/if}
 					<button
 						type="submit"
 						class="w-full rounded-lg bg-primary px-4 py-2 text-sm text-primary-foreground hover:bg-primary/90"
@@ -479,7 +540,7 @@
 			<div class="mt-4 rounded-xl border bg-white p-4 text-sm text-stone-600">
 				<p>В очереди на отправку: <strong>{data.pendingCount}</strong></p>
 				{#if data.scenario.triggerType === 'start_param'}
-					<p class="mt-2 break-all text-xs text-stone-400">
+					<p class="mt-2 text-xs break-all text-stone-400">
 						Диплинк: t.me/&lt;бот&gt;?start={data.scenario.triggerValue}
 					</p>
 				{/if}
@@ -494,6 +555,7 @@
 								{formatRunDate(run.createdAt)} — {run.matchedCount} конт.
 								{#if run.requireTags.length}· есть: {run.requireTags.join(', ')}{/if}
 								{#if run.excludeTags.length}· нет: {run.excludeTags.join(', ')}{/if}
+								{#if run.onlyIdle}· только свободным{/if}
 							</li>
 						{/each}
 					</ul>
@@ -507,17 +569,20 @@
 					строки между абзацами сохраняются как есть. Кнопка (текст + ссылка) появится под
 					сообщением; в ссылке кнопки тоже работает &#123;contact_id&#125;.
 				</p>
-				<p class="mb-1 mt-3 font-semibold text-stone-600">Подстановки в сообщениях</p>
+				<p class="mt-3 mb-1 font-semibold text-stone-600">Подстановки в сообщениях</p>
 				<p>
 					&#123;contact_id&#125; — id контакта (для персональных ссылок вида
 					/go/f/a/&#123;contact_id&#125;), &#123;first_name&#125; — имя. Салеботовский
 					#&#123;client_id&#125; тоже распознаётся. Работает и в тексте, и в ссылке кнопки.
 				</p>
-				<p class="mb-1 mt-3 font-semibold text-stone-600">Событийные ключи с сайта</p>
+				<p class="mt-3 mb-1 font-semibold text-stone-600">Событийные ключи с сайта</p>
 				<p>
 					Сценарий с триггером «Диплинк» запускается и событиями сайта, если значение совпадает с
-					ключом: lm_&lt;магнит&gt;_opened, lm_&lt;магнит&gt;_read75 (магниты: otpusk, focus,
-					burnout), intro_booked, consultation_booked.
+					ключом: lm_&lt;магнит&gt;_opened (открыл), lm_&lt;магнит&gt;_read75 (дочитал),
+					lm_&lt;магнит&gt;_completed (прошёл опросник на странице) — магниты: otpusk, focus,
+					focusq, burnout, quiz. Плюс intro_booked, consultation_booked и quiz_results_delivered
+					(бот выдал разбор опросника). Кнопка «забрать разбор» для напоминания после
+					lm_&lt;магнит&gt;_completed: https://t.me/kalmykov_psy_bot?start=quiz_result.
 				</p>
 			</div>
 		</div>

@@ -37,10 +37,12 @@ export const actions = {
 
 		const sphereRecs: QuizSphereRecs = {};
 		for (const sphere of SPHERES) {
+			const green = text(`rec_${sphere.id}_green`);
 			const orange = text(`rec_${sphere.id}_orange`);
 			const red = text(`rec_${sphere.id}_red`);
-			if (orange || red) {
+			if (green || orange || red) {
 				sphereRecs[sphere.id] = {
+					...(green ? { green } : {}),
 					...(orange ? { orange } : {}),
 					...(red ? { red } : {})
 				};
@@ -50,8 +52,6 @@ export const actions = {
 		// Каждый текст уходит отдельным блоком — проверяем каждый по лимиту Telegram
 		const longText = [
 			text('subscribeText'),
-			text('resultsFooterText'),
-			text('allGreenText'),
 			...Object.values(sphereRecs).flatMap((zones) => Object.values(zones))
 		].find((t) => tgFormat(t).length > TELEGRAM_MESSAGE_LIMIT);
 		if (longText) {
@@ -60,11 +60,11 @@ export const actions = {
 			});
 		}
 
-		// Заголовок делит сообщение-сводку с общим баллом и списком сфер — оставляем запас
+		// Вступление идёт в одном сообщении с общим баллом — оставляем запас
 		const HEADER_LIMIT = TELEGRAM_MESSAGE_LIMIT - 600;
 		if (tgFormat(text('resultsHeaderText')).length > HEADER_LIMIT) {
 			return fail(400, {
-				error: `Вступление к разбору длиннее ${HEADER_LIMIT} символов (оно идёт в одном сообщении со сводкой по сферам)`
+				error: `Вступление к разбору длиннее ${HEADER_LIMIT} символов (оно идёт в одном сообщении с общим баллом)`
 			});
 		}
 
@@ -78,9 +78,7 @@ export const actions = {
 			checkButtonText: text('checkButtonText') || null,
 			notSubscribedAlert: notSubscribedAlert || null,
 			resultsHeaderText: text('resultsHeaderText') || null,
-			resultsFooterText: text('resultsFooterText') || null,
-			sphereRecs,
-			allGreenText: text('allGreenText') || null
+			sphereRecs
 		});
 
 		return { success: true };

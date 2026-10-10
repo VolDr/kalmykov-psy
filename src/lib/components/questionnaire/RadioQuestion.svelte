@@ -30,10 +30,12 @@
 	}
 </script>
 
-<div class="space-y-5">
+<div class="space-y-4 md:space-y-5">
 	<div class="flex items-baseline gap-4 md:gap-5">
 		{#if number}
-			<span class="font-caveat shrink-0 text-[34px] leading-none font-bold text-primary md:text-[40px]">
+			<span
+				class="shrink-0 font-caveat text-[34px] leading-none font-bold text-primary md:text-[40px]"
+			>
 				{pad(number)}
 			</span>
 		{/if}
@@ -49,14 +51,14 @@
 				<div
 					class="mt-3 flex items-start gap-2 rounded-xl bg-card p-3 text-xs text-muted-foreground md:text-sm"
 				>
-					<span class="icon-[lucide--info] mt-0.5 h-4 w-4 flex-shrink-0 text-primary"></span>
+					<span class="mt-0.5 icon-[lucide--info] h-4 w-4 flex-shrink-0 text-primary"></span>
 					<span>{question.tipText}</span>
 				</div>
 			{/if}
 		</div>
 	</div>
 
-	<div class="flex flex-col gap-3 md:ml-[58px]" role="radiogroup">
+	<div class="flex flex-col gap-2 md:ml-[58px] md:gap-3" role="radiogroup">
 		{#each question.options ?? [] as option, index}
 			{@const itemId = `${question.id}-${index}`}
 			{@const isSelected = value === option.value}
@@ -64,7 +66,7 @@
 			<label
 				for={itemId}
 				class={cn(
-					'flex items-center gap-4 rounded-2xl border-[1.5px] px-5 py-4 transition-all duration-200 md:px-6 md:py-[18px]',
+					'flex items-center gap-4 rounded-2xl border-[1.5px] px-4 py-3 transition-all duration-200 md:px-6 md:py-[18px]',
 					isSelected
 						? 'border-primary bg-primary/10'
 						: 'border-[#d8cfbc] bg-background hover:border-primary',
@@ -103,7 +105,8 @@
 
 				{#if question.showPoints && option.points !== undefined}
 					<span class="text-[10px] font-medium tracking-wider text-primary uppercase md:text-xs">
-						{option.points} {getPointsLabel(option.points)}
+						{option.points}
+						{getPointsLabel(option.points)}
 					</span>
 				{/if}
 			</label>

@@ -21,6 +21,12 @@
 		});
 	}
 
+	/** Источник для людей: cp_<id> кнопки поста → подпись поста */
+	function sourceLabel(key: string | null) {
+		if (!key) return null;
+		return data.postSources[key] ?? key;
+	}
+
 	/** Где человек сейчас относительно шлагбаума подписки */
 	function gateState(c: { gateShownAt: string | null; gatePassedAt: string | null }) {
 		if (c.gatePassedAt) return { label: 'подписался', class: 'text-emerald-700' };
@@ -52,7 +58,9 @@
 				<tbody>
 					{#each data.funnel as row (row.sourceKey ?? '—')}
 						<tr class="border-t">
-							<td class="py-2 pr-6 font-medium">{row.sourceKey ?? 'без метки'}</td>
+							<td class="py-2 pr-6 font-medium" title={row.sourceKey ?? undefined}>
+								{sourceLabel(row.sourceKey) ?? 'без метки'}
+							</td>
 							<td class="py-2 pr-6 text-right tabular-nums">{row.started}</td>
 							<td class="py-2 pr-6 text-right tabular-nums text-amber-700">{row.gateShown}</td>
 							<td class="py-2 pr-6 text-right tabular-nums text-emerald-700">
@@ -123,8 +131,8 @@
 									>
 								{/if}
 							</td>
-							<td class="px-4 py-2 text-stone-600">
-								{contact.sourceKey ?? '—'}
+							<td class="px-4 py-2 text-stone-600" title={contact.sourceKey ?? undefined}>
+								{sourceLabel(contact.sourceKey) ?? '—'}
 							</td>
 							<td class="px-4 py-2 {gate.class}">{gate.label}</td>
 							<td class="px-4 py-2 font-mono text-xs text-stone-500">

@@ -15,9 +15,7 @@ export type QuizResultForMessages = {
 
 export type QuizMessageSettings = {
 	resultsHeaderText: string;
-	resultsFooterText: string;
 	sphereRecs: QuizSphereRecs;
-	allGreenText: string;
 };
 
 /** Дефолтные тексты — используются, пока админ не сохранил свои (см. /admin/bot/quiz). */
@@ -26,12 +24,9 @@ export const DEFAULT_QUIZ_BOT_TEXTS = {
 		'Ваш общий результат готов, а подробный разбор по четырём сферам выгорания и рекомендации я пришлю здесь.\n\nЯ делюсь такими материалами в своём канале — там я пишу о выгорании, отдыхе без чувства вины, прокрастинации и восстановлении. Подпишитесь и нажмите кнопку ниже 👇',
 	subscribeButtonText: 'Подписаться на канал',
 	checkButtonText: 'Я подписался(-ась) ✅',
-	notSubscribedAlert: 'Пока не вижу вашей подписки на канал. Подпишитесь и нажмите кнопку ещё раз 🙌',
-	resultsHeaderText: 'Ваши результаты по методике BAT-23 — по четырём сферам выгорания:',
-	resultsFooterText:
-		'Если результат похож на то, как вы себя чувствуете, начать можно со встречи-знакомства: короткая встреча на 20–25 минут, бесплатно и ни к чему не обязывает.\n\n[Записаться на встречу-знакомство](https://kalmykov-psy.ru/booking?acquaintance)',
-	allGreenText:
-		'**Сильных просадок по сферам не видно.**\nПо ответам не видно выраженных признаков выгорания. Чтобы сохранить это состояние, полезно заранее замечать ранние сигналы перегрузки: хуже восстанавливаетесь после выходных, чаще откладываете задачи, сложнее выключиться вечером или отдых начинает вызывать чувство вины.'
+	notSubscribedAlert:
+		'Пока не вижу вашей подписки на канал. Подпишитесь и нажмите кнопку ещё раз 🙌',
+	resultsHeaderText: 'Ваши результаты по методике BAT-23 — по четырём сферам выгорания:'
 } as const;
 
 export const DEFAULT_SPHERE_RECS: QuizSphereRecs = {
@@ -64,20 +59,27 @@ function isHot(color: string): boolean {
 	return color === 'red' || color === 'darkred';
 }
 
-/** Зона для выбора текста рекомендации: red/darkred → red, orange/yellow → orange */
-function recZone(color: string): 'orange' | 'red' | null {
+/** Зона для выбора текста рекомендации: red/darkred → red, orange/yellow → orange, green → green */
+function recZone(color: string): 'green' | 'orange' | 'red' | null {
 	if (isHot(color)) return 'red';
 	if (color === 'orange' || color === 'yellow') return 'orange';
+	if (color === 'green') return 'green';
 	return null;
 }
+
+/** Порядок зон в разборе: сначала то, с чем важнее разбираться */
+const ZONE_ORDER = { red: 0, orange: 1, green: 2 } as const;
 
 function formatScore(value: number): string {
 	return `${value.toFixed(2).replace('.', ',')} из 5`;
 }
 
 /**
- * Собирает блоки разбора: сводка по сферам, рекомендации по проблемным сферам
- * (горячие первыми, как на сайте), футер с CTA. Пустые тексты пропускаются.
+ * Собирает блоки разбора. Первый — вступление и общий показатель. Дальше каждая
+ * сфера отдельным блоком: строка с её баллом и зоной, под ней рекомендация по
+ * зоне (если текст есть). Порядок: красные → оранжевые → зелёные, внутри зоны —
+ * по убыванию балла. Завершения с CTA здесь нет: призыв записаться ставится шагом
+ * цепочки quiz_results_delivered — там ему можно дать паузу.
  */
 export function buildQuizResultBlocks(
 	result: QuizResultForMessages,
@@ -94,38 +96,24 @@ export function buildQuizResultBlocks(
 			`${ZONE_EMOJI[result.color] ?? ''} **Общий показатель: ${formatScore(result.averageScore)} — ${result.severity}**`
 		);
 	}
-	summaryLines.push(
-		result.subscales
-			.map(
-				(s) =>
-					`${ZONE_EMOJI[s.color] ?? ''} ${s.name}: ${formatScore(s.averageScore)} — ${s.severity.toLowerCase()}`
-			)
-			.join('\n')
-	);
-	blocks.push(summaryLines.join('\n\n'));
+	if (summaryLines.length > 0) blocks.push(summaryLines.join('\n\n'));
 
-	const problematic = result.subscales
-		.filter((s) => recZone(s.color) !== null)
-		.sort((a, b) => {
-			const hotDiff = Number(isHot(b.color)) - Number(isHot(a.color));
-			if (hotDiff !== 0) return hotDiff;
-			return b.averageScore - a.averageScore;
-		});
+	// Сфера с незнакомой зоной не теряется — идёт последней, просто без рекомендации
+	const zoneRank = (zone: 'green' | 'orange' | 'red' | null) =>
+		zone === null ? Object.keys(ZONE_ORDER).length : ZONE_ORDER[zone];
+	const ordered = result.subscales
+		.map((sub) => ({ sub, zone: recZone(sub.color) }))
+		.sort((a, b) => zoneRank(a.zone) - zoneRank(b.zone) || b.sub.averageScore - a.sub.averageScore);
 
-	if (problematic.length === 0) {
-		if (settings.allGreenText.trim()) blocks.push(settings.allGreenText.trim());
-	} else {
-		for (const sub of problematic) {
-			const zone = recZone(sub.color);
-			if (!zone) continue;
-			const recs = settings.sphereRecs[sub.id];
-			// Для оранжевой зоны без своего текста используем красный (как на сайте)
-			const text = recs?.[zone] ?? recs?.red;
-			if (text?.trim()) blocks.push(text.trim());
-		}
+	for (const { sub, zone } of ordered) {
+		const emoji = ZONE_EMOJI[sub.color];
+		const line = `${emoji ? `${emoji} ` : ''}**${sub.name}: ${formatScore(sub.averageScore)} — ${sub.severity.toLowerCase()}**`;
+		const recs = settings.sphereRecs[sub.id];
+		// Оранжевой зоне без своего текста — красный (как на сайте); зелёной — только свой
+		const text =
+			zone === 'orange' ? (recs?.orange ?? recs?.red) : zone === null ? undefined : recs?.[zone];
+		blocks.push(text?.trim() ? `${line}\n\n${text.trim()}` : line);
 	}
-
-	if (settings.resultsFooterText.trim()) blocks.push(settings.resultsFooterText.trim());
 
 	return blocks;
 }

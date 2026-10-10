@@ -5,13 +5,25 @@ import { asc, eq, sql } from 'drizzle-orm';
 
 export type ClipArticle = typeof schema.clipArticles.$inferSelect;
 
+/**
+ * Статические страницы, на которых крутится тот же опросник, но записи в
+ * clip_articles у них нет — тексты лежат в коде. Слаг такой страницы всё равно
+ * нужен: он уходит в quiz_results и в параметр `article` целей Метрики, поэтому
+ * /api/quiz-results принимает его наравне с клип-статьями.
+ */
+export const STATIC_QUIZ_SLUGS = new Set(['focus-attention-quiz']);
+
 // Существующие статические роуты под /useful — клип-статья с таким slug была бы
 // молча недоступна (в SvelteKit статический роут приоритетнее динамического [slug])
 const RESERVED_SLUGS = new Set([
 	'focus-attention',
 	'organized-burnout',
 	'vacation-did-not-help',
-	'burnout-questionnaire'
+	'burnout-questionnaire',
+	'discuss-result',
+	// Страницы из списка выше — тоже статические роуты, так что резервируются
+	// автоматически: забыть продублировать слаг здесь больше невозможно
+	...STATIC_QUIZ_SLUGS
 ]);
 
 /** Slug — часть URL /useful/<slug>: латиница в нижнем регистре, цифры и дефисы. */

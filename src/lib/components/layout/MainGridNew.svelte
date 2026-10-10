@@ -798,6 +798,7 @@
 
 <div data-scroll-goal="main_scroll_75"></div>
 
+<div id="price"></div>
 <section class="bg-background py-10 md:py-0 md:pt-24" id="pricing">
 	<div class="mx-auto px-5 md:max-w-[760px] lg:max-w-[960px] xl:px-0">
 		<Reveal width="full">

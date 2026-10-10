@@ -4,6 +4,7 @@
 	import { initScrollGoals } from '$lib/useScrollGoals';
 	import { reachGoal } from '$lib/metrika';
 	import { setupLeadMagnetTracking } from '$lib/client/leadMagnetTracking';
+	import { lmLog } from '$lib/client/lmDebug';
 	import { landOnHashTarget } from '$lib/hashLanding';
 	import ButtonSvg from '$lib/components/ui/ButtonSvg.svelte';
 
@@ -65,6 +66,8 @@
 				readThreshold: 75,
 				minimumReadingTimeMs: 30_000
 			});
+		} else {
+			lmLog('статусы не отправляются: нет sb_client_id — страницу открыли не по ссылке из бота');
 		}
 	});
 

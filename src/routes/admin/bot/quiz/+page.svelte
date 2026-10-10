@@ -3,7 +3,11 @@
 
 	let { data, form } = $props();
 
-	const zoneLabels = { orange: 'Оранжевая зона', red: 'Красная зона' } as const;
+	const zoneLabels = {
+		green: 'Зелёная зона',
+		orange: 'Оранжевая зона',
+		red: 'Красная зона'
+	} as const;
 </script>
 
 <svelte:head>
@@ -128,7 +132,7 @@
 			<h2 class="text-sm font-semibold text-stone-700">Разбор результатов</h2>
 
 			<label class="block text-xs font-medium text-stone-500">
-				Вступление (перед сводкой по сферам)
+				Вступление (перед общим показателем)
 				<textarea
 					name="resultsHeaderText"
 					rows="2"
@@ -138,15 +142,17 @@
 			</label>
 
 			<p class="text-xs text-stone-400">
-				После вступления бот шлёт сводку: общий балл и все сферы с баллами и зонами (🟢🟠🔴). Затем —
-				рекомендации по проблемным сферам из текстов ниже: для красной зоны — «красный» текст, для
-				оранжевой — «оранжевый» (если пусто, берётся красный).
+				После вступления бот шлёт общий показатель. Затем по каждой сфере: строка с её баллом и
+				зоной (🟢🟠🔴), под ней рекомендация из текстов ниже. Сначала красные сферы, потом
+				оранжевые, потом зелёные. Для оранжевой зоны пустой текст заменяется красным, для зелёной —
+				не отправляется ничего. На этом разбор заканчивается: завершения с призывом записаться в нём
+				нет.
 			</p>
 
 			{#each data.spheres as sphere (sphere.id)}
 				<div class="space-y-3 rounded-lg border bg-stone-50/60 p-3">
 					<span class="text-xs font-semibold text-stone-500">{sphere.name}</span>
-					{#each ['orange', 'red'] as const as zone}
+					{#each ['green', 'orange', 'red'] as const as zone (zone)}
 						<label class="block text-xs font-medium text-stone-500">
 							{zoneLabels[zone]}
 							<textarea
@@ -159,32 +165,16 @@
 					{/each}
 				</div>
 			{/each}
-
-			<label class="block text-xs font-medium text-stone-500">
-				Если все сферы в зелёной зоне
-				<textarea
-					name="allGreenText"
-					rows="3"
-					class="mt-1 w-full rounded-lg border px-3 py-2 text-sm"
-					value={data.settings.allGreenText}
-				></textarea>
-			</label>
-
-			<label class="block text-xs font-medium text-stone-500">
-				Завершение (CTA после разбора)
-				<textarea
-					name="resultsFooterText"
-					rows="3"
-					class="mt-1 w-full rounded-lg border px-3 py-2 text-sm"
-					value={data.settings.resultsFooterText}
-				></textarea>
-			</label>
 		</section>
 
 		<p class="text-xs text-stone-400">
 			После выдачи разбора контакт получает теги <code>quiz_burnout</code> и
 			<code>quiz_burnout_&lt;зона&gt;</code>, а если есть включённая цепочка с триггером «Диплинк
 			/start=» и значением <code>quiz_results_delivered</code> — она запускается (для прогрева).
+			Запуск идёт при каждой выдаче, в том числе когда человек открыл разбор повторно, — поставьте
+			цепочке кулдаун, иначе повторный заход начнёт её сначала. Призыв записаться ставьте шагом этой
+			цепочки — со своей задержкой, например ссылкой
+			<code>https://kalmykov-psy.ru/go/r/&#123;contact_id&#125;</code>.
 		</p>
 
 		{#if form?.error}

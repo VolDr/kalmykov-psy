@@ -88,6 +88,9 @@ function newChainContext(depth = 0): ChainContext {
 export function validateTrigger(triggerType: string, value: string): string | null {
 	switch (triggerType) {
 		case 'start_param':
+			if (/^cp_\d+$/.test(value)) {
+				return 'Ключи вида cp_<число> заняты кнопками постов канала — выберите другой';
+			}
 			return /^[A-Za-z0-9_-]{1,64}$/.test(value)
 				? null
 				: 'Payload диплинка: латиница, цифры, «_» и «-», до 64 символов';
@@ -285,7 +288,7 @@ export async function triggerScenarioForContact(
 		return;
 	}
 
-	// Кулдаун «не запускать чаще раза в N дней»: недавний запуск — молча выходим
+	// Кулдаун «не запускать чаще раза в N дней»: недавний запуск — выходим
 	if (scenario.cooldownDays > 0) {
 		const [recent] = await db
 			.select({ id: schema.botScenarioRuns.id })
@@ -298,7 +301,12 @@ export async function triggerScenarioForContact(
 				)
 			)
 			.limit(1);
-		if (recent) return;
+		if (recent) {
+			console.log(
+				`[bot-scenarios] «${scenario.name}» (id ${scenario.id}) для контакта ${contact.id} не запущен: кулдаун ${scenario.cooldownDays} дн., уже запускался недавно`
+			);
+			return;
+		}
 
 		// Фиксируем запуск (окно кулдауна отсчитывается от него)
 		const [existing] = await db
@@ -811,25 +819,19 @@ async function executeStep(
 	return true;
 }
 
-/**
- * Массовый запуск цепочки (рассылки) по сегменту: всем контактам, у которых
- * есть все requireTags и нет ни одного из excludeTags (и бот не заблокирован),
- * первый шаг ставится в очередь — отправка идёт порциями через cron, чтобы
- * не упереться в лимиты Telegram. Повторный запуск перезапускает цепочку
- * (её ожидающие шаги отменяются). Возвращает число контактов.
- */
-export async function launchScenarioForSegment(
-	scenarioId: number,
-	filter: { requireTags: string[]; excludeTags: string[] }
-): Promise<number> {
-	const [firstStep] = await db
-		.select()
-		.from(schema.botScenarioSteps)
-		.where(eq(schema.botScenarioSteps.scenarioId, scenarioId))
-		.orderBy(asc(schema.botScenarioSteps.position))
-		.limit(1);
-	if (!firstStep) return 0;
+export type SegmentFilter = {
+	requireTags: string[];
+	excludeTags: string[];
+	/**
+	 * Только контакты, у которых нет ни одного ожидающего шага — ни в одной цепочке,
+	 * включая саму запускаемую. Отдельного признака «идёт цепочка» у контакта нет:
+	 * цепочка = pending-запись в bot_scheduled_steps. Контакт, остановившийся на
+	 * непройденном шлагбауме подписки, pending-записей не имеет и считается свободным.
+	 */
+	onlyIdle?: boolean;
+};
 
+async function selectSegmentContactIds(filter: SegmentFilter): Promise<number[]> {
 	const conditions = [eq(schema.botContacts.botBlocked, false)];
 	if (filter.requireTags.length > 0) {
 		conditions.push(
@@ -841,33 +843,79 @@ export async function launchScenarioForSegment(
 			sql`not (${schema.botContacts.tags} && ${pgTextArrayLiteral(filter.excludeTags)}::text[])`
 		);
 	}
+	if (filter.onlyIdle) {
+		conditions.push(
+			sql`not exists (select 1 from ${schema.botScheduledSteps} where ${schema.botScheduledSteps.contactId} = ${schema.botContacts.id} and ${schema.botScheduledSteps.status} = 'pending')`
+		);
+	}
 
 	const contacts = await db
 		.select({ id: schema.botContacts.id })
 		.from(schema.botContacts)
 		.where(and(...conditions));
+	return contacts.map((c) => c.id);
+}
 
-	if (contacts.length > 0) {
+/**
+ * Сколько контактов подходит под сегмент и сколько из них отсеет onlyIdle
+ * (заняты другой цепочкой). Ничего не пишет — для предпросмотра перед запуском.
+ */
+export async function previewSegment(
+	filter: SegmentFilter
+): Promise<{ matched: number; busy: number; willReceive: number }> {
+	const matched = (await selectSegmentContactIds({ ...filter, onlyIdle: false })).length;
+	const willReceive = filter.onlyIdle ? (await selectSegmentContactIds(filter)).length : matched;
+	return { matched, busy: matched - willReceive, willReceive };
+}
+
+/**
+ * Массовый запуск цепочки (рассылки) по сегменту: всем контактам, у которых
+ * есть все requireTags и нет ни одного из excludeTags (и бот не заблокирован),
+ * первый шаг ставится в очередь — отправка идёт порциями через cron, чтобы
+ * не упереться в лимиты Telegram. Повторный запуск перезапускает цепочку
+ * (её ожидающие шаги отменяются) — кроме режима onlyIdle: там отмены нет, кто
+ * уже идёт по цепочке (в том числе по этой же), спокойно доходит до конца, а
+ * новый запуск получают только свободные. Возвращает число контактов.
+ */
+export async function launchScenarioForSegment(
+	scenarioId: number,
+	filter: SegmentFilter
+): Promise<number> {
+	const [firstStep] = await db
+		.select()
+		.from(schema.botScenarioSteps)
+		.where(eq(schema.botScenarioSteps.scenarioId, scenarioId))
+		.orderBy(asc(schema.botScenarioSteps.position))
+		.limit(1);
+	if (!firstStep) return 0;
+
+	const contactIds = await selectSegmentContactIds(filter);
+
+	if (contactIds.length > 0) {
 		// Транзакция: иначе падение между отменой и вставкой снимет старую очередь,
 		// не поставив новую — контакты выпадут из рассылки без следа
 		await db.transaction(async (tx) => {
-			await tx
-				.update(schema.botScheduledSteps)
-				.set({
-					status: 'cancelled',
-					cancellationReason: 'broadcast_restarted',
-					processedAt: sql`now()`
-				})
-				.where(
-					and(
-						eq(schema.botScheduledSteps.scenarioId, scenarioId),
-						eq(schema.botScheduledSteps.status, 'pending')
-					)
-				);
+			// Отмена всей очереди рассылки задела бы и тех, кто в сегмент не попал
+			// (заняты этой же рассылкой) — они выпали бы из неё на полпути
+			if (!filter.onlyIdle) {
+				await tx
+					.update(schema.botScheduledSteps)
+					.set({
+						status: 'cancelled',
+						cancellationReason: 'broadcast_restarted',
+						processedAt: sql`now()`
+					})
+					.where(
+						and(
+							eq(schema.botScheduledSteps.scenarioId, scenarioId),
+							eq(schema.botScheduledSteps.status, 'pending')
+						)
+					);
+			}
 
 			await tx.insert(schema.botScheduledSteps).values(
-				contacts.map((c) => ({
-					contactId: c.id,
+				contactIds.map((contactId) => ({
+					contactId,
 					scenarioId,
 					stepId: firstStep.id,
 					scheduledAt: sql`now() + make_interval(secs => ${firstStep.delaySeconds})`
@@ -880,10 +928,11 @@ export async function launchScenarioForSegment(
 		scenarioId,
 		requireTags: filter.requireTags,
 		excludeTags: filter.excludeTags,
-		matchedCount: contacts.length
+		onlyIdle: filter.onlyIdle ?? false,
+		matchedCount: contactIds.length
 	});
 
-	return contacts.length;
+	return contactIds.length;
 }
 
 /**

@@ -1,4 +1,5 @@
 import { browser } from '$app/environment';
+import { lmDebugEnabled, lmLog } from './lmDebug';
 
 interface TrackingOptions {
 	leadMagnet: string;
@@ -15,6 +16,8 @@ export async function sendEvent(
 	event: string,
 	progress: number
 ): Promise<boolean> {
+	const key = `lm_${leadMagnet}_${event}`;
+	lmLog(`→ отправляю ${key}`, { progress });
 	// clientId читается сервером из HttpOnly cookie — в тело не передаём
 	try {
 		const res = await fetch('/api/lm-progress', {
@@ -23,10 +26,33 @@ export async function sendEvent(
 			keepalive: true,
 			body: JSON.stringify({ leadMagnet, event, progress })
 		});
+		if (lmDebugEnabled()) {
+			const body = await res
+				.clone()
+				.json()
+				.catch(() => null);
+			lmLog(`← ${key}: HTTP ${res.status}`, describeProgressResponse(body));
+		}
 		return res.ok;
-	} catch {
+	} catch (err) {
+		lmLog(`✗ ${key}: запрос не ушёл`, err);
 		return false;
 	}
+}
+
+/** Человекочитаемый ответ /api/lm-progress для отладочного лога. */
+function describeProgressResponse(body: unknown): string {
+	if (!body || typeof body !== 'object') return 'ответ не JSON';
+	const b = body as Record<string, unknown>;
+	if (b.skipped) {
+		return b.reason === 'contact_not_found'
+			? 'сервер пропустил: контакт из cookie не найден в боте'
+			: 'сервер пропустил: нет cookie sb_client_id (страницу открыли не по ссылке из бота)';
+	}
+	if (b.error) return `ошибка: ${String(b.error)}`;
+	if (b.chain === 'started') return 'тег повешен, цепочка запущена';
+	if (b.chain === 'bot_blocked') return 'тег повешен, цепочка НЕ запущена: бот заблокирован';
+	return 'тег повешен, цепочка НЕ запущена: нет включённого сценария с таким ключом';
 }
 
 export function setupLeadMagnetTracking({
@@ -41,6 +67,9 @@ export function setupLeadMagnetTracking({
 	let read75InFlight = false;
 	let read75Sent = false;
 
+	lmLog(`трекинг чтения запущен: ${leadMagnet}`, {
+		read75: `глубина ≥ ${readThreshold}% и ≥ ${minimumReadingTimeMs / 1000} с на странице`
+	});
 	sendEvent(leadMagnet, 'opened', 0);
 
 	let maxScrollDepth = 0;
@@ -71,6 +100,7 @@ export function setupLeadMagnetTracking({
 		const depth = getScrollDepth();
 		if (depth > maxScrollDepth) maxScrollDepth = depth;
 		if (maxScrollDepth >= readThreshold) {
+			if (!scrollMet) lmLog(`✓ глубина ${Math.round(maxScrollDepth)}% ≥ ${readThreshold}%`);
 			scrollMet = true;
 			maybeFireRead75();
 		}
@@ -93,6 +123,7 @@ export function setupLeadMagnetTracking({
 
 	const timer = setTimeout(() => {
 		timeMet = true;
+		lmLog(`✓ на странице ${minimumReadingTimeMs / 1000} с`, scrollMet ? undefined : 'ждём глубину');
 		checkScroll();
 	}, minimumReadingTimeMs);
 

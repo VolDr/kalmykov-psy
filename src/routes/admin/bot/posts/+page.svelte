@@ -1,7 +1,27 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import { cn } from '$lib/utils';
 
 	let { data, form } = $props();
+
+	let selectedScenarioId = $state<number>();
+	const currentScenarioId = $derived(selectedScenarioId ?? data.scenarios[0]?.id);
+	let relinking = $state(false);
+
+	// Кнопка — прямая ссылка в бота, подписку проверяет только шлагбаум цепочки
+	function gateHint(scenarioId: number | undefined) {
+		const mode = scenarioId === undefined ? undefined : data.gates[scenarioId];
+		if (mode === 'unsubscribed') return null;
+		if (mode === 'all') {
+			return {
+				warn: false,
+				text: 'Шлагбаум без условия «не подписан» — «Я подписался» нажимают и подписчики'
+			};
+		}
+		return { warn: true, text: 'Нет шлагбаума — материал получат и без подписки на канал' };
+	}
+
+	const currentHint = $derived(gateHint(currentScenarioId));
 
 	function formatDate(iso: string) {
 		return new Date(iso).toLocaleString('ru-RU', {
@@ -27,9 +47,10 @@
 <div class="p-6">
 	<h1 class="mb-2 text-2xl font-semibold">Кнопки на постах канала</h1>
 	<p class="mb-6 max-w-2xl text-sm text-stone-500">
-		Бот вешает inline-кнопку на существующий пост канала. По клику проверяется подписка на канал,
-		затем открывается чат с ботом по диплинку — и запускается выбранный сценарий. Бот должен быть
-		админом канала.
+		Бот вешает на существующий пост канала кнопку-ссылку: по нажатию сразу открывается чат с ботом
+		и запускается выбранная цепочка. Подписку проверяет шлагбаум в цепочке — поставьте его первым
+		шагом с условием «не подписан», тогда подписчики получат материал сразу, а остальных бот
+		попросит подписаться. Бот должен быть админом канала.
 	</p>
 
 	{#if data.scenarios.length === 0}
@@ -74,29 +95,26 @@
 				</label>
 				<label class="block text-xs font-medium text-stone-500">
 					Сценарий
-					<select name="scenarioId" class="mt-1 rounded-lg border px-3 py-2 text-sm">
+					<select
+						name="scenarioId"
+						bind:value={selectedScenarioId}
+						class="mt-1 rounded-lg border px-3 py-2 text-sm"
+					>
 						{#each data.scenarios as scenario (scenario.id)}
 							<option value={scenario.id}>
-								{scenario.name}{scenario.enabled ? '' : ' (выключен)'}
+								{scenario.name}{scenario.enabled ? '' : ' (выключен)'}{data.gates[scenario.id]
+									? ''
+									: ' — без шлагбаума'}
 							</option>
 						{/each}
 					</select>
 				</label>
 			</div>
-			<label class="flex items-center gap-2 text-sm">
-				<input type="checkbox" name="requireSubscription" checked class="rounded" />
-				Требовать подписку на канал
-			</label>
-			<label class="block text-xs font-medium text-stone-500">
-				Текст алерта, если подписки нет (до 200 символов)
-				<input
-					type="text"
-					name="subscriptionPrompt"
-					maxlength="200"
-					placeholder="Подпишитесь на канал, чтобы получить материал 🙌"
-					class="mt-1 w-full max-w-xl rounded-lg border px-3 py-2 text-sm"
-				/>
-			</label>
+			{#if currentHint}
+				<p class={cn('text-sm', currentHint.warn ? 'text-amber-700' : 'text-stone-500')}>
+					{currentHint.text}
+				</p>
+			{/if}
 			<button
 				type="submit"
 				class="rounded-lg bg-primary px-4 py-2 text-sm text-primary-foreground hover:bg-primary/90"
@@ -119,6 +137,41 @@
 	{#if data.posts.length === 0}
 		<p class="text-sm text-stone-400">Кнопок пока нет.</p>
 	{:else}
+		<form
+			method="POST"
+			action="?/relink"
+			use:enhance={() => {
+				relinking = true;
+				return async ({ update }) => {
+					await update();
+					relinking = false;
+				};
+			}}
+			class="mb-4 flex max-w-3xl flex-wrap items-center gap-3"
+		>
+			<button
+				type="submit"
+				disabled={relinking}
+				class="rounded-lg border bg-white px-3 py-1.5 text-sm hover:bg-stone-50 disabled:opacity-60"
+			>
+				{relinking ? 'Перевожу…' : 'Перевести кнопки на прямые ссылки'}
+			</button>
+			<span class="text-xs text-stone-500">
+				Нужно один раз для кнопок, повешенных раньше: они ещё ходят через сервер. Повторное нажатие
+				безопасно.
+			</span>
+		</form>
+		{#if form?.relinkResult}
+			<div class="mb-4 max-w-3xl text-sm">
+				<p class="text-green-600">
+					Переведено кнопок: {form.relinkResult.updated} из {form.relinkResult.total}
+				</p>
+				{#each form.relinkResult.failed as problem (problem)}
+					<p class="text-red-500">{problem}</p>
+				{/each}
+			</div>
+		{/if}
+
 		<div class="overflow-hidden rounded-xl border bg-white">
 			<table class="w-full text-sm">
 				<thead class="border-b bg-stone-50 text-left text-xs uppercase text-stone-500">
@@ -134,6 +187,7 @@
 				</thead>
 				<tbody>
 					{#each data.posts as row (row.post.id)}
+						{@const hint = gateHint(row.post.scenarioId)}
 						<tr class="border-b last:border-0 hover:bg-stone-50">
 							<td class="px-4 py-2">{row.post.title ?? '—'}</td>
 							<td class="px-4 py-2 text-stone-600">
@@ -144,13 +198,15 @@
 									class="text-blue-600 hover:underline">{postLabel(row.post)}</a
 								>
 							</td>
+							<td class="px-4 py-2 text-stone-600">{row.post.buttonText}</td>
 							<td class="px-4 py-2 text-stone-600">
-								{row.post.buttonText}
-								{#if !row.post.requireSubscription}
-									<span class="ml-1 text-xs text-stone-400">(без проверки подписки)</span>
+								{row.scenarioName}
+								{#if hint}
+									<span class={cn('block text-xs', hint.warn ? 'text-amber-700' : 'text-stone-400')}>
+										{hint.text}
+									</span>
 								{/if}
 							</td>
-							<td class="px-4 py-2 text-stone-600">{row.scenarioName}</td>
 							<td class="px-4 py-2 text-stone-600">{row.post.clicks}</td>
 							<td class="px-4 py-2 text-stone-500">{formatDate(row.post.createdAt)}</td>
 							<td class="px-4 py-2 text-right">

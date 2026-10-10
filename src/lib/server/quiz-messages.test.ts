@@ -8,8 +8,6 @@ import {
 
 const settings: QuizMessageSettings = {
 	resultsHeaderText: 'Ваши результаты:',
-	resultsFooterText: 'Записаться: https://example.com',
-	allGreenText: 'Всё в зелёной зоне.',
 	sphereRecs: {
 		exhaustion: { orange: 'Истощение: оранжевый текст', red: 'Истощение: красный текст' },
 		distancing: { red: 'Дистанцирование: красный текст' }
@@ -24,55 +22,114 @@ function makeResult(
 }
 
 describe('buildQuizResultBlocks', () => {
-	it('собирает сводку с общим баллом и всеми сферами', () => {
-		const result = makeResult([
-			{ id: 'exhaustion', name: 'Истощение', averageScore: 3.5, severity: 'Выгорание', color: 'red' },
-			{ id: 'distancing', name: 'Дистанцирование', averageScore: 1.5, severity: 'Нет риска', color: 'green' }
-		]);
-		const [summary] = buildQuizResultBlocks(result, settings);
+	const exhaustionRed = {
+		id: 'exhaustion',
+		name: 'Истощение',
+		averageScore: 3.5,
+		severity: 'Выгорание',
+		color: 'red'
+	};
+	const distancingRed = {
+		id: 'distancing',
+		name: 'Дистанцирование',
+		averageScore: 3.4,
+		severity: 'Выгорание',
+		color: 'red'
+	};
+	const exhaustionOrange = {
+		id: 'exhaustion',
+		name: 'Истощение',
+		averageScore: 3.2,
+		severity: 'Риск выгорания',
+		color: 'orange'
+	};
 
-		expect(summary).toContain('Ваши результаты:');
-		expect(summary).toContain('**Общий показатель: 3,10 из 5 — Есть риск выгорания**');
-		expect(summary).toContain('🔴 Истощение: 3,50 из 5 — выгорание');
-		expect(summary).toContain('🟢 Дистанцирование: 1,50 из 5 — нет риска');
+	it('первое сообщение — вступление и общий показатель, без списка сфер', () => {
+		const [summary] = buildQuizResultBlocks(makeResult([exhaustionRed]), settings);
+
+		expect(summary).toBe(
+			'Ваши результаты:\n\n🟠 **Общий показатель: 3,10 из 5 — Есть риск выгорания**'
+		);
+	});
+
+	it('перед рекомендацией сферы — строка с её баллом и зоной', () => {
+		const blocks = buildQuizResultBlocks(makeResult([exhaustionRed]), settings);
+
+		expect(blocks[1]).toBe('🔴 **Истощение: 3,50 из 5 — выгорание**\n\nИстощение: красный текст');
 	});
 
 	it('красные сферы идут раньше оранжевых, внутри зоны — по убыванию балла', () => {
-		const result = makeResult([
-			{ id: 'exhaustion', name: 'Истощение', averageScore: 3.2, severity: 'Риск', color: 'orange' },
-			{ id: 'distancing', name: 'Дистанцирование', averageScore: 3.4, severity: 'Выгорание', color: 'red' }
-		]);
-		const blocks = buildQuizResultBlocks(result, settings);
+		const blocks = buildQuizResultBlocks(makeResult([exhaustionOrange, distancingRed]), settings);
 
-		// [сводка, красная сфера, оранжевая сфера, футер]
-		expect(blocks[1]).toBe('Дистанцирование: красный текст');
-		expect(blocks[2]).toBe('Истощение: оранжевый текст');
-		expect(blocks[3]).toBe(settings.resultsFooterText);
+		expect(blocks.slice(1)).toEqual([
+			'🔴 **Дистанцирование: 3,40 из 5 — выгорание**\n\nДистанцирование: красный текст',
+			'🟠 **Истощение: 3,20 из 5 — риск выгорания**\n\nИстощение: оранжевый текст'
+		]);
 	});
 
 	it('для оранжевой зоны без своего текста берётся красный', () => {
-		const result = makeResult([
-			{ id: 'distancing', name: 'Дистанцирование', averageScore: 2.6, severity: 'Риск', color: 'orange' }
-		]);
-		const blocks = buildQuizResultBlocks(result, settings);
-		expect(blocks[1]).toBe('Дистанцирование: красный текст');
-	});
-
-	it('сфера без текстов рекомендаций пропускается, а не роняет сборку', () => {
-		const result = makeResult([
-			{ id: 'cognitive', name: 'Когнитивные', averageScore: 3.3, severity: 'Выгорание', color: 'red' }
-		]);
-		const blocks = buildQuizResultBlocks(result, settings);
-		expect(blocks).toEqual([expect.stringContaining('Общий показатель'), settings.resultsFooterText]);
-	});
-
-	it('все сферы зелёные — текст про зелёную зону', () => {
-		const result = makeResult(
-			[{ id: 'exhaustion', name: 'Истощение', averageScore: 1.2, severity: 'Нет риска', color: 'green' }],
-			'green'
+		const blocks = buildQuizResultBlocks(
+			makeResult([{ ...distancingRed, averageScore: 2.6, severity: 'Риск', color: 'orange' }]),
+			settings
 		);
-		const blocks = buildQuizResultBlocks(result, settings);
-		expect(blocks[1]).toBe('Всё в зелёной зоне.');
+		expect(blocks[1]).toBe(
+			'🟠 **Дистанцирование: 2,60 из 5 — риск**\n\nДистанцирование: красный текст'
+		);
+	});
+
+	it('сфера без текста рекомендации — только строка с баллом, но не пропадает', () => {
+		const blocks = buildQuizResultBlocks(
+			makeResult([
+				{
+					id: 'cognitive',
+					name: 'Когнитивные',
+					averageScore: 3.3,
+					severity: 'Выгорание',
+					color: 'red'
+				}
+			]),
+			settings
+		);
+		expect(blocks.slice(1)).toEqual(['🔴 **Когнитивные: 3,30 из 5 — выгорание**']);
+	});
+
+	const withGreen: QuizMessageSettings = {
+		...settings,
+		sphereRecs: {
+			exhaustion: { green: 'Истощение: зелёный текст', red: 'Истощение: красный текст' },
+			distancing: { green: 'Дистанцирование: зелёный текст', red: 'Дистанцирование: красный текст' }
+		}
+	};
+
+	it('зелёные сферы идут после проблемных, со своим текстом', () => {
+		const blocks = buildQuizResultBlocks(
+			makeResult([
+				{ ...exhaustionRed, averageScore: 1.4, severity: 'Нет риска', color: 'green' },
+				distancingRed
+			]),
+			withGreen
+		);
+
+		expect(blocks.slice(1)).toEqual([
+			'🔴 **Дистанцирование: 3,40 из 5 — выгорание**\n\nДистанцирование: красный текст',
+			'🟢 **Истощение: 1,40 из 5 — нет риска**\n\nИстощение: зелёный текст'
+		]);
+	});
+
+	it('зелёная сфера без своего текста — только строка с баллом', () => {
+		const blocks = buildQuizResultBlocks(
+			makeResult([
+				{
+					id: 'cognitive',
+					name: 'Когнитивные',
+					averageScore: 1.1,
+					severity: 'Нет риска',
+					color: 'green'
+				}
+			]),
+			withGreen
+		);
+		expect(blocks.slice(1)).toEqual(['🟢 **Когнитивные: 1,10 из 5 — нет риска**']);
 	});
 });
 

@@ -3,6 +3,7 @@
 	import Questionnaire from '$lib/components/questionnaire/QuestionnaireStep.svelte';
 	import { bat23Config } from '../../../configs/bat23ConfigSoft';
 	import { sendEvent } from '$lib/client/leadMagnetTracking';
+	import { lmLog } from '$lib/client/lmDebug';
 	import { landOnHashTarget } from '$lib/hashLanding';
 
 	export const ssr = false;
@@ -31,11 +32,13 @@
 
 	onMount(() => {
 		if (sbClientId) sendEvent('quiz', 'opened', 0);
+		else lmLog('статусы не отправляются: нет sb_client_id — страницу открыли не по ссылке из бота');
 		landOnAcquaintance();
 	});
 
 	function handleComplete() {
 		if (sbClientId) sendEvent('quiz', 'completed', 100);
+		else lmLog('опросник пройден, статус не отправлен: нет sb_client_id');
 		landOnAcquaintance();
 	}
 </script>
@@ -47,5 +50,6 @@
 		title="Опросник на уровень выгорания"
 		oncomplete={handleComplete}
 		autoScrollToResults={!toAcquaintance}
+		{sbClientId}
 	/>
 </div>

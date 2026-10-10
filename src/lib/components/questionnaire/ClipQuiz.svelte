@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
 	import { reachGoal } from '$lib/metrika';
+	import { lmLog } from '$lib/client/lmDebug';
 	import QuestionRenderer from './QuestionRenderer.svelte';
 	import MarkdownLink from '$lib/components/MarkdownLink.svelte';
 	import Button from '../ui/Button.svelte';
@@ -24,6 +25,12 @@
 		resultTextRed: string;
 		botCtaText: string;
 		botCtaButtonText: string;
+		/**
+		 * Опросник дошёл до экрана результатов. Страница вешает сюда своё событие
+		 * лид-магнита (lm_<магнит>_completed), чтобы по нему запускалась
+		 * догревающая цепочка — как по opened и read75.
+		 */
+		oncomplete?: () => void;
 	};
 
 	let {
@@ -34,7 +41,8 @@
 		resultTextOrange,
 		resultTextRed,
 		botCtaText,
-		botCtaButtonText
+		botCtaButtonText,
+		oncomplete
 	}: Props = $props();
 
 	const storageKey = `clip-${articleSlug}-quiz`;
@@ -152,6 +160,10 @@
 			if (!response.ok) throw new Error(`HTTP ${response.status}`);
 			quizState.result = (await response.json()) as SavedResult;
 			submitState = 'idle';
+			lmLog('опросник: результат сохранён', {
+				зона: quizState.result.severity,
+				кнопкаВБота: quizState.result.deeplink ?? 'нет — не удалось узнать username бота'
+			});
 		} catch (err) {
 			console.error('[clip-quiz] Не удалось сохранить результат:', err);
 			submitState = 'error';
@@ -176,6 +188,7 @@
 				article: articleSlug,
 				result: currentScore.interpretation.severity
 			});
+			oncomplete?.();
 			submitResults();
 			window.scrollTo({ top: 0, behavior: 'smooth' });
 		}
@@ -207,8 +220,8 @@
 
 {#if !quizState.showResults && currentQuestion}
 	<div class="mx-auto max-w-2xl">
-		<div class="mb-6">
-			<div class="mb-2 flex justify-end text-xs font-medium text-gray-500">
+		<div class="mb-3 md:mb-6">
+			<div class="mb-1.5 flex justify-end text-xs font-medium text-gray-500 md:mb-2">
 				<span>Вопрос {quizState.currentStep + 1} из {questionSteps.length}</span>
 			</div>
 			<div class="h-1.5 w-full overflow-hidden rounded-full bg-gray-200">
@@ -221,7 +234,7 @@
 
 		{#if currentSubheadingText}
 			<div
-				class="mb-4 rounded-lg bg-background px-3 py-3 text-center text-sm font-medium text-foreground/80 md:text-base"
+				class="mb-3 rounded-lg bg-background px-3 py-2 text-center text-[13px] leading-snug font-medium text-foreground/80 md:mb-4 md:py-3 md:text-base"
 			>
 				{currentSubheadingText}
 			</div>
@@ -239,7 +252,10 @@
 				answers={quizState.answers}
 			/>
 
-			<div class="mt-6 flex gap-3">
+			<!-- На мобильном прилипают к низу экрана: «Далее» видна без прокрутки -->
+			<div
+				class="sticky bottom-0 z-10 -mx-4 mt-4 -mb-4 flex gap-3 rounded-b-xl border-t border-gray-100 bg-white px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] md:static md:mx-0 md:mt-6 md:mb-0 md:rounded-none md:border-0 md:bg-transparent md:p-0"
+			>
 				{#if quizState.currentStep > 0}
 					<Button
 						variant="secondary"
@@ -264,7 +280,9 @@
 	<div
 		class="mx-auto max-w-xl rounded-xl border border-gray-100 bg-white p-5 shadow-sm md:rounded-2xl md:p-8"
 	>
-		<h2 class="mt-0 mb-5 font-caveat text-[30px] leading-tight font-semibold text-navy lg:text-[36px]">
+		<h2
+			class="mt-0 mb-5 font-caveat text-[30px] leading-tight font-semibold text-navy lg:text-[36px]"
+		>
 			{resultHeading}
 		</h2>
 
@@ -318,7 +336,7 @@
 		{/if}
 
 		<!-- Полный разбор по сферам — в боте -->
-		<section class="mt-8 md:mt-10">
+		<section class="mt-6">
 			<div class="flex flex-col gap-4 text-[clamp(15px,1.6vw,17px)] leading-[1.7]">
 				{#each botCtaText.split('\n\n') as paragraph}
 					<p><MarkdownLink text={paragraph} /></p>

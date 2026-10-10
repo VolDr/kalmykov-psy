@@ -13,7 +13,8 @@
     'lead_cta_click',
     'questionnaire_email_submitted',
     'questionnaire_completed',
-    'questionnaire_telegram_click'
+    'questionnaire_telegram_click',
+    'discuss_result_opened'
   ];
 
   const goalMap = Object.fromEntries(topGoals.map(g => [g.goal, g.total]));

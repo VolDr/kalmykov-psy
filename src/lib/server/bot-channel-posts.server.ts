@@ -30,6 +30,34 @@ export function parsePostLink(link: string): { chatId: string; messageId: number
 	return null;
 }
 
+/**
+ * Кнопка поста — прямая ссылка t.me/<бот>?start=cp_<id поста>: Telegram открывает
+ * бота сразу, без круга через наш сервер. Подписку проверяет шлагбаум в цепочке,
+ * клик считается при /start (см. telegram-client-bot.server.ts).
+ * Префикс зарезервирован — validateTrigger не даёт завести такой ключ цепочке.
+ */
+export const POST_START_PREFIX = 'cp_';
+
+const POST_START_KEY = /^cp_(\d{1,15})$/;
+
+export function postStartKey(postId: number): string {
+	return `${POST_START_PREFIX}${postId}`;
+}
+
+/** id поста из ключа диплинка cp_<id>, иначе null. */
+export function parsePostStartKey(key: string): number | null {
+	const match = POST_START_KEY.exec(key);
+	return match ? Number(match[1]) : null;
+}
+
+export function postButtonMarkup(buttonText: string, botUsername: string, postId: number) {
+	return {
+		inline_keyboard: [
+			[{ text: buttonText, url: `https://t.me/${botUsername}?start=${postStartKey(postId)}` }]
+		]
+	};
+}
+
 export async function getChannelPost(id: number) {
 	const [post] = await db
 		.select({

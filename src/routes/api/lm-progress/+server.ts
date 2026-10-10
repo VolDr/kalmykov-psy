@@ -10,7 +10,9 @@ import { triggerScenarioByKey } from '$lib/server/bot-scenarios.server';
 // На событие контакту вешается тег lm_<name>_<event>, и если существует включённый
 // сценарий с триггером «Диплинк /start=» и значением lm_<name>_<event> — он запускается
 // (например, lm_focus_read75 → послечтенческая прогревочная серия).
-const ALLOWED_LEAD_MAGNETS = ['otpusk', 'focus', 'burnout', 'quiz'] as const;
+// focusq — вариант B лид-магнита focus (лонгрид с опросником): свой ключ, чтобы
+// догревающие цепочки у него были отдельными от варианта A
+const ALLOWED_LEAD_MAGNETS = ['otpusk', 'focus', 'focusq', 'burnout', 'quiz'] as const;
 // read75 — дочитал статью, completed — прошёл опросник до результатов
 const ALLOWED_EVENTS = ['opened', 'read75', 'completed'] as const;
 
@@ -37,14 +39,14 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 	const publicId = rawCookie ? parseInt(rawCookie, 10) : NaN;
 	if (!Number.isSafeInteger(publicId) || publicId <= 0) {
 		console.log(`[lm-progress] скип: нет куки sb_client_id (значение: ${rawCookie ?? '—'})`);
-		return json({ ok: true, skipped: true });
+		return json({ ok: true, skipped: true, reason: 'no_cookie' });
 	}
 
 	// Старые куки (Salebot-ID или внутренние id до перехода на public_id) — скипаем
 	const contact = await getContactByPublicId(publicId);
 	if (!contact) {
 		console.log(`[lm-progress] скип: контакт с public_id=${publicId} не найден`);
-		return json({ ok: true, skipped: true });
+		return json({ ok: true, skipped: true, reason: 'contact_not_found' });
 	}
 
 	let body: unknown;
@@ -78,6 +80,8 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 		}
 	}
 
+	// Судьба цепочки уходит и в ответ — видна в браузере при ?debuglm
+	let chain: 'started' | 'no_scenario' | 'bot_blocked';
 	try {
 		const key = `lm_${leadMagnet}_${event}`;
 		const triggered = await processLeadMagnetEvent(
@@ -85,6 +89,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 			leadMagnet as LeadMagnet,
 			event as EventName
 		);
+		chain = triggered ? 'started' : contact.botBlocked ? 'bot_blocked' : 'no_scenario';
 		if (triggered) {
 			console.log(`[lm-progress] ${key}: тег повешен, цепочка запущена (контакт ${contact.id})`);
 		} else {
@@ -129,5 +134,5 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 		console.error('[lm-progress] DB upsert error (не критично):', dbErr);
 	}
 
-	return json({ success: true });
+	return json({ success: true, chain });
 };
