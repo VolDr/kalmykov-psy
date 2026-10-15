@@ -6,8 +6,8 @@ vi.mock('$lib/server/pricing.server', () => ({
 
 // Mock createBooking before importing the server module
 vi.mock('$lib/server/booking.server', () => ({
-	createBooking: vi.fn(),
-	}));
+	createBooking: vi.fn()
+}));
 
 import { POST } from './+server';
 import { isRateLimited, _clearIpWindowForTest } from '$lib/server/rate-limit.server';
