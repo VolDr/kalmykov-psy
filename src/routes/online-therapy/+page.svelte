@@ -6,7 +6,6 @@
   · Header / Footer берутся из +layout.svelte (онлайн-терапия в layout НЕ скрыта) —
     поэтому здесь только контент страницы. PageHero больше не нужен.
   · Данные те же: onlineTherapyBlocks. 14 блоков сгруппированы в 5 разделов.
-    Логика avito-overrides (?avito) сохранена.
   · Клик по теме раскрывает её полный текст в правой колонке (master-detail),
     повторный клик возвращает краткую сводку раздела.
   · Требует токенов из app.css.additions.css (font-caveat, text-navy) —
@@ -15,10 +14,12 @@
   ════════════════════════════════════════════════════════════════
 -->
 <script lang="ts">
-	import { onlineTherapyBlocks, type BlockProps } from '$lib/data/online-therapy';
+	import { onlineTherapyBlocks } from '$lib/data/online-therapy';
+	import type { PageData } from './$types';
+	import { formatRubles } from '$lib/pricing';
+	let { data }: { data: PageData } = $props();
 	import MarkdownLink from '$lib/components/MarkdownLink.svelte';
 	import Reveal from '$lib/components/Reveal.svelte';
-	import { page } from '$app/state';
 	import { cubicOut } from 'svelte/easing';
 
 	function panelEnter(node: Element, { duration = 300 }: { duration?: number } = {}) {
@@ -31,22 +32,14 @@
 		};
 	}
 
-	// ── модификации цены для отдельных источников (как было) ──
-	const priceOverrides: Record<string, string[]> = {
-		avito: ['3000₽ за сессию первые три сессии, далее 5000₽.']
-	};
-
-	function getModifiedBlocks(source: string | null): BlockProps[] {
-		if (!source || !priceOverrides[source]) return onlineTherapyBlocks;
-		return onlineTherapyBlocks.map((block) =>
+	// Цена берётся из таблицы тарифов; query-параметры её не меняют.
+	const blocks = $derived(
+		onlineTherapyBlocks.map((block) =>
 			block.title === 'Оплата и стоимость'
-				? { ...block, data: [...priceOverrides[source], ...block.data.slice(1)] }
+				? { ...block, data: [`${formatRubles(data.prices.single)} за сессию.`, ...block.data] }
 				: block
-		);
-	}
-
-	const source = $derived(page.url.searchParams.keys().next().value ?? null);
-	const blocks = $derived(getModifiedBlocks(source));
+		)
+	);
 	// быстрый доступ к тексту блока по его заголовку
 	const byTitle = $derived(Object.fromEntries(blocks.map((b) => [b.title, b.data])));
 

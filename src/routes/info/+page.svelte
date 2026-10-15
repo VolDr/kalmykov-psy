@@ -17,6 +17,9 @@
 -->
 <script lang="ts">
 	import MarkdownLink from '$lib/components/MarkdownLink.svelte';
+	import type { PageData } from './$types';
+	import { formatRubles } from '$lib/pricing';
+	let { data }: { data: PageData } = $props();
 	import Reveal from '$lib/components/Reveal.svelte';
 	import EducationNew from '$lib/components/sections/EducationNew.svelte';
 	import ButtonSvg from '$lib/components/ui/ButtonSvg.svelte';
@@ -537,7 +540,7 @@
 					<h2 class="font-caveat text-[34px] font-bold text-navy md:pt-[35px] lg:text-[40px]">
 						Разовая сессия
 					</h2>
-					<div class="mt-2 text-[18px] font-extrabold text-navy lg:text-[20px]">4 000 ₽</div>
+					<div class="mt-2 text-[18px] font-extrabold text-navy lg:text-[20px]">{formatRubles(data.prices.single)}</div>
 					<p class="mt-5 text-[16px] leading-relaxed text-foreground/75 lg:text-[18px]">
 						Если хотите разобраться в конкретной ситуации, познакомиться с подходом или понять,
 						нужна ли вам терапия вообще.
@@ -596,7 +599,7 @@
 						Регулярные встречи
 					</h2>
 					<div class="mt-2 flex items-baseline gap-2">
-						<span class="text-[18px] font-extrabold lg:text-[20px]">14 000 ₽</span>
+						<span class="text-[18px] font-extrabold lg:text-[20px]">{formatRubles(data.prices.package)}</span>
 						<span class="text-[16px] font-medium text-white/55 lg:text-[18px]">/ 4 сессии</span>
 					</div>
 					<p class="mt-5 text-[16px] leading-relaxed text-white/75 lg:text-[18px]">
