@@ -1,5 +1,7 @@
 import type { PageServerLoad } from './$types';
-import { getAvailabilities, CONSULTATION_PRICE, PACKAGE_PRICE } from '$lib/server/booking.server';
+import { getAvailabilities } from '$lib/server/booking.server';
+import { getPricing } from '$lib/server/pricing.server';
+import { toPaymentAmount } from '$lib/pricing';
 
 export const load: PageServerLoad = async ({ url }) => {
 	const sbClientId = url.searchParams.get('sb_client_id');
@@ -9,7 +11,8 @@ export const load: PageServerLoad = async ({ url }) => {
 		return { availabilities, price: '0', type: 'acquaintance' as const, sbClientId };
 	}
 	const type = url.searchParams.get('type') === 'package' ? 'package' : 'single';
-	const price = type === 'package' ? PACKAGE_PRICE : CONSULTATION_PRICE;
+	const prices = await getPricing();
+	const price = toPaymentAmount(prices[type]);
 	const availabilities = await getAvailabilities();
 	return { availabilities, price, type, sbClientId };
 };

@@ -5,15 +5,16 @@
   Редизайн страницы оплаты разовой консультации (макет «Оплата
   консультации»). Логика без изменений: POST /api/pay (product:'single')
   → форма Робокассы. Тот же файл годится для /package — поменяйте
-  PRICE = 14000 и product: 'package'.
+  цену загружает сервер каждой страницы, product определяется маршрутом.
   ════════════════════════════════════════════════════════════════
 -->
 <script lang="ts">
 	import { reachGoal } from '$lib/metrika';
+	import type { PageData } from './$types';
+	let { data }: { data: PageData } = $props();
 	import PaymentLegalNotice from '$lib/components/PaymentLegalNotice.svelte';
 
-	const PRICE = 4000;
-	const PRICE_DISPLAY = PRICE.toLocaleString('ru-RU');
+	const PRICE_DISPLAY = $derived(data.price.toLocaleString('ru-RU'));
 
 	let email = $state('');
 	let loading = $state(false);

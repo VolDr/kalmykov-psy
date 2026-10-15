@@ -1,8 +1,9 @@
 <script lang="ts">
 	import PaymentLegalNotice from '$lib/components/PaymentLegalNotice.svelte';
+	import type { PageData } from './$types';
+	let { data }: { data: PageData } = $props();
 
-	const PRICE = 14000;
-	const PRICE_DISPLAY = PRICE.toLocaleString('ru-RU');
+	const PRICE_DISPLAY = $derived(data.price.toLocaleString('ru-RU'));
 
 	let email = $state('');
 	let loading = $state(false);
