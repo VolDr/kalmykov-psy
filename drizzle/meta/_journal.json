@@ -148,6 +148,13 @@
       "when": 1789491600000,
       "tag": "0020_broadcast_runs_only_idle",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1792110000000,
+      "tag": "0021_service_pricing",
+      "breakpoints": true
     }
   ]
 }

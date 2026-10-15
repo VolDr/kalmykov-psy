@@ -14,7 +14,8 @@ import {
 	integer,
 	date,
 	jsonb,
-	pgEnum
+	pgEnum,
+	check
 } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
 
@@ -1024,3 +1025,19 @@ export const gameQuizzes = pgTable('game_quizzes', {
 	createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
 	updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'string' }).defaultNow().notNull()
 });
+
+// Единственный источник тарифов для публичных страниц и серверной оплаты.
+export const servicePricing = pgTable(
+	'service_pricing',
+	{
+		id: integer('id').primaryKey(),
+		singlePrice: integer('single_price').notNull(),
+		packagePrice: integer('package_price').notNull(),
+		updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'string' }).defaultNow().notNull()
+	},
+	(table) => [
+		check('service_pricing_id_check', sql`${table.id} = 1`),
+		check('service_pricing_single_price_check', sql`${table.singlePrice} BETWEEN 1 AND 1000000`),
+		check('service_pricing_package_price_check', sql`${table.packagePrice} BETWEEN 1 AND 1000000`)
+	]
+);
