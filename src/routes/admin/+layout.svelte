@@ -33,6 +33,7 @@
 				<a href="/admin/payments" class="text-sm font-medium text-gray-700 hover:text-gray-900">
 					Платежи
 				</a>
+				<a href="/admin/pricing" class="text-sm font-medium text-gray-700 hover:text-gray-900">Тарифы</a>
 				<a href="/admin/analytics" class="text-sm font-medium text-gray-700 hover:text-gray-900">
 					Воронки
 				</a>
@@ -91,6 +92,7 @@
 					<a href="/admin/payments" class="block rounded-lg px-3 py-2 text-sm hover:bg-gray-100">
 						Платежи
 					</a>
+					<a href="/admin/pricing" class="block rounded-lg px-3 py-2 text-sm hover:bg-gray-100">Тарифы</a>
 					<a href="/admin/analytics" class="block rounded-lg px-3 py-2 text-sm hover:bg-gray-100">
 						Воронки
 					</a>
