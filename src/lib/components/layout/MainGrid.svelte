@@ -11,6 +11,8 @@
 	import ImageWithShadow from '$lib/components/ImageWithShadow.svelte';
 	import Reveal from '$lib/components/Reveal.svelte';
 	import { issueGroups, aboutItems, consultationInfo } from '$lib/data/content';
+	import { formatRubles, type ServicePrices } from '$lib/pricing';
+	let { prices }: { prices: ServicePrices } = $props();
 
 	let hash = $state('');
 	// Состояние для блока образования
@@ -171,7 +173,7 @@
 	<ConsultationInfo
 		format={consultationInfo.format}
 		duration={consultationInfo.duration}
-		price={consultationInfo.price}
+		price={formatRubles(prices.single)}
 	/>
 
 	<div

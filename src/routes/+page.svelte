@@ -1,6 +1,7 @@
 <script lang="ts">
-	import MainGrid from '$lib/components/layout/MainGrid.svelte';
 	import MainGridNew from '$lib/components/layout/MainGridNew.svelte';
+	import type { PageData } from './$types';
+	let { data }: { data: PageData } = $props();
 </script>
 
 <svelte:head>
@@ -70,4 +71,4 @@
     </script>`}
 </svelte:head>
 
-<MainGridNew />
+<MainGridNew prices={data.prices} />

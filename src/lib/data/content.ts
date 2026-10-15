@@ -85,8 +85,7 @@ export const aboutItems = [
 
 export const consultationInfo = {
 	format: 'Встречи проходят онлайн',
-	duration: 'Одна сессия — 50 минут',
-	price: '4000 рублей за сессию'
+	duration: 'Одна сессия — 50 минут'
 };
 
 export const contacts = [
