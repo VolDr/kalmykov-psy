@@ -157,30 +157,48 @@
 		<div class="flex flex-col">
 			<Reveal width="full">
 				<h1
-					class="mb-5 md:min-w-[530px] font-caveat text-[34px] leading-[1.18] font-bold text-navy lg:text-[40px]"
+					class="mb-5 font-caveat text-[34px] leading-[1.18] font-bold text-navy md:min-w-[530px] lg:text-[40px]"
 				>
 					Живёте в режиме<br />
-					<TextSvg textSize="45px" variant="3" width="450px" mobileWidth="350px" mobileTextSize="text-[34px]">«дотянуть до пятницы»</TextSvg><br
-					/>но выходные уже <br />не восстанавливают?
+					<TextSvg
+						textSize="45px"
+						variant="3"
+						width="450px"
+						mobileWidth="350px"
+						mobileTextSize="text-[34px]">«дотянуть до пятницы»</TextSvg
+					><br />но выходные уже <br />не восстанавливают?
 				</h1>
 			</Reveal>
 			<Reveal width="full">
-				<p class="mb-5 text-[16px] lg:text-[18px] leading-relaxed text-foreground/80">
+				<p class="mb-5 text-[16px] leading-relaxed text-foreground/80 lg:text-[18px]">
 					Разберитесь, что происходит — и начните это менять. С доказательным подходом, без
 					бесконечного копания в детстве и размытых советов.
 				</p>
 			</Reveal>
 			<Reveal width="full">
-				<div class="mb-8 flex items-start gap-3 text-[16px] lg:text-[18px] font-semibold text-foreground relative">
-					<img src="/star_1.webp" class="mt-1 h-6 w-6 shrink-0 -rotate-[15deg]" alt="" aria-hidden="true" />
-										<!-- <img src="/arrow_3.webp" class=" absolute mt-1 h-10 w-10 right-[0px] top-[40px] -rotate-[40deg] lg:h-12 lg:w-12  shrink-0 lg:-rotate-[20deg] lg:right-[180px] lg:-bottom-[73px]" alt="" aria-hidden="true" /> -->
-						<p class='mt-[10px]'>Верните себе энергию, не застревая в терапии на годы.</p>
+				<div
+					class="relative mb-8 flex items-start gap-3 text-[16px] font-semibold text-foreground lg:text-[18px]"
+				>
+					<img
+						src="/star_1.webp"
+						class="mt-1 h-6 w-6 shrink-0 -rotate-[15deg]"
+						alt=""
+						aria-hidden="true"
+					/>
+					<!-- <img src="/arrow_3.webp" class=" absolute mt-1 h-10 w-10 right-[0px] top-[40px] -rotate-[40deg] lg:h-12 lg:w-12  shrink-0 lg:-rotate-[20deg] lg:right-[180px] lg:-bottom-[73px]" alt="" aria-hidden="true" /> -->
+					<p class="mt-[10px]">Верните себе энергию, не застревая в терапии на годы.</p>
 				</div>
 			</Reveal>
 			<Reveal width="full">
 				<div class="flex max-w-[420px] flex-col gap-3">
 					<div class="flex items-center gap-4">
-						<ButtonSvg href="#pricing" variant="1" mobileHeight='60px' height='70px' onclick={() => reachGoal('hero_cta_click')}>Записаться на консультацию</ButtonSvg>
+						<ButtonSvg
+							href="#pricing"
+							variant="1"
+							mobileHeight="60px"
+							height="70px"
+							onclick={() => reachGoal('hero_cta_click')}>Записаться на консультацию</ButtonSvg
+						>
 					</div>
 				</div></Reveal
 			>
@@ -190,13 +208,30 @@
 		<Reveal width="full">
 			<div class="relative mx-auto w-full max-w-[380px] sm:max-w-[460px] lg:max-w-[560px]">
 				<!-- дудлы -->
-				<img src="/star_2.webp" class="pointer-events-none absolute top-[4%] left-[4%] z-10 h-5 w-5 rotate-12 sm:h-6 sm:w-6" alt="" aria-hidden="true" />
+				<img
+					src="/star_2.webp"
+					class="pointer-events-none absolute top-[4%] left-[4%] z-10 h-5 w-5 rotate-12 sm:h-6 sm:w-6"
+					alt=""
+					aria-hidden="true"
+				/>
 				<span
-					class="pointer-events-none absolute  -top-[4%] lg:top-[3%]   right-[0%]  lg:right-[0%] z-10 -rotate-[8deg] font-caveat text-[22px] font-bold text-primary sm:text-[30px]"
+					class="pointer-events-none absolute -top-[4%] right-[0%] z-10 -rotate-[8deg] font-caveat text-[22px] font-bold text-primary sm:text-[30px] lg:top-[3%] lg:right-[0%]"
 					>привет!</span
 				>
-				<img src="/arrow_1.webp" width="112" height="117" class="pointer-events-none absolute top-[0%] lg:top-[6%] right-[16%] lg:right-[14%] z-10 h-12 w-10 object-contain sm:h-16 sm:w-14 rotate-28" alt="" aria-hidden="true" />
-			<img src="/heart_1.webp"  class="pointer-events-none absolute top-[86%] lg:top-[86%] right-[12%] lg:right-[12%] z-10 h-5 w-5  rotate-28" alt="" aria-hidden="true" />
+				<img
+					src="/arrow_1.webp"
+					width="112"
+					height="117"
+					class="pointer-events-none absolute top-[0%] right-[16%] z-10 h-12 w-10 rotate-28 object-contain sm:h-16 sm:w-14 lg:top-[6%] lg:right-[14%]"
+					alt=""
+					aria-hidden="true"
+				/>
+				<img
+					src="/heart_1.webp"
+					class="pointer-events-none absolute top-[86%] right-[12%] z-10 h-5 w-5 rotate-28 lg:top-[86%] lg:right-[12%]"
+					alt=""
+					aria-hidden="true"
+				/>
 				<!-- фото-бубль -->
 				<svg class="w-full" viewBox="0 0 560 720">
 					<defs>
@@ -217,9 +252,7 @@
 				</svg>
 
 				<!-- сиреневый бейдж — позиционируется внутри того же контейнера, масштабируется с ним -->
-				<div
-					class="absolute right-0 bottom-[3%] w-[85%] origin-bottom-right rotate-[-5.8deg]"
-				>
+				<div class="absolute right-0 bottom-[3%] w-[85%] origin-bottom-right rotate-[-5.8deg]">
 					<svg viewBox="0 0 560 180" aria-hidden="true" class="w-full">
 						<path
 							d="M 158 48.5 L 163.8 48.5 L 169.6 48.4 L 175.4 48.4 L 181.2 48.4 L 187 48.4 L 192.9 48.4 L 198.7 48.4 L 204.5 48.4 L 210.3 48.5 L 216.1 48.5 L 221.9 48.6 L 227.7 48.7 L 233.5 48.7 L 239.3 48.8 L 245.1 48.9 L 251 48.9 L 256.8 49 L 262.6 49 L 268.4 49 L 274.2 49 L 280 49 L 285.8 48.9 L 291.6 48.9 L 297.4 48.8 L 303.2 48.8 L 309 48.7 L 314.9 48.6 L 320.7 48.5 L 326.5 48.5 L 332.3 48.4 L 338.1 48.3 L 343.9 48.3 L 349.7 48.3 L 355.5 48.3 L 361.3 48.3 L 367.1 48.3 L 373 48.3 L 378.8 48.4 L 384.6 48.4 L 390.4 48.4 L 396.2 48.5 L 402 48.5 Q 433 48.5 433 79.5 L 433 100.5 Q 433 131.5 402 131.5 L 396.2 131.5 L 390.4 131.6 L 384.6 131.6 L 378.8 131.6 L 373 131.7 L 367.1 131.7 L 361.3 131.7 L 355.5 131.7 L 349.7 131.7 L 343.9 131.7 L 338.1 131.7 L 332.3 131.6 L 326.5 131.5 L 320.7 131.5 L 314.9 131.4 L 309 131.3 L 303.2 131.2 L 297.4 131.2 L 291.6 131.1 L 285.8 131.1 L 280 131 L 274.2 131 L 268.4 131 L 262.6 131 L 256.8 131 L 251 131.1 L 245.1 131.1 L 239.3 131.2 L 233.5 131.3 L 227.7 131.3 L 221.9 131.4 L 216.1 131.5 L 210.3 131.5 L 204.5 131.6 L 198.7 131.6 L 192.9 131.6 L 187 131.6 L 181.2 131.6 L 175.4 131.6 L 169.6 131.6 L 163.8 131.5 L 158 131.5 Q 127 131.5 127 100.5 L 127 79.5 Q 127 48.5 158 48.5 Z"
@@ -233,8 +266,8 @@
 							font-size="22"
 							font-weight="700"
 							letter-spacing="-0.6"
-							fill="#322d43"
-						>помогаю специалистам</text>
+							fill="#322d43">помогаю специалистам</text
+						>
 						<text
 							x="280"
 							y="112"
@@ -243,8 +276,8 @@
 							font-size="22"
 							font-weight="700"
 							letter-spacing="-0.6"
-							fill="#322d43"
-						>цифровых профессий</text>
+							fill="#322d43">цифровых профессий</text
+						>
 					</svg>
 				</div>
 			</div></Reveal
@@ -256,9 +289,7 @@
 	<div class="mx-auto px-5 md:max-w-[760px] lg:max-w-[1600px] xl:px-0">
 		<Reveal width="full">
 			<div class="mb-12 flex items-center gap-4 md:gap-6">
-				<h2 class="font-caveat text-[34px] lg:text-[40px] font-bold text-navy">
-					узнаёте себя?
-				</h2>
+				<h2 class="font-caveat text-[34px] font-bold text-navy lg:text-[40px]">узнаёте себя?</h2>
 				<span class="h-0.5 flex-1">
 					<svg
 						viewBox="0 0 600 22"
@@ -274,18 +305,27 @@
 						/></svg
 					>
 				</span>
-				<img src="/star_2.webp" class="shrink-0 h-[30px] w-[30px]" alt="" aria-hidden="true" />
+				<img src="/star_2.webp" class="h-[30px] w-[30px] shrink-0" alt="" aria-hidden="true" />
 			</div>
 		</Reveal>
-			<div class="mb-9 max-w-[960px] text-[16px] lg:text-[18px] text-foreground/60">
-			Вы работаете в IT, маркетинге или управлении — и привыкли быть тем, на кого всегда можно положиться.
+		<div class="mb-9 max-w-[960px] text-[16px] text-foreground/60 lg:text-[18px]">
+			Вы работаете в IT, маркетинге или управлении — и привыкли быть тем, на кого всегда можно
+			положиться.
 		</div>
-		<div class="grid grid-cols-1 divide-y divide-border lg:grid-cols-3 lg:divide-y-0 lg:gap-x-8 lg:gap-y-0">
+		<div
+			class="grid grid-cols-1 divide-y divide-border lg:grid-cols-3 lg:gap-x-8 lg:gap-y-0 lg:divide-y-0"
+		>
 			{#each [{ n: '01', photo: '/you_1.webp', photoMobile: '/you_1_m.webp', photoMobile1x: '/you_1_m_1x.webp', title: 'рабочий день не заканчивается', body: 'Открываете рабочий чат в 23:00 просто проверить.<br> Просыпаетесь в воскресенье с тревогой, что что-то упустили.<br> Берёте ноутбук на отдых «на всякий случай».' }, { n: '02', photo: '/you_2.webp', photoMobile: '/you_2_m.webp', photoMobile1x: '/you_2_m_1x.webp', title: 'отпуск не помогает', body: 'Пробовали взять отпуск, но лучше не стало.<br> Пробовали работать меньше и весь отдых провели с чувством вины.<br> Читали про work-life balance. Звучит правильно, но что делать с этим на практике, так и непонятно.' }, { n: '03', photo: '/you_3.webp', photoMobile: '/you_3_m.webp', photoMobile1x: '/you_3_m_1x.webp', title: 'баланс кажется недостижимым', body: 'Сил хватает только на работу и быт.<br> На остальное — нет.' }] as card}
 				<Reveal width="full">
-					<div class="flex flex-col gap-4 py-8 first:pt-0 md:min-h-[360px] md:flex-row md:items-start md:gap-6 md:py-0 ">
+					<div
+						class="flex flex-col gap-4 py-8 first:pt-0 md:min-h-[360px] md:flex-row md:items-start md:gap-6 md:py-0"
+					>
 						<picture class="contents">
-							<source media="(max-width: 767px)" srcset="{card.photoMobile1x} 460w, {card.photoMobile} 920w" sizes="(max-width: 460px) 100vw, 460px" />
+							<source
+								media="(max-width: 767px)"
+								srcset="{card.photoMobile1x} 460w, {card.photoMobile} 920w"
+								sizes="(max-width: 460px) 100vw, 460px"
+							/>
 							<img
 								alt={card.title}
 								src={card.photo}
@@ -296,8 +336,12 @@
 							<div class="mb-1.5 font-caveat text-[34px] leading-none font-bold text-primary">
 								{card.n}
 							</div>
-							<h3 class="mb-3 text-[18px] lg:text-[20px]  leading-snug font-extrabold text-navy">{card.title}</h3>
-							<p class="text-[16px] lg:text-[18px] leading-relaxed text-foreground/75">{@html card.body}</p>
+							<h3 class="mb-3 text-[18px] leading-snug font-extrabold text-navy lg:text-[20px]">
+								{card.title}
+							</h3>
+							<p class="text-[16px] leading-relaxed text-foreground/75 lg:text-[18px]">
+								{@html card.body}
+							</p>
 						</div>
 					</div>
 				</Reveal>
@@ -313,7 +357,7 @@
 		<!-- заголовок: рукописный + волнистая линия + звёздочка-сердце -->
 		<Reveal width="full">
 			<div class="mb-12 flex items-center gap-4 md:gap-6">
-				<h2 class="font-caveat text-[34px] lg:text-[40px] font-bold text-navy">
+				<h2 class="font-caveat text-[34px] font-bold text-navy lg:text-[40px]">
 					вам ко мне, если…
 				</h2>
 				<span class="h-0.5 flex-1">
@@ -332,7 +376,14 @@
 						/>
 					</svg>
 				</span>
-				<img src="/heart_2.webp" width="629" height="572" class="hidden shrink-0 h-[28px] w-[30px] object-contain sm:block" alt="" aria-hidden="true" />
+				<img
+					src="/heart_2.webp"
+					width="629"
+					height="572"
+					class="hidden h-[28px] w-[30px] shrink-0 object-contain sm:block"
+					alt=""
+					aria-hidden="true"
+				/>
 			</div>
 		</Reveal>
 
@@ -401,13 +452,15 @@
 							>
 							<span class="h-0.5 w-8 rounded-full bg-primary"></span>
 						</div>
-						<h3 class="mb-5 pl-5 text-[18px] lg:text-[20px]  leading-snug font-extrabold text-navy sm:pl-0">
+						<h3
+							class="mb-5 pl-5 text-[18px] leading-snug font-extrabold text-navy sm:pl-0 lg:text-[20px]"
+						>
 							{cat.title}
 						</h3>
 						<ul class="flex flex-col gap-4">
 							{#each cat.items as item, j}
 								<li
-									class="relative pl-6 text-[16px] lg:text-[18px] leading-relaxed text-foreground/75 before:absolute before:top-2.5 before:left-0 before:h-1.5 before:w-1.5 before:rounded-full before:bg-primary before:content-['']"
+									class="relative pl-6 text-[16px] leading-relaxed text-foreground/75 before:absolute before:top-2.5 before:left-0 before:h-1.5 before:w-1.5 before:rounded-full before:bg-primary before:content-[''] lg:text-[18px]"
 								>
 									<MarkdownLink text={item} />
 								</li>
@@ -431,7 +484,7 @@
 		</div>
 
 		<Reveal width="full">
-			<p class="mx-auto mt-6 text-center text-[16px] lg:text-[18px] text-foreground/60">
+			<p class="mx-auto mt-6 text-center text-[16px] text-foreground/60 lg:text-[18px]">
 				Дело не в силе воли и не в усталости. У этого состояния есть причины, и с ними можно
 				работать.
 			</p>
@@ -444,10 +497,18 @@
 		<!-- центрированный рукописный заголовок с маркером -->
 		<Reveal width="full">
 			<h2
-				class="mx-auto mb-14 max-w-[920px] text-center font-caveat leading-[1.15] font-bold text-navy  text-[28px] lg:text-[34px] "
+				class="mx-auto mb-14 max-w-[920px] text-center font-caveat text-[28px] leading-[1.15] font-bold text-navy lg:text-[34px]"
 			>
 				Почему отпуск, тайм-менеджмент<br class="hidden md:block" />
-				и<TextSvg textSize="34px" mobileTextSize='28px' variant="3" width="380px" height='50px' mobileWidth="300px" mobileHeight='60px'>«просто взять себя в руки»</TextSvg>не работают
+				и<TextSvg
+					textSize="34px"
+					mobileTextSize="28px"
+					variant="3"
+					width="380px"
+					height="50px"
+					mobileWidth="300px"
+					mobileHeight="60px">«просто взять себя в руки»</TextSvg
+				>не работают
 			</h2>
 		</Reveal>
 
@@ -456,26 +517,27 @@
 			<Reveal width="full">
 				<div>
 					<img src="/vacation.webp" alt="" class="mb-4 h-10 w-10" aria-hidden="true" />
-					<h3 class="mb-4 text-[18px] lg:text-[20px]  leading-snug font-extrabold text-navy">
+					<h3 class="mb-4 text-[18px] leading-snug font-extrabold text-navy lg:text-[20px]">
 						почему отпуск не помогает
 					</h3>
-					<p class="mb-3 text-[16px] lg:text-[18px] leading-relaxed text-foreground/75">
+					<p class="mb-3 text-[16px] leading-relaxed text-foreground/75 lg:text-[18px]">
 						Исследования дают однозначный ответ: отпуск умеренно улучшает самочувствие — снижает
 						стресс, улучшает настроение, снимает усталость.
 					</p>
 					{#if openWhy[0]}
 						<div transition:slide={{ duration: 250 }}>
-							<p class="mb-3 text-[16px] lg:text-[18px] leading-relaxed text-foreground/75">Но эффект невелик, и в большинстве
-						продольных исследований он <strong class="font-semibold"
-							>полностью гаснет в течение одной-двух недель</strong
-						> после возвращения на работу.</p>
-							<p class="mb-3 text-[16px] lg:text-[18px] leading-relaxed text-foreground/75">
+							<p class="mb-3 text-[16px] leading-relaxed text-foreground/75 lg:text-[18px]">
+								Но эффект невелик, и в большинстве продольных исследований он <strong
+									class="font-semibold">полностью гаснет в течение одной-двух недель</strong
+								> после возвращения на работу.
+							</p>
+							<p class="mb-3 text-[16px] leading-relaxed text-foreground/75 lg:text-[18px]">
 								Причём — и это особенно интересно — <strong
 									>продолжительность отпуска почти ничего не меняет</strong
 								>. Более длинный отпуск не даёт более устойчивого эффекта, чем несколько коротких
 								перерывов.
 							</p>
-							<p class="mb-3 text-[16px] lg:text-[18px] leading-relaxed text-foreground/75">
+							<p class="mb-3 text-[16px] leading-relaxed text-foreground/75 lg:text-[18px]">
 								Почему? Пока вы в отпуске, стрессовая среда временно исчезает. Но за это время не
 								происходит ничего, что изменило бы то, как вы в ней работаете: <strong
 									class="font-semibold"
@@ -494,33 +556,47 @@
 						class="mt-1 flex cursor-pointer items-center gap-2 border-b border-primary pb-0.5 text-[15px] text-foreground/60 hover:text-foreground/80"
 					>
 						{openWhy[0] ? 'скрыть' : 'и что не так?'}
-						<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="transition-transform duration-300" class:rotate-180={openWhy[0]} aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							width="16"
+							height="16"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							class="transition-transform duration-300"
+							class:rotate-180={openWhy[0]}
+							aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg
+						>
 					</button>
 				</div>
 			</Reveal>
 			<Reveal width="full">
 				<div>
 					<img src="/time_management.webp" alt="" class="mb-4 h-10 w-10" aria-hidden="true" />
-					<h3 class="mb-4 text-[18px] lg:text-[20px]  leading-snug font-extrabold text-navy">
+					<h3 class="mb-4 text-[18px] leading-snug font-extrabold text-navy lg:text-[20px]">
 						почему тайм-менеджмент не спасает
 					</h3>
-					<p class="mb-3 text-[16px] lg:text-[18px] leading-relaxed text-foreground/75">
+					<p class="mb-3 text-[16px] leading-relaxed text-foreground/75 lg:text-[18px]">
 						Логика кажется убедительной: если проблема в перегрузке — нужно научиться лучше
 						организовывать время, расставлять приоритеты, работать эффективнее, и станет легче.
-						
 					</p>
 					{#if openWhy[1]}
 						<div transition:slide={{ duration: 250 }}>
-					<p class="mb-3 text-[16px] lg:text-[18px] leading-relaxed text-foreground/75">Иногда — да, временно помогает. Но у этого подхода есть принципиальное ограничение:
-						тайм-менеджмент — это <strong class="font-semibold"
-							>инструмент для работы внутри системы, а не для её изменения</strong
-						>.	</p>
-							<p class="mb-3 text-[16px] lg:text-[18px] leading-relaxed text-foreground/75">
-								Исследования в рамках модели Job Demands–Resources показывают: выгорание снижается,
-								когда либо уменьшаются требования, либо увеличиваются ресурсы. Тайм-менеджмент сам по
-								себе ни того, ни другого не даёт.
+							<p class="mb-3 text-[16px] leading-relaxed text-foreground/75 lg:text-[18px]">
+								Иногда — да, временно помогает. Но у этого подхода есть принципиальное ограничение:
+								тайм-менеджмент — это <strong class="font-semibold"
+									>инструмент для работы внутри системы, а не для её изменения</strong
+								>.
 							</p>
-							<p class="mb-3 text-[16px] lg:text-[18px] leading-relaxed text-foreground/75">
+							<p class="mb-3 text-[16px] leading-relaxed text-foreground/75 lg:text-[18px]">
+								Исследования в рамках модели Job Demands–Resources показывают: выгорание снижается,
+								когда либо уменьшаются требования, либо увеличиваются ресурсы. Тайм-менеджмент сам
+								по себе ни того, ни другого не даёт.
+							</p>
+							<p class="mb-3 text-[16px] leading-relaxed text-foreground/75 lg:text-[18px]">
 								Хуже того — если его используют для того, чтобы впихнуть больше задач в тот же день,
 								<strong class="font-semibold">он не снижает выгорание, а поддерживает его</strong>.
 								Вы работаете эффективнее, но в той же дисфункциональной системе, с теми же
@@ -537,28 +613,41 @@
 						class="mt-1 flex cursor-pointer items-center gap-2 border-b border-primary pb-0.5 text-[15px] text-foreground/60 hover:text-foreground/80"
 					>
 						{openWhy[1] ? 'скрыть' : 'в чём подвох?'}
-						<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="transition-transform duration-300" class:rotate-180={openWhy[1]} aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							width="16"
+							height="16"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							class="transition-transform duration-300"
+							class:rotate-180={openWhy[1]}
+							aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg
+						>
 					</button>
 				</div>
 			</Reveal>
 			<Reveal width="full">
 				<div>
 					<img src="/willpower.webp" alt="" class="mb-4 h-10 w-10" aria-hidden="true" />
-					<h3 class="mb-4 text-[18px] lg:text-[20px]  leading-snug font-extrabold text-navy">
+					<h3 class="mb-4 text-[18px] leading-snug font-extrabold text-navy lg:text-[20px]">
 						почему «просто взять себя в руки» ускоряет разрушение
 					</h3>
-					<p class="mb-3 text-[16px] lg:text-[18px] leading-relaxed text-foreground/75">
+					<p class="mb-3 text-[16px] leading-relaxed text-foreground/75 lg:text-[18px]">
 						Самодисциплина и мотивация — инструменты здоровой системы. Они хорошо работают, когда у
 						вас есть ресурс.
 					</p>
 					{#if openWhy[2]}
 						<div transition:slide={{ duration: 250 }}>
-					<p class="mb-3 text-[16px] lg:text-[18px] leading-relaxed text-foreground/75">
-							 Когда ресурса нет — они перестают быть инструментами роста и <strong
-							>превращаются в механизм давления</strong
-						>.
-						</p>
-							<p class="mb-3 text-[16px] lg:text-[18px] leading-relaxed text-foreground/75">
+							<p class="mb-3 text-[16px] leading-relaxed text-foreground/75 lg:text-[18px]">
+								Когда ресурса нет — они перестают быть инструментами роста и <strong
+									>превращаются в механизм давления</strong
+								>.
+							</p>
+							<p class="mb-3 text-[16px] leading-relaxed text-foreground/75 lg:text-[18px]">
 								При выгорании ваш организм уже работает на пределе. Восстановительные механизмы
 								ослаблены. В этой точке требование «собраться и работать» означает одно: <strong
 									class="font-semibold">усилить давление на систему, которая уже истощена</strong
@@ -576,7 +665,20 @@
 						class="mt-1 flex cursor-pointer items-center gap-2 border-b border-primary pb-0.5 text-[15px] text-foreground/60 hover:text-foreground/80"
 					>
 						{openWhy[2] ? 'скрыть' : 'почему не помогает?'}
-						<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="transition-transform duration-300" class:rotate-180={openWhy[2]} aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							width="16"
+							height="16"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							class="transition-transform duration-300"
+							class:rotate-180={openWhy[2]}
+							aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg
+						>
 					</button>
 				</div>
 			</Reveal>
@@ -594,46 +696,75 @@
 					сломанной системе. «Взять себя в руки» при истощении — это давление на иссякший ресурс.
 				</p>
 				<p class="font-caveat text-[28px] leading-snug font-bold text-navy lg:text-[34px]">
-					Психотерапия меняет то, как вы себя ведёте и что чувствуете в тех обстоятельствах, которые сложились вокруг.
+					Психотерапия меняет то, как вы себя ведёте и что чувствуете в тех обстоятельствах, которые
+					сложились вокруг.
 				</p>
 				<span
-					class="pointer-events-none absolute -right-15 top-18 font-serif text-[90px] leading-none text-primary select-none"
+					class="pointer-events-none absolute top-18 -right-15 font-serif text-[90px] leading-none text-primary select-none"
 					aria-hidden="true">”</span
 				>
 				<!-- дудлы -->
-				<img src="/star_3.webp" class="pointer-events-none absolute top-[58%] right-1 h-6 w-6 object-contain sm:-right-10" alt="" aria-hidden="true" />
-				<img src="/star_1.webp" class="pointer-events-none absolute top-[40px] -left-[10px]  h-5 w-5 rotate-12 sm:top-38 " alt="" aria-hidden="true" />
-					<img src="/arrow_3.webp" class="pointer-events-none absolute top-[100%] lg:top-[103%] right-[12%] lg:right-[14%] z-10 h-15 w-15 sm:h-16 sm:w-14 rotate-320" alt="" aria-hidden="true" />
+				<img
+					src="/star_3.webp"
+					class="pointer-events-none absolute top-[58%] right-1 h-6 w-6 object-contain sm:-right-10"
+					alt=""
+					aria-hidden="true"
+				/>
+				<img
+					src="/star_1.webp"
+					class="pointer-events-none absolute top-[40px] -left-[10px] h-5 w-5 rotate-12 sm:top-38"
+					alt=""
+					aria-hidden="true"
+				/>
+				<img
+					src="/arrow_3.webp"
+					class="pointer-events-none absolute top-[100%] right-[12%] z-10 h-15 w-15 rotate-320 sm:h-16 sm:w-14 lg:top-[103%] lg:right-[14%]"
+					alt=""
+					aria-hidden="true"
+				/>
 			</div>
 		</Reveal>
 
 		<!-- карточка «что мы делаем иначе» -->
 		<Reveal width="full">
 			<div class="mx-auto max-w-[1200px] rounded-[28px] bg-card px-6 py-7">
-				<h2 class="mb-7 text-center font-caveat text-[28px] lg:text-[34px] font-bold text-navy">
+				<h2 class="mb-7 text-center font-caveat text-[28px] font-bold text-navy lg:text-[34px]">
 					Что мы делаем в терапии принципиально иначе
 				</h2>
 				<div class="grid grid-cols-1 gap-8 md:grid-cols-3 md:gap-10">
 					<div>
 						<div class="mb-3.5 font-caveat text-[30px] leading-none font-bold text-primary">01</div>
-						<p class="text-[16px] lg:text-[18px] leading-relaxed text-foreground/75">
-							Разбираемся, что именно держит вас в истощении — перфекционизм, невозможность отключиться, страх ошибки. <strong class="font-semibold text-foreground">Не просто называем это, а меняем.</strong> Параллельно учимся конкретным инструментам: как принимать решения, когда уже перегружен, и как выстраивать поведение, а не просто убеждать себя думать иначе.
+						<p class="text-[16px] leading-relaxed text-foreground/75 lg:text-[18px]">
+							Разбираемся, что именно держит вас в истощении — перфекционизм, невозможность
+							отключиться, страх ошибки. <strong class="font-semibold text-foreground"
+								>Не просто называем это, а меняем.</strong
+							> Параллельно учимся конкретным инструментам: как принимать решения, когда уже перегружен,
+							и как выстраивать поведение, а не просто убеждать себя думать иначе.
 						</p>
 					</div>
 					<div>
 						<div class="mb-3.5 font-caveat text-[30px] leading-none font-bold text-primary">02</div>
-						<p class="text-[16px] lg:text-[18px] leading-relaxed text-foreground/75">
-							Смещаем фокус с контроля симптомов на другое: учимся быть в контакте с тем, что происходит прямо сейчас, не воевать с трудными эмоциями — и  <strong class="font-semibold text-foreground">двигаться в сторону того, что для вас важно</strong>, даже когда тяжело. Это работает лучше, чем попытки взять себя в руки.
+						<p class="text-[16px] leading-relaxed text-foreground/75 lg:text-[18px]">
+							Смещаем фокус с контроля симптомов на другое: учимся быть в контакте с тем, что
+							происходит прямо сейчас, не воевать с трудными эмоциями — и <strong
+								class="font-semibold text-foreground"
+								>двигаться в сторону того, что для вас важно</strong
+							>, даже когда тяжело. Это работает лучше, чем попытки взять себя в руки.
 						</p>
 					</div>
 					<div>
 						<div class="mb-3.5 font-caveat text-[30px] leading-none font-bold text-primary">03</div>
-						<p class="text-[16px] lg:text-[18px] leading-relaxed text-foreground/75">
-							Практикуем новые способы реагирования <strong class="font-semibold text-foreground">на реальных ситуациях</strong> — тех, что уже происходят в вашей работе. Навык формируется там, где возникает проблема, а не во время сессий.
+						<p class="text-[16px] leading-relaxed text-foreground/75 lg:text-[18px]">
+							Практикуем новые способы реагирования <strong class="font-semibold text-foreground"
+								>на реальных ситуациях</strong
+							> — тех, что уже происходят в вашей работе. Навык формируется там, где возникает проблема,
+							а не во время сессий.
 						</p>
 					</div>
 				</div>
-				<p class="mt-10 border-t border-border pt-7 text-[16px] lg:text-[18px] leading-relaxed text-foreground/70">
+				<p
+					class="mt-10 border-t border-border pt-7 text-[16px] leading-relaxed text-foreground/70 lg:text-[18px]"
+				>
 					<strong class="font-semibold text-foreground">Результат:</strong> исследования показывают,
 					что эффект по снижению выгорания и стресса
 					<strong class="font-semibold text-foreground"
@@ -653,9 +784,7 @@
 		<!-- рукописный заголовок + жёлтый «свуш» снизу -->
 		<Reveal>
 			<div class="relative mb-12 inline-block md:mb-16">
-				<h2 class="font-caveat text-[34px] lg:text-[40px] font-bold text-navy">
-					как я работаю
-				</h2>
+				<h2 class="font-caveat text-[34px] font-bold text-navy lg:text-[40px]">как я работаю</h2>
 				<svg
 					class="absolute right-[-6px] -bottom-3 left-0 w-full"
 					height="14"
@@ -679,8 +808,10 @@
 				<Reveal>
 					<div class="flex flex-col">
 						<img src={item.icon} alt="" class="mb-4 h-10 w-10" aria-hidden="true" />
-						<h3 class="mb-3.5 text-[18px] lg:text-[20px]  leading-snug font-extrabold text-navy">{item.title}</h3>
-						<p class="text-[16px] lg:text-[18px] leading-relaxed text-foreground/70">{item.desc}</p>
+						<h3 class="mb-3.5 text-[18px] leading-snug font-extrabold text-navy lg:text-[20px]">
+							{item.title}
+						</h3>
+						<p class="text-[16px] leading-relaxed text-foreground/70 lg:text-[18px]">{item.desc}</p>
 					</div>
 				</Reveal>
 			{/each}
@@ -691,7 +822,7 @@
 <section class="bg-background py-10 md:py-0 md:pt-24" id="about">
 	<div class="mx-auto px-5 md:max-w-[960px] lg:max-w-[1200px] xl:px-0">
 		<Reveal>
-			<h2 class="mb-10 font-caveat text-[34px] lg:text-[40px] font-bold text-navy">обо мне</h2>
+			<h2 class="mb-10 font-caveat text-[34px] font-bold text-navy lg:text-[40px]">обо мне</h2>
 			<svg
 				class="absolute -bottom-3 left-0 w-full"
 				height="14"
@@ -710,7 +841,7 @@
 
 		<div class="grid grid-cols-1 items-start gap-12 lg:grid-cols-[1fr_420px] lg:gap-16">
 			<Reveal width="full" class="order-last lg:order-first">
-				<div class="space-y-4 leading-relaxed text-foreground/80 text-[16px] lg:text-[18px]">
+				<div class="space-y-4 text-[16px] leading-relaxed text-foreground/80 lg:text-[18px]">
 					<p>Меня зовут Андрей Калмыков, я психолог для выгорающих профессионалов.</p>
 					<p>
 						Я сам долго жил в режиме, который описывают мои клиенты: аспирантура плюс две работы
@@ -718,27 +849,29 @@
 						эффективным.
 					</p>
 					<p>
-						Это не делает меня лучше других психологов, но это значит, что я понимаю вас без предисловий, ведь и сам был в похожих условиях.
+						Это не делает меня лучше других психологов, но это значит, что я понимаю вас без
+						предисловий, ведь и сам был в похожих условиях.
 					</p>
 					<p>
-						В психологию пришёл осознанно — это моя вторая профессия. До этого работал в IT, веб-разработчиком.
+						В психологию пришёл осознанно — это моя вторая профессия. До этого работал в IT,
+						веб-разработчиком.
 					</p>
 					<ul class="flex flex-col gap-3 pt-1">
 						<li
-							class="relative pl-5.5 text-[16px] lg:text-[18px] leading-relaxed text-foreground/75 before:absolute before:top-2.5 before:left-0 before:h-1.5 before:w-1.5 before:rounded-full before:bg-primary before:content-['']"
+							class="relative pl-5.5 text-[16px] leading-relaxed text-foreground/75 before:absolute before:top-2.5 before:left-0 before:h-1.5 before:w-1.5 before:rounded-full before:bg-primary before:content-[''] lg:text-[18px]"
 						>
 							Регулярно посещаю профессиональные конференции и слежу за актуальными исследованиями —
 							потому что это интересно.
 						</li>
 						<li
-							class="relative pl-5.5 text-[16px] lg:text-[18px] leading-relaxed text-foreground/75 before:absolute before:top-2.5 before:left-0 before:h-1.5 before:w-1.5 before:rounded-full before:bg-primary before:content-['']"
+							class="relative pl-5.5 text-[16px] leading-relaxed text-foreground/75 before:absolute before:top-2.5 before:left-0 before:h-1.5 before:w-1.5 before:rounded-full before:bg-primary before:content-[''] lg:text-[18px]"
 						>
 							<MarkdownLink
 								text="[Состою](https://akpn.org/members/kalmykov-andrei-viktorovich-2314)"
 							/> в Ассоциации специалистов в сфере контекстуально-поведенческой науки
 						</li>
 						<li
-							class="relative pl-5.5 text-[16px] lg:text-[18px] leading-relaxed text-foreground/75 before:absolute before:top-2.5 before:left-0 before:h-1.5 before:w-1.5 before:rounded-full before:bg-primary before:content-['']"
+							class="relative pl-5.5 text-[16px] leading-relaxed text-foreground/75 before:absolute before:top-2.5 before:left-0 before:h-1.5 before:w-1.5 before:rounded-full before:bg-primary before:content-[''] lg:text-[18px]"
 						>
 							Веду <MarkdownLink text="[Telegram-канал](https://t.me/kalmykov_psy)" /> о психологии —
 							там можно познакомиться со мной поближе до записи.
@@ -770,25 +903,22 @@
 	<!-- «почему здесь нет отзывов» — сиреневая карточка -->
 	<div class="mx-auto mt-16 px-5 md:mt-24 md:max-w-[760px] lg:max-w-[760px] xl:px-0">
 		<Reveal width="full">
-			<div
-				class="grid grid-cols-1 items-center gap-8 rounded-[28px] bg-lilac px-7 py-7 md:gap-10"
-			>
-
+			<div class="grid grid-cols-1 items-center gap-8 rounded-[28px] bg-lilac px-7 py-7 md:gap-10">
 				<div>
-					<h3
-						class="font-caveat text-[28px] lg:text-[34px] font-bold text-navy mb-3 lg:mb-7 "
-					>
+					<h3 class="mb-3 font-caveat text-[28px] font-bold text-navy lg:mb-7 lg:text-[34px]">
 						Почему здесь нет отзывов?
-						
 					</h3>
-					<p class="mb-3.5 text-[16px] lg:text-[18px] leading-relaxed text-[#4a3f6b]">
-						Отзывов здесь нет — и это не случайно. Просить их у людей, которые пришли в уязвимом состоянии, <strong
-							class="font-semibold text-navy">я считаю неправильным </strong> — даже если они согласны.
+					<p class="mb-3.5 text-[16px] leading-relaxed text-[#4a3f6b] lg:text-[18px]">
+						Отзывов здесь нет — и это не случайно. Просить их у людей, которые пришли в уязвимом
+						состоянии, <strong class="font-semibold text-navy">я считаю неправильным </strong> — даже
+						если они согласны.
 					</p>
-					<p class="text-[16px] lg:text-[18px] leading-relaxed text-[#4a3f6b]">
-						 То, что вы рассказываете на сессии, остаётся там же. <strong
-							class="font-semibold text-navy">Не становится</strong> кейсом, историей успеха или <strong
-							class="font-semibold text-navy">маркетинговым аргументом на сайте </strong>.
+					<p class="text-[16px] leading-relaxed text-[#4a3f6b] lg:text-[18px]">
+						То, что вы рассказываете на сессии, остаётся там же. <strong
+							class="font-semibold text-navy">Не становится</strong
+						>
+						кейсом, историей успеха или
+						<strong class="font-semibold text-navy">маркетинговым аргументом на сайте </strong>.
 					</p>
 				</div>
 			</div>
@@ -803,7 +933,7 @@
 	<div class="mx-auto px-5 md:max-w-[760px] lg:max-w-[960px] xl:px-0">
 		<Reveal width="full">
 			<div class="mb-5 flex items-center gap-4 md:gap-6">
-				<h2 class="font-caveat text-[34px] lg:text-[40px] font-bold text-navy">
+				<h2 class="font-caveat text-[34px] font-bold text-navy lg:text-[40px]">
 					формат<br class="md:hidden" /> и стоимость
 				</h2>
 				<span class="h-0.5 flex-1">
@@ -824,7 +954,7 @@
 			</div>
 		</Reveal>
 		<Reveal>
-			<p class="mb-9 text-[16px] lg:text-[18px] text-foreground/60">
+			<p class="mb-9 text-[16px] text-foreground/60 lg:text-[18px]">
 				Индивидуальные психологические консультации. Одна встреча — 50 минут, онлайн, в удобное для
 				вас время.
 			</p>
@@ -837,13 +967,15 @@
 				<div
 					class="flex h-full flex-col rounded-[22px] border border-navy/12 bg-[#fdfaf3] p-6 lg:px-8"
 				>
-					<h2 class="font-caveat text-[34px] lg:text-[40px] font-bold text-navy md:pt-[35px]">Разовая сессия</h2>
-					<div class="mt-2 text-[18px] lg:text-[20px]  font-extrabold text-navy">4 000 ₽</div>
-					<p class="mt-5 text-[16px] lg:text-[18px] leading-relaxed text-foreground/75">
+					<h2 class="font-caveat text-[34px] font-bold text-navy md:pt-[35px] lg:text-[40px]">
+						Разовая сессия
+					</h2>
+					<div class="mt-2 text-[18px] font-extrabold text-navy lg:text-[20px]">4 000 ₽</div>
+					<p class="mt-5 text-[16px] leading-relaxed text-foreground/75 lg:text-[18px]">
 						Если хотите разобраться в конкретной ситуации, познакомиться с подходом или понять,
 						нужна ли вам терапия вообще.
 					</p>
-					<ul class="mt-6 flex flex-col gap-2.5 text-[14px] lg:text-[16px] text-foreground/80">
+					<ul class="mt-6 flex flex-col gap-2.5 text-[14px] text-foreground/80 lg:text-[16px]">
 						<li class="flex items-center gap-2.5">
 							<span class="h-1.5 w-1.5 rounded-full bg-primary"></span>50 минут
 						</li>
@@ -853,15 +985,24 @@
 					</ul>
 					<!-- футер прижат вниз -->
 					<div class="mt-auto pt-8">
-					<div class="flex justify-center">
-						<ButtonSvg variant="1" href="/booking" mobileHeight='60px' mobileWidth='250px' width='250px' height='70px' onclick={() => reachGoal('pricing_single_click')}>Записаться</ButtonSvg></div>
+						<div class="flex justify-center">
+							<ButtonSvg
+								variant="1"
+								href="/booking"
+								mobileHeight="60px"
+								mobileWidth="250px"
+								width="250px"
+								height="70px"
+								onclick={() => reachGoal('pricing_single_click')}>Записаться</ButtonSvg
+							>
+						</div>
 						<button
 							type="button"
 							onclick={() => {
 								isIntroModalOpen = true;
 								reachGoal('pricing_intro_click');
 							}}
-							class="mt-4 block w-full cursor-pointer text-center text-[14px] lg:text-[16px] font-semibold text-muted-foreground underline underline-offset-[3px] transition-colors hover:text-navy"
+							class="mt-4 block w-full cursor-pointer text-center text-[14px] font-semibold text-muted-foreground underline underline-offset-[3px] transition-colors hover:text-navy lg:text-[16px]"
 						>
 							Хочу познакомиться
 						</button>
@@ -871,21 +1012,30 @@
 
 			<!-- DARK / рекомендуемый -->
 			<Reveal width="full">
-				<div class="relative flex h-full flex-col rounded-[22px] bg-navy  text-white p-6 lg:px-8">
-					<img src="/heart_2.webp" width="629" height="572" class="pointer-events-none absolute top-5 right-6 h-10 w-10 object-contain rotate-6 opacity-70" alt="" aria-hidden="true" />
+				<div class="relative flex h-full flex-col rounded-[22px] bg-navy p-6 text-white lg:px-8">
+					<img
+						src="/heart_2.webp"
+						width="629"
+						height="572"
+						class="pointer-events-none absolute top-5 right-6 h-10 w-10 rotate-6 object-contain opacity-70"
+						alt=""
+						aria-hidden="true"
+					/>
 					<span
 						class="mb-2 inline-block w-fit rounded-full bg-primary px-3 py-1 text-[11px] font-extrabold tracking-[0.07em] text-navy uppercase"
 						>Рекомендуемый формат</span
 					>
-					<h2 class="font-caveat text-[34px] lg:text-[40px] font-bold text-white">Регулярные встречи</h2>
+					<h2 class="font-caveat text-[34px] font-bold text-white lg:text-[40px]">
+						Регулярные встречи
+					</h2>
 					<div class="mt-2 flex items-baseline gap-2">
-						<span class="text-[18px] lg:text-[20px]  font-extrabold">14 000 ₽</span>
-						<span class="text-[16px] lg:text-[18px] font-medium text-white/55">/ 4 сессии</span>
+						<span class="text-[18px] font-extrabold lg:text-[20px]">14 000 ₽</span>
+						<span class="text-[16px] font-medium text-white/55 lg:text-[18px]">/ 4 сессии</span>
 					</div>
-					<p class="mt-5 text-[16px] lg:text-[18px] leading-relaxed text-white/75">
+					<p class="mt-5 text-[16px] leading-relaxed text-white/75 lg:text-[18px]">
 						Для устойчивых изменений, а не временного облегчения.
 					</p>
-					<ul class="mt-6 flex flex-col gap-2.5 text-[16px] lg:text-[18px] text-white/90">
+					<ul class="mt-6 flex flex-col gap-2.5 text-[16px] text-white/90 lg:text-[18px]">
 						<li class="flex items-center gap-2.5">
 							<span class="h-1.5 w-1.5 rounded-full bg-primary"></span>Система трекинга прогресса
 						</li>
@@ -897,18 +1047,26 @@
 						</li>
 					</ul>
 					<div class="mt-auto pt-8">
-				<div class="flex justify-center">
-  <ButtonSvg variant="4" href="/booking?type=package" mobileHeight='60px' mobileWidth='250px' width='250px' height='70px' onclick={() => reachGoal('pricing_package_click')}>
-    Записаться
-  </ButtonSvg>
-</div>
+						<div class="flex justify-center">
+							<ButtonSvg
+								variant="4"
+								href="/booking?type=package"
+								mobileHeight="60px"
+								mobileWidth="250px"
+								width="250px"
+								height="70px"
+								onclick={() => reachGoal('pricing_package_click')}
+							>
+								Записаться
+							</ButtonSvg>
+						</div>
 						<button
 							type="button"
 							onclick={() => {
 								isIntroModalOpen = true;
 								reachGoal('pricing_intro_click');
 							}}
-							class="mt-4 block w-full cursor-pointer text-center text-[16px] lg:text-[18px] font-semibold text-white/60 underline underline-offset-[3px] transition-colors hover:text-white"
+							class="mt-4 block w-full cursor-pointer text-center text-[16px] font-semibold text-white/60 underline underline-offset-[3px] transition-colors hover:text-white lg:text-[18px]"
 						>
 							Хочу познакомиться
 						</button>
@@ -953,10 +1111,15 @@
 	<div class="mx-auto px-5 md:max-w-[760px] lg:max-w-[1200px] xl:px-0">
 		<Reveal width="full">
 			<div class="mb-12 flex items-center gap-4 md:mb-14 md:gap-6">
-				<h2 class="font-caveat text-[34px] lg:text-[40px] font-bold text-navy">
+				<h2 class="font-caveat text-[34px] font-bold text-navy lg:text-[40px]">
 					как мы придём к результату
 				</h2>
-				<img src="/star_3.webp" class="h-7 w-7 shrink-0 object-contain -rotate-6" alt="" aria-hidden="true" />
+				<img
+					src="/star_3.webp"
+					class="h-7 w-7 shrink-0 -rotate-6 object-contain"
+					alt=""
+					aria-hidden="true"
+				/>
 
 				<span class="hidden h-0.5 flex-1 sm:block">
 					<svg
@@ -984,7 +1147,7 @@
 					>
 						<div class="relative row-span-2 flex justify-center md:row-span-1">
 							<div
-								class="z-[1] flex max-h-8 max-w-8  min-h-8 min-w-8 items-center justify-center rounded-full bg-lilac text-[18px] font-caveat font-extrabold text-lilac-foreground"
+								class="z-[1] flex max-h-8 min-h-8 max-w-8 min-w-8 items-center justify-center rounded-full bg-lilac font-caveat text-[18px] font-extrabold text-lilac-foreground"
 							>
 								{step.n}
 							</div>
@@ -997,16 +1160,16 @@
 						</div>
 
 						<div class="self-start pt-1.5">
-							<h3 class=" text-[18px] lg:text-[20px]  leading-snug">{step.title}</h3>
+							<h3 class=" text-[18px] leading-snug lg:text-[20px]">{step.title}</h3>
 							{#if step.time}
-								<div class="text-[16px] lg:text-[18px] leading-relaxed text-foreground/50">
+								<div class="text-[16px] leading-relaxed text-foreground/50 lg:text-[18px]">
 									{step.time}
 								</div>
 							{/if}
 						</div>
 
 						<p
-							class="col-start-2 self-start pt-0 text-[16px] lg:text-[18px] leading-relaxed text-foreground/75 md:col-start-3 md:pt-1.5 pb-5 lg:pb-10"
+							class="col-start-2 self-start pt-0 pb-5 text-[16px] leading-relaxed text-foreground/75 md:col-start-3 md:pt-1.5 lg:pb-10 lg:text-[18px]"
 						>
 							{step.desc}
 						</p>
@@ -1029,25 +1192,50 @@
 		/></svg
 	>
 	<!-- дудлы -->
-	<img src="/star_2.webp" class="pointer-events-none absolute top-[10%] lg:top-[20%] left-[3%] h-7 w-7 -rotate-12 md:left-[9%]" alt="" aria-hidden="true" />
-	<img src="/star_1.webp" class="pointer-events-none absolute top-[10%] lg:top-[18%] right-[3%] h-6 w-6 rotate-12 md:right-[11%]" alt="" aria-hidden="true" />
-	<img src="/heart_1.webp" width="48" height="47" class="pointer-events-none absolute top-[66%] lg:top-[46%] right-[3%] h-8 w-9 object-contain -rotate-6 lg:right-[11%]" alt="" aria-hidden="true" />
-
+	<img
+		src="/star_2.webp"
+		class="pointer-events-none absolute top-[10%] left-[3%] h-7 w-7 -rotate-12 md:left-[9%] lg:top-[20%]"
+		alt=""
+		aria-hidden="true"
+	/>
+	<img
+		src="/star_1.webp"
+		class="pointer-events-none absolute top-[10%] right-[3%] h-6 w-6 rotate-12 md:right-[11%] lg:top-[18%]"
+		alt=""
+		aria-hidden="true"
+	/>
+	<img
+		src="/heart_1.webp"
+		width="48"
+		height="47"
+		class="pointer-events-none absolute top-[66%] right-[3%] h-8 w-9 -rotate-6 object-contain lg:top-[46%] lg:right-[11%]"
+		alt=""
+		aria-hidden="true"
+	/>
 
 	<div class="mx-auto flex max-w-[820px] flex-col items-center px-5">
 		<Reveal>
-			<h2 class="font-caveat text-[34px] lg:text-[40px] leading-[1.12] font-bold">
-			Вы уже достаточно долго говорите себе «ещё немного — и станет легче»
+			<h2 class="font-caveat text-[34px] leading-[1.12] font-bold lg:text-[40px]">
+				Вы уже достаточно долго говорите себе «ещё немного — и станет легче»
 			</h2>
 		</Reveal>
 		<Reveal>
-			<p class="mx-auto mt-6 max-w-[620px] text-[16px] lg:text-[18px] leading-relaxed text-white/70 mb-6">
+			<p
+				class="mx-auto mt-6 mb-6 max-w-[620px] text-[16px] leading-relaxed text-white/70 lg:text-[18px]"
+			>
 				Выгорание не проходит само — оно накапливается. Но оно решаемо, если работать с правильной
 				точкой приложения усилий.
 			</p>
 		</Reveal>
 		<Reveal>
-			<ButtonSvg href="#pricing" mobileHeight='60px' mobileWidth='250px' width='250px' height='70px' onclick={() => reachGoal('mid_cta_click')}>Записаться</ButtonSvg>
+			<ButtonSvg
+				href="#pricing"
+				mobileHeight="60px"
+				mobileWidth="250px"
+				width="250px"
+				height="70px"
+				onclick={() => reachGoal('mid_cta_click')}>Записаться</ButtonSvg
+			>
 		</Reveal>
 	</div>
 
@@ -1068,9 +1256,7 @@
 	<div class="mx-auto px-5 md:max-w-[760px] lg:max-w-[960px] xl:px-0">
 		<Reveal>
 			<div class="relative mb-12 inline-block md:mb-14">
-				<h2 class="font-caveat text-[34px] lg:text-[40px] font-bold text-navy">
-					вопросы и ответы
-				</h2>
+				<h2 class="font-caveat text-[34px] font-bold text-navy lg:text-[40px]">вопросы и ответы</h2>
 				<svg
 					class="absolute -bottom-3 left-0 w-full"
 					height="14"
@@ -1102,7 +1288,7 @@
 								>0{i + 1}</span
 							>
 							<span
-								class="flex-1 text-[16px] lg:text-[16px] lg:text-[18px] font-bold text-navy transition-colors group-hover:text-primary"
+								class="flex-1 text-[16px] font-bold text-navy transition-colors group-hover:text-primary lg:text-[16px] lg:text-[18px]"
 								>{item.q}</span
 							>
 							<span
@@ -1115,7 +1301,7 @@
 						{#if openFaq[i]}
 							<div
 								transition:slide={{ duration: 300 }}
-								class="pb-6 pl-[42px] text-[16px] lg:text-[16px] lg:text-[18px] leading-relaxed text-foreground/75"
+								class="pb-6 pl-[42px] text-[16px] leading-relaxed text-foreground/75 lg:text-[16px] lg:text-[18px]"
 							>
 								{@html item.a}
 							</div>
@@ -1142,7 +1328,7 @@
 		aria-label="Закрыть"
 	>
 		<div
-			class=" relative flex  max-w-[670px] mx-5 lg:mx-0 flex-col gap-6 rounded-2xl bg-card px-5 py-5 shadow-2xl lg:px-8"
+			class=" relative mx-5 flex max-w-[670px] flex-col gap-6 rounded-2xl bg-card px-5 py-5 shadow-2xl lg:mx-0 lg:px-8"
 			onclick={(e) => e.stopPropagation()}
 			onkeydown={(e) => e.stopPropagation()}
 			role="dialog"
@@ -1151,7 +1337,7 @@
 		>
 			<button
 				onclick={() => handleModalClose('button')}
-				class="absolute top-2 right-2 z-10 cursor-pointer p-2 text-foreground/70 transition-colors rotate-2 hover:rotate-4"
+				class="absolute top-2 right-2 z-10 rotate-2 cursor-pointer p-2 text-foreground/70 transition-colors hover:rotate-4"
 				aria-label="Закрыть"
 			>
 				<svg class="h-5 w-5 lg:h-6 lg:w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1164,11 +1350,13 @@
 				</svg>
 			</button>
 
-			<div class="space-y-2 pt-6 lg: pt-8">
-				<h3 class=" text-[18px] lg:text-[20px]  leading-relaxed text-foreground">
+			<div class="lg: space-y-2 pt-6 pt-8">
+				<h3 class=" text-[18px] leading-relaxed text-foreground lg:text-[20px]">
 					Встреча-знакомство: проверим, подходим ли мы друг другу
 				</h3>
-				<ul class="mt-3 list-none space-y-1 text-[16px] lg:text-[18px] leading-relaxed text-foreground/75">
+				<ul
+					class="mt-3 list-none space-y-1 text-[16px] leading-relaxed text-foreground/75 lg:text-[18px]"
+				>
 					<li class="relative pl-6 before:absolute before:left-0 before:content-['—']">
 						вы расскажете, что вас беспокоит
 					</li>
@@ -1184,7 +1372,7 @@
 				</ul>
 			</div>
 
-			<div class="mt-2 flex mx-auto">
+			<div class="mx-auto mt-2 flex">
 				<ButtonSvg
 					href="/booking?acquaintance"
 					onclick={() => reachGoal('modal_intro_click')}
@@ -1192,7 +1380,7 @@
 					mobileWidth="250px"
 					mobileHeight="60px"
 					width="250px"
-					class="self-start sm:self-auto mb-3"
+					class="mb-3 self-start sm:self-auto"
 				>
 					Записаться
 				</ButtonSvg>

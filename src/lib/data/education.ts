@@ -143,7 +143,7 @@ export const educationGroups: EducationGroup[] = [
 			{
 				title: 'Introduction to Psychology',
 				details: '14 часов, Yale University, 2024',
-				diploma: '/Coursera-YZHHWWXP725Z.webp', 
+				diploma: '/Coursera-YZHHWWXP725Z.webp',
 				completed: true
 			},
 			{

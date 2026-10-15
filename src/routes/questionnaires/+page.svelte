@@ -18,6 +18,22 @@
 <script lang="ts">
 	import { questionnaireCategories } from '$lib/data/content';
 	import Reveal from '$lib/components/Reveal.svelte';
+	import ButtonSvg from '$lib/components/ui/ButtonSvg.svelte';
+	import { reachGoal } from '$lib/metrika';
+	import { fade } from 'svelte/transition';
+
+	let isIntroModalOpen = $state(false);
+	let modalOpenedAt = $state<number | null>(null);
+
+	$effect(() => {
+		if (isIntroModalOpen) modalOpenedAt = Date.now();
+	});
+
+	function handleModalClose(source: 'backdrop' | 'button' | 'esc') {
+		const timeSpent = modalOpenedAt ? Math.round((Date.now() - modalOpenedAt) / 1000) : 0;
+		reachGoal('modal_closed_without_action', { source, time_spent: timeSpent });
+		isIntroModalOpen = false;
+	}
 
 	const url = `${import.meta.env.VITE_URL}/questionnaires`;
 	const ogImage = `${import.meta.env.VITE_URL}/header.webp`;
@@ -25,12 +41,13 @@
 	const title =
 		'Психологические опросники онлайн | Тесты на депрессию, тревогу, перфекционизм, прокрастинацию и выгорание';
 	const description =
-		'Бесплатные психологические опросники онлайн: PHQ-9 на депрессию, GAD-7 на тревожность, CPQ на перфекционизм, ПШ/ИПШ на прокрастинацию, BAT на профессиональное выгорание. Валидированные тесты для самодиагностики с мгновенными результатами и рекомендациями психолога.';
+		'Бесплатные психологические опросники онлайн: PHQ-9 на депрессивные симптомы, GAD-7 на тревожность, CPQ на перфекционизм, ПШ/ИПШ на прокрастинацию, BAT на признаки выгорания. Скрининговые результаты с пояснениями и ограничениями.';
 
 	type Questionnaire = {
 		title: string;
 		link: string;
 		description: string;
+		time: string;
 	};
 
 	type Category = {
@@ -100,7 +117,9 @@
 		}
 	];
 
-	const allquestionnaires: QuestionnaireWithCategory[] = (questionnaireCategories as Category[]).flatMap((category) =>
+	const allquestionnaires: QuestionnaireWithCategory[] = (
+		questionnaireCategories as Category[]
+	).flatMap((category) =>
 		category.questionnaires.map((questionnaire) => ({
 			...questionnaire,
 			sourceCategory: category.category
@@ -129,7 +148,9 @@
 	const groupedquestionnaires = topics
 		.map((topic) => ({
 			topic,
-			questionnaires: allquestionnaires.filter((questionnaire) => getTopicId(questionnaire) === topic.id)
+			questionnaires: allquestionnaires.filter(
+				(questionnaire) => getTopicId(questionnaire) === topic.id
+			)
 		}))
 		.filter((group) => group.questionnaires.length > 0);
 
@@ -148,7 +169,6 @@
 	}
 
 	function getQuestionnaireTime(questionnaire: Questionnaire): string {
-	
 		return questionnaire.time;
 	}
 </script>
@@ -181,7 +201,7 @@
 <!-- ═══════════════════ ГЕРОЙ ═══════════════════ -->
 <section class="bg-background pt-16 lg:pt-24">
 	<div
-		class="mx-auto grid grid-cols-1 items-center gap-8 px-5 md:max-w-[760px] lg:max-w-[1200px] lg:grid-cols-[1.1fr_0.9fr] xl:px-0 pt-[43px]"
+		class="mx-auto grid grid-cols-1 items-center gap-8 px-5 pt-[43px] md:max-w-[760px] lg:max-w-[1200px] lg:grid-cols-[1.1fr_0.9fr] xl:px-0"
 	>
 		<Reveal width="full">
 			<div class="flex flex-col">
@@ -190,7 +210,7 @@
 				</span>
 
 				<h1
-					class="font-caveat relative mb-0 inline-block w-fit text-[52px] leading-[1.1] font-bold tracking-[1px] text-navy lg:text-[72px]"
+					class="relative mb-0 inline-block w-fit font-caveat text-[52px] leading-[1.1] font-bold tracking-[1px] text-navy lg:text-[72px]"
 				>
 					Что вас беспокоит?
 					<svg
@@ -200,13 +220,18 @@
 						preserveAspectRatio="none"
 						aria-hidden="true"
 					>
-						<path d="M4 12 C111 0.5 230 3 516 7" stroke="currentColor" stroke-width="4" stroke-linecap="round" />
+						<path
+							d="M4 12 C111 0.5 230 3 516 7"
+							stroke="currentColor"
+							stroke-width="4"
+							stroke-linecap="round"
+						/>
 					</svg>
 				</h1>
 
 				<p class="mt-6 max-w-[470px] text-lg leading-[1.7] text-foreground/75 md:text-[18px]">
-					Психологические опросники. Выберите тему, которая сейчас актуальна для
-					вас, и пройдите подходящий опросник.
+					Психологические опросники. Выберите тему, которая сейчас актуальна для вас, и пройдите
+					подходящий опросник.
 				</p>
 			</div>
 		</Reveal>
@@ -257,7 +282,9 @@
 									>
 										{getQuestionnaireShortTitle(questionnaire)}
 									</span>
-									<span class="mt-1.5 block max-w-[460px] text-[15px] leading-[1.55] text-foreground/70">
+									<span
+										class="mt-1.5 block max-w-[460px] text-[15px] leading-[1.55] text-foreground/70"
+									>
 										{questionnaire.description}
 									</span>
 								</span>
@@ -282,19 +309,120 @@
 			</Reveal>
 		{/each}
 
-
-
 		<!-- ═══════════════════ ПЛАШКА-ПРИГЛАШЕНИЕ ═══════════════════ -->
 		<Reveal width="full">
 			<div
 				class="mt-[18px] grid grid-cols-1 items-center justify-items-center gap-5 rounded-[26px] border-2 border-dashed border-primary px-7 py-8 text-center sm:grid-cols-[auto_1fr_auto] sm:gap-11 sm:px-14"
 			>
-				<img src="/star_1.webp" class="shrink-0 h-12 w-12" alt="" aria-hidden="true" />
-				<p class="max-w-[460px] text-[18px] leading-[1.7] font-semibold text-navy">
-					Если результат вас тревожит, поделитесь им на консультации. Я помогу разобраться.
-				</p>
-				<img src="/heart_1.webp" class="shrink-0 h-12 w-12" alt="" aria-hidden="true" />
+				<img src="/star_1.webp" class="h-12 w-12 shrink-0" alt="" aria-hidden="true" />
+				<div class="flex max-w-[460px] flex-col items-center">
+					<p class="text-[18px] leading-[1.7] font-semibold text-navy">
+						Если результат вас тревожит, поделитесь им на консультации. Я помогу разобраться.
+					</p>
+					<ButtonSvg
+						href="/booking"
+						variant="3"
+						mobileWidth="220px"
+						mobileHeight="72px"
+						width="240px"
+						class="mt-4"
+					>
+						Записаться
+					</ButtonSvg>
+					<button
+						type="button"
+						onclick={() => {
+							isIntroModalOpen = true;
+							reachGoal('pricing_intro_click');
+						}}
+						class="mt-1 cursor-pointer text-[14px] font-semibold text-muted-foreground underline underline-offset-[3px] transition-colors hover:text-navy lg:text-[16px]"
+					>
+						Хочу познакомиться
+					</button>
+				</div>
+				<img src="/heart_1.webp" class="h-12 w-12 shrink-0" alt="" aria-hidden="true" />
 			</div>
 		</Reveal>
 	</div>
 </section>
+
+{#if isIntroModalOpen}
+	<div
+		transition:fade={{ duration: 200 }}
+		class="fixed inset-0 z-50 flex items-center justify-center bg-black/67 p-4"
+		onclick={() => handleModalClose('backdrop')}
+		onkeydown={(event) => {
+			if (event.key === 'Escape') {
+				event.preventDefault();
+				handleModalClose('esc');
+			}
+		}}
+		role="button"
+		tabindex="-1"
+		aria-label="Закрыть"
+	>
+		<div
+			class="relative mx-5 flex max-w-[670px] flex-col gap-6 rounded-2xl bg-card px-5 py-5 shadow-2xl lg:mx-0 lg:px-8"
+			onclick={(event) => event.stopPropagation()}
+			onkeydown={(event) => event.stopPropagation()}
+			role="dialog"
+			aria-modal="true"
+			tabindex="-1"
+		>
+			<button
+				type="button"
+				onclick={(event) => {
+					event.stopPropagation();
+					handleModalClose('button');
+				}}
+				class="absolute top-2 right-2 z-10 rotate-2 cursor-pointer p-2 text-foreground/70 transition-colors hover:rotate-4"
+				aria-label="Закрыть"
+			>
+				<svg class="h-5 w-5 lg:h-6 lg:w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="2"
+						d="M6 18L18 6M6 6l12 12"
+					/>
+				</svg>
+			</button>
+
+			<div class="space-y-2 pt-8">
+				<h3 class="text-[18px] leading-relaxed text-foreground lg:text-[20px]">
+					Встреча-знакомство: проверим, подходим ли мы друг другу
+				</h3>
+				<ul
+					class="mt-3 list-none space-y-1 text-[16px] leading-relaxed text-foreground/75 lg:text-[18px]"
+				>
+					<li class="relative pl-6 before:absolute before:left-0 before:content-['—']">
+						вы расскажете, что вас беспокоит
+					</li>
+					<li class="relative pl-6 before:absolute before:left-0 before:content-['—']">
+						я расскажу, что мы можем с этим сделать
+					</li>
+					<li class="relative pl-6 before:absolute before:left-0 before:content-['—']">
+						встреча длится 20–25 минут
+					</li>
+					<li class="relative pl-6 before:absolute before:left-0 before:content-['—']">
+						бесплатно, ни к чему не обязывает
+					</li>
+				</ul>
+			</div>
+
+			<div class="mx-auto mt-2 flex">
+				<ButtonSvg
+					href="/booking?acquaintance"
+					onclick={() => reachGoal('modal_intro_click')}
+					variant="1"
+					mobileWidth="250px"
+					mobileHeight="60px"
+					width="250px"
+					class="mb-3 self-start sm:self-auto"
+				>
+					Записаться
+				</ButtonSvg>
+			</div>
+		</div>
+	</div>
+{/if}

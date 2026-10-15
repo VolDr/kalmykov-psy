@@ -55,11 +55,7 @@
 		{
 			theme: 'депрессия и родственные состояния',
 			gridClass: 'md:col-span-1',
-			points: [
-				'депрессивный эпизод',
-				'рекуррентное депрессивное расстройство',
-				'дистимия',
-			]
+			points: ['депрессивный эпизод', 'рекуррентное депрессивное расстройство', 'дистимия']
 		},
 		{
 			theme: 'Фобические и тревожные расстройства',
@@ -134,9 +130,7 @@
 		</div>
 
 		<div class="col-span-1 mx-5 md:col-span-6 lg:col-span-6 lg:mx-0">
-			<div
-				class="flex min-h-[50px] flex-col flex-nowrap items-center justify-start gap-4 lg:gap-8"
-			>
+			<div class="flex min-h-[50px] flex-col flex-nowrap items-center justify-start gap-4 lg:gap-8">
 				<div
 					class="container mx-auto flex flex-col flex-nowrap items-center justify-start gap-4 lg:gap-6"
 				>
@@ -155,9 +149,9 @@
 						поведения и мотивации пациента, помогая сфокусироваться на подборе схемы лечения и
 						клинических задачах.
 					</p>
-							<div class="flex flex-col gap-2 rounded-lg bg-background p-4 text-sm md:p-6 md:text-base">
+					<div class="flex flex-col gap-2 rounded-lg bg-background p-4 text-sm md:p-6 md:text-base">
 						<p class="font-semibold text-foreground">Организационные моменты:</p>
-						<ul class="ml-4 list-disc space-y-1 list-none ">
+						<ul class="ml-4 list-disc list-none space-y-1">
 							<li>Работаю со взрослыми клиентами (18+).</li>
 							<li>Формат: онлайн (видеосвязь).</li>
 							<li>Регулярность: один раз в неделю.</li>
@@ -174,18 +168,18 @@
 	<div
 		class="mx-auto flex max-w-[720px] flex-col items-center gap-10 md:max-w-[760px] lg:max-w-[960px]"
 	>
-		<h2 class="px-6 text-center subtitle xl:px-0 md:text-left">
+		<h2 class="px-6 text-center subtitle md:text-left xl:px-0">
 			Принципы взаимодействия и границы компетенций
 		</h2>
 
-		<div class="grid w-full grid-cols-1 gap-4 px-5 md:grid-cols-2 xl:px-0 lg:gap-8">
+		<div class="grid w-full grid-cols-1 gap-4 px-5 md:grid-cols-2 lg:gap-8 xl:px-0">
 			<div class="rounded-lg bg-background p-6 md:p-8">
 				<h3 class="mb-4 text-lg font-semibold text-foreground">Позиция по фармакотерапии</h3>
 				<p class="leading-relaxed">
-					Я строго придерживаюсь профессиональных границ: <b>не назначаю, не отменяю и не корректирую
-					медикаментозное лечение</b>. Моя задача — поддерживать приверженность назначенной вами
-					терапии, работать с убеждениями пациента относительно лекарств и помогать адаптироваться к
-					процессу лечения.
+					Я строго придерживаюсь профессиональных границ: <b
+						>не назначаю, не отменяю и не корректирую медикаментозное лечение</b
+					>. Моя задача — поддерживать приверженность назначенной вами терапии, работать с
+					убеждениями пациента относительно лекарств и помогать адаптироваться к процессу лечения.
 				</p>
 			</div>
 			<div class="rounded-lg bg-background p-6 md:p-8">
@@ -193,7 +187,8 @@
 				<p class="leading-relaxed">
 					Эффективная помощь — это командная работа. По согласованию с пациентом я готов
 					информировать лечащего врача о динамике состояния (фон настроения, сон, тревога) и
-					изменениях в поведении, чтобы вы могли своевременно корректировать тактику лечения. В работе использую валидизированные шкалы и опросники.
+					изменениях в поведении, чтобы вы могли своевременно корректировать тактику лечения. В
+					работе использую валидизированные шкалы и опросники.
 				</p>
 			</div>
 		</div>
@@ -202,13 +197,11 @@
 	<div
 		class="mx-auto flex max-w-[720px] flex-col items-center gap-10 md:max-w-[760px] lg:max-w-[960px]"
 	>
-		<h2 class="px-6 text-center subtitle xl:px-0 md:text-left">
+		<h2 class="px-6 text-center subtitle md:text-left xl:px-0">
 			какие проблемы я помогаю решить врачу
 		</h2>
 
-		<div
-			class="grid w-full grid-cols-1 gap-4 px-5 md:grid-cols-24 xl:px-0 lg:grid-cols-24"
-		>
+		<div class="grid w-full grid-cols-1 gap-4 px-5 md:grid-cols-24 lg:grid-cols-24 xl:px-0">
 			{#each items as item}
 				<div class={item.gridClass}>
 					<div
@@ -217,7 +210,7 @@
 						<div>
 							<h3 class="text-lg font-semibold text-foreground">{item.highlight}</h3>
 						</div>
-						<p class="leading-relaxed text-foreground mt-2">{item.text}</p>
+						<p class="mt-2 leading-relaxed text-foreground">{item.text}</p>
 					</div>
 				</div>
 			{/each}
@@ -231,7 +224,6 @@
 			<h2 class="text-center subtitle md:text-left">
 				Основные группы запросов для совместной работы
 			</h2>
-
 		</div>
 
 		<div class="grid w-full grid-cols-1 gap-4 px-5 md:grid-cols-2 xl:px-0">
@@ -245,11 +237,11 @@
 						</div>
 
 						<ul
-							class="flex flex-col content-start items-start justify-start gap-2.5 lg:gap-3.5 list-none"
+							class="flex list-none flex-col content-start items-start justify-start gap-2.5 lg:gap-3.5"
 						>
 							{#each group.points as point}
 								<li class="flex items-start gap-3">
-							—
+									—
 									<div>
 										<div class="reveal-root w-fit">
 											<p>{point}</p>
@@ -298,11 +290,12 @@
 			>
 				<div class="flex flex-col gap-3">
 					<p>
-						Буду рад профессиональному знакомству. Вы можете рекомендовать меня своим пациентам или написать мне напрямую для обсуждения вариантов сотрудничества.
+						Буду рад профессиональному знакомству. Вы можете рекомендовать меня своим пациентам или
+						написать мне напрямую для обсуждения вариантов сотрудничества.
 					</p>
 				</div>
 
-				<ul class="flex flex-col gap-3 mt-2">
+				<ul class="mt-2 flex flex-col gap-3">
 					<li class="flex items-center gap-3">
 						<span class="icon-[lucide--phone] h-5 w-5 text-primary"></span>
 						<span

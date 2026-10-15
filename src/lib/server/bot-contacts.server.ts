@@ -1,6 +1,6 @@
 import { db } from '../..';
 import * as schema from '../../db/schema';
-import { and, desc, eq, ilike, isNull, or, sql } from 'drizzle-orm';
+import { and, desc, eq, getTableColumns, ilike, isNull, or, sql } from 'drizzle-orm';
 
 export type TelegramFrom = {
 	id: number;
@@ -55,10 +55,7 @@ export async function upsertContactFromTelegramUser(from: TelegramFrom) {
 }
 
 export async function getContact(id: number) {
-	const [contact] = await db
-		.select()
-		.from(schema.botContacts)
-		.where(eq(schema.botContacts.id, id));
+	const [contact] = await db.select().from(schema.botContacts).where(eq(schema.botContacts.id, id));
 	return contact ?? null;
 }
 
@@ -79,27 +76,85 @@ export async function getContactByTelegramId(telegramUserId: number) {
 	return contact ?? null;
 }
 
-/** Максимум контактов в списке за раз — дальше просим уточнить поиск */
-export const CONTACTS_LIST_LIMIT = 200;
+export const CONTACTS_PAGE_SIZE = 50;
 
-export async function listContacts(search?: string) {
-	const query = db.select().from(schema.botContacts);
-
-	if (search && search.trim()) {
-		const pattern = `%${search.trim()}%`;
-		return query
-			.where(
-				or(
-					ilike(schema.botContacts.username, pattern),
-					ilike(schema.botContacts.firstName, pattern),
-					ilike(schema.botContacts.lastName, pattern)
-				)
+/**
+ * Контакт занят цепочкой, если у него есть хотя бы один ожидающий шаг любой цепочки.
+ * Это то же определение, которое использует onlyIdle при запуске рассылки.
+ */
+export async function listContacts(search = '', requestedPage = 1, archived = false) {
+	const normalizedSearch = search.trim();
+	const searchCondition = normalizedSearch
+		? or(
+				ilike(schema.botContacts.username, `%${normalizedSearch}%`),
+				ilike(schema.botContacts.firstName, `%${normalizedSearch}%`),
+				ilike(schema.botContacts.lastName, `%${normalizedSearch}%`)
 			)
-			.orderBy(desc(schema.botContacts.lastInteractionAt))
-			.limit(CONTACTS_LIST_LIMIT);
-	}
+		: undefined;
 
-	return query.orderBy(desc(schema.botContacts.lastInteractionAt)).limit(CONTACTS_LIST_LIMIT);
+	const archiveCondition = eq(schema.botContacts.botBlocked, archived);
+	const listCondition = searchCondition ? and(archiveCondition, searchCondition) : archiveCondition;
+
+	const activeChainExists = sql<boolean>`exists (
+		select 1
+		from ${schema.botScheduledSteps}
+		where ${schema.botScheduledSteps.contactId} = ${schema.botContacts.id}
+			and ${schema.botScheduledSteps.status} = 'pending'
+	)`;
+
+	const [[filteredCount], [chainStats]] = await Promise.all([
+		db
+			.select({ total: sql<number>`count(*)::int` })
+			.from(schema.botContacts)
+			.where(listCondition),
+		db
+			.select({
+				total: sql<number>`count(*) filter (where ${schema.botContacts.botBlocked} = false)::int`,
+				active: sql<number>`count(*) filter (where ${schema.botContacts.botBlocked} = false and ${activeChainExists})::int`,
+				blocked: sql<number>`count(*) filter (where ${schema.botContacts.botBlocked})::int`
+			})
+			.from(schema.botContacts)
+	]);
+
+	const total = filteredCount?.total ?? 0;
+	const totalPages = Math.max(1, Math.ceil(total / CONTACTS_PAGE_SIZE));
+	const page = Math.min(Math.max(1, requestedPage), totalPages);
+
+	const contacts = await db
+		.select({
+			...getTableColumns(schema.botContacts),
+			hasActiveChain: activeChainExists.as('has_active_chain')
+		})
+		.from(schema.botContacts)
+		.where(listCondition)
+		.orderBy(
+			sql`${schema.botContacts.lastInteractionAt} desc nulls last`,
+			desc(schema.botContacts.id)
+		)
+		.limit(CONTACTS_PAGE_SIZE)
+		.offset((page - 1) * CONTACTS_PAGE_SIZE);
+
+	const allContacts = chainStats?.total ?? 0;
+	const activeContacts = chainStats?.active ?? 0;
+	const blockedContacts = chainStats?.blocked ?? 0;
+
+	return {
+		contacts,
+		pagination: {
+			page,
+			pageSize: CONTACTS_PAGE_SIZE,
+			total,
+			totalPages,
+			from: total === 0 ? 0 : (page - 1) * CONTACTS_PAGE_SIZE + 1,
+			to: Math.min(page * CONTACTS_PAGE_SIZE, total)
+		},
+		chainStats: {
+			total: allContacts,
+			active: activeContacts,
+			idle: allContacts - activeContacts,
+			blocked: blockedContacts
+		}
+	};
 }
 
 export async function updateCrm(
@@ -153,10 +208,30 @@ export async function attachMetrikaClientId(id: number, metrikaClientId: string)
 }
 
 export async function setBotBlocked(id: number, blocked: boolean) {
-	await db
-		.update(schema.botContacts)
-		.set({ botBlocked: blocked, updatedAt: sql`now()` })
-		.where(eq(schema.botContacts.id, id));
+	await db.transaction(async (tx) => {
+		await tx
+			.update(schema.botContacts)
+			.set({ botBlocked: blocked, updatedAt: sql`now()` })
+			.where(eq(schema.botContacts.id, id));
+
+		// Блокировка — это архивирование контакта. Снимаем всю ожидающую очередь
+		// сразу, а не ждём, пока каждый шаг отдельно дойдёт до воркера.
+		if (blocked) {
+			await tx
+				.update(schema.botScheduledSteps)
+				.set({
+					status: 'cancelled',
+					cancellationReason: 'contact_blocked',
+					processedAt: sql`now()`
+				})
+				.where(
+					and(
+						eq(schema.botScheduledSteps.contactId, id),
+						eq(schema.botScheduledSteps.status, 'pending')
+					)
+				);
+		}
+	});
 }
 
 export async function listMessages(contactId: number) {

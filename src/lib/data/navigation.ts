@@ -15,7 +15,7 @@ export const navigationLinks = [
 	{
 		label: 'Опросники',
 		link: '/questionnaires'
-	},
+	}
 	// {
 	// 	label: 'Экстренная помощь',
 	// 	link: '/sos'
@@ -26,13 +26,12 @@ export const navigationLinks = [
 	// }
 ];
 
-
 export const anchorLinks = [
 	{ label: 'запросы', link: '/#requests' },
 	{ label: 'причины', link: '/#reasons' },
 	{ label: 'подход', link: '/#approach' },
 	{ label: 'обо мне', link: '/#about' },
-		{ label: 'стоимость', link: '/#pricing' },
+	{ label: 'стоимость', link: '/#pricing' },
 	{ label: 'вопрос-ответ', link: '/#faq' }
 ];
 

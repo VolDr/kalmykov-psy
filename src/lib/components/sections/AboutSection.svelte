@@ -47,7 +47,7 @@
 		<h2 class="subtitle">обо мне</h2>
 	</Reveal>
 
-	<div class="grid w-full grid-cols-1 gap-4 px-5 md:grid-cols-24 xl:px-0 lg:grid-cols-24">
+	<div class="grid w-full grid-cols-1 gap-4 px-5 md:grid-cols-24 lg:grid-cols-24 xl:px-0">
 		{#each items as item}
 			<div class={item.gridClass}>
 				<Reveal axis="x" class="h-full">

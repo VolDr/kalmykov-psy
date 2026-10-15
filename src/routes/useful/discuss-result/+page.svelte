@@ -3,6 +3,7 @@
 	import { reachGoal } from '$lib/metrika';
 	import { lmLog } from '$lib/client/lmDebug';
 	import ButtonSvg from '$lib/components/ui/ButtonSvg.svelte';
+	import TelegramQuestionsLink from '$lib/components/TelegramQuestionsLink.svelte';
 
 	/**
 	 * «Почему всё снова возвращается» — куда ведёт кнопка в боте после разбора
@@ -266,5 +267,6 @@
 				</a>
 			</div>
 		</div>
+		<TelegramQuestionsLink class="mt-4 text-center" />
 	</section>
 </article>

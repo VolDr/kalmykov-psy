@@ -16,10 +16,7 @@ const TARGET_BOT_SUBSCRIBED = 'bot_subscribed';
  * дубль конверсии. Замер не должен ронять выдачу материала, поэтому ошибки
  * только логируются.
  */
-async function markOnce(
-	contactId: number,
-	column: 'gateShownAt' | 'gatePassedAt'
-): Promise<void> {
+async function markOnce(contactId: number, column: 'gateShownAt' | 'gatePassedAt'): Promise<void> {
 	try {
 		await db
 			.update(schema.botContacts)

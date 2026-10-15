@@ -47,8 +47,8 @@
 <div class="p-6">
 	<h1 class="mb-2 text-2xl font-semibold">Кнопки на постах канала</h1>
 	<p class="mb-6 max-w-2xl text-sm text-stone-500">
-		Бот вешает на существующий пост канала кнопку-ссылку: по нажатию сразу открывается чат с ботом
-		и запускается выбранная цепочка. Подписку проверяет шлагбаум в цепочке — поставьте его первым
+		Бот вешает на существующий пост канала кнопку-ссылку: по нажатию сразу открывается чат с ботом и
+		запускается выбранная цепочка. Подписку проверяет шлагбаум в цепочке — поставьте его первым
 		шагом с условием «не подписан», тогда подписчики получат материал сразу, а остальных бот
 		попросит подписаться. Бот должен быть админом канала.
 	</p>
@@ -174,7 +174,7 @@
 
 		<div class="overflow-hidden rounded-xl border bg-white">
 			<table class="w-full text-sm">
-				<thead class="border-b bg-stone-50 text-left text-xs uppercase text-stone-500">
+				<thead class="border-b bg-stone-50 text-left text-xs text-stone-500 uppercase">
 					<tr>
 						<th class="px-4 py-2 font-medium">Подпись</th>
 						<th class="px-4 py-2 font-medium">Пост</th>
@@ -202,7 +202,9 @@
 							<td class="px-4 py-2 text-stone-600">
 								{row.scenarioName}
 								{#if hint}
-									<span class={cn('block text-xs', hint.warn ? 'text-amber-700' : 'text-stone-400')}>
+									<span
+										class={cn('block text-xs', hint.warn ? 'text-amber-700' : 'text-stone-400')}
+									>
 										{hint.text}
 									</span>
 								{/if}

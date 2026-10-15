@@ -31,7 +31,7 @@
 
 	function handleLinkClick() {
 		reachGoal('telegram_banner_click');
-				setTimeout(() => {
+		setTimeout(() => {
 			isVisible = false;
 		}, 350);
 		localStorage.setItem(STORAGE_KEY, JSON.stringify({ timestamp: Date.now(), type: 'click' }));
@@ -55,7 +55,9 @@
 			});
 		}
 
-		return () => { scrollCleanup?.(); };
+		return () => {
+			scrollCleanup?.();
+		};
 	});
 
 	function initBanner() {
@@ -64,8 +66,7 @@
 		if (storedData) {
 			try {
 				const { timestamp, type } = JSON.parse(storedData);
-				const hideDuration =
-					type === 'click' ? HIDE_DURATION_CLICK_MS : HIDE_DURATION_CLOSE_MS;
+				const hideDuration = type === 'click' ? HIDE_DURATION_CLICK_MS : HIDE_DURATION_CLOSE_MS;
 				const hideUntil = parseInt(timestamp) + hideDuration;
 
 				if (Date.now() < hideUntil) {
@@ -129,10 +130,13 @@
 
 {#if isVisible}
 	<div
-		class="fixed bottom-4 left-1/2 -translate-x-1/2 z-[100] flex min-h-12 max-w-[70vw] lg:max-w-[550px] items-center justify-between w-[600px] h-[70px]"
-		style="transition: transform 400ms cubic-bezier(0.22,1,0.36,1), opacity 400ms cubic-bezier(0.22,1,0.36,1), filter 400ms; transform: translateY({isShowing ? '0px' : '90px'}); opacity: {isShowing ? 1 : 0}; filter: blur({isShowing ? '0px' : '2px'}); pointer-events: {isShowing ? 'auto' : 'none'};"
+		class="fixed bottom-4 left-1/2 z-[100] flex h-[70px] min-h-12 w-[600px] max-w-[70vw] -translate-x-1/2 items-center justify-between lg:max-w-[550px]"
+		style="transition: transform 400ms cubic-bezier(0.22,1,0.36,1), opacity 400ms cubic-bezier(0.22,1,0.36,1), filter 400ms; transform: translateY({isShowing
+			? '0px'
+			: '90px'}); opacity: {isShowing ? 1 : 0}; filter: blur({isShowing
+			? '0px'
+			: '2px'}); pointer-events: {isShowing ? 'auto' : 'none'};"
 	>
-
 		<svg
 			viewBox="0 0 340 68"
 			preserveAspectRatio="none"
@@ -147,7 +151,7 @@
 
 		<button
 			onclick={closeBanner}
-			class="relative z-10  ml-4 lg:ml-7 mt-2 cursor-pointer text-foreground focus:outline-none rotate-2 hover:rotate-4 pt-[5px]"
+			class="relative z-10 mt-2 ml-4 rotate-2 cursor-pointer pt-[5px] text-foreground hover:rotate-4 focus:outline-none lg:ml-7"
 			aria-label="Закрыть баннер"
 		>
 			<span class="icon-[lucide--x] h-5 w-5"></span>
@@ -156,11 +160,18 @@
 		<div class="relative z-10 mx-auto max-w-[80vw] text-center text-[15px] lg:text-[18px]">
 			<p class="pt-[10px]">
 				{text}
-				<ButtonSvg href={link} open='blank' width='70px' onclick={handleLinkClick} height='30px' style='3' textSize="19px">тык</ButtonSvg>
+				<ButtonSvg
+					href={link}
+					open="blank"
+					width="70px"
+					onclick={handleLinkClick}
+					height="30px"
+					style="3"
+					textSize="19px">тык</ButtonSvg
+				>
 			</p>
 		</div>
 
 		<div class="w-6"></div>
 	</div>
 {/if}
-

@@ -15,7 +15,12 @@
 	};
 
 	let nextKey = 0;
-	function makePage(p?: { heading?: string; text?: string; buttonText?: string; imageUrl?: string }): EditablePage {
+	function makePage(p?: {
+		heading?: string;
+		text?: string;
+		buttonText?: string;
+		imageUrl?: string;
+	}): EditablePage {
 		return {
 			_key: nextKey++,
 			heading: p?.heading ?? '',

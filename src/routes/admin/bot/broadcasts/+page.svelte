@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import { resolve } from '$app/paths';
 
 	let { data, form } = $props();
 
@@ -27,6 +28,13 @@
 		если задать его в настройках). Сообщения можно докидывать и удалять на ходу — очередь
 		подхватывает изменения.
 	</p>
+	<div class="mb-6 max-w-2xl rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3">
+		<p class="text-sm font-medium text-emerald-900">Безопасная отправка через очередь</p>
+		<p class="mt-1 text-sm text-emerald-800">
+			До 200 шагов в минуту, примерно 3,3 сообщения в секунду. Это заметно ниже бесплатного лимита
+			Telegram около 30 сообщений в секунду.
+		</p>
+	</div>
 
 	<form
 		method="POST"
@@ -63,7 +71,7 @@
 	{:else}
 		<div class="overflow-hidden rounded-xl border bg-white">
 			<table class="w-full text-sm">
-				<thead class="border-b bg-stone-50 text-left text-xs uppercase text-stone-500">
+				<thead class="border-b bg-stone-50 text-left text-xs text-stone-500 uppercase">
 					<tr>
 						<th class="px-4 py-2 font-medium">Название</th>
 						<th class="px-4 py-2 font-medium">Сообщений</th>
@@ -77,24 +85,39 @@
 					{#each data.broadcasts as broadcast (broadcast.id)}
 						<tr class="border-b last:border-0 hover:bg-stone-50">
 							<td class="px-4 py-2">
-								<a href="/admin/bot/scenarios/{broadcast.id}" class="text-blue-600 hover:underline">
+								<a
+									href={resolve('/admin/bot/scenarios/[id]', { id: String(broadcast.id) })}
+									class="text-blue-600 hover:underline"
+								>
 									{broadcast.name}
 								</a>
 							</td>
 							<td class="px-4 py-2 text-stone-600">{broadcast.stepsCount}</td>
-							<td class="px-4 py-2 text-stone-600">{broadcast.pendingCount}</td>
+							<td class="px-4 py-2 text-stone-600">
+								{broadcast.pendingCount}
+								{#if broadcast.pendingCount > 0}
+									<span class="ml-1 text-xs text-stone-400">
+										≈ {Math.ceil(broadcast.pendingCount / 200)} мин
+									</span>
+								{/if}
+							</td>
 							<td class="px-4 py-2 text-stone-500">{formatDate(broadcast.lastRunAt)}</td>
 							<td class="px-4 py-2">
 								{#if broadcast.enabled}
-									<span class="rounded-full bg-green-100 px-2 py-0.5 text-xs text-green-700">включена</span>
+									<span class="rounded-full bg-green-100 px-2 py-0.5 text-xs text-green-700"
+										>включена</span
+									>
 								{:else}
-									<span class="rounded-full bg-stone-100 px-2 py-0.5 text-xs text-stone-500">выключена</span>
+									<span class="rounded-full bg-stone-100 px-2 py-0.5 text-xs text-stone-500"
+										>выключена</span
+									>
 								{/if}
 							</td>
 							<td class="px-4 py-2 text-right">
 								<form method="POST" action="?/delete" use:enhance>
 									<input type="hidden" name="id" value={broadcast.id} />
-									<button type="submit" class="text-sm text-red-500 hover:underline">Удалить</button>
+									<button type="submit" class="text-sm text-red-500 hover:underline">Удалить</button
+									>
 								</form>
 							</td>
 						</tr>

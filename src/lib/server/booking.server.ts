@@ -14,7 +14,7 @@ export const CONSULTATION_PRICE = '4000.00';
 export const PACKAGE_PRICE = '14000.00';
 export const MSK_TZ = 'Europe/Moscow';
 /** Minimum lead time before a slot can be booked. Shared by createBooking and getAvailabilities. */
-export const BUFFER_MS = 24 * 60 * 60 * 1000;
+export const BUFFER_MS = 10 * 60 * 60 * 1000;
 
 export type SlotStatus = 'available' | 'locked' | 'booked';
 
@@ -45,7 +45,11 @@ export function generateHourlySlots(startAt: string, endAt: string): string[] {
 	const slots: string[] = [];
 	const cursor = new Date(startAt);
 	// Round UP to the next whole hour so we never produce a slot that starts before startAt
-	if (cursor.getUTCMinutes() !== 0 || cursor.getUTCSeconds() !== 0 || cursor.getUTCMilliseconds() !== 0) {
+	if (
+		cursor.getUTCMinutes() !== 0 ||
+		cursor.getUTCSeconds() !== 0 ||
+		cursor.getUTCMilliseconds() !== 0
+	) {
 		cursor.setUTCHours(cursor.getUTCHours() + 1);
 	}
 	cursor.setUTCMinutes(0, 0, 0);
@@ -67,15 +71,12 @@ export async function getAvailabilities(): Promise<AvailabilityWithSlots[]> {
 		.where(gt(schema.availability.endAt, now))
 		.orderBy(schema.availability.startAt);
 
-	const activeBookings = await db
-		.select()
-		.from(schema.booking)
-		.where(activeBookingCondition());
+	const activeBookings = await db.select().from(schema.booking).where(activeBookingCondition());
 
 	return avails.map((a) => {
 		const slotTimes = generateHourlySlots(a.startAt, a.endAt);
 		const slots: SlotInfo[] = slotTimes
-			.filter((slotStart) => new Date(slotStart).getTime() > nowMs + BUFFER_MS) // skip past and near-future slots (< 24h)
+			.filter((slotStart) => new Date(slotStart).getTime() > nowMs + BUFFER_MS) // skip past and near-future slots (<= 10h)
 			.map((slotStart) => {
 				const match = activeBookings.find(
 					(b) => new Date(b.bookedAt).getTime() === new Date(slotStart).getTime()
@@ -123,7 +124,7 @@ export async function createBooking(params: {
 	}
 
 	if (bookedMs <= Date.now() + BUFFER_MS) {
-		throw new Error('Забронировать можно минимум за 24 часа до начала');
+		throw new Error('Забронировать можно минимум за 10 часов до начала');
 	}
 
 	// Cancel any expired lock for this slot so the unique index doesn't block us
@@ -193,7 +194,9 @@ export async function createBooking(params: {
 				.update(schema.robokassaPayment)
 				.set({ status: 'failed', updatedAt: nowIso() })
 				.where(eq(schema.robokassaPayment.id, paymentId));
-		} catch { /* ignore — cron will clean up in ~15 min */ }
+		} catch {
+			/* ignore — cron will clean up in ~15 min */
+		}
 		throw new Error('Слот уже занят');
 	}
 
@@ -245,12 +248,7 @@ export async function confirmByPaymentId(
 			updated = await tx
 				.update(schema.booking)
 				.set({ status: 'confirmed', updatedAt: nowIso() })
-				.where(
-					and(
-						eq(schema.booking.id, booking.id),
-						eq(schema.booking.status, booking.status)
-					)
-				)
+				.where(and(eq(schema.booking.id, booking.id), eq(schema.booking.status, booking.status)))
 				.returning({ id: schema.booking.id });
 		} catch {
 			// Unique index fired: another booking was inserted between our SELECT and this UPDATE
@@ -316,7 +314,7 @@ export async function createAcquaintanceBooking(params: {
 	}
 
 	if (bookedMs <= Date.now() + BUFFER_MS) {
-		throw new Error('Забронировать можно минимум за 24 часа до начала');
+		throw new Error('Забронировать можно минимум за 10 часов до начала');
 	}
 
 	// Cancel expired locks so the unique index doesn't block us
@@ -359,7 +357,11 @@ export async function createAcquaintanceBooking(params: {
 		});
 	} catch (err) {
 		// code 23505 = unique_violation (concurrent booking snuck in between check and INSERT)
-		if (typeof err === 'object' && err !== null && (err as Record<string, unknown>).code === '23505') {
+		if (
+			typeof err === 'object' &&
+			err !== null &&
+			(err as Record<string, unknown>).code === '23505'
+		) {
 			throw new Error('Слот уже занят');
 		}
 		console.error('createAcquaintanceBooking insert failed:', err);

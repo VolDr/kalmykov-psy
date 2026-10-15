@@ -84,7 +84,9 @@
 					</span>
 				{:else}
 					{score}
-					<span class="text-[18px] font-semibold text-foreground/45 md:text-[24px]"> / {maxScore} </span>
+					<span class="text-[18px] font-semibold text-foreground/45 md:text-[24px]">
+						/ {maxScore}
+					</span>
 				{/if}
 			</div>
 			<div class={cn('text-[18px] font-extrabold md:text-[20px]', mainTextClass)}>
@@ -96,7 +98,9 @@
 	<!-- Субшкалы -->
 	{#if subscales && subscales.length > 0}
 		<section>
-			<h3 class="mb-5 text-[28px] font-extrabold tracking-[-0.3px] text-navy lg:text-[34px]  font-caveat">
+			<h3
+				class="mb-5 font-caveat text-[28px] font-extrabold tracking-[-0.3px] text-navy lg:text-[34px]"
+			>
 				Что значат эти цифры?
 			</h3>
 
@@ -122,7 +126,9 @@
 										<span class="font-semibold text-foreground/45"> / {subscale.maxScore}</span>
 									{:else}
 										{subscale.averageScore.toFixed(2)}
-										<span class="font-semibold text-foreground/45"> / {maxAverageScore.toFixed(2)}</span>
+										<span class="font-semibold text-foreground/45">
+											/ {maxAverageScore.toFixed(2)}</span
+										>
 									{/if}
 								</div>
 								<div class={cn('mt-0.5 text-[13px] font-semibold', subText)}>
@@ -155,7 +161,9 @@
 
 	<!-- Рекомендации -->
 	<section>
-		<h3 class="mb-4 text-[28px] font-extrabold tracking-[-0.3px] text-navy lg:text-[34px] font-caveat text-[clamp(26px,2.5vw,32px)]">
+		<h3
+			class="mb-4 font-caveat text-[28px] text-[clamp(26px,2.5vw,32px)] font-extrabold tracking-[-0.3px] text-navy lg:text-[34px]"
+		>
 			Рекомендации
 		</h3>
 		<div class="text-[clamp(15px,1.6vw,17px)] leading-[1.7] whitespace-pre-line">

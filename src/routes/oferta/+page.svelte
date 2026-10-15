@@ -8,11 +8,11 @@
 
 <section class="min-h-screen bg-background py-12 md:py-20">
 	<div class="mx-auto px-5 text-foreground md:max-w-[960px]">
-		<h1 class="mb-12 font-aeonik  text-2xl leading-tight font-semibold md:text-3xl">
+		<h1 class="mb-12 font-aeonik text-2xl leading-tight font-semibold md:text-3xl">
 			Договор публичной оферты на оказание психологических услуг
 		</h1>
 
-		<div class="space-y-8  leading-relaxed">
+		<div class="space-y-8 leading-relaxed">
 			<div>
 				<h2 class="mb-4">1. Общие положения</h2>
 				<div class="space-y-3">

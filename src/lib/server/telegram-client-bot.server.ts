@@ -3,7 +3,13 @@ import type { Api, Context } from 'grammy';
 import { Bot, GrammyError } from 'grammy';
 import { SocksProxyAgent } from 'socks-proxy-agent';
 import { TELEGRAM_CLIENT_BOT_TOKEN } from '$env/static/private';
-import { logInboundMessage, upsertContactFromTelegramUser } from './bot-contacts.server';
+import {
+	attachMetrikaClientId,
+	getContactByTelegramId,
+	logInboundMessage,
+	setBotBlocked,
+	upsertContactFromTelegramUser
+} from './bot-contacts.server';
 import {
 	findTriggeredScenarios,
 	handleSubscriptionGateCallback,
@@ -14,7 +20,6 @@ import {
 } from './bot-scenarios.server';
 import { logSafeError } from './log-error.server';
 import { markBotStarted } from './bot-funnel.server';
-import { attachMetrikaClientId } from './bot-contacts.server';
 import {
 	chatIdForApi,
 	getChannelPost,
@@ -248,6 +253,20 @@ async function answerCallbackSafely(answer: () => Promise<unknown>): Promise<boo
 		throw error;
 	}
 }
+
+// Telegram присылает my_chat_member при блокировке/разблокировке бота в личном чате.
+// Так база остаётся актуальной без активной проверки и без тестовых сообщений.
+clientBot.on('my_chat_member', async (ctx) => {
+	const update = ctx.update.my_chat_member;
+	if (update.chat.type !== 'private') return;
+
+	const contact = await getContactByTelegramId(update.chat.id);
+	if (!contact) return;
+
+	const status = update.new_chat_member.status;
+	if (status === 'kicked' || status === 'left') await setBotBlocked(contact.id, true);
+	else if (status === 'member') await setBotBlocked(contact.id, false);
+});
 
 // Приём сообщений: CRM-контакт + инбокс (Фаза 1), затем триггеры сценариев (Фаза 2).
 clientBot.on('message', async (ctx) => {

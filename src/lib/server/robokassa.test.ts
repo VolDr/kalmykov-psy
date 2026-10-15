@@ -35,7 +35,13 @@ function selectMock(rows: unknown[]): any {
 	return chain;
 }
 
-import { validateResultSig, isTestMode, markPaid, createPayment, releaseExpiredPayments } from './robokassa.server';
+import {
+	validateResultSig,
+	isTestMode,
+	markPaid,
+	createPayment,
+	releaseExpiredPayments
+} from './robokassa.server';
 
 function makeSig(outSum: string, invId: number, pass2: string): string {
 	return createHash('md5').update(`${outSum}:${invId}:${pass2}`).digest('hex');
@@ -56,9 +62,17 @@ function buildReceipt(description: string, outSum: string) {
 	};
 }
 
-function makePaymentSig(login: string, outSum: string, invId: number, pass1: string, description: string): string {
+function makePaymentSig(
+	login: string,
+	outSum: string,
+	invId: number,
+	pass1: string,
+	description: string
+): string {
 	const receiptEncoded = encodeURIComponent(JSON.stringify(buildReceipt(description, outSum)));
-	return createHash('md5').update(`${login}:${outSum}:${invId}:${receiptEncoded}:${pass1}`).digest('hex');
+	return createHash('md5')
+		.update(`${login}:${outSum}:${invId}:${receiptEncoded}:${pass1}`)
+		.digest('hex');
 }
 
 // ---------- validateResultSig ----------
@@ -204,7 +218,11 @@ describe('createPayment', () => {
 			})
 		});
 
-		const result = await createPayment({ outSum: '4000.00', description: 'Тест', expiresInMinutes: 15 });
+		const result = await createPayment({
+			outSum: '4000.00',
+			description: 'Тест',
+			expiresInMinutes: 15
+		});
 		expect(result.fields.ExpirationDate).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\+00:00$/);
 	});
 
@@ -277,8 +295,6 @@ describe('releaseExpiredPayments', () => {
 
 		await releaseExpiredPayments();
 
-		expect(setMock).toHaveBeenCalledWith(
-			expect.objectContaining({ status: 'failed' })
-		);
+		expect(setMock).toHaveBeenCalledWith(expect.objectContaining({ status: 'failed' }));
 	});
 });

@@ -4,6 +4,8 @@ const mocks = vi.hoisted(() => ({
 	getChannelPost: vi.fn(),
 	incrementChannelPostClicks: vi.fn(async () => {}),
 	markBotStarted: vi.fn(async () => {}),
+	getContactByTelegramId: vi.fn(),
+	setBotBlocked: vi.fn(async () => {}),
 	triggerScenarioForContact: vi.fn(async () => {}),
 	findTriggeredScenarios: vi.fn(async () => [] as unknown[])
 }));
@@ -13,7 +15,9 @@ vi.mock('../..', () => ({ db: {} }));
 vi.mock('./bot-contacts.server', () => ({
 	upsertContactFromTelegramUser: async () => ({ id: 5, metrikaClientId: null }),
 	logInboundMessage: async () => {},
-	attachMetrikaClientId: async () => null
+	attachMetrikaClientId: async () => null,
+	getContactByTelegramId: mocks.getContactByTelegramId,
+	setBotBlocked: mocks.setBotBlocked
 }));
 vi.mock('./bot-scenarios.server', () => ({
 	SUBSCRIPTION_CALLBACK_PREFIX: 'sub:',
@@ -48,6 +52,44 @@ async function sendText(text: string) {
 		message: { message_id: 1, date: 0, chat: { ...from, type: 'private' }, from, text }
 	} as never);
 }
+
+async function sendBotStatus(status: 'member' | 'kicked') {
+	const user = { id: 42, is_bot: false, first_name: 'user' };
+	await clientBot.handleUpdate({
+		update_id: 2,
+		my_chat_member: {
+			chat: { ...user, type: 'private' },
+			from: user,
+			date: 0,
+			old_chat_member: {
+				status: status === 'member' ? 'kicked' : 'member',
+				user: clientBot.botInfo
+			},
+			new_chat_member: { status, user: clientBot.botInfo }
+		}
+	} as never);
+}
+
+describe('блокировка и разблокировка бота', () => {
+	beforeEach(() => {
+		for (const mock of Object.values(mocks)) mock.mockClear();
+		vi.spyOn(console, 'log').mockImplementation(() => {});
+		mocks.getContactByTelegramId.mockResolvedValue({ id: 5 });
+	});
+
+	it('помечает контакт отписавшимся по my_chat_member', async () => {
+		await sendBotStatus('kicked');
+
+		expect(mocks.getContactByTelegramId).toHaveBeenCalledWith(42);
+		expect(mocks.setBotBlocked).toHaveBeenCalledWith(5, true);
+	});
+
+	it('возвращает контакт при разблокировке', async () => {
+		await sendBotStatus('member');
+
+		expect(mocks.setBotBlocked).toHaveBeenCalledWith(5, false);
+	});
+});
 
 describe('/start cp_<id> — кнопка поста канала', () => {
 	beforeEach(() => {

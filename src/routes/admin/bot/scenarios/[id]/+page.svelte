@@ -37,6 +37,17 @@
 			minute: '2-digit'
 		});
 	}
+
+	function formatScheduledDate(iso: string) {
+		return new Date(iso).toLocaleString('ru-RU', {
+			timeZone: 'Europe/Moscow',
+			day: '2-digit',
+			month: '2-digit',
+			year: 'numeric',
+			hour: '2-digit',
+			minute: '2-digit'
+		});
+	}
 </script>
 
 <svelte:head>
@@ -471,7 +482,7 @@
 				<h2 class="mb-3 text-sm font-semibold text-stone-600">Запустить по сегменту</h2>
 				<form
 					method="POST"
-					action="?/launch"
+					action="?/previewLaunch"
 					use:enhance={keepLaunchForm}
 					oninput={() => (launchDirty = true)}
 					class="space-y-3"
@@ -519,14 +530,41 @@
 								пропущено как занятые: <strong>{form.launchPreview.busy}</strong>{/if}
 						</p>
 					{/if}
-					<button
-						type="submit"
-						class="w-full rounded-lg bg-primary px-4 py-2 text-sm text-primary-foreground hover:bg-primary/90"
-					>
-						Запустить сейчас
-					</button>
+					<div class="rounded-lg border border-stone-200 bg-stone-50/70 p-3">
+						<label class="block text-xs font-medium text-stone-600">
+							Дата и время запуска (МСК)
+							<input
+								type="datetime-local"
+								name="launchAt"
+								class="mt-1 w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm"
+							/>
+						</label>
+						<p class="mt-2 text-xs leading-5 text-stone-400">
+							Получатели фиксируются сейчас. Задержка первого шага прибавится к указанному времени.
+						</p>
+					</div>
+					<div class="grid grid-cols-2 gap-2">
+						<button
+							type="submit"
+							formaction="?/launch"
+							class="rounded-lg border border-stone-300 bg-white px-4 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50"
+						>
+							Запустить сейчас
+						</button>
+						<button
+							type="submit"
+							formaction="?/scheduleLaunch"
+							class="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+						>
+							Запланировать
+						</button>
+					</div>
 					{#if form?.launchCount}
-						<p class="text-xs text-green-600">Поставлено в очередь: {form.launchCount} контактов</p>
+						<p class="text-xs text-green-600">
+							{form.launchScheduledAt
+								? `Запланировано на ${formatScheduledDate(form.launchScheduledAt)}: ${form.launchCount} контактов`
+								: `Поставлено в очередь: ${form.launchCount} контактов`}
+						</p>
 					{/if}
 					{#if form?.launchError}
 						<p class="text-xs text-red-500">{form.launchError}</p>
@@ -539,6 +577,60 @@
 
 			<div class="mt-4 rounded-xl border bg-white p-4 text-sm text-stone-600">
 				<p>В очереди на отправку: <strong>{data.pendingCount}</strong></p>
+				{#if data.nextPendingAt}
+					<p class="mt-1 text-xs text-stone-500">
+						Ближайшее сообщение: {formatScheduledDate(data.nextPendingAt)} МСК
+					</p>
+				{/if}
+				{#if data.plannedLaunches.length > 0}
+					<div class="mt-4 border-t border-stone-200 pt-3">
+						<p class="mb-2 text-xs font-semibold tracking-wide text-stone-500 uppercase">
+							Запланированные запуски
+						</p>
+						<ul class="space-y-2">
+							{#each data.plannedLaunches as launch (`${launch.stepId}-${launch.scheduledAt}`)}
+								<li
+									class="flex items-center justify-between gap-3 rounded-lg bg-stone-50 px-3 py-2"
+								>
+									<div class="min-w-0">
+										<p class="font-medium text-stone-700">
+											{formatScheduledDate(launch.scheduledAt)} МСК
+										</p>
+										<p class="text-xs text-stone-400">{launch.count} контактов</p>
+									</div>
+									<form
+										method="POST"
+										action="?/cancelLaunch"
+										use:enhance={({ cancel }) => {
+											if (
+												!confirm(
+													`Отменить запуск на ${formatScheduledDate(launch.scheduledAt)} для ${launch.count} контактов?`
+												)
+											)
+												cancel();
+										}}
+									>
+										<input type="hidden" name="stepId" value={launch.stepId} />
+										<input type="hidden" name="scheduledAt" value={launch.scheduledAt} />
+										<button
+											type="submit"
+											class="rounded-lg border border-red-200 bg-white px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-50"
+										>
+											Отменить
+										</button>
+									</form>
+								</li>
+							{/each}
+						</ul>
+					</div>
+				{/if}
+				{#if form?.cancelLaunchCount}
+					<p class="mt-3 text-xs text-green-600">
+						Запуск отменён: снято из очереди {form.cancelLaunchCount} контактов.
+					</p>
+				{:else if form?.cancelLaunchError}
+					<p class="mt-3 text-xs text-red-600">{form.cancelLaunchError}</p>
+				{/if}
 				{#if data.scenario.triggerType === 'start_param'}
 					<p class="mt-2 text-xs break-all text-stone-400">
 						Диплинк: t.me/&lt;бот&gt;?start={data.scenario.triggerValue}

@@ -25,7 +25,6 @@
 <div class="p-6">
 	<h1 class="mb-6 text-2xl font-semibold">Сценарии</h1>
 
-
 	<form
 		method="POST"
 		action="?/create"
@@ -43,7 +42,11 @@
 		</label>
 		<label class="block text-xs font-medium text-stone-500">
 			Триггер
-			<select name="triggerType" bind:value={triggerType} class="mt-1 rounded-lg border px-3 py-2 text-sm">
+			<select
+				name="triggerType"
+				bind:value={triggerType}
+				class="mt-1 rounded-lg border px-3 py-2 text-sm"
+			>
 				<option value="start_param">{triggerLabels.start_param}</option>
 				<option value="command">{triggerLabels.command}</option>
 				<option value="text">{triggerLabels.text}</option>
@@ -80,7 +83,7 @@
 	{:else}
 		<div class="overflow-hidden rounded-xl border bg-white">
 			<table class="w-full text-sm">
-				<thead class="border-b bg-stone-50 text-left text-xs uppercase text-stone-500">
+				<thead class="border-b bg-stone-50 text-left text-xs text-stone-500 uppercase">
 					<tr>
 						<th class="px-4 py-2 font-medium">Название</th>
 						<th class="px-4 py-2 font-medium">Триггер</th>
@@ -109,9 +112,13 @@
 							<td class="px-4 py-2 text-stone-600">{scenario.pendingCount}</td>
 							<td class="px-4 py-2">
 								{#if scenario.enabled}
-									<span class="rounded-full bg-green-100 px-2 py-0.5 text-xs text-green-700">включён</span>
+									<span class="rounded-full bg-green-100 px-2 py-0.5 text-xs text-green-700"
+										>включён</span
+									>
 								{:else}
-									<span class="rounded-full bg-stone-100 px-2 py-0.5 text-xs text-stone-500">выключен</span>
+									<span class="rounded-full bg-stone-100 px-2 py-0.5 text-xs text-stone-500"
+										>выключен</span
+									>
 								{/if}
 							</td>
 							<td class="px-4 py-2 text-right">
@@ -124,7 +131,9 @@
 									</form>
 									<form method="POST" action="?/delete" use:enhance>
 										<input type="hidden" name="id" value={scenario.id} />
-										<button type="submit" class="text-sm text-red-500 hover:underline">Удалить</button>
+										<button type="submit" class="text-sm text-red-500 hover:underline"
+											>Удалить</button
+										>
 									</form>
 								</div>
 							</td>

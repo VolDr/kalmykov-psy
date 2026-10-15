@@ -6,6 +6,7 @@
 	import MarkdownLink from '$lib/components/MarkdownLink.svelte';
 	import Button from '../ui/Button.svelte';
 	import ButtonSvg from '../ui/ButtonSvg.svelte';
+	import TelegramQuestionsLink from '../TelegramQuestionsLink.svelte';
 	import type { QuestionnaireConfig } from '$lib/data/questionnaires/types';
 	import { calculateScore, shouldDisplayQuestion } from '$lib/utils/questionnaire/scoringEngine';
 
@@ -369,6 +370,7 @@
 					</Button>
 				{/if}
 			</div>
+			<TelegramQuestionsLink class="mt-5 text-center" />
 		</section>
 	</div>
 {/if}

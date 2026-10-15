@@ -49,12 +49,12 @@
 
 {#if show}
 	<div
-		class="fixed right-[20px] bottom-[55px] z-[200] w-[3em] text-center lg:right-[50px] lg:bottom-[50px] bg-background/90 backdrop-blur-sm rounded-4xl max-w-[49px] max-h-[49px] lg:max-w-[66px] lg:max-h-[66px]"
+		class="fixed right-[20px] bottom-[55px] z-[200] max-h-[49px] w-[3em] max-w-[49px] rounded-4xl bg-background/90 text-center backdrop-blur-sm lg:right-[50px] lg:bottom-[50px] lg:max-h-[66px] lg:max-w-[66px]"
 		in:fly={{ y: 40, duration: 300 }}
 		out:fade={{ duration: 300 }}
 	>
 		<button
-			class="m-0 cursor-pointer border-none bg-transparent p-3 transition-all duration-300 focus:outline-none "
+			class="m-0 cursor-pointer border-none bg-transparent p-3 transition-all duration-300 focus:outline-none"
 			onclick={scrollToTop}
 			aria-label="Scroll to top"
 		>

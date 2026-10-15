@@ -1,85 +1,172 @@
 <script lang="ts">
-	import Questionnaire from '$lib/components/questionnaire/Questionnaire.svelte';
-
-	import { bat12Config } from '../../../configs/bat12Config';
+	import { tick } from 'svelte';
+	import AssessmentPage from '$lib/components/questionnaire/AssessmentPage.svelte';
+	import AssessmentQuestion from '$lib/components/questionnaire/AssessmentQuestion.svelte';
+	import AssessmentResult, {
+		type ResultTone
+	} from '$lib/components/questionnaire/AssessmentResult.svelte';
+	import AssessmentWizard from '$lib/components/questionnaire/AssessmentWizard.svelte';
+	import Button from '$lib/components/ui/Button.svelte';
+	import {
+		loadAssessmentState,
+		saveAssessmentState
+	} from '$lib/utils/questionnaire/assessmentState';
 
 	const url = 'https://kalmykov.pro/questionnaires/bat12';
-	const title = 'Тест на выгорание BAT-12 онлайн | Короткий опросник профессионального выгорания';
-	const description =
-		'Пройдите тест на профессиональное выгорание BAT-12 онлайн бесплатно. Валидированный короткий опросник для скрининга и мониторинга выгорания. Мгновенные результаты и рекомендации психолога.';
-	const questionsCount = bat12Config.questions.filter((q) => q.type !== 'subheading').length;
+	const options = [
+		{ label: 'Никогда', value: 1 },
+		{ label: 'Редко', value: 2 },
+		{ label: 'Иногда', value: 3 },
+		{ label: 'Часто', value: 4 },
+		{ label: 'Постоянно', value: 5 }
+	];
+	const questions = [
+		'На работе я чувствую душевную усталость',
+		'После рабочего дня мне трудно восстановить свои силы',
+		'На работе я чувствую физическую усталость',
+		'Мне трудно найти в себе энтузиазм к моей работе',
+		'Я чувствую сильное отвращение к моей работе',
+		'Я сомневаюсь, что моя работа имеет для кого-то значение',
+		'На работе мне сложно оставаться собранным(ой)',
+		'Когда я работаю, мне сложно сконцентрироваться',
+		'Я делаю ошибки в процессе работы, потому что думаю о других вещах',
+		'На работе я чувствую, что не способен(а) контролировать свои эмоции',
+		'Я не узнаю себя в том, как я эмоционально реагирую на работе',
+		'На работе я могу слишком остро реагировать, сам(а) того не желая'
+	].map((text, index) => ({ id: `q${index + 1}`, text }));
 
-	function questionsLabel(n: number) {
-		const d = n % 10;
-		const dd = n % 100;
-		if (dd >= 11 && dd <= 14) return 'вопросов';
-		if (d === 1) return 'вопрос';
-		if (d >= 2 && d <= 4) return 'вопроса';
-		return 'вопросов';
+	const storageKey = 'questionnaire-bat12-state';
+	const initialState = loadAssessmentState(storageKey, {
+		answers: {} as Record<string, number>,
+		currentStep: 0,
+		showResults: false
+	});
+	let answers = $state(initialState.answers);
+	let currentStep = $state(Math.min(initialState.currentStep, questions.length - 1));
+	let showResults = $state(
+		initialState.showResults &&
+			questions.every((question) => initialState.answers[question.id] !== undefined)
+	);
+	let resultSection = $state<HTMLElement>();
+	const currentQuestion = $derived(questions[currentStep]);
+	const canGoNext = $derived(answers[currentQuestion.id] !== undefined);
+	const mean = $derived(
+		questions.reduce((sum, question) => sum + (answers[question.id] ?? 0), 0) / questions.length
+	);
+	const result = $derived.by((): { severity: string; tone: ResultTone; recommendation: string } => {
+		if (mean <= 2.53)
+			return {
+				severity: 'Зелёная зона BAT',
+				tone: 'green',
+				recommendation:
+					'По предварительным европейским порогам средний показатель находится в зелёной зоне. Это скрининговый результат, а не подтверждение отсутствия выгорания.'
+			};
+		if (mean <= 2.95)
+			return {
+				severity: 'Оранжевая зона BAT',
+				tone: 'orange',
+				recommendation:
+					'Показатель соответствует зоне повышенного риска по предварительным европейским порогам. Полезно оценить рабочую нагрузку, восстановление и динамику состояния, а при устойчивых трудностях обратиться за профессиональной оценкой.'
+			};
+		return {
+			severity: 'Красная зона BAT: выраженные признаки',
+			tone: 'red',
+			recommendation:
+				'Показатель соответствует красной зоне BAT и требует более подробной оценки. Это не самостоятельный диагноз: авторы метода рекомендуют учитывать дополнительную информацию и данные клинического интервью.'
+		};
+	});
+
+	$effect(() => {
+		saveAssessmentState(storageKey, { answers, currentStep, showResults });
+	});
+
+	function setAnswer(id: string, value: number) {
+		answers = { ...answers, [id]: value };
+	}
+	async function next() {
+		if (!canGoNext) return;
+		if (currentStep < questions.length - 1) {
+			currentStep += 1;
+			return;
+		}
+		showResults = true;
+		await tick();
+		resultSection?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+	}
+	function back() {
+		if (currentStep > 0) currentStep -= 1;
+	}
+	function reset() {
+		answers = {};
+		currentStep = 0;
+		showResults = false;
+		window.scrollTo({ top: 0, behavior: 'smooth' });
 	}
 </script>
+
 <svelte:head>
-	<title>{title}</title>
-	<meta name="description" content={description} />
+	<title>Короткий опросник выгорания BAT-12 онлайн</title>
 	<meta
-		name="keywords"
-		content="тест на выгорание, BAT-12, профессиональное выгорание, эмоциональное выгорание, опросник выгорания, burnout assessment, мониторинг выгорания"
+		name="description"
+		content="Официальная русская форма BAT-12 для скрининга выраженности признаков профессионального выгорания."
 	/>
 	<meta name="robots" content="index, follow" />
 	<link rel="canonical" href={url} />
-
-	<!-- Open Graph -->
-	<meta property="og:type" content="website" />
-	<meta property="og:title" content={title} />
-	<meta property="og:description" content={description} />
-	<meta property="og:url" content={url} />
-	<meta property="og:site_name" content="Андрей Калмыков — Психолог" />
-	<meta property="og:image" content="{import.meta.env.VITE_URL}/header.webp" />
-	<meta property="og:image:width" content="1200" />
-	<meta property="og:image:height" content="630" />
-
-	<!-- Twitter Card -->
-	<meta name="twitter:card" content="summary_large_image" />
-	<meta name="twitter:title" content={title} />
-	<meta name="twitter:description" content={description} />
-	<meta name="twitter:image" content="{import.meta.env.VITE_URL}/header.webp" />
 </svelte:head>
 
-<section class="bg-background pt-16 lg:pt-24">
-	<div
-		class="mx-auto grid grid-cols-1 items-center gap-8 px-5 md:max-w-[760px] lg:max-w-[1200px] lg:grid-cols-[1.15fr_0.85fr] xl:px-0 pt-[43px]"
-	>
-		<div class="flex flex-col">
-
-
-			<h1 class="font-caveat mb-5 text-[52px] leading-[0.9] font-bold tracking-[1px] text-navy lg:text-[72px]">
-				{bat12Config.title}
-			</h1>
-
-			<p class="mb-6 max-w-[460px] text-[18px] leading-[1.45] font-medium text-foreground md:text-[22px]">
-				{bat12Config.description}
-			</p>
-
-			<div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-[16px] font-medium text-foreground/80">
-				<span class="inline-flex items-center gap-2 whitespace-nowrap">
-					<span class="icon-[lucide--clock] h-[19px] w-[19px] text-foreground/45"></span>{bat12Config.time}
-				</span>
-				<span class="h-1 w-1 rounded-full bg-[#d8cfbc]"></span>
-				<span class="whitespace-nowrap">{questionsCount} {questionsLabel(questionsCount)}</span>
-				<span class="h-1 w-1 rounded-full bg-[#d8cfbc]"></span>
-				<span class="inline-flex items-center gap-2 whitespace-nowrap">
-					<span class="icon-[lucide--sparkles] h-[19px] w-[19px] text-primary"></span>Результат сразу
-				</span>
-			</div>
+<AssessmentPage
+	title="Опросник выгорания BAT-12"
+	description="Короткая форма для скрининга и наблюдения за динамикой профессионального выгорания"
+	time="4–6 минут"
+	questions="12 вопросов"
+>
+	{#snippet info()}
+		<p>
+			Границы 2,54 и 2,96 получены прежде всего на работающих выборках Нидерландов, Бельгии и
+			Финляндии. Их можно предварительно применять в сходных европейских популяциях, но это не
+			российские нормы.
+		</p>
+		<p>BAT-12 не устанавливает диагноз без дополнительной информации и клинического интервью.</p>
+	{/snippet}
+	{#if !showResults}
+		<AssessmentWizard
+			step={currentStep + 1}
+			total={questions.length}
+			instruction="Как часто вы испытываете это относительно своей работы?"
+			canGoBack={currentStep > 0}
+			{canGoNext}
+			onback={back}
+			onnext={next}
+			nextLabel={currentStep === questions.length - 1 ? 'Показать результат' : 'Далее'}
+		>
+			<AssessmentQuestion
+				id={currentQuestion.id}
+				number={currentStep + 1}
+				text={currentQuestion.text}
+				{options}
+				value={answers[currentQuestion.id]}
+				onchange={(value) => setAnswer(currentQuestion.id, value)}
+			/>
+		</AssessmentWizard>
+	{:else}
+		<div bind:this={resultSection}>
+			<AssessmentResult
+				value={mean}
+				max={5}
+				decimals={2}
+				severity={result.severity}
+				tone={result.tone}
+				recommendation={result.recommendation}
+				note="Использованы объединённые предварительные пороги исследования 2023 года: 1,00–2,53; 2,54–2,95; 2,96–5,00."
+			>
+				{#snippet actions()}<Button
+						type="button"
+						variant="secondary"
+						onclick={reset}
+						class="bg-primary text-primary-foreground outline-none hover:bg-primary-light"
+						>Пройти заново</Button
+					>{/snippet}
+			</AssessmentResult>
 		</div>
-
-		<!-- иллюстрация: ваза с веточкой -->
-		<div class="hidden items-center justify-center lg:flex">
-			<img src="/vaza.webp" alt="" class="h-auto w-full max-w-[360px]" aria-hidden="true" />
-		</div>
-	</div>
-</section>
-
-<div class="container mx-auto max-w-[720px] lg:max-w-[760px]">
-	<Questionnaire config={bat12Config} />
-</div>
+	{/if}
+</AssessmentPage>

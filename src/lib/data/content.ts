@@ -126,8 +126,8 @@ export const contacts = [
 	}
 ];
 
-type Questionnaire = { title: string; link: string; description: string };
-type Category = { category: string; questionnaires: Questionnaire[], time: string };
+type Questionnaire = { title: string; link: string; description: string; time: string };
+type Category = { category: string; questionnaires: Questionnaire[] };
 
 export const questionnaireCategories: Category[] = [
 	{
@@ -136,13 +136,13 @@ export const questionnaireCategories: Category[] = [
 			{
 				title: 'Опросник депрессивного состояния (PHQ-9)',
 				link: '/questionnaires/phq9',
-				description: 'Опросник для оценки наличия и тяжести депрессивных симптомов.',
+				description: 'Скрининговый опросник для оценки выраженности депрессивных симптомов.',
 				time: '5-7 минут'
 			},
 			{
 				title: 'Опросник генерализованного тревожного расстройства (GAD-7)',
 				link: '/questionnaires/gad7',
-				description: 'Опросник для оценки наличия и тяжести симптомов генерализованной тревоги.',
+				description: 'Скрининговый опросник для оценки выраженности тревожных симптомов.',
 				time: '2-4 минуты'
 			}
 		]
@@ -172,7 +172,7 @@ export const questionnaireCategories: Category[] = [
 				link: '/questionnaires/ips',
 				description:
 					'Короткая шкала для оценки откладывания дел вопреки пониманию негативных последствий.',
-					time: '5-7 минут'
+				time: '5-7 минут'
 			}
 		]
 	},
@@ -190,14 +190,14 @@ export const questionnaireCategories: Category[] = [
 				link: '/questionnaires/bat12',
 				description:
 					'Короткая версия опросника для быстрой оценки и мониторинга профессионального выгорания.',
-					time: '3-5 минут'
+				time: '3-5 минут'
 			},
 			{
-				title: 'Опросник профессионального выгорания (BAT-23)',
+				title: 'Полный опросник выгорания BAT',
 				link: '/questionnaires/bat23',
 				description:
-					'Полная версия опросника для детальной диагностики профессионального выгорания.',
-					time: '5-7 минут'
+					'Официальная рабочая форма из 23 пунктов или отдельная общая форма из 22 пунктов.',
+				time: '5-7 минут'
 			}
 		]
 	}

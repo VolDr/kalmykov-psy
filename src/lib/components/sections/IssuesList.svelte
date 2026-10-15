@@ -8,16 +8,17 @@
 </script>
 
 <div
-	class="m-auto flex max-w-[720px] flex-col items-center gap-10 md:max-w-[760px] lg:max-w-[960px]  scroll-mt-24" id="requests"
+	class="m-auto flex max-w-[720px] scroll-mt-24 flex-col items-center gap-10 md:max-w-[760px] lg:max-w-[960px]"
+	id="requests"
 >
 	<Reveal>
-		<div class="text-center subtitle mx-5">
+		<div class="mx-5 text-center subtitle">
 			Помогаю справляться с тревогой, выгоранием, прокрастинацией и найти путь к жизни, которую вам
 			хочется жить
 		</div>
 	</Reveal>
 
-	<h2 class="subtitle" >c чем ко мне обращаются</h2>
+	<h2 class="subtitle">c чем ко мне обращаются</h2>
 	<div class="grid w-full grid-cols-1 gap-4 px-5 md:grid-cols-2 xl:px-0">
 		{#each items as group}
 			<div class="{group.gridClass} min-h-[220px]">

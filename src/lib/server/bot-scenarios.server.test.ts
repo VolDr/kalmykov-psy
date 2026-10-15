@@ -127,7 +127,11 @@ const mocks = vi.hoisted(() => {
 		const text = sqlText(value);
 		if (text.includes('make_interval')) {
 			const seconds = Number(value.values.at(-1) ?? 0);
-			return iso(new Date(state.now.getTime() + seconds * 1000));
+			const explicitBase = value.values.find(
+				(item) => typeof item === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(item)
+			);
+			const base = explicitBase ? new Date(explicitBase) : state.now;
+			return iso(new Date(base.getTime() + seconds * 1000));
 		}
 		// Захват шага в processDueScheduledSteps: now() + interval '10 minutes'
 		if (text.includes("interval '10 minutes'")) {
@@ -565,6 +569,7 @@ vi.mock('grammy', () => {
 
 import { GrammyError } from 'grammy';
 import {
+	cancelScheduledLaunch,
 	deleteStepAndRepointQueue,
 	findTriggeredScenarios,
 	handleSubscriptionGateCallback,
@@ -1537,6 +1542,22 @@ describe('launchScenarioForSegment', () => {
 		expect(mocks.state.broadcastRuns[0].matchedCount).toBe(2);
 	});
 
+	it('fixes recipients now and schedules the first step from the requested launch time', async () => {
+		const firstStep = step({ id: 200, scenarioId: 50, position: 0, delaySeconds: 120 });
+		mocks.state.scenarios.push(scenario({ id: 50 }));
+		mocks.state.steps.push(firstStep);
+		mocks.state.contacts.push(contact({ id: 1, botBlocked: false }));
+
+		await launchScenarioForSegment(
+			50,
+			{ requireTags: [], excludeTags: [] },
+			new Date('2026-01-02T07:00:00.000Z')
+		);
+
+		expect(mocks.state.scheduled).toHaveLength(1);
+		expect(mocks.state.scheduled[0].scheduledAt).toBe('2026-01-02T07:02:00.000Z');
+	});
+
 	it('cancels previous pending steps for the scenario before scheduling new ones', async () => {
 		const firstStep = step({ id: 200, scenarioId: 50, position: 0 });
 		const user1 = contact({ id: 1, botBlocked: false });
@@ -1705,6 +1726,31 @@ describe('launchScenarioForSegment', () => {
 			excludeTags: [],
 			matchedCount: 0
 		});
+	});
+});
+
+describe('cancelScheduledLaunch', () => {
+	beforeEach(() => {
+		mocks.reset();
+	});
+
+	it('cancels only the selected launch time of the selected scenario', async () => {
+		mocks.state.scheduled.push(
+			scheduled({ id: 1, scenarioId: 50, stepId: 200, scheduledAt: '2026-01-02T07:00:00.000Z' }),
+			scheduled({ id: 2, scenarioId: 50, stepId: 200, scheduledAt: '2026-01-02T07:00:00.000Z' }),
+			scheduled({ id: 3, scenarioId: 50, stepId: 200, scheduledAt: '2026-01-03T07:00:00.000Z' }),
+			scheduled({ id: 4, scenarioId: 60, stepId: 300, scheduledAt: '2026-01-02T07:00:00.000Z' })
+		);
+
+		const count = await cancelScheduledLaunch(50, 200, '2026-01-02T07:00:00.000Z');
+
+		expect(count).toBe(2);
+		expect(mocks.state.scheduled.map((item) => item.status)).toEqual([
+			'cancelled',
+			'cancelled',
+			'pending',
+			'pending'
+		]);
 	});
 });
 

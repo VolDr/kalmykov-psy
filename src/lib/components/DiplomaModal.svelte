@@ -3,7 +3,10 @@
 	import { cn } from '$lib/utils';
 	import { swipe } from '$lib/actions/swipe';
 
-	function pageSlide(_node: Element, { dir = 1, skip = false }: { dir?: number; skip?: boolean } = {}) {
+	function pageSlide(
+		_node: Element,
+		{ dir = 1, skip = false }: { dir?: number; skip?: boolean } = {}
+	) {
 		if (skip) return { duration: 0, css: () => '' };
 		const s = getComputedStyle(document.documentElement);
 		const dur = parseFloat(s.getPropertyValue('--page-slide-dur')) || 200;
@@ -145,7 +148,11 @@
 {#if isVisible && diplomas.length > 0}
 	<!-- Backdrop -->
 	<div
-		class={cn('t-backdrop fixed inset-0 z-50 bg-black/67', isOpenClass && 'is-open', isClosingClass && 'is-closing')}
+		class={cn(
+			't-backdrop fixed inset-0 z-50 bg-black/67',
+			isOpenClass && 'is-open',
+			isClosingClass && 'is-closing'
+		)}
 		onclick={close}
 		onkeydown={(e) => e.key === 'Escape' && close()}
 		role="button"
@@ -156,7 +163,11 @@
 		<div class="flex min-h-screen items-center justify-center p-4">
 			<!-- Modal content -->
 			<div
-				class={cn('t-modal relative flex flex-col gap-6', isOpenClass && 'is-open', isClosingClass && 'is-closing')}
+				class={cn(
+					't-modal relative flex flex-col gap-6',
+					isOpenClass && 'is-open',
+					isClosingClass && 'is-closing'
+				)}
 				use:swipe={{ onSwipeLeft: goToNext, onSwipeRight: goToPrevious }}
 				role="dialog"
 				aria-modal="true"
@@ -230,7 +241,9 @@
 						<!-- Loading spinner -->
 						{#if !loadedImages.has(currentDiploma.imageUrl)}
 							<div class="pointer-events-none absolute inset-0 flex items-center justify-center">
-								<div class="h-12 w-12 animate-spin rounded-full border-b-2 border-primary-light"></div>
+								<div
+									class="h-12 w-12 animate-spin rounded-full border-b-2 border-primary-light"
+								></div>
 							</div>
 						{/if}
 					</div>

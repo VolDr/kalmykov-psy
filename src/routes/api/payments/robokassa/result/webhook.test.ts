@@ -50,7 +50,9 @@ describe('POST /api/payments/robokassa/result', () => {
 	});
 
 	it('returns 400 when InvId is not a valid integer ("abc")', async () => {
-		const res = await POST(makeFormRequest({ InvId: 'abc', OutSum: '4000.00', SignatureValue: 'sig' }));
+		const res = await POST(
+			makeFormRequest({ InvId: 'abc', OutSum: '4000.00', SignatureValue: 'sig' })
+		);
 		expect(res.status).toBe(400);
 	});
 
@@ -58,7 +60,9 @@ describe('POST /api/payments/robokassa/result', () => {
 
 	it('returns 400 when markPaid rejects the signature', async () => {
 		mockMarkPaid.mockResolvedValueOnce(false);
-		const res = await POST(makeFormRequest({ InvId: '42', OutSum: '4000.00', SignatureValue: 'badsig' }));
+		const res = await POST(
+			makeFormRequest({ InvId: '42', OutSum: '4000.00', SignatureValue: 'badsig' })
+		);
 		expect(res.status).toBe(400);
 	});
 
@@ -68,7 +72,9 @@ describe('POST /api/payments/robokassa/result', () => {
 		mockMarkPaid.mockResolvedValueOnce(true);
 		mockConfirm.mockResolvedValueOnce('confirmed');
 
-		const res = await POST(makeFormRequest({ InvId: '42', OutSum: '4000.00', SignatureValue: 'sig' }));
+		const res = await POST(
+			makeFormRequest({ InvId: '42', OutSum: '4000.00', SignatureValue: 'sig' })
+		);
 		expect(res.status).toBe(200);
 		expect(await res.text()).toBe('OK42');
 	});
@@ -77,7 +83,9 @@ describe('POST /api/payments/robokassa/result', () => {
 		mockMarkPaid.mockResolvedValueOnce(true);
 		mockConfirm.mockResolvedValueOnce('slot_taken');
 
-		const res = await POST(makeFormRequest({ InvId: '7', OutSum: '4000.00', SignatureValue: 'sig' }));
+		const res = await POST(
+			makeFormRequest({ InvId: '7', OutSum: '4000.00', SignatureValue: 'sig' })
+		);
 		expect(res.status).toBe(200);
 		expect(await res.text()).toBe('OK7');
 	});
@@ -86,7 +94,9 @@ describe('POST /api/payments/robokassa/result', () => {
 		mockMarkPaid.mockResolvedValueOnce(true);
 		mockConfirm.mockResolvedValueOnce('not_found');
 
-		const res = await POST(makeFormRequest({ InvId: '99', OutSum: '4000.00', SignatureValue: 'sig' }));
+		const res = await POST(
+			makeFormRequest({ InvId: '99', OutSum: '4000.00', SignatureValue: 'sig' })
+		);
 		expect(res.status).toBe(200);
 		expect(await res.text()).toBe('OK99');
 	});

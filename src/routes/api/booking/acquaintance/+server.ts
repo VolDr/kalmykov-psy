@@ -39,7 +39,8 @@ export const POST: RequestHandler = async ({ request, getClientAddress }) => {
 
 	// Parse sbClientId (id контакта нашего бота) — optional, skip bot trigger if absent or invalid
 	const sbClientIdNum =
-		rawSbClientId != null && (typeof rawSbClientId === 'number' || typeof rawSbClientId === 'string')
+		rawSbClientId != null &&
+		(typeof rawSbClientId === 'number' || typeof rawSbClientId === 'string')
 			? Number(rawSbClientId)
 			: null;
 	const validSbClientId =

@@ -5,9 +5,9 @@
 	import { faqItems } from '$lib/data/faq';
 </script>
 
-<div class="flex w-full flex-col items-center gap-2.5 md:gap-3.5 scroll-mt-24" id="faq">
+<div class="flex w-full scroll-mt-24 flex-col items-center gap-2.5 md:gap-3.5" id="faq">
 	<Reveal>
-		<h2 class="subtitle scroll-mt-24" ><a href="#faq">вопрос — ответ</a></h2>
+		<h2 class="scroll-mt-24 subtitle"><a href="#faq">вопрос — ответ</a></h2>
 	</Reveal>
 
 	<div class="grid min-w-full grid-cols-1 gap-5 sm:grid-cols-1">

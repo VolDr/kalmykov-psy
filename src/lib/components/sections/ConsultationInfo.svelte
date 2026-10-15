@@ -12,9 +12,9 @@
 	</Reveal>
 
 	<Reveal class="flex w-full max-w-[600px] flex-col items-center">
-		<h2 class="subtitle min-w-max">стоимость и формат консультаций</h2>
+		<h2 class="min-w-max subtitle">стоимость и формат консультаций</h2>
 
-		<div class="flex flex-col items-center mx-8 mt-8 text-center">
+		<div class="mx-8 mt-8 flex flex-col items-center text-center">
 			<ul class="mb-8 flex flex-col gap-3">
 				<li class="flex items-center gap-3 text-gray-700">
 					<span class="icon-[lucide--piggy-bank] h-5 w-5 text-primary"></span>

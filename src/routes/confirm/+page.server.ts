@@ -4,53 +4,56 @@ import { subscriberService } from '$lib/server/subscriber.server';
 const MAILOPOST_LIST_ID = '742243';
 
 export async function load({ url }) {
-    const token = url.searchParams.get('token');
-    
-    console.log('LOAD: Token from URL:', token);
+	const token = url.searchParams.get('token');
 
-    if (!token) {
-        console.log('LOAD: No token provided');
-        return { success: false, message: 'Ссылка недействительна или устарела.' };
-    }
+	console.log('LOAD: Token from URL:', token);
 
-    try {
-        const result = await subscriberService.confirmByToken(token);
-        
-        console.log('LOAD: Result from confirmByToken:', result);
+	if (!token) {
+		console.log('LOAD: No token provided');
+		return { success: false, message: 'Ссылка недействительна или устарела.' };
+	}
 
-        if (!result.record) {
-            console.log('LOAD: Record is null');
-            return { success: false, message: 'Произошла ошибка или подписка уже подтверждена.' };
-        }
+	try {
+		const result = await subscriberService.confirmByToken(token);
 
-        if (result.isNew) {
-            const email = result.record.email;
-            console.log('LOAD: Sending to Mailopost:', email);
+		console.log('LOAD: Result from confirmByToken:', result);
 
-            const subscribeResponse = await fetch(`https://api.mailopost.ru/v1/email/lists/${MAILOPOST_LIST_ID}/recipients`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${MAILOPOST_API_TOKEN}`
-                },
-                body: JSON.stringify({ email: email }) 
-            });
+		if (!result.record) {
+			console.log('LOAD: Record is null');
+			return { success: false, message: 'Произошла ошибка или подписка уже подтверждена.' };
+		}
 
-            console.log('LOAD: Mailopost status:', subscribeResponse.status);
+		if (result.isNew) {
+			const email = result.record.email;
+			console.log('LOAD: Sending to Mailopost:', email);
 
-            if (!subscribeResponse.ok) {
-                const errorDetails = await subscribeResponse.text();
-                console.error('LOAD: Mailopost error:', errorDetails);
-                throw new Error('Ошибка добавления в список рассылки');
-            }
-        } else {
-            console.log('LOAD: isNew is false, skipping Mailopost');
-        }
+			const subscribeResponse = await fetch(
+				`https://api.mailopost.ru/v1/email/lists/${MAILOPOST_LIST_ID}/recipients`,
+				{
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+						Authorization: `Bearer ${MAILOPOST_API_TOKEN}`
+					},
+					body: JSON.stringify({ email: email })
+				}
+			);
 
-        return { success: true };
-    } catch (error) {
-        console.error('LOAD: Error caught:', error);
-        const message = error instanceof Error ? error.message : 'Неизвестная ошибка сервера';
-        return { success: false, message };
-    }
+			console.log('LOAD: Mailopost status:', subscribeResponse.status);
+
+			if (!subscribeResponse.ok) {
+				const errorDetails = await subscribeResponse.text();
+				console.error('LOAD: Mailopost error:', errorDetails);
+				throw new Error('Ошибка добавления в список рассылки');
+			}
+		} else {
+			console.log('LOAD: isNew is false, skipping Mailopost');
+		}
+
+		return { success: true };
+	} catch (error) {
+		console.error('LOAD: Error caught:', error);
+		const message = error instanceof Error ? error.message : 'Неизвестная ошибка сервера';
+		return { success: false, message };
+	}
 }

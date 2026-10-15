@@ -51,5 +51,6 @@
 		oncomplete={handleComplete}
 		autoScrollToResults={!toAcquaintance}
 		{sbClientId}
+		showTelegramQuestions
 	/>
 </div>

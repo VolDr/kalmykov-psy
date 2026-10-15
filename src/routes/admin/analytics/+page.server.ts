@@ -1,28 +1,24 @@
-
 import { desc, sql, count } from 'drizzle-orm';
 import { analyticsEvents } from '../../../db/schema';
 import { db } from '../../..';
 
 export async function load() {
+	const topGoals = await db
+		.select({
+			goal: analyticsEvents.goal,
+			total: count()
+		})
+		.from(analyticsEvents)
+		.groupBy(analyticsEvents.goal)
+		.orderBy(desc(count()));
 
-  const topGoals = await db
-    .select({
-      goal:  analyticsEvents.goal,
-      total: count()
-    })
-    .from(analyticsEvents)
-    .groupBy(analyticsEvents.goal)
-    .orderBy(desc(count()));
+	const recent = await db
+		.select()
+		.from(analyticsEvents)
+		.orderBy(desc(analyticsEvents.createdAt))
+		.limit(50);
 
-
-  const recent = await db
-    .select()
-    .from(analyticsEvents)
-    .orderBy(desc(analyticsEvents.createdAt))
-    .limit(50);
-
-
-  const byDay = await db.execute(sql`
+	const byDay = await db.execute(sql`
     select
       date_trunc('day', created_at) as day,
       goal,
@@ -33,5 +29,5 @@ export async function load() {
     order by 1
   `);
 
-  return { topGoals, recent, byDay: byDay.rows };
+	return { topGoals, recent, byDay: byDay.rows };
 }

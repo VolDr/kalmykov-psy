@@ -247,9 +247,8 @@
 			<div class="h-px w-full bg-[#d8cfbc]"></div>
 
 			<div>
-				<span class="font-caveat text-[26px] font-bold text-primary">готово</span>
 				<h2
-					class="mt-1 text-[28px] leading-tight font-extrabold tracking-[-0.5px] text-navy md:text-[34px]"
+					class="text-[28px] leading-tight font-extrabold tracking-[-0.5px] text-navy md:text-[34px]"
 				>
 					Результаты оценки
 				</h2>

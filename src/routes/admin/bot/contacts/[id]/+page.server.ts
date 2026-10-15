@@ -24,7 +24,7 @@ async function loadContactOr404(id: number) {
 	return contact;
 }
 
-export const load: PageServerLoad = async ({ params }) => {
+export const load: PageServerLoad = async ({ params, url }) => {
 	const id = parseInt(params.id, 10);
 	if (isNaN(id)) throw error(404, 'Контакт не найден');
 
@@ -53,7 +53,12 @@ export const load: PageServerLoad = async ({ params }) => {
 		)
 		.orderBy(asc(schema.botScheduledSteps.scheduledAt));
 
-	return { contact, messages, pendingSteps };
+	return {
+		contact,
+		messages,
+		pendingSteps,
+		fromArchive: url.searchParams.get('from') === 'archive'
+	};
 };
 
 export const actions = {
@@ -96,6 +101,12 @@ export const actions = {
 		}
 
 		const contact = await loadContactOr404(id);
+		if (contact.botBlocked) {
+			return fail(409, {
+				replyError:
+					'Контакт в архиве: Telegram не разрешает отправку. Контакт вернётся после нового /start.'
+			});
+		}
 
 		let sentMessageId: number;
 		try {

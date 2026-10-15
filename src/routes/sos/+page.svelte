@@ -35,7 +35,7 @@
 />
 
 <div class="container mx-auto mt-10 max-w-[720px] px-5 lg:max-w-[960px] xl:px-0">
-	<div class="grid w-full grid-cols-1 gap-4 sm:grid-cols-2 xl:px-0 lg:grid-cols-3">
+	<div class="grid w-full grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:px-0">
 		{#each contacts as group}
 			<div class=" min-h-[220px]">
 				<div class="flex h-full min-h-[180px] flex-col justify-end rounded-lg bg-background p-6">

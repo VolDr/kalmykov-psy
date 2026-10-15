@@ -28,11 +28,15 @@ describe('generateHourlySlots', () => {
 	});
 
 	it('returns empty array when startAt === endAt', () => {
-		expect(generateHourlySlots('2024-06-01T10:00:00.000Z', '2024-06-01T10:00:00.000Z')).toHaveLength(0);
+		expect(
+			generateHourlySlots('2024-06-01T10:00:00.000Z', '2024-06-01T10:00:00.000Z')
+		).toHaveLength(0);
 	});
 
 	it('returns empty array when startAt > endAt', () => {
-		expect(generateHourlySlots('2024-06-01T11:00:00.000Z', '2024-06-01T10:00:00.000Z')).toHaveLength(0);
+		expect(
+			generateHourlySlots('2024-06-01T11:00:00.000Z', '2024-06-01T10:00:00.000Z')
+		).toHaveLength(0);
 	});
 
 	it('rounds UP to next whole hour when startAt has sub-hour time (never generates slot before startAt)', () => {
@@ -75,7 +79,12 @@ vi.mock('./robokassa.server', () => ({
 	createPayment: vi.fn()
 }));
 
-import { createBooking, getAvailabilities, releaseExpiredLocks, confirmByPaymentId } from './booking.server';
+import {
+	createBooking,
+	getAvailabilities,
+	releaseExpiredLocks,
+	confirmByPaymentId
+} from './booking.server';
 import { db } from '../..';
 import { createPayment } from './robokassa.server';
 
@@ -137,7 +146,13 @@ describe('createBooking — basic validation', () => {
 		vi.mocked(db.select).mockReturnValue(selectMock([]) as never);
 
 		await expect(
-			createBooking({ availabilityId: 999, bookedAt: SLOT_AT, email: 'a@b.com', clientName: 'A', originUrl: 'http://localhost' })
+			createBooking({
+				availabilityId: 999,
+				bookedAt: SLOT_AT,
+				email: 'a@b.com',
+				clientName: 'A',
+				originUrl: 'http://localhost'
+			})
 		).rejects.toThrow('Слот не найден');
 	});
 
@@ -145,7 +160,13 @@ describe('createBooking — basic validation', () => {
 		vi.mocked(db.select).mockReturnValue(selectMock([AVAIL]) as never);
 
 		await expect(
-			createBooking({ availabilityId: 1, bookedAt: '2024-06-01T06:00:00.000Z', email: 'a@b.com', clientName: 'A', originUrl: 'http://localhost' })
+			createBooking({
+				availabilityId: 1,
+				bookedAt: '2024-06-01T06:00:00.000Z',
+				email: 'a@b.com',
+				clientName: 'A',
+				originUrl: 'http://localhost'
+			})
 		).rejects.toThrow('Час вне диапазона доступности');
 	});
 
@@ -153,7 +174,13 @@ describe('createBooking — basic validation', () => {
 		vi.mocked(db.select).mockReturnValue(selectMock([AVAIL]) as never);
 
 		await expect(
-			createBooking({ availabilityId: 1, bookedAt: '2024-06-01T15:00:00.000Z', email: 'a@b.com', clientName: 'A', originUrl: 'http://localhost' })
+			createBooking({
+				availabilityId: 1,
+				bookedAt: '2024-06-01T15:00:00.000Z',
+				email: 'a@b.com',
+				clientName: 'A',
+				originUrl: 'http://localhost'
+			})
 		).rejects.toThrow('Час вне диапазона доступности');
 	});
 
@@ -161,19 +188,31 @@ describe('createBooking — basic validation', () => {
 		vi.mocked(db.select).mockReturnValue(selectMock([AVAIL]) as never);
 
 		await expect(
-			createBooking({ availabilityId: 1, bookedAt: '2024-06-01T10:30:00.000Z', email: 'a@b.com', clientName: 'A', originUrl: 'http://localhost' })
+			createBooking({
+				availabilityId: 1,
+				bookedAt: '2024-06-01T10:30:00.000Z',
+				email: 'a@b.com',
+				clientName: 'A',
+				originUrl: 'http://localhost'
+			})
 		).rejects.toThrow('Некорректное время слота');
 	});
 
-	it('throws when slot is within the 24-hour booking buffer (23.5h away)', async () => {
+	it('throws when slot is within the 10-hour booking buffer (9.5h away)', async () => {
 		// SLOT_AT = 2024-06-01T10:00:00.000Z
-		// Freeze to 23.5h before slot: 2024-05-31T10:30:00.000Z
-		vi.setSystemTime(new Date('2024-05-31T10:30:00.000Z'));
+		// Freeze to 9.5h before slot: 2024-06-01T00:30:00.000Z
+		vi.setSystemTime(new Date('2024-06-01T00:30:00.000Z'));
 		vi.mocked(db.select).mockReturnValue(selectMock([AVAIL]) as never);
 
 		await expect(
-			createBooking({ availabilityId: 1, bookedAt: SLOT_AT, email: 'a@b.com', clientName: 'A', originUrl: 'http://localhost' })
-		).rejects.toThrow('Забронировать можно минимум за 24 часа до начала');
+			createBooking({
+				availabilityId: 1,
+				bookedAt: SLOT_AT,
+				email: 'a@b.com',
+				clientName: 'A',
+				originUrl: 'http://localhost'
+			})
+		).rejects.toThrow('Забронировать можно минимум за 10 часов до начала');
 	});
 });
 
@@ -189,8 +228,8 @@ describe('createBooking — business flow', () => {
 		vi.setSystemTime(FROZEN_NOW);
 
 		vi.mocked(db.select)
-			.mockReturnValueOnce(selectMock([AVAIL]) as never)  // get availability
-			.mockReturnValueOnce(selectMock([]) as never);       // check existing booking
+			.mockReturnValueOnce(selectMock([AVAIL]) as never) // get availability
+			.mockReturnValueOnce(selectMock([]) as never); // check existing booking
 
 		vi.mocked(db.update).mockReturnValue(updateMock() as never); // cancel expired
 		vi.mocked(db.insert).mockReturnValue(insertMock([{ id: 42 }]) as never);
@@ -212,14 +251,26 @@ describe('createBooking — business flow', () => {
 		vi.mocked(db.update).mockReturnValue(updateMock() as never);
 
 		await expect(
-			createBooking({ availabilityId: 1, bookedAt: SLOT_AT, email: 'a@b.com', clientName: 'A', originUrl: 'http://localhost' })
+			createBooking({
+				availabilityId: 1,
+				bookedAt: SLOT_AT,
+				email: 'a@b.com',
+				clientName: 'A',
+				originUrl: 'http://localhost'
+			})
 		).rejects.toThrow('Слот уже занят');
 	});
 
 	it('calls insert and createPayment on success (single update for expired lock)', async () => {
 		setupHappyPath();
 
-		await createBooking({ availabilityId: 1, bookedAt: SLOT_AT, email: 'a@b.com', clientName: 'A', originUrl: 'http://localhost' });
+		await createBooking({
+			availabilityId: 1,
+			bookedAt: SLOT_AT,
+			email: 'a@b.com',
+			clientName: 'A',
+			originUrl: 'http://localhost'
+		});
 
 		expect(createPayment).toHaveBeenCalledTimes(1);
 		expect(db.insert).toHaveBeenCalledTimes(1);
@@ -240,7 +291,13 @@ describe('createBooking — business flow', () => {
 		vi.mocked(createPayment).mockRejectedValue(new Error('Robokassa down'));
 
 		await expect(
-			createBooking({ availabilityId: 1, bookedAt: SLOT_AT, email: 'a@b.com', clientName: 'A', originUrl: 'http://localhost' })
+			createBooking({
+				availabilityId: 1,
+				bookedAt: SLOT_AT,
+				email: 'a@b.com',
+				clientName: 'A',
+				originUrl: 'http://localhost'
+			})
 		).rejects.toThrow('Robokassa down');
 
 		// Payment failed before insert — no booking record, no need for cleanup
@@ -263,8 +320,8 @@ describe('getAvailabilities — slot statuses', () => {
 
 	function setupAvailabilities(bookings: unknown[]) {
 		vi.mocked(db.select)
-			.mockReturnValueOnce(selectMock([AV]) as never)       // getAvailabilities avails query
-			.mockReturnValueOnce(selectMock(bookings) as never);  // activeBookings query
+			.mockReturnValueOnce(selectMock([AV]) as never) // getAvailabilities avails query
+			.mockReturnValueOnce(selectMock(bookings) as never); // activeBookings query
 	}
 
 	it('all slots available when no bookings', async () => {
@@ -274,7 +331,9 @@ describe('getAvailabilities — slot statuses', () => {
 	});
 
 	it('slot is booked when confirmed booking exists', async () => {
-		setupAvailabilities([{ availabilityId: 1, bookedAt: S2, status: 'confirmed', lockedUntil: null }]);
+		setupAvailabilities([
+			{ availabilityId: 1, bookedAt: S2, status: 'confirmed', lockedUntil: null }
+		]);
 		const result = await getAvailabilities();
 		const statuses = Object.fromEntries(result[0].slots.map((s) => [s.startAt, s.status]));
 		expect(statuses[S1]).toBe('available');
@@ -284,14 +343,20 @@ describe('getAvailabilities — slot statuses', () => {
 
 	it('slot is locked when pending_payment with future lockedUntil', async () => {
 		const futureLockedUntil = new Date(Date.now() + 10 * 60 * 1000).toISOString();
-		setupAvailabilities([{ availabilityId: 1, bookedAt: S1, status: 'pending_payment', lockedUntil: futureLockedUntil }]);
+		setupAvailabilities([
+			{ availabilityId: 1, bookedAt: S1, status: 'pending_payment', lockedUntil: futureLockedUntil }
+		]);
 		const result = await getAvailabilities();
 		expect(result[0].slots.find((s) => s.startAt === S1)?.status).toBe('locked');
 	});
 
-	it('excludes past slots and slots within 24-hour booking buffer', async () => {
+	it('excludes past slots and slots within 10-hour booking buffer', async () => {
 		// Wide availability: June 1 09:00 → June 3 14:00 UTC
-		const WIDE_AV = { id: 1, startAt: '2030-06-01T09:00:00.000Z', endAt: '2030-06-03T14:00:00.000Z' };
+		const WIDE_AV = {
+			id: 1,
+			startAt: '2030-06-01T09:00:00.000Z',
+			endAt: '2030-06-03T14:00:00.000Z'
+		};
 		// Freeze to 2030-06-01T11:30 UTC
 		vi.setSystemTime(new Date('2030-06-01T11:30:00.000Z').getTime());
 		vi.mocked(db.select)
@@ -304,18 +369,18 @@ describe('getAvailabilities — slot statuses', () => {
 		// Past → excluded
 		expect(startTimes).not.toContain('2030-06-01T10:00:00.000Z');
 		expect(startTimes).not.toContain('2030-06-01T11:00:00.000Z');
-		// Within 24h buffer (< 24h from 11:30 June 1) → excluded
-		expect(startTimes).not.toContain('2030-06-02T11:00:00.000Z'); // 23.5h away
-		// Outside buffer (> 24h from 11:30 June 1) → included
-		expect(startTimes).toContain('2030-06-02T12:00:00.000Z'); // 24.5h away ✓
+		// Within 10h buffer (< 10h from 11:30 June 1) → excluded
+		expect(startTimes).not.toContain('2030-06-01T21:00:00.000Z'); // 9.5h away
+		// Outside buffer (> 10h from 11:30 June 1) → included
+		expect(startTimes).toContain('2030-06-01T22:00:00.000Z'); // 10.5h away ✓
 
 		vi.useRealTimers();
 	});
 
-	it('excludes a slot at exactly the 24-hour boundary (filter is strictly >)', async () => {
+	it('excludes a slot at exactly the 10-hour boundary (filter is strictly >)', async () => {
 		// Freeze to 2030-06-01T10:00:00.000Z
-		// Slot at exactly now + 24h = 2030-06-02T10:00:00.000Z → NOT strictly greater → excluded
-		// Slot at now + 25h = 2030-06-02T11:00:00.000Z → strictly greater → included
+		// Slot at exactly now + 10h = 2030-06-01T20:00:00.000Z → NOT strictly greater → excluded
+		// Slot at now + 11h = 2030-06-01T21:00:00.000Z → strictly greater → included
 		const BOUNDARY_AV = {
 			id: 1,
 			startAt: '2030-06-01T10:00:00.000Z',
@@ -329,8 +394,8 @@ describe('getAvailabilities — slot statuses', () => {
 		const result = await getAvailabilities();
 		const startTimes = result[0].slots.map((s) => s.startAt);
 
-		expect(startTimes).not.toContain('2030-06-02T10:00:00.000Z'); // exactly 24h → excluded
-		expect(startTimes).toContain('2030-06-02T11:00:00.000Z');      // 25h → included ✓
+		expect(startTimes).not.toContain('2030-06-01T20:00:00.000Z'); // exactly 10h → excluded
+		expect(startTimes).toContain('2030-06-01T21:00:00.000Z'); // 11h → included ✓
 
 		vi.useRealTimers();
 	});
@@ -389,7 +454,9 @@ describe('confirmByPaymentId', () => {
 
 	it('confirms a pending_payment booking', async () => {
 		vi.mocked(db.select).mockReturnValue(
-			selectMock([{ id: 5, status: 'pending_payment', availabilityId: 1, bookedAt: SLOT_AT }]) as never
+			selectMock([
+				{ id: 5, status: 'pending_payment', availabilityId: 1, bookedAt: SLOT_AT }
+			]) as never
 		);
 		const result = await confirmByPaymentId(1);
 		expect(result).toBe('confirmed');
@@ -398,7 +465,9 @@ describe('confirmByPaymentId', () => {
 
 	it('confirms a cancelled booking if slot is still free', async () => {
 		vi.mocked(db.select)
-			.mockReturnValueOnce(selectMock([{ id: 5, status: 'cancelled', availabilityId: 1, bookedAt: SLOT_AT }]) as never)
+			.mockReturnValueOnce(
+				selectMock([{ id: 5, status: 'cancelled', availabilityId: 1, bookedAt: SLOT_AT }]) as never
+			)
 			.mockReturnValueOnce(selectMock([]) as never); // no conflict
 		const result = await confirmByPaymentId(1);
 		expect(result).toBe('confirmed');
@@ -406,7 +475,9 @@ describe('confirmByPaymentId', () => {
 
 	it('returns slot_taken and sets requires_refund if cancelled and slot confirmed by someone else', async () => {
 		vi.mocked(db.select)
-			.mockReturnValueOnce(selectMock([{ id: 5, status: 'cancelled', availabilityId: 1, bookedAt: SLOT_AT }]) as never)
+			.mockReturnValueOnce(
+				selectMock([{ id: 5, status: 'cancelled', availabilityId: 1, bookedAt: SLOT_AT }]) as never
+			)
 			.mockReturnValueOnce(selectMock([{ id: 9, status: 'confirmed' }]) as never); // conflict!
 
 		const updateSpy = vi.mocked(db.update) as Mock;
@@ -431,7 +502,9 @@ describe('confirmByPaymentId', () => {
 		// Booking is still pending_payment when we read it, but the UPDATE returns 0 rows
 		// (another webhook confirmed it between our SELECT and UPDATE)
 		vi.mocked(db.select).mockReturnValue(
-			selectMock([{ id: 5, status: 'pending_payment', availabilityId: 1, bookedAt: SLOT_AT }]) as never
+			selectMock([
+				{ id: 5, status: 'pending_payment', availabilityId: 1, bookedAt: SLOT_AT }
+			]) as never
 		);
 		// Optimistic UPDATE returns 0 rows → already_confirmed
 		vi.mocked(db.update).mockReturnValue(updateMock([]) as never);
@@ -442,8 +515,14 @@ describe('confirmByPaymentId', () => {
 
 	it('returns slot_taken when conflict is a pending_payment with active lock', async () => {
 		vi.mocked(db.select)
-			.mockReturnValueOnce(selectMock([{ id: 5, status: 'cancelled', availabilityId: 1, bookedAt: SLOT_AT }]) as never)
-			.mockReturnValueOnce(selectMock([{ id: 9, status: 'pending_payment', lockedUntil: '3000-01-01T00:00:00.000Z' }]) as never);
+			.mockReturnValueOnce(
+				selectMock([{ id: 5, status: 'cancelled', availabilityId: 1, bookedAt: SLOT_AT }]) as never
+			)
+			.mockReturnValueOnce(
+				selectMock([
+					{ id: 9, status: 'pending_payment', lockedUntil: '3000-01-01T00:00:00.000Z' }
+				]) as never
+			);
 
 		const updateSpy = vi.mocked(db.update) as Mock;
 		let capturedStatus: string | undefined;
@@ -486,7 +565,13 @@ describe('createBooking — MSK timezone in description', () => {
 			fields: { InvId: '99', MerchantLogin: 'test', OutSum: '4000.00', SignatureValue: 'abc' }
 		} as never);
 
-		await createBooking({ availabilityId: 1, bookedAt: SLOT_AT, email: 'a@b.com', clientName: 'A', originUrl: 'http://localhost' });
+		await createBooking({
+			availabilityId: 1,
+			bookedAt: SLOT_AT,
+			email: 'a@b.com',
+			clientName: 'A',
+			originUrl: 'http://localhost'
+		});
 
 		expect(mockCreate).toHaveBeenCalledWith(
 			expect.objectContaining({ description: 'Консультация' })
@@ -521,12 +606,20 @@ describe('createBooking — race condition', () => {
 		// ...but insert throws unique constraint violation (concurrent request snuck in)
 		vi.mocked(db.insert).mockReturnValue({
 			values: vi.fn().mockReturnValue({
-				returning: vi.fn().mockRejectedValue(new Error('duplicate key value violates unique constraint'))
+				returning: vi
+					.fn()
+					.mockRejectedValue(new Error('duplicate key value violates unique constraint'))
 			})
 		} as never);
 
 		await expect(
-			createBooking({ availabilityId: 1, bookedAt: SLOT_AT, email: 'a@b.com', clientName: 'A', originUrl: 'http://localhost' })
+			createBooking({
+				availabilityId: 1,
+				bookedAt: SLOT_AT,
+				email: 'a@b.com',
+				clientName: 'A',
+				originUrl: 'http://localhost'
+			})
 		).rejects.toThrow('Слот уже занят');
 	});
 });

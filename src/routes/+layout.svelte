@@ -19,23 +19,25 @@
 	let isquestionnaires = $derived(data.pathname == '/questionnaires');
 	let isArticles = $derived(data.pathname == '/articles');
 	let isLoginRoute = $derived(data.pathname === '/login');
-	let isUsefulRoute = $derived(data.pathname?.startsWith('/useful'))
+	let isUsefulRoute = $derived(data.pathname?.startsWith('/useful'));
 	let isPlayRoute = $derived(data.pathname?.startsWith('/play'));
-	let isAdRoute = $derived(data.pathname?.startsWith('/ads') || data.pathname?.startsWith('/play'))
-	let isLegalRoute = $derived(data.pathname === '/oferta' || data.pathname === '/privacy')
+	let isAdRoute = $derived(data.pathname?.startsWith('/ads') || data.pathname?.startsWith('/play'));
+	let isLegalRoute = $derived(data.pathname === '/oferta' || data.pathname === '/privacy');
 	let burnoutQuestionnaireRoute = $derived(data.pathname === '/useful/burnout-questionnaire');
 
 	let isPaymentResult = $derived(
 		data.pathname?.startsWith('/payment/success') ||
-		data.pathname?.startsWith('/payment/fail') ||
-		data.pathname?.startsWith('/booking/success') ||
-		data.pathname?.startsWith('/booking/fail')
+			data.pathname?.startsWith('/payment/fail') ||
+			data.pathname?.startsWith('/booking/success') ||
+			data.pathname?.startsWith('/booking/fail')
 	);
 	// Only hide header/footer for special code pages (like /ABC123), not regular pages
 	let isCodeRoute = $derived(
 		data.pathname &&
 			/^\/[a-zA-Z0-9]+$/.test(data.pathname) &&
-			!data.pathname.match(/^\/(articles|questionnaires|online-therapy|sos|boom|login|logout|lma|info)$/)
+			!data.pathname.match(
+				/^\/(articles|questionnaires|online-therapy|sos|boom|login|logout|lma|info)$/
+			)
 	);
 
 	// Управление overflow для body на странице login
@@ -102,33 +104,33 @@
 			/^172\.(1[6-9]|2\d|3[01])\./.test(mtHost);
 
 		if (!mtIsLocal && !/^\/(admin|play)(\/|$)/.test(window.location.pathname)) {
-		(function (m, e, t, r, i, k, a) {
-			m[i] =
-				m[i] ||
-				function () {
-					(m[i].a = m[i].a || []).push(arguments);
-				};
-			m[i].l = 1 * new Date();
-			for (var j = 0; j < document.scripts.length; j++) {
-				if (document.scripts[j].src === r) {
-					return;
+			(function (m, e, t, r, i, k, a) {
+				m[i] =
+					m[i] ||
+					function () {
+						(m[i].a = m[i].a || []).push(arguments);
+					};
+				m[i].l = 1 * new Date();
+				for (var j = 0; j < document.scripts.length; j++) {
+					if (document.scripts[j].src === r) {
+						return;
+					}
 				}
-			}
-			((k = e.createElement(t)),
-				(a = e.getElementsByTagName(t)[0]),
-				(k.async = 1),
-				(k.src = r),
-				a.parentNode.insertBefore(k, a));
-		})(window, document, 'script', 'https://mc.yandex.ru/metrika/tag.js?id=105424317', 'ym');
+				((k = e.createElement(t)),
+					(a = e.getElementsByTagName(t)[0]),
+					(k.async = 1),
+					(k.src = r),
+					a.parentNode.insertBefore(k, a));
+			})(window, document, 'script', 'https://mc.yandex.ru/metrika/tag.js?id=105424317', 'ym');
 
-		ym(105424317, 'init', {
-			ssr: true,
-			webvisor: true,
-			clickmap: true,
-			ecommerce: 'dataLayer',
-			accurateTrackBounce: true,
-			trackLinks: true
-		});
+			ym(105424317, 'init', {
+				ssr: true,
+				webvisor: true,
+				clickmap: true,
+				ecommerce: 'dataLayer',
+				accurateTrackBounce: true,
+				trackLinks: true
+			});
 		}
 	</script>
 	<noscript

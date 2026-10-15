@@ -132,9 +132,10 @@
 		>
 			<!-- логотип -->
 			<a href="/" class="hide flex shrink-0 items-center gap-3 no-underline select-none">
-
-				<span class="hidden md:flex flex-col leading-none">
-					<span class="font-caveat text-[28px] leading-none font-bold text-navy">Андрей Калмыков</span>
+				<span class="hidden flex-col leading-none md:flex">
+					<span class="font-caveat text-[28px] leading-none font-bold text-navy"
+						>Андрей Калмыков</span
+					>
 					<span class="mt-0.5 text-[11px] tracking-[0.14em] text-muted-foreground lowercase"
 						>психолог-консультант</span
 					>
@@ -159,12 +160,7 @@
 							</a>
 						</li>
 					{/each}
-					<ButtonSvg
-				width="180px" height='40px'
-								href="/booking"
-                           variant="2"
-						>Записаться</ButtonSvg>
-					
+					<ButtonSvg width="180px" height="40px" href="/booking" variant="2">Записаться</ButtonSvg>
 				</ul>
 			</nav>
 		</div>
@@ -176,7 +172,9 @@
 			<div
 				class="mx-auto flex w-full max-w-full justify-end px-5 pt-2 md:max-w-[760px] lg:max-w-[1600px] xl:px-0"
 			>
-				<ul class="m-0 flex list-none items-center gap-7  bg-background/90 backdrop-blur-sm px-2 py-1 rounded-sm">
+				<ul
+					class="m-0 flex list-none items-center gap-7 rounded-sm bg-background/90 px-2 py-1 backdrop-blur-sm"
+				>
 					{#each anchorLinks as anchor}
 						{@const isActive = activeAnchor === anchor.link.replace('/#', '')}
 						<li>
@@ -185,7 +183,7 @@
 								class={cn(
 									'anchor-link relative block py-0.5 text-[14px] whitespace-nowrap transition-colors duration-200',
 									isActive
-										? 'font-bold text-navy active'
+										? 'active font-bold text-navy'
 										: 'font-medium text-muted-foreground hover:text-navy'
 								)}
 							>
@@ -209,11 +207,17 @@
 	<!-- мобильный логотип -->
 	<a
 		href="/"
-		onclick={opened ? (e) => { e.preventDefault(); closeMenu(); } : closeMenu}
+		onclick={opened
+			? (e) => {
+					e.preventDefault();
+					closeMenu();
+				}
+			: closeMenu}
 		class="flex items-center gap-2 no-underline select-none"
 	>
-		
-		<span class="font-caveat text-[24px] leading-none font-bold text-navy">Андрей Калмыков, психолог</span>
+		<span class="font-caveat text-[24px] leading-none font-bold text-navy"
+			>Андрей Калмыков, психолог</span
+		>
 	</a>
 
 	<button
@@ -239,11 +243,18 @@
 	aria-label="Закрыть меню"
 	tabindex={opened ? 0 : -1}
 	aria-hidden={!opened}
-	onclick={(e) => { e.preventDefault(); e.stopPropagation(); closeMenu(); }}
-	ontouchend={(e) => { e.preventDefault(); closeMenu(); }}
+	onclick={(e) => {
+		e.preventDefault();
+		e.stopPropagation();
+		closeMenu();
+	}}
+	ontouchend={(e) => {
+		e.preventDefault();
+		closeMenu();
+	}}
 	onkeydown={handleKeydown}
 	class={cn(
-		'fixed inset-x-0 top-0 z-30 h-dvh bg-black/40 transition-opacity duration-200 md:hidden overscroll-none touch-none',
+		'fixed inset-x-0 top-0 z-30 h-dvh touch-none overscroll-none bg-black/40 transition-opacity duration-200 md:hidden',
 		opened ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
 	)}
 ></button>
@@ -256,8 +267,6 @@
 	class="t-panel-slide-x fixed top-0 right-0 z-40 flex h-dvh w-[84%] max-w-[320px] flex-col bg-background shadow-xl md:hidden"
 	data-open={opened ? 'true' : 'false'}
 >
-
-
 	<nav aria-label="Меню навигации мобильное" class="flex-1 overflow-y-auto px-4">
 		<ul class="mt-14 flex list-none flex-col gap-1 p-0">
 			{#each navigationLinks as link}
@@ -301,12 +310,7 @@
 
 	<!-- кнопка снизу -->
 	<div class="px-4 pt-3 pb-6">
-	<ButtonSvg
-				width="180px" height='40px'
-								href="/booking"
-                           variant="2"
-						>Записаться</ButtonSvg>
-					
+		<ButtonSvg width="180px" height="40px" href="/booking" variant="2">Записаться</ButtonSvg>
 	</div>
 </div>
 

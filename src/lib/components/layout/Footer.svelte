@@ -64,31 +64,46 @@
 		<!-- верх: бренд + рукописный тег -->
 		<div class="mb-12 flex flex-col gap-10 sm:flex-row sm:items-start sm:justify-between lg:mb-16">
 			<div class="flex items-center gap-3.5">
-
-				<div class='relative'>
-					<p class="text-[18px] leading-tight font-extrabold">Андрей Калмыков</p> <img src="/star_1.webp" class="pointer-events-none absolute top-0 right-0 lg:-top-[4%] lg:right-[17%] h-6 w-6 rotate-12 " alt="" aria-hidden="true" />
+				<div class="relative">
+					<p class="text-[18px] leading-tight font-extrabold">Андрей Калмыков</p>
+					<img
+						src="/star_1.webp"
+						class="pointer-events-none absolute top-0 right-0 h-6 w-6 rotate-12 lg:-top-[4%] lg:right-[17%]"
+						alt=""
+						aria-hidden="true"
+					/>
 					<p class="mt-1 text-sm text-white/50">Психолог · Терапия выгорания</p>
 				</div>
 			</div>
-
-
 		</div>
 
 		<!-- колонки -->
-         
-		<div class="mb-12 grid grid-cols-1 gap-10 sm:grid-cols-2 lg:mb-14 lg:grid-cols-[2fr_1fr_1fr]">		<div class="sm:col-span-2 lg:col-span-1">
+
+		<div class="mb-12 grid grid-cols-1 gap-10 sm:grid-cols-2 lg:mb-14 lg:grid-cols-[2fr_1fr_1fr]">
+			<div class="sm:col-span-2 lg:col-span-1">
 				<p class="mb-4 text-xs font-bold tracking-widest text-white/35 uppercase">Рассылка</p>
 				{#if status !== 'success'}
 					<p class="mb-3.5 text-[15px] leading-relaxed text-white/55">
-						Подпишитесь на рассылку, чтобы получать полезные материалы по работе с выгоранием и прокрастинацией
+						Подпишитесь на рассылку, чтобы получать полезные материалы по работе с выгоранием и
+						прокрастинацией
 					</p>
-					<form onsubmit={(e) => { e.preventDefault(); handleSubscribe(); }} novalidate class="flex flex-col gap-3.5">
+					<form
+						onsubmit={(e) => {
+							e.preventDefault();
+							handleSubscribe();
+						}}
+						novalidate
+						class="flex flex-col gap-3.5"
+					>
 						<div class="flex gap-2">
-							<input id="email" type="email" autocomplete="email"
+							<input
+								id="email"
+								type="email"
+								autocomplete="email"
 								bind:value={email}
 								placeholder="Ваша почта"
 								disabled={status === 'loading'}
-								class="min-w-0 flex-1 rounded-lg border border-white/15 bg-white/5 px-3.5 py-2.5 text-sm text-white placeholder:text-white/35 transition-colors focus:border-primary focus:outline-none disabled:opacity-50"
+								class="min-w-0 flex-1 rounded-lg border border-white/15 bg-white/5 px-3.5 py-2.5 text-sm text-white transition-colors placeholder:text-white/35 focus:border-primary focus:outline-none disabled:opacity-50"
 							/>
 							<button
 								type="submit"
@@ -102,23 +117,50 @@
 						<div class="flex flex-col gap-2.5">
 							<label class="flex cursor-pointer items-start gap-2.5">
 								<input type="checkbox" bind:checked={consent} class="peer sr-only" />
-								<span class="mt-0.5 flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded border border-white/35 bg-white/5 transition-all peer-checked:border-primary peer-checked:bg-primary">
+								<span
+									class="mt-0.5 flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded border border-white/35 bg-white/5 transition-all peer-checked:border-primary peer-checked:bg-primary"
+								>
 									{#if consent}
-										<svg class="h-2.5 w-2.5 text-navy" viewBox="0 0 12 9" fill="none"><path d="M1 4l3.5 3.5L11 1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
+										<svg class="h-2.5 w-2.5 text-navy" viewBox="0 0 12 9" fill="none"
+											><path
+												d="M1 4l3.5 3.5L11 1"
+												stroke="currentColor"
+												stroke-width="2"
+												stroke-linecap="round"
+												stroke-linejoin="round"
+											/></svg
+										>
 									{/if}
 								</span>
-								<span class="text-[13px] leading-snug text-white/50">Согласен(-на) на получение рассылки</span>
+								<span class="text-[13px] leading-snug text-white/50"
+									>Согласен(-на) на получение рассылки</span
+								>
 							</label>
 
 							<label class="flex cursor-pointer items-start gap-2.5">
 								<input type="checkbox" bind:checked={privacyConsent} class="peer sr-only" />
-								<span class="mt-0.5 flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded border border-white/35 bg-white/5 transition-all peer-checked:border-primary peer-checked:bg-primary">
+								<span
+									class="mt-0.5 flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded border border-white/35 bg-white/5 transition-all peer-checked:border-primary peer-checked:bg-primary"
+								>
 									{#if privacyConsent}
-										<svg class="h-2.5 w-2.5 text-navy" viewBox="0 0 12 9" fill="none"><path d="M1 4l3.5 3.5L11 1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
+										<svg class="h-2.5 w-2.5 text-navy" viewBox="0 0 12 9" fill="none"
+											><path
+												d="M1 4l3.5 3.5L11 1"
+												stroke="currentColor"
+												stroke-width="2"
+												stroke-linecap="round"
+												stroke-linejoin="round"
+											/></svg
+										>
 									{/if}
 								</span>
 								<span class="text-[13px] leading-snug text-white/50">
-									Согласен(-на) на <a href="/privacy" target="_blank" class="underline transition-colors hover:text-primary">обработку персональных данных</a>
+									Согласен(-на) на <a
+										href="/privacy"
+										target="_blank"
+										class="underline transition-colors hover:text-primary"
+										>обработку персональных данных</a
+									>
 								</span>
 							</label>
 						</div>
@@ -139,7 +181,11 @@
 				<ul class="flex flex-col gap-2.5">
 					{#each navigationLinks as link}
 						<li>
-							<a href={link.link} class="text-[15px] text-white/65 transition-colors duration-200 hover:text-primary">{link.label}</a>
+							<a
+								href={link.link}
+								class="text-[15px] text-white/65 transition-colors duration-200 hover:text-primary"
+								>{link.label}</a
+							>
 						</li>
 					{/each}
 				</ul>
@@ -150,32 +196,54 @@
 				<ul class="flex flex-col gap-2.5">
 					{#each socialLinks as social}
 						<li>
-							<a href={social.link} target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 text-[15px] text-white/65 transition-colors duration-200 hover:text-primary">
+							<a
+								href={social.link}
+								target="_blank"
+								rel="noopener noreferrer"
+								class="flex items-center gap-2 text-[15px] text-white/65 transition-colors duration-200 hover:text-primary"
+							>
 								<span class="{iconMap[social.label]} block h-4 w-4 shrink-0 bg-current"></span>
 								{social.label}
 							</a>
 						</li>
 					{/each}
 					<li>
-						<a href={telegramChannel.link} target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 text-[15px] text-white/65 transition-colors duration-200 hover:text-primary">
+						<a
+							href={telegramChannel.link}
+							target="_blank"
+							rel="noopener noreferrer"
+							class="flex items-center gap-2 text-[15px] text-white/65 transition-colors duration-200 hover:text-primary"
+						>
 							<span class="icon-[ri--telegram-line] block h-4 w-4 shrink-0 bg-current"></span>
 							Telegram-канал
 						</a>
 					</li>
 				</ul>
 			</div>
-
-	
 		</div>
 
 		<!-- низ -->
-		<div class="flex flex-col items-end gap-3 border-t border-white/10 pt-6 sm:flex-row sm:items-center sm:justify-between">
+		<div
+			class="flex flex-col items-end gap-3 border-t border-white/10 pt-6 sm:flex-row sm:items-center sm:justify-between"
+		>
 			<div class="order-2 flex flex-wrap gap-x-4 gap-y-1 sm:order-1">
-				<a href="/oferta" target="_blank" class="text-xs text-white/40 transition-colors hover:text-white/70 hover:underline">Договор оферты</a>
-				<a href="/privacy" target="_blank" class="text-xs text-white/40 transition-colors hover:text-white/70 hover:underline">Политика конфиденциальности</a>
+				<a
+					href="/oferta"
+					target="_blank"
+					class="text-xs text-white/40 transition-colors hover:text-white/70 hover:underline"
+					>Договор оферты</a
+				>
+				<a
+					href="/privacy"
+					target="_blank"
+					class="text-xs text-white/40 transition-colors hover:text-white/70 hover:underline"
+					>Политика конфиденциальности</a
+				>
 			</div>
 
-			<div class="order-1 flex flex-col items-end text-xs text-white/40 sm:order-2 sm:flex-row sm:items-center">
+			<div
+				class="order-1 flex flex-col items-end text-xs text-white/40 sm:order-2 sm:flex-row sm:items-center"
+			>
 				<span>{footerInfo.name}</span>
 				<span class="mx-1.5 hidden opacity-40 sm:inline">·</span>
 				<span class="mt-1 sm:mt-0">{footerInfo.inn}</span>

@@ -26,7 +26,8 @@
 	const variantClasses = {
 		primary:
 			'text-white outline-none bg-opacity-0 bg-primary hover:bg-primary-light hover:border-primary-light hover:text-white hover:shadow-md ',
-		secondary: 'text-white outline-red-50 bg-opacity-0 hover:bg-primary hover:text-white hover:outline-none'
+		secondary:
+			'text-white outline-red-50 bg-opacity-0 hover:bg-primary hover:text-white hover:outline-none'
 	};
 </script>
 

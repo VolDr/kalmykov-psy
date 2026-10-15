@@ -879,7 +879,8 @@ export async function previewSegment(
  */
 export async function launchScenarioForSegment(
 	scenarioId: number,
-	filter: SegmentFilter
+	filter: SegmentFilter,
+	launchAt: Date | null = null
 ): Promise<number> {
 	const [firstStep] = await db
 		.select()
@@ -918,7 +919,9 @@ export async function launchScenarioForSegment(
 					contactId,
 					scenarioId,
 					stepId: firstStep.id,
-					scheduledAt: sql`now() + make_interval(secs => ${firstStep.delaySeconds})`
+					scheduledAt: launchAt
+						? sql`${launchAt.toISOString()}::timestamptz + make_interval(secs => ${firstStep.delaySeconds})`
+						: sql`now() + make_interval(secs => ${firstStep.delaySeconds})`
 				}))
 			);
 		});
@@ -933,6 +936,32 @@ export async function launchScenarioForSegment(
 	});
 
 	return contactIds.length;
+}
+
+/** Отменяет один конкретный пакет первого шага, запланированный на точное время. */
+export async function cancelScheduledLaunch(
+	scenarioId: number,
+	stepId: number,
+	scheduledAt: string
+): Promise<number> {
+	const cancelled = await db
+		.update(schema.botScheduledSteps)
+		.set({
+			status: 'cancelled',
+			cancellationReason: MANUAL_CANCELLATION,
+			processedAt: sql`now()`
+		})
+		.where(
+			and(
+				eq(schema.botScheduledSteps.scenarioId, scenarioId),
+				eq(schema.botScheduledSteps.stepId, stepId),
+				eq(schema.botScheduledSteps.scheduledAt, scheduledAt),
+				eq(schema.botScheduledSteps.status, 'pending')
+			)
+		)
+		.returning({ id: schema.botScheduledSteps.id });
+
+	return cancelled.length;
 }
 
 /**

@@ -13,6 +13,7 @@
 	import { formatResultsForClipboard } from '$lib/utils/questionnaire/formatResults';
 	import Button from '../ui/Button.svelte';
 	import ButtonSvg from '../ui/ButtonSvg.svelte';
+	import TelegramQuestionsLink from '../TelegramQuestionsLink.svelte';
 
 	type Props = {
 		config: QuestionnaireConfig;
@@ -26,6 +27,8 @@
 		/** Контакт бота (cookie от /go/*). /booking cookie не читает, поэтому id
 		 *  дописывается в ссылки записи — иначе бронь не привяжется к контакту */
 		sbClientId?: number | null;
+		/** Показывать контакт под CTA в версии опросника для лид-магнита. */
+		showTelegramQuestions?: boolean;
 	};
 
 	let {
@@ -34,7 +37,8 @@
 		title,
 		oncomplete,
 		autoScrollToResults = true,
-		sbClientId = null
+		sbClientId = null,
+		showTelegramQuestions = false
 	}: Props = $props();
 
 	const introHref = $derived(
@@ -708,6 +712,10 @@
 							</a>
 						</div>
 					</div>
+				{/if}
+
+				{#if showTelegramQuestions}
+					<TelegramQuestionsLink class="mt-5 text-center" />
 				{/if}
 
 				<div class="mt-12 flex flex-col items-center">

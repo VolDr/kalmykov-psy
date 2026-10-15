@@ -14,7 +14,9 @@
 			cookieBannerDone.set(true);
 		} else {
 			visible = true;
-			requestAnimationFrame(() => { open = true; });
+			requestAnimationFrame(() => {
+				open = true;
+			});
 		}
 	});
 
@@ -58,18 +60,25 @@
 			/>
 		</svg>
 
-		<div class="relative z-10 flex items-center gap-3 px-5 py-4 sm:px-7 z-[999]">
+		<div class="relative z-10 z-[999] flex items-center gap-3 px-5 py-4 sm:px-7">
 			<p class="flex-1 text-[15px] leading-snug text-foreground/80">
 				На сайте используются cookies для улучшения работы.
 				<a href="/privacy" class="underline hover:text-foreground/60">Подробнее</a>
 			</p>
 			<div class="flex shrink-0 flex-col items-center gap-2">
-				<ButtonSvg mode="button" onclick={accept} width="83px" height="36px" variant="3" textSize="15px">
+				<ButtonSvg
+					mode="button"
+					onclick={accept}
+					width="83px"
+					height="36px"
+					variant="3"
+					textSize="15px"
+				>
 					Согласен
 				</ButtonSvg>
 				<button
 					onclick={decline}
-					class="text-[14px] text-foreground/70  transition-colors hover:text-foreground/70 mb-1"
+					class="mb-1 text-[14px] text-foreground/70 transition-colors hover:text-foreground/70"
 				>
 					Отказаться
 				</button>

@@ -225,7 +225,9 @@
 		class={`relative h-1.5 w-full rounded bg-border ${editable ? 'cursor-pointer' : 'cursor-default'}`}
 		style="transform: translateZ(0)"
 		onclick={handleTrackClick}
-		onkeydown={(e) => { if (e.key === 'ArrowRight') handleTrackClick; }}
+		onkeydown={(e) => {
+			if (e.key === 'ArrowRight') handleTrackClick;
+		}}
 		ontouchstart={handleTrackTouch}
 		onmousedown={preventSelection}
 		role="presentation"

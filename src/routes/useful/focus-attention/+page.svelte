@@ -8,6 +8,7 @@
 	import { landOnHashTarget } from '$lib/hashLanding';
 	import ButtonSvg from '$lib/components/ui/ButtonSvg.svelte';
 	import FocusAttentionArticle from '$lib/components/leadmagnet/FocusAttentionArticle.svelte';
+	import TelegramQuestionsLink from '$lib/components/TelegramQuestionsLink.svelte';
 
 	let { data } = $props();
 
@@ -163,6 +164,7 @@
 					</div>
 				</div>
 			</div>
+			<TelegramQuestionsLink class="mt-4 text-center" />
 		</section>
 	{/snippet}
 </FocusAttentionArticle>

@@ -33,12 +33,23 @@
 		<div class="px-5 xl:px-0">
 			<Reveal width="full">
 				<div class="mb-11 flex items-center gap-4 md:gap-6">
-					<h2 class="font-caveat font-bold whitespace-nowrap text-navy text-[34px] lg:text-[40px]">
+					<h2 class="font-caveat text-[34px] font-bold whitespace-nowrap text-navy lg:text-[40px]">
 						я в медиа
 					</h2>
 					<span class="h-0.5 flex-1">
-						<svg viewBox="0 0 600 22" preserveAspectRatio="none" class="block h-[22px] w-full" aria-hidden="true">
-							<path d="M2 12 C200 6 400 16 598 10" stroke="var(--color-muted-foreground)" stroke-width="1.5" fill="none" stroke-linecap="round" />
+						<svg
+							viewBox="0 0 600 22"
+							preserveAspectRatio="none"
+							class="block h-[22px] w-full"
+							aria-hidden="true"
+						>
+							<path
+								d="M2 12 C200 6 400 16 598 10"
+								stroke="var(--color-muted-foreground)"
+								stroke-width="1.5"
+								fill="none"
+								stroke-linecap="round"
+							/>
 						</svg>
 					</span>
 				</div>
@@ -46,24 +57,38 @@
 		</div>
 
 		<div
-			class="flex w-full snap-x snap-mandatory scroll-pl-4 items-stretch gap-4 overflow-x-auto overflow-y-hidden px-4 pb-10 md:mb-10 md:grid md:grid-cols-3 md:gap-6 md:overflow-visible md:px-5 md:pb-0 xl:px-0 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+			class="flex w-full snap-x snap-mandatory scroll-pl-4 items-stretch gap-4 overflow-x-auto overflow-y-hidden px-4 pb-10 [-ms-overflow-style:none] [scrollbar-width:none] md:mb-10 md:grid md:grid-cols-3 md:gap-6 md:overflow-visible md:px-5 md:pb-0 xl:px-0 [&::-webkit-scrollbar]:hidden"
 			onwheel={handleWheelScroll}
 		>
 			<!-- Карточка 1: RG.ru -->
-			<div class="relative flex w-[75vw] max-w-[320px] shrink-0 snap-start flex-col md:w-auto md:max-w-none">
+			<div
+				class="relative flex w-[75vw] max-w-[320px] shrink-0 snap-start flex-col md:w-auto md:max-w-none"
+			>
 				<Reveal class="flex h-full w-full flex-1 flex-col">
-					<div class="group relative flex flex-1 flex-col items-center justify-start gap-5 rounded-[18px] border border-navy/10 bg-background p-8 transition-all duration-300 hover:border-primary/50 hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] md:p-9 text-center">
+					<div
+						class="group relative flex flex-1 flex-col items-center justify-start gap-5 rounded-[18px] border border-navy/10 bg-background p-8 text-center transition-all duration-300 hover:border-primary/50 hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] md:p-9"
+					>
 						<a
 							href="https://rg.ru/2025/07/16/kak-spravitsia-s-vygoraniem-i-ustalostiu-ot-raboty-prichiny-priznaki-i-chto-delat.html#6"
 							target="_blank"
 							rel="noopener noreferrer"
-							class="absolute inset-0 z-10 rounded-[18px] focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+							class="absolute inset-0 z-10 rounded-[18px] focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:outline-none"
 							aria-label="Как справиться с выгоранием и усталостью"
 						></a>
-						<div class="flex h-14 w-full items-center justify-center opacity-60 transition-all duration-500 group-hover:opacity-100 group-hover:grayscale-0 md:grayscale">
-							<img src="/rg.webp" alt="Российская газета" width="512" height="512" class="max-h-full max-w-[140px] object-contain" />
+						<div
+							class="flex h-14 w-full items-center justify-center opacity-60 transition-all duration-500 group-hover:opacity-100 group-hover:grayscale-0 md:grayscale"
+						>
+							<img
+								src="/rg.webp"
+								alt="Российская газета"
+								width="512"
+								height="512"
+								class="max-h-full max-w-[140px] object-contain"
+							/>
 						</div>
-						<h3 class="фtext-center text-[18px] leading-snug font-bold text-navy transition-colors group-hover:text-primary text-center">
+						<h3
+							class="фtext-center text-center text-[18px] leading-snug font-bold text-navy transition-colors group-hover:text-primary"
+						>
 							Как справиться с выгоранием и усталостью
 						</h3>
 					</div>
@@ -71,20 +96,34 @@
 			</div>
 
 			<!-- Карточка 2: Psychodemia Интенсив + «посмотреть в записи» -->
-			<div class="relative flex w-[75vw] max-w-[320px] shrink-0 snap-start flex-col md:w-auto md:max-w-none">
+			<div
+				class="relative flex w-[75vw] max-w-[320px] shrink-0 snap-start flex-col md:w-auto md:max-w-none"
+			>
 				<Reveal class="flex h-full w-full flex-1 flex-col">
-					<div class="group relative flex flex-1 flex-col items-center justify-start gap-5 rounded-[18px] border border-navy/10 bg-background p-8 transition-all duration-300 hover:border-primary/50 hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] md:p-9">
+					<div
+						class="group relative flex flex-1 flex-col items-center justify-start gap-5 rounded-[18px] border border-navy/10 bg-background p-8 transition-all duration-300 hover:border-primary/50 hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] md:p-9"
+					>
 						<a
 							href="https://psychodemia.ru/myagkij-start-v-psikhologiyu"
 							target="_blank"
 							rel="noopener noreferrer"
-							class="absolute inset-0 z-10 rounded-[18px] focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+							class="absolute inset-0 z-10 rounded-[18px] focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:outline-none"
 							aria-label="Практический интенсив «Выгорание: что это и как с ним работать»"
 						></a>
-						<div class="flex h-14 w-full items-center justify-center opacity-60 transition-all duration-500 group-hover:opacity-100 group-hover:grayscale-0 md:grayscale">
-							<img src="/psihodemia.webp" alt="Психодемия" width="301" height="345" class="max-h-full max-w-[140px] object-contain" />
+						<div
+							class="flex h-14 w-full items-center justify-center opacity-60 transition-all duration-500 group-hover:opacity-100 group-hover:grayscale-0 md:grayscale"
+						>
+							<img
+								src="/psihodemia.webp"
+								alt="Психодемия"
+								width="301"
+								height="345"
+								class="max-h-full max-w-[140px] object-contain"
+							/>
 						</div>
-						<h3 class="фtext-center text-[18px] leading-snug font-bold text-navy transition-colors group-hover:text-primary text-center">
+						<h3
+							class="фtext-center text-center text-[18px] leading-snug font-bold text-navy transition-colors group-hover:text-primary"
+						>
 							Практический интенсив «Выгорание: что это и как с ним работать»
 						</h3>
 					</div>
@@ -103,20 +142,34 @@
 			</div>
 
 			<!-- Карточка 3: Psychodemia Интервью -->
-			<div class="relative flex w-[75vw] max-w-[320px] shrink-0 snap-start flex-col md:w-auto md:max-w-none">
+			<div
+				class="relative flex w-[75vw] max-w-[320px] shrink-0 snap-start flex-col md:w-auto md:max-w-none"
+			>
 				<Reveal class="flex h-full w-full flex-1 flex-col">
-					<div class="group relative flex flex-1 flex-col items-center justify-start gap-5 rounded-[18px] border border-navy/10 bg-background p-8 transition-all duration-300 hover:border-primary/50 hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] md:p-9">
+					<div
+						class="group relative flex flex-1 flex-col items-center justify-start gap-5 rounded-[18px] border border-navy/10 bg-background p-8 transition-all duration-300 hover:border-primary/50 hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] md:p-9"
+					>
 						<a
 							href="https://t.me/psychodemia/4587"
 							target="_blank"
 							rel="noopener noreferrer"
-							class="absolute inset-0 z-10 rounded-[18px] focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+							class="absolute inset-0 z-10 rounded-[18px] focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:outline-none"
 							aria-label="Интервью: как я пришёл в профессию"
 						></a>
-						<div class="flex h-14 w-full items-center justify-center opacity-60 transition-all duration-500 group-hover:opacity-100 group-hover:grayscale-0 md:grayscale">
-							<img src="/psihodemia.webp" alt="Психодемия" width="301" height="345" class="max-h-full max-w-[140px] object-contain" />
+						<div
+							class="flex h-14 w-full items-center justify-center opacity-60 transition-all duration-500 group-hover:opacity-100 group-hover:grayscale-0 md:grayscale"
+						>
+							<img
+								src="/psihodemia.webp"
+								alt="Психодемия"
+								width="301"
+								height="345"
+								class="max-h-full max-w-[140px] object-contain"
+							/>
 						</div>
-						<h3 class="фtext-center text-[18px] leading-snug font-bold text-navy transition-colors group-hover:text-primary text-center">
+						<h3
+							class="фtext-center text-center text-[18px] leading-snug font-bold text-navy transition-colors group-hover:text-primary"
+						>
 							Интервью: как я пришёл в профессию
 						</h3>
 					</div>

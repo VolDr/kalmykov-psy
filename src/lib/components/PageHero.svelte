@@ -29,12 +29,12 @@
 	<div
 		class="relative z-10 mx-auto min-h-[100px] max-w-[720px] px-5 pt-[calc(63px+10vh)] pb-4
 			{maxWidthClasses[maxWidth]} lg:grid lg:aspect-[1.51] lg:grid-cols-12 lg:grid-rows-12
-			lg:gap-4 xl:px-0 lg:pt-14 lg:pb-0"
+			lg:gap-4 lg:pt-14 lg:pb-0 xl:px-0"
 	>
 		<!-- Title -->
 		<div class="mb-4 lg:col-start-1 lg:col-end-12 lg:row-start-5 lg:row-end-12 lg:mb-0">
 			<h1 class="flex flex-col gap-2 text-left">
-				<span class="font-caveat  text-3xl lg:text-5xl lg:leading-tight">
+				<span class="font-caveat text-3xl lg:text-5xl lg:leading-tight">
 					{title}
 				</span>
 

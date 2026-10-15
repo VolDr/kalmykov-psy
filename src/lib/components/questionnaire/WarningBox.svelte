@@ -35,15 +35,9 @@
 	const style = warningStyles[warning.type];
 </script>
 
-<div
-	class="flex gap-4 rounded-2xl bg-card px-5 py-5 md:gap-5 md:px-6"
-	role="alert"
->
+<div class="flex gap-4 rounded-2xl bg-card px-5 py-5 md:gap-5 md:px-6" role="alert">
 	<span
-		class={cn(
-			'flex h-11 w-11 shrink-0 items-center justify-center rounded-full',
-			style.iconBg
-		)}
+		class={cn('flex h-11 w-11 shrink-0 items-center justify-center rounded-full', style.iconBg)}
 	>
 		<span class={cn(style.iconClass, 'h-5 w-5', style.iconColor)}></span>
 	</span>
@@ -51,9 +45,7 @@
 		<h3 class="text-[17px] font-bold text-navy md:text-[18px]">
 			{warning.title}
 		</h3>
-		<div
-			class="text-[15px] leading-relaxed whitespace-pre-line text-foreground/80 md:text-[16px]"
-		>
+		<div class="text-[15px] leading-relaxed whitespace-pre-line text-foreground/80 md:text-[16px]">
 			<MarkdownLink text={warning.message} />
 		</div>
 	</div>

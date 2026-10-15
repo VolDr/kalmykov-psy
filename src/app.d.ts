@@ -1,7 +1,7 @@
 // See https://svelte.dev/docs/kit/types#app.d.ts
 // for information about these interfaces
 declare global {
-		interface Window {
+	interface Window {
 		ym?: (...args: any[]) => void;
 	}
 	namespace App {

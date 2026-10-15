@@ -35,7 +35,8 @@
 		const t = setInterval(() => {
 			now = Date.now();
 			const anyJustExpired = data.payments.some(
-				(p) => p.status === 'pending' &&
+				(p) =>
+					p.status === 'pending' &&
 					expiresAt(p.createdAt) < now &&
 					expiresAt(p.createdAt) > now - 3000
 			);
@@ -69,7 +70,9 @@
 			<p class="px-4 py-8 text-center text-sm text-stone-400">Платежей пока нет</p>
 		{:else}
 			<table class="w-full text-sm">
-				<thead class="border-b bg-stone-50 text-left text-xs font-medium uppercase tracking-wide text-stone-500">
+				<thead
+					class="border-b bg-stone-50 text-left text-xs font-medium tracking-wide text-stone-500 uppercase"
+				>
 					<tr>
 						<th class="px-4 py-3">Дата (МСК)</th>
 						<th class="px-4 py-3">Описание</th>
@@ -82,19 +85,26 @@
 				<tbody class="divide-y">
 					{#each data.payments as p}
 						<tr class="hover:bg-stone-50">
-							<td class="whitespace-nowrap px-4 py-3 text-stone-600">{fmt(p.createdAt)}</td>
+							<td class="px-4 py-3 whitespace-nowrap text-stone-600">{fmt(p.createdAt)}</td>
 							<td class="px-4 py-3 text-stone-700">{p.description}</td>
-							<td class="whitespace-nowrap px-4 py-3 font-medium text-stone-800">
+							<td class="px-4 py-3 font-medium whitespace-nowrap text-stone-800">
 								{Number(p.outSum).toLocaleString('ru-RU')} ₽
 							</td>
 							<td class="px-4 py-3 text-stone-500">{p.email ?? '—'}</td>
 							<td class="px-4 py-3">
-								<span class="rounded-full px-2.5 py-0.5 text-xs font-medium {STATUS_COLOR[p.status] ?? ''}">
+								<span
+									class="rounded-full px-2.5 py-0.5 text-xs font-medium {STATUS_COLOR[p.status] ??
+										''}"
+								>
 									{STATUS_LABEL[p.status] ?? p.status}
 								</span>
 								{#if p.status === 'pending'}
 									{@const t = countdown(p.createdAt)}
-									<span class="ml-1.5 text-xs tabular-nums {t === 'истёк' ? 'text-red-400' : 'text-yellow-600'}">
+									<span
+										class="ml-1.5 text-xs tabular-nums {t === 'истёк'
+											? 'text-red-400'
+											: 'text-yellow-600'}"
+									>
 										{t}
 									</span>
 								{/if}

@@ -1,10 +1,11 @@
-import { error, fail } from '@sveltejs/kit';
+import { error, fail, type RequestEvent } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { db } from '../../../../..';
 import * as schema from '../../../../../db/schema';
 import { and, asc, desc, eq, gt, lt, ne, sql } from 'drizzle-orm';
 import { requireAuth } from '$lib/server/protected';
 import {
+	cancelScheduledLaunch,
 	deleteStepAndRepointQueue,
 	launchScenarioForSegment,
 	previewSegment,
@@ -47,6 +48,68 @@ function parseSegmentFilter(form: FormData): SegmentFilter {
 	};
 }
 
+/** datetime-local из админки трактуем именно как московское время (UTC+3). */
+function parseMoscowDateTime(raw: unknown): Date | null {
+	const value = String(raw ?? '').trim();
+	const match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/.exec(value);
+	if (!match) return null;
+
+	const [, yearRaw, monthRaw, dayRaw, hourRaw, minuteRaw] = match;
+	const year = Number(yearRaw);
+	const month = Number(monthRaw);
+	const day = Number(dayRaw);
+	const hour = Number(hourRaw);
+	const minute = Number(minuteRaw);
+	const calendarCheck = new Date(Date.UTC(year, month - 1, day, hour, minute));
+	if (
+		calendarCheck.getUTCFullYear() !== year ||
+		calendarCheck.getUTCMonth() !== month - 1 ||
+		calendarCheck.getUTCDate() !== day ||
+		calendarCheck.getUTCHours() !== hour ||
+		calendarCheck.getUTCMinutes() !== minute
+	) {
+		return null;
+	}
+
+	const parsed = new Date(`${value}:00+03:00`);
+	return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+async function launchFromForm(event: RequestEvent, scheduled: boolean) {
+	requireAuth(event);
+	const id = parseInt(event.params.id, 10);
+	if (isNaN(id)) return fail(400, { launchError: 'Некорректный ID' });
+
+	const scenario = await loadScenarioOr404(id);
+	if (!scenario.enabled) {
+		return fail(400, { launchError: 'Сначала включите цепочку — выключенная не отправляется' });
+	}
+
+	const form = await event.request.formData();
+	const filter = parseSegmentFilter(form);
+	let launchAt: Date | null = null;
+	if (scheduled) {
+		launchAt = parseMoscowDateTime(form.get('launchAt'));
+		if (!launchAt) {
+			return fail(400, { launchError: 'Укажите корректные дату и время по Москве' });
+		}
+		if (launchAt.getTime() <= Date.now()) {
+			return fail(400, { launchError: 'Время запуска должно быть в будущем' });
+		}
+	}
+
+	const count = await launchScenarioForSegment(id, filter, launchAt);
+	if (count === 0) {
+		return fail(400, {
+			launchError: filter.onlyIdle
+				? 'Никому не отправлено: сегмент пуст, все заняты другими цепочками или в цепочке нет шагов'
+				: 'Никому не отправлено: сегмент пуст или в цепочке нет шагов'
+		});
+	}
+
+	return { launchCount: count, launchScheduledAt: launchAt?.toISOString() ?? null };
+}
+
 /** Файл из multipart-формы; пустой input даёт File с size 0 — это «нет файла» */
 function extractUpload(form: FormData): File | null {
 	const file = form.get('file');
@@ -75,7 +138,8 @@ function parseStepFields(form: FormData, hasFile: boolean) {
 	if (!schema.botStepButtonActionEnum.enumValues.includes(buttonActionRaw as never)) {
 		return { error: 'Неизвестный тип кнопки' } as const;
 	}
-	const buttonAction = buttonActionRaw as (typeof schema.botStepButtonActionEnum.enumValues)[number];
+	const buttonAction =
+		buttonActionRaw as (typeof schema.botStepButtonActionEnum.enumValues)[number];
 
 	const startScenarioRaw = ((form.get('startScenarioId') as string) ?? '').trim();
 	const startScenarioId = startScenarioRaw ? parseInt(startScenarioRaw, 10) : null;
@@ -84,7 +148,9 @@ function parseStepFields(form: FormData, hasFile: boolean) {
 	}
 
 	if (!messageText && !hasFile && !setStage && addTags.length === 0 && !startScenarioId) {
-		return { error: 'Шаг должен содержать сообщение, файл, теги, этап или запуск цепочки' } as const;
+		return {
+			error: 'Шаг должен содержать сообщение, файл, теги, этап или запуск цепочки'
+		} as const;
 	}
 
 	if (messageText && tgFormat(messageText).length > TELEGRAM_MESSAGE_LIMIT) {
@@ -144,7 +210,10 @@ export const load: PageServerLoad = async ({ params }) => {
 		.orderBy(asc(schema.botScenarioSteps.position));
 
 	const [pending] = await db
-		.select({ count: sql<number>`count(*)::int` })
+		.select({
+			count: sql<number>`count(*)::int`,
+			nextAt: sql<string | null>`min(${schema.botScheduledSteps.scheduledAt})`
+		})
 		.from(schema.botScheduledSteps)
 		.where(
 			and(
@@ -152,6 +221,30 @@ export const load: PageServerLoad = async ({ params }) => {
 				eq(schema.botScheduledSteps.status, 'pending')
 			)
 		);
+
+	// Первый шаг с будущим временем — это зафиксированный пакет ручного запуска.
+	// Группировка по точному времени позволяет отменить и планы, созданные до
+	// появления отдельной кнопки, без миграции и без затрагивания других очередей.
+	const firstStep = steps[0];
+	const plannedLaunches = firstStep
+		? await db
+				.select({
+					stepId: schema.botScheduledSteps.stepId,
+					scheduledAt: schema.botScheduledSteps.scheduledAt,
+					count: sql<number>`count(*)::int`
+				})
+				.from(schema.botScheduledSteps)
+				.where(
+					and(
+						eq(schema.botScheduledSteps.scenarioId, id),
+						eq(schema.botScheduledSteps.stepId, firstStep.id),
+						eq(schema.botScheduledSteps.status, 'pending'),
+						gt(schema.botScheduledSteps.scheduledAt, sql`now()`)
+					)
+				)
+				.groupBy(schema.botScheduledSteps.stepId, schema.botScheduledSteps.scheduledAt)
+				.orderBy(asc(schema.botScheduledSteps.scheduledAt))
+		: [];
 
 	// Другие цепочки — для поля «запустить цепочку после шага»
 	const chainScenarios = await db
@@ -171,7 +264,15 @@ export const load: PageServerLoad = async ({ params }) => {
 		.orderBy(desc(schema.botBroadcastRuns.createdAt))
 		.limit(10);
 
-	return { scenario, steps, pendingCount: pending?.count ?? 0, chainScenarios, runs };
+	return {
+		scenario,
+		steps,
+		pendingCount: pending?.count ?? 0,
+		nextPendingAt: pending?.nextAt ?? null,
+		plannedLaunches,
+		chainScenarios,
+		runs
+	};
 };
 
 export const actions = {
@@ -373,27 +474,43 @@ export const actions = {
 	},
 
 	launch: async (event) => {
+		return launchFromForm(event, false);
+	},
+
+	scheduleLaunch: async (event) => {
+		return launchFromForm(event, true);
+	},
+
+	cancelLaunch: async (event) => {
 		requireAuth(event);
 		const id = parseInt(event.params.id, 10);
-		if (isNaN(id)) return fail(400, { launchError: 'Некорректный ID' });
+		if (isNaN(id)) return fail(400, { cancelLaunchError: 'Некорректный ID' });
 
-		const scenario = await loadScenarioOr404(id);
-		if (!scenario.enabled) {
-			return fail(400, { launchError: 'Сначала включите цепочку — выключенная не отправляется' });
+		const form = await event.request.formData();
+		const stepId = parseInt(String(form.get('stepId') ?? ''), 10);
+		const requestedAt = new Date(String(form.get('scheduledAt') ?? ''));
+		if (isNaN(stepId) || Number.isNaN(requestedAt.getTime())) {
+			return fail(400, { cancelLaunchError: 'Некорректный запланированный запуск' });
 		}
 
-		const filter = parseSegmentFilter(await event.request.formData());
+		const [firstStep] = await db
+			.select({ id: schema.botScenarioSteps.id })
+			.from(schema.botScenarioSteps)
+			.where(eq(schema.botScenarioSteps.scenarioId, id))
+			.orderBy(asc(schema.botScenarioSteps.position))
+			.limit(1);
+		if (!firstStep || firstStep.id !== stepId) {
+			return fail(400, { cancelLaunchError: 'Запуск не найден в этой цепочке' });
+		}
 
-		const count = await launchScenarioForSegment(id, filter);
+		const count = await cancelScheduledLaunch(id, stepId, requestedAt.toISOString());
 		if (count === 0) {
-			return fail(400, {
-				launchError: filter.onlyIdle
-					? 'Никому не отправлено: сегмент пуст, все заняты другими цепочками или в цепочке нет шагов'
-					: 'Никому не отправлено: сегмент пуст или в цепочке нет шагов'
+			return fail(409, {
+				cancelLaunchError: 'Запуск уже отменён или начал отправляться'
 			});
 		}
 
-		return { launchCount: count };
+		return { cancelLaunchCount: count };
 	},
 
 	// Ничего не отправляет: показывает, сколько контактов получит запуск

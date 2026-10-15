@@ -3,7 +3,7 @@
 	import BookButton from '$lib/components/BookButton.svelte';
 </script>
 
-<section data-hero class="relative xl:min-h-[max(50vh,972px)] overflow-hidden text-gray-100">
+<section data-hero class="relative overflow-hidden text-gray-100 xl:min-h-[max(50vh,972px)]">
 	<HeroBackground />
 
 	<div
@@ -17,7 +17,7 @@
 	>
 		<div class="mb-4 xl:col-start-2 xl:col-end-8 xl:row-start-5 xl:row-end-12 xl:mb-0">
 			<h1
-				class="font-caveat  text-3xl
+				class="font-caveat text-3xl
 					xl:text-5xl xl:leading-tight"
 			>
 				Психолог <br />Андрей Калмыков

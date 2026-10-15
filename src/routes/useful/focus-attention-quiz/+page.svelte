@@ -11,6 +11,7 @@
 	import ButtonSvg from '$lib/components/ui/ButtonSvg.svelte';
 	import ButtonHint from '$lib/components/leadmagnet/ButtonHint.svelte';
 	import FocusAttentionArticle from '$lib/components/leadmagnet/FocusAttentionArticle.svelte';
+	import TelegramQuestionsLink from '$lib/components/TelegramQuestionsLink.svelte';
 	import ClipQuiz from '$lib/components/questionnaire/ClipQuiz.svelte';
 	import { bat23Config } from '../../../configs/bat23ConfigSoft';
 
@@ -301,6 +302,7 @@
 						</ButtonHint>
 					</div>
 				</div>
+				<TelegramQuestionsLink class="mt-4 text-center" />
 			</section>
 		{/snippet}
 	</FocusAttentionArticle>

@@ -52,14 +52,21 @@
 
 	// ── группировка в 5 разделов (label — что видит пользователь, key — заголовок блока) ──
 	type Topic = { label: string; key: string };
-	type Group = { num: string; icon: string; title: [string, string]; summary: string; topics: Topic[] };
+	type Group = {
+		num: string;
+		icon: string;
+		title: [string, string];
+		summary: string;
+		topics: Topic[];
+	};
 
 	const groups: Group[] = [
 		{
 			num: '01',
 			icon: '/getting_started.webp',
 			title: ['Начало работы', ''],
-			summary: 'Как сделать первый шаг, где и как проходят встречи и чего ожидать на первой сессии.',
+			summary:
+				'Как сделать первый шаг, где и как проходят встречи и чего ожидать на первой сессии.',
 			topics: [
 				{ label: 'С чего начать', key: 'С чего начать' },
 				{ label: 'Как записаться', key: 'Записаться на сессию' },
@@ -76,7 +83,7 @@
 				{ label: 'Длительность и частота встреч', key: 'Продолжительность сессии' },
 				{ label: 'Оплата и стоимость', key: 'Оплата и стоимость' },
 				{ label: 'Опоздания и переносы', key: 'Опоздания и переносы' },
-					{ label: 'Отпуск', key: 'Отпуск' }
+				{ label: 'Отпуск', key: 'Отпуск' }
 			]
 		},
 		{
@@ -101,7 +108,6 @@
 				{ label: 'Длительность работы', key: 'Длительность работы' },
 
 				{ label: 'Завершение терапии', key: 'Завершение работы' }
-			
 			]
 		}
 	];
@@ -151,9 +157,10 @@
 					<span class="inline-block -rotate-[4deg] font-caveat text-[26px] font-bold text-primary"
 						>важно знать</span
 					>
-
 				</span>
-				<h1 class="mb-8 font-caveat text-[52px] leading-[1.22] font-bold tracking-[1px] text-navy lg:text-[72px]">
+				<h1
+					class="mb-8 font-caveat text-[52px] leading-[1.22] font-bold tracking-[1px] text-navy lg:text-[72px]"
+				>
 					Перед началом<br />работы
 				</h1>
 				<p class="max-w-[440px] text-lg leading-relaxed text-foreground/75 md:text-[19px]">
@@ -164,7 +171,7 @@
 
 		<!-- иллюстрация: ваза с веточкой -->
 		<Reveal width="full">
-			<div class="hidden lg:flex min-h-[260px] items-center justify-center lg:min-h-[320px]">
+			<div class="hidden min-h-[260px] items-center justify-center lg:flex lg:min-h-[320px]">
 				<img src="/vaza.webp" alt="" class="h-auto w-full max-w-[380px]" aria-hidden="true" />
 			</div>
 		</Reveal>
@@ -180,18 +187,20 @@
 			{@const sel = selected[i]}
 			<Reveal width="full">
 				<div
-					class="grid grid-cols-[52px_1fr] gap-x-5 gap-y-5 py-10 lg:border-b lg:border-[#e4dccb] lg:grid-cols-[54px_300px_1fr_2fr] lg:py-11"
+					class="grid grid-cols-[52px_1fr] gap-x-5 gap-y-5 py-10 lg:grid-cols-[54px_300px_1fr_2fr] lg:border-b lg:border-[#e4dccb] lg:py-11"
 				>
 					<!-- номер -->
-					<div class="-mt-[10px] font-caveat text-[42px] leading-none font-bold text-primary lg:text-[54px]">
+					<div
+						class="-mt-[10px] font-caveat text-[42px] leading-none font-bold text-primary lg:text-[54px]"
+					>
 						{group.num}
 					</div>
 
 					<!-- иконка + заголовок -->
-					<div class="col-start-2 flex items-center gap-2 lg:col-start-auto max-h-fit">
+					<div class="col-start-2 flex max-h-fit items-center gap-2 lg:col-start-auto">
 						<img src={group.icon} alt="" class="h-9 w-9 shrink-0" aria-hidden="true" />
 						<h2
-							class="m-0 text-[19px] leading-[1.22] font-extrabold text-navy [hyphens:auto] [overflow-wrap:break-word]"
+							class="m-0 text-[19px] leading-[1.22] font-extrabold [overflow-wrap:break-word] [hyphens:auto] text-navy"
 						>
 							{group.title[0]}<br />{group.title[1]}
 						</h2>
@@ -203,19 +212,21 @@
 							<button
 								type="button"
 								onclick={() => toggle(i, j)}
-								class="group flex w-full items-center justify-between gap-3 border-b border-[#e4dccb] px-0.5 py-3 text-left text-[16px] lg:text-[19px] font-semibold transition-all duration-200 {j === 0
+								class="group flex w-full items-center justify-between gap-3 border-b border-[#e4dccb] px-0.5 py-3 text-left text-[16px] font-semibold transition-all duration-200 lg:text-[19px] {j ===
+								0
 									? 'border-t border-[#e4dccb]'
 									: ''} {sel === j ? 'font-bold text-navy' : 'text-foreground/85 hover:text-navy'}"
 							>
 								<span>{topic.label}</span>
 								<!-- десктоп: шеврон вправо; мобиль: шеврон вниз -->
 								<span
-									class="h-4 w-4 shrink-0 text-primary transition-all duration-200
-										icon-[lucide--chevron-down] lg:hidden
+									class="icon-[lucide--chevron-down] h-4 w-4 shrink-0 text-primary transition-all
+										duration-200 lg:hidden
 										{sel === j ? 'rotate-180' : ''}"
 								></span>
 								<span
-									class="icon-[lucide--chevron-right] h-4 w-4 shrink-0 text-primary transition-all duration-200 hidden lg:block {sel === j
+									class="icon-[lucide--chevron-right] hidden h-4 w-4 shrink-0 text-primary transition-all duration-200 lg:block {sel ===
+									j
 										? 'translate-x-0 opacity-100'
 										: '-translate-x-1 opacity-0 group-hover:translate-x-0 group-hover:opacity-60'}"
 								></span>
@@ -224,7 +235,7 @@
 							<!-- мобиль: inline-контент под каждой темой -->
 							{#if sel === j}
 								<div
-									class="lg:hidden border-b border-[#e4dccb] px-0.5 py-4"
+									class="border-b border-[#e4dccb] px-0.5 py-4 lg:hidden"
 									in:panelEnter={{ duration: 150 }}
 								>
 									<div class="flex flex-col gap-2.5 text-[15px] leading-relaxed text-foreground/75">
@@ -238,7 +249,7 @@
 					</div>
 
 					<!-- десктоп: правая панель со сводкой / текстом темы -->
-					<div class="hidden lg:block col-span-1 pt-1" style="min-height: 80px;">
+					<div class="col-span-1 hidden pt-1 lg:block" style="min-height: 80px;">
 						{#key sel}
 							<div in:panelEnter={{ duration: 220 }}>
 								{#if sel === null}
@@ -265,11 +276,30 @@
 			<div
 				class="mt-8 grid grid-cols-1 items-center gap-7 rounded-[24px] bg-card px-8 py-8 sm:grid-cols-[auto_1fr] lg:grid-cols-[auto_1fr_auto] lg:px-10"
 			>
-				<img src="/star_2.webp" class="shrink-0 h-10 w-10" alt="" aria-hidden="true" />
-				<p class="max-w-[960px] text-[17px] leading-relaxed font-medium text-foreground">
-					Если у вас останутся вопросы после прочтения, я с радостью отвечу на них перед нашей первой
-					встречей.
-				</p>
+				<img src="/star_2.webp" class="h-10 w-10 shrink-0" alt="" aria-hidden="true" />
+				<div class="max-w-[960px]">
+					<p class="text-[17px] leading-relaxed font-medium text-foreground">
+						Если у вас останутся вопросы после прочтения, я с радостью отвечу на них перед нашей
+						первой встречей.
+					</p>
+					<p class="mt-3 text-[15px] leading-relaxed text-foreground/70">
+						<a
+							href="https://t.me/m/jyiUHHmIMzYy"
+							target="_blank"
+							rel="noopener noreferrer"
+							class="font-semibold text-navy underline decoration-primary decoration-2 underline-offset-2 transition-colors hover:text-primary"
+						>
+							Напишите мне в телеграм
+						</a>
+						или
+						<a
+							href="/booking?acquaintance"
+							class="font-semibold text-navy underline decoration-primary decoration-2 underline-offset-2 transition-colors hover:text-primary"
+						>
+							запишитесь на встречу-знакомство
+						</a>.
+					</p>
+				</div>
 			</div>
 		</Reveal>
 	</div>

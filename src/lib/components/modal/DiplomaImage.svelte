@@ -2,7 +2,10 @@
 	import { cubicOut } from 'svelte/easing';
 	import { cn } from '$lib/utils';
 
-	function pageSlide(_node: Element, { dir = 1, skip = false }: { dir?: number; skip?: boolean } = {}) {
+	function pageSlide(
+		_node: Element,
+		{ dir = 1, skip = false }: { dir?: number; skip?: boolean } = {}
+	) {
 		if (skip) return { duration: 0, css: () => '' };
 		const s = getComputedStyle(document.documentElement);
 		const dur = parseFloat(s.getPropertyValue('--page-slide-dur')) || 200;

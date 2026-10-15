@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { invalidateAll } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { onMount } from 'svelte';
 
 	let { data, form } = $props();
@@ -24,7 +25,11 @@
 		return () => clearInterval(interval);
 	});
 
-	function displayName(c: { username: string | null; firstName: string | null; lastName: string | null }) {
+	function displayName(c: {
+		username: string | null;
+		firstName: string | null;
+		lastName: string | null;
+	}) {
 		const full = [c.firstName, c.lastName].filter(Boolean).join(' ');
 		if (full && c.username) return `${full} (@${c.username})`;
 		if (full) return full;
@@ -51,11 +56,17 @@
 
 <div class="grid gap-6 p-6 lg:grid-cols-3">
 	<div class="lg:col-span-2">
-		<a href="/admin/bot/contacts" class="mb-4 inline-block text-sm text-blue-600 hover:underline"
-			>← Все контакты</a
+		<a
+			href={data.fromArchive
+				? `${resolve('/admin/bot/contacts')}?view=archive`
+				: resolve('/admin/bot/contacts')}
+			class="mb-4 inline-block text-sm text-blue-600 hover:underline"
+			>← {data.fromArchive ? 'В архив' : 'Все контакты'}</a
 		>
 		<h1 class="mb-1 text-2xl font-semibold">{displayName(data.contact)}</h1>
-		<p class="mb-4 text-xs text-stone-400">ID для ссылок ({'{'}contact_id{'}'}): {data.contact.publicId}</p>
+		<p class="mb-4 text-xs text-stone-400">
+			ID для ссылок (&#123;contact_id&#125;): {data.contact.publicId}
+		</p>
 
 		<div
 			bind:this={messagesEl}
@@ -100,23 +111,65 @@
 				name="text"
 				bind:value={replyText}
 				rows="2"
-				placeholder="Ответить вручную…"
-				class="w-full rounded-lg border px-3 py-2 text-sm"
+				disabled={data.contact.botBlocked}
+				placeholder={data.contact.botBlocked
+					? 'Контакт в архиве — отправка недоступна'
+					: 'Ответить вручную…'}
+				class="w-full rounded-lg border px-3 py-2 text-sm disabled:cursor-not-allowed disabled:bg-stone-100 disabled:text-stone-500"
 			></textarea>
 			<button
 				type="submit"
-				class="self-end rounded-lg bg-primary px-4 py-2 text-sm text-primary-foreground hover:bg-primary/90"
+				disabled={data.contact.botBlocked}
+				class="self-end rounded-lg bg-primary px-4 py-2 text-sm text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-45"
 			>
 				Отправить
 			</button>
 		</form>
 		{#if form?.replyError}
 			<p class="mt-2 text-sm text-red-500">{form.replyError}</p>
+		{:else if data.contact.botBlocked}
+			<p class="mt-2 text-sm text-stone-500">
+				Отправка включится автоматически, если человек снова запустит бота.
+			</p>
 		{/if}
 	</div>
 
 	<div>
-		<div class="rounded-xl border bg-white p-4">
+		<section
+			class="rounded-xl border border-stone-200 bg-white p-4"
+			aria-labelledby="chain-status-title"
+		>
+			<p id="chain-status-title" class="text-xs font-medium tracking-wide text-stone-500 uppercase">
+				Активная цепочка
+			</p>
+			{#if data.pendingSteps.length > 0}
+				<div class="mt-2 flex items-center gap-2">
+					<span
+						class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-sm font-medium text-emerald-700"
+					>
+						<span class="h-2 w-2 rounded-full bg-emerald-500"></span>Есть
+					</span>
+					<span class="text-sm text-stone-500">Ожидающих шагов: {data.pendingSteps.length}</span>
+				</div>
+				<p class="mt-3 text-sm text-stone-600">
+					Следующий: {data.pendingSteps[0].scenarioName}, {formatDateTime(
+						data.pendingSteps[0].scheduledAt
+					)}
+				</p>
+			{:else}
+				<div class="mt-2 flex items-center gap-2">
+					<span
+						class="inline-flex items-center gap-1.5 rounded-full bg-stone-100 px-2.5 py-1 text-sm font-medium text-stone-600"
+					>
+						<span class="h-2 w-2 rounded-full bg-stone-400"></span>Нет
+					</span>
+					<span class="text-sm text-stone-500">Контакт свободен</span>
+				</div>
+				<p class="mt-3 text-sm text-stone-500">Ожидающих шагов нет.</p>
+			{/if}
+		</section>
+
+		<div class="mt-4 rounded-xl border bg-white p-4">
 			<h2 class="mb-3 text-sm font-semibold text-stone-600">CRM</h2>
 			<form
 				method="POST"

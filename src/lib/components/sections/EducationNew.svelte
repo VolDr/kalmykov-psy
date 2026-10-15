@@ -41,10 +41,7 @@
 			'Образование, которое напрямую не связано с консультированием, но помогает в работе с людьми..'
 	};
 
-	const labelStyles = [
-		'bg-primary text-bold text-white',
-		'bg-lilac text-bold text-[#322d43]'
-	];
+	const labelStyles = ['bg-primary text-bold text-white', 'bg-lilac text-bold text-[#322d43]'];
 
 	function openDiplomaModal(imageUrl: string) {
 		const index = diplomas.findIndex((d) => d.imageUrl === imageUrl);
@@ -91,16 +88,32 @@
 			<Reveal width="full" axis="x">
 				<div class="text-left">
 					<div class="mb-11 flex items-center gap-4 md:gap-6">
-					<h2 class={cn('font-caveat font-bold whitespace-nowrap text-navy text-[34px] lg:text-[40px]', titleClass)}>
-						где я учился
-					</h2>
-					<span class="h-0.5 flex-1">
-						<svg viewBox="0 0 600 22" preserveAspectRatio="none" class="block h-[22px] w-full" aria-hidden="true">
-							<path d="M2 12 C200 6 400 16 598 10" stroke="var(--color-muted-foreground)" stroke-width="1.5" fill="none" stroke-linecap="round" />
-						</svg>
-					</span>
-				</div>
-					<p class="-mt-7 pl-4  text-[16px] lg:text-[18px] leading-relaxed text-foreground/55">
+						<h2
+							class={cn(
+								'font-caveat text-[34px] font-bold whitespace-nowrap text-navy lg:text-[40px]',
+								titleClass
+							)}
+						>
+							где я учился
+						</h2>
+						<span class="h-0.5 flex-1">
+							<svg
+								viewBox="0 0 600 22"
+								preserveAspectRatio="none"
+								class="block h-[22px] w-full"
+								aria-hidden="true"
+							>
+								<path
+									d="M2 12 C200 6 400 16 598 10"
+									stroke="var(--color-muted-foreground)"
+									stroke-width="1.5"
+									fill="none"
+									stroke-linecap="round"
+								/>
+							</svg>
+						</span>
+					</div>
+					<p class="-mt-7 pl-4 text-[16px] leading-relaxed text-foreground/55 lg:text-[18px]">
 						Здесь можно посмотреть мои документы об образовании, если для вас это важно.
 					</p>
 				</div>
@@ -110,8 +123,16 @@
 		<div class="pt-5 md:pt-7">
 			{#each educationGroups as group, groupIndex}
 				<div class="education-section {groupIndex > 0 ? 'mt-12' : 'mt-2'}">
-					<div class="flex items-end justify-between pl-4 {categoryExplanations[group.category] ? 'mb-3' : 'mb-6'}">
-						<span class="inline-block rounded-full px-4.5 py-1.5 text-[16px] lg:text-[18px] font-bold {labelStyles[groupIndex % labelStyles.length]}">
+					<div
+						class="flex items-end justify-between pl-4 {categoryExplanations[group.category]
+							? 'mb-3'
+							: 'mb-6'}"
+					>
+						<span
+							class="inline-block rounded-full px-4.5 py-1.5 text-[16px] font-bold lg:text-[18px] {labelStyles[
+								groupIndex % labelStyles.length
+							]}"
+						>
 							{group.category}
 						</span>
 
@@ -136,13 +157,15 @@
 					</div>
 
 					{#if categoryExplanations[group.category]}
-						<p class="mb-6 max-w-[700px] pr-20 pl-4 text-[16px] lg:text-[18px] leading-relaxed text-foreground/60">
+						<p
+							class="mb-6 max-w-[700px] pr-20 pl-4 text-[16px] leading-relaxed text-foreground/60 lg:text-[18px]"
+						>
 							{categoryExplanations[group.category]}
 						</p>
 					{/if}
 
 					<div
-						class="education-carousel my-scroll flex w-full snap-x snap-mandatory scroll-pl-4 gap-4 overflow-x-auto pt-2 pb-6 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden md:[scrollbar-width:thin] md:[scrollbar-color:var(--color-primary)_var(--color-background)] md:[&::-webkit-scrollbar]:block md:[&::-webkit-scrollbar]:h-1.5 md:[&::-webkit-scrollbar-track]:rounded-full md:[&::-webkit-scrollbar-track]:bg-background md:[&::-webkit-scrollbar-thumb]:rounded-full md:[&::-webkit-scrollbar-thumb]:bg-primary/70 md:hover:[&::-webkit-scrollbar-thumb]:bg-primary"
+						class="education-carousel my-scroll flex w-full snap-x snap-mandatory scroll-pl-4 gap-4 overflow-x-auto pt-2 pb-6 [-ms-overflow-style:none] [scrollbar-width:none] md:[scrollbar-color:var(--color-primary)_var(--color-background)] md:[scrollbar-width:thin] [&::-webkit-scrollbar]:hidden md:[&::-webkit-scrollbar]:block md:[&::-webkit-scrollbar]:h-1.5 md:[&::-webkit-scrollbar-thumb]:rounded-full md:[&::-webkit-scrollbar-thumb]:bg-primary/70 md:hover:[&::-webkit-scrollbar-thumb]:bg-primary md:[&::-webkit-scrollbar-track]:rounded-full md:[&::-webkit-scrollbar-track]:bg-background"
 						onwheel={handleWheelScroll}
 					>
 						{#each group.items as item, idx}
@@ -153,7 +176,7 @@
 								class={cn(
 									'group relative flex w-[85vw] max-w-[320px] shrink-0 snap-start flex-col justify-between rounded-[18px] border p-6 text-left transition-all duration-300 md:p-7',
 									item.diploma
-										? 'border-navy/10 bg-[#fdfaf3] hover:cursor-pointer hover:border-primary/50 hover:shadow-[0_8px_30px_rgb(0,0,0,0.05)] focus:outline-primary focus-visible:outline-primary outline-0'
+										? 'border-navy/10 bg-[#fdfaf3] outline-0 hover:cursor-pointer hover:border-primary/50 hover:shadow-[0_8px_30px_rgb(0,0,0,0.05)] focus:outline-primary focus-visible:outline-primary'
 										: 'border-navy/10 bg-background',
 									{ 'ml-4': idx === 0, 'mr-4': idx === group.items.length - 1 }
 								)}
@@ -163,19 +186,30 @@
 										<span class="t-badge" data-open="true">
 											<span class="t-badge-dot h-2 w-2 rounded-full bg-primary"></span>
 										</span>
-										<span class="mb-3 inline-flex w-fit items-center gap-1.5 rounded-md bg-card px-2.5 py-0.5 text-[10px] font-bold tracking-wider text-foreground/60 uppercase">
+										<span
+											class="mb-3 inline-flex w-fit items-center gap-1.5 rounded-md bg-card px-2.5 py-0.5 text-[10px] font-bold tracking-wider text-foreground/60 uppercase"
+										>
 											В процессе
 										</span>
 									{/if}
 
-									<h5 class={cn('text-[16px] lg:text-[18px] leading-snug font-bold text-navy transition-colors', { 'group-hover:text-primary': item.diploma })}>
+									<h5
+										class={cn(
+											'text-[16px] leading-snug font-bold text-navy transition-colors lg:text-[18px]',
+											{ 'group-hover:text-primary': item.diploma }
+										)}
+									>
 										{item.title}
 									</h5>
-									<p class="mt-3 text-[16px] lg:text-[18px] leading-relaxed text-foreground/60">{item.details}</p>
+									<p class="mt-3 text-[16px] leading-relaxed text-foreground/60 lg:text-[18px]">
+										{item.details}
+									</p>
 								</div>
 
 								{#if item.diploma}
-									<div class="mt-6 flex h-10 w-10 items-center justify-center rounded-full bg-primary/15 text-primary transition-all duration-300 group-hover:scale-110 group-hover:bg-primary group-hover:text-white">
+									<div
+										class="mt-6 flex h-10 w-10 items-center justify-center rounded-full bg-primary/15 text-primary transition-all duration-300 group-hover:scale-110 group-hover:bg-primary group-hover:text-white"
+									>
 										<span class="icon-[lucide--file-badge-2] h-5 w-5"></span>
 									</div>
 								{/if}

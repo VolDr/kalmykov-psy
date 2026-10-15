@@ -9,10 +9,7 @@ import { telegramService } from '$lib/server/telegram.server';
 export const load: PageServerLoad = async (event) => {
 	requireAuth(event);
 
-	const bookings = await db
-		.select()
-		.from(schema.booking)
-		.orderBy(desc(schema.booking.bookedAt));
+	const bookings = await db.select().from(schema.booking).orderBy(desc(schema.booking.bookedAt));
 
 	return { bookings };
 };
@@ -55,12 +52,14 @@ export const actions: Actions = {
 			updatedAt: now
 		});
 
-		telegramService.sendBookingConfirmed({
-			clientName: telegram,
-			email,
-			bookedAt: bookedAtIso,
-			source: 'admin'
-		}).catch((e) => console.error('Telegram booking notification failed:', e));
+		telegramService
+			.sendBookingConfirmed({
+				clientName: telegram,
+				email,
+				bookedAt: bookedAtIso,
+				source: 'admin'
+			})
+			.catch((e) => console.error('Telegram booking notification failed:', e));
 
 		return { created: true };
 	}

@@ -4,6 +4,7 @@ import { sql } from 'drizzle-orm';
 import { db } from '../..';
 import * as schema from '../../db/schema';
 import { processDueScheduledSteps } from './bot-scenarios.server';
+import { startBotAccessCheck } from './bot-contact-access.server';
 import { uploadOfflineConversions } from './bot-funnel.server';
 import { retryStalledQuizDeliveries } from './quiz-bot.server';
 import { startApiWarmup } from './telegram-client-bot.server';
@@ -102,7 +103,23 @@ class BotScenarioScheduler {
 			}
 		});
 
-		this.tasks = [stepsTask, cleanupTask, offlineTask];
+		// Telegram не отдаёт список заблокировавших бота, поэтому раз в сутки
+		// аккуратно проверяем доступность контактов через sendChatAction. Новые
+		// блокировки между проверками по-прежнему фиксирует my_chat_member.
+		const accessCheckTask = cron.schedule(
+			'45 4 * * *',
+			async () => {
+				try {
+					const check = await startBotAccessCheck();
+					console.log(`[bot-cron] проверка отписавшихся запущена для ${check.total} контактов`);
+				} catch (error) {
+					console.error('[bot-cron] Не удалось запустить проверку отписавшихся:', error);
+				}
+			},
+			{ timezone: 'Europe/Moscow' }
+		);
+
+		this.tasks = [stepsTask, cleanupTask, offlineTask, accessCheckTask];
 		this.stopWarmup = startApiWarmup();
 		this.isStarted = true;
 		console.log('Планировщик шагов бота запущен (проверка каждую минуту)');

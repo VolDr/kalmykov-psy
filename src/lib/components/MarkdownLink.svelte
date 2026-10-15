@@ -16,16 +16,16 @@
 			target="_blank"
 			rel="noopener noreferrer"
 			onclick={onLinkClick}
-			class="nav-link relative inline-flex items-start font-semibold text-foreground/80 no-underline  hover:text-foreground/60 {className}"
+			class="nav-link relative inline-flex items-start font-semibold text-foreground/80 no-underline hover:text-foreground/60 {className}"
 		>
 			{part.text}
-			<span class="ml-[1px] icon-[lucide--external-link] text-[10px] -mr-[2px]"></span>
+			<span class="-mr-[2px] ml-[1px] icon-[lucide--external-link] text-[10px]"></span>
 		</a>
 	{:else if 'href' in part}
 		<a
 			href={part.href}
 			onclick={onLinkClick}
-			class="nav-link relative font-semibold text-foreground/80 no-underline  hover:text-foreground/60 {className}"
+			class="nav-link relative font-semibold text-foreground/80 no-underline hover:text-foreground/60 {className}"
 		>
 			{part.text}
 			<span class="mb-0.5 ml-0 icon-[lucide--external-link] text-xs"></span>

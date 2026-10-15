@@ -7,6 +7,7 @@
 	import { lmLog } from '$lib/client/lmDebug';
 	import { landOnHashTarget } from '$lib/hashLanding';
 	import ButtonSvg from '$lib/components/ui/ButtonSvg.svelte';
+	import TelegramQuestionsLink from '$lib/components/TelegramQuestionsLink.svelte';
 
 	let { data } = $props();
 
@@ -530,5 +531,6 @@
 				</div>
 			</div>
 		</div>
+		<TelegramQuestionsLink class="mt-4 text-center" />
 	</section>
 </article>

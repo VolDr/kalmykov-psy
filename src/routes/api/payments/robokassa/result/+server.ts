@@ -24,26 +24,32 @@ export const POST: RequestHandler = async ({ request }) => {
 	// The booking is now marked requires_refund for admin to handle manually.
 	// We still return OK to Robokassa so it doesn't retry.
 	if (result === 'slot_taken') {
-		console.error(`confirmByPaymentId: slot taken after lock expired for paymentId=${invId} — manual refund needed`);
+		console.error(
+			`confirmByPaymentId: slot taken after lock expired for paymentId=${invId} — manual refund needed`
+		);
 	}
 
 	if (result === 'confirmed') {
 		// Оплата + бронирование через сайт
 		const booking = await getBookingByPaymentId(invId);
 		if (booking) {
-			telegramService.sendPaymentConfirmed({
-				email: booking.email,
-				amount: outSum,
-				description: 'Консультация (бронирование)',
-				bookedAt: booking.bookedAt
-			}).catch((e) => console.error('Telegram payment notification failed:', e));
+			telegramService
+				.sendPaymentConfirmed({
+					email: booking.email,
+					amount: outSum,
+					description: 'Консультация (бронирование)',
+					bookedAt: booking.bookedAt
+				})
+				.catch((e) => console.error('Telegram payment notification failed:', e));
 
-			telegramService.sendBookingConfirmed({
-				clientName: booking.clientName,
-				email: booking.email,
-				bookedAt: booking.bookedAt,
-				source: 'website'
-			}).catch((e) => console.error('Telegram booking notification failed:', e));
+			telegramService
+				.sendBookingConfirmed({
+					clientName: booking.clientName,
+					email: booking.email,
+					bookedAt: booking.bookedAt,
+					source: 'website'
+				})
+				.catch((e) => console.error('Telegram booking notification failed:', e));
 
 			// sbClientId — публичный id контакта бота; тег + сценарий consultation_booked
 			if (booking.sbClientId) {
@@ -60,11 +66,13 @@ export const POST: RequestHandler = async ({ request }) => {
 		// Оплата без бронирования (страница /pay — консультация или пакет)
 		const payment = await getPaymentById(invId);
 		if (payment) {
-			telegramService.sendPaymentConfirmed({
-				email: payment.email ?? '—',
-				amount: outSum,
-				description: payment.description
-			}).catch((e) => console.error('Telegram payment notification failed:', e));
+			telegramService
+				.sendPaymentConfirmed({
+					email: payment.email ?? '—',
+					amount: outSum,
+					description: payment.description
+				})
+				.catch((e) => console.error('Telegram payment notification failed:', e));
 		} else {
 			console.error(`confirmByPaymentId: booking not found for paymentId=${invId}`);
 		}
