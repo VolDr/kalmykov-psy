@@ -1,6 +1,8 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { createBooking, CONSULTATION_PRICE, PACKAGE_PRICE } from '$lib/server/booking.server';
+import { createBooking } from '$lib/server/booking.server';
+import { getPricing } from '$lib/server/pricing.server';
+import { toPaymentAmount } from '$lib/pricing';
 import { isRateLimited } from '$lib/server/rate-limit.server';
 
 export const POST: RequestHandler = async ({ request, url, getClientAddress }) => {
@@ -49,7 +51,6 @@ export const POST: RequestHandler = async ({ request, url, getClientAddress }) =
 		return json({ error: 'Некорректное время слота' }, { status: 400 });
 	}
 
-	const outSum = type === 'package' ? PACKAGE_PRICE : CONSULTATION_PRICE;
 
 	const sbClientIdNum =
 		rawSbClientId != null &&
@@ -62,6 +63,9 @@ export const POST: RequestHandler = async ({ request, url, getClientAddress }) =
 			: null;
 
 	try {
+		const prices = await getPricing();
+		const product = type === 'package' ? 'package' : 'single';
+		const outSum = toPaymentAmount(prices[product]);
 		const payment = await createBooking({
 			availabilityId: availabilityIdNum,
 			bookedAt,
@@ -69,6 +73,7 @@ export const POST: RequestHandler = async ({ request, url, getClientAddress }) =
 			email: email.trim(),
 			originUrl: url.origin,
 			outSum,
+			product,
 			sbClientId: validSbClientId
 		});
 		return json(payment);

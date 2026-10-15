@@ -151,7 +151,8 @@ describe('createBooking — basic validation', () => {
 				bookedAt: SLOT_AT,
 				email: 'a@b.com',
 				clientName: 'A',
-				originUrl: 'http://localhost'
+				originUrl: 'http://localhost',
+				outSum: '4000.00'
 			})
 		).rejects.toThrow('Слот не найден');
 	});
@@ -165,7 +166,8 @@ describe('createBooking — basic validation', () => {
 				bookedAt: '2024-06-01T06:00:00.000Z',
 				email: 'a@b.com',
 				clientName: 'A',
-				originUrl: 'http://localhost'
+				originUrl: 'http://localhost',
+				outSum: '4000.00'
 			})
 		).rejects.toThrow('Час вне диапазона доступности');
 	});
@@ -179,7 +181,8 @@ describe('createBooking — basic validation', () => {
 				bookedAt: '2024-06-01T15:00:00.000Z',
 				email: 'a@b.com',
 				clientName: 'A',
-				originUrl: 'http://localhost'
+				originUrl: 'http://localhost',
+				outSum: '4000.00'
 			})
 		).rejects.toThrow('Час вне диапазона доступности');
 	});
@@ -193,7 +196,8 @@ describe('createBooking — basic validation', () => {
 				bookedAt: '2024-06-01T10:30:00.000Z',
 				email: 'a@b.com',
 				clientName: 'A',
-				originUrl: 'http://localhost'
+				originUrl: 'http://localhost',
+				outSum: '4000.00'
 			})
 		).rejects.toThrow('Некорректное время слота');
 	});
@@ -210,7 +214,8 @@ describe('createBooking — basic validation', () => {
 				bookedAt: SLOT_AT,
 				email: 'a@b.com',
 				clientName: 'A',
-				originUrl: 'http://localhost'
+				originUrl: 'http://localhost',
+				outSum: '4000.00'
 			})
 		).rejects.toThrow('Забронировать можно минимум за 10 часов до начала');
 	});
@@ -256,7 +261,8 @@ describe('createBooking — business flow', () => {
 				bookedAt: SLOT_AT,
 				email: 'a@b.com',
 				clientName: 'A',
-				originUrl: 'http://localhost'
+				originUrl: 'http://localhost',
+				outSum: '4000.00'
 			})
 		).rejects.toThrow('Слот уже занят');
 	});
@@ -269,7 +275,8 @@ describe('createBooking — business flow', () => {
 			bookedAt: SLOT_AT,
 			email: 'a@b.com',
 			clientName: 'A',
-			originUrl: 'http://localhost'
+			originUrl: 'http://localhost',
+				outSum: '4000.00'
 		});
 
 		expect(createPayment).toHaveBeenCalledTimes(1);
@@ -296,7 +303,8 @@ describe('createBooking — business flow', () => {
 				bookedAt: SLOT_AT,
 				email: 'a@b.com',
 				clientName: 'A',
-				originUrl: 'http://localhost'
+				originUrl: 'http://localhost',
+				outSum: '4000.00'
 			})
 		).rejects.toThrow('Robokassa down');
 
@@ -570,7 +578,8 @@ describe('createBooking — MSK timezone in description', () => {
 			bookedAt: SLOT_AT,
 			email: 'a@b.com',
 			clientName: 'A',
-			originUrl: 'http://localhost'
+			originUrl: 'http://localhost',
+				outSum: '4000.00'
 		});
 
 		expect(mockCreate).toHaveBeenCalledWith(
@@ -618,7 +627,8 @@ describe('createBooking — race condition', () => {
 				bookedAt: SLOT_AT,
 				email: 'a@b.com',
 				clientName: 'A',
-				originUrl: 'http://localhost'
+				originUrl: 'http://localhost',
+				outSum: '4000.00'
 			})
 		).rejects.toThrow('Слот уже занят');
 	});

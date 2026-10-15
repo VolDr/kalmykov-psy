@@ -1,11 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
+vi.mock('$lib/server/pricing.server', () => ({
+	getPricing: vi.fn(async () => ({ single: 4000, package: 14000 }))
+}));
+
 // Mock createBooking before importing the server module
 vi.mock('$lib/server/booking.server', () => ({
 	createBooking: vi.fn(),
-	CONSULTATION_PRICE: '4000.00',
-	PACKAGE_PRICE: '14000.00'
-}));
+	}));
 
 import { POST } from './+server';
 import { isRateLimited, _clearIpWindowForTest } from '$lib/server/rate-limit.server';

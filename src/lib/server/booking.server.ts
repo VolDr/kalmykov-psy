@@ -10,8 +10,6 @@ import utc from 'dayjs/plugin/utc';
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-export const CONSULTATION_PRICE = '4000.00';
-export const PACKAGE_PRICE = '14000.00';
 export const MSK_TZ = 'Europe/Moscow';
 /** Minimum lead time before a slot can be booked. Shared by createBooking and getAvailabilities. */
 export const BUFFER_MS = 10 * 60 * 60 * 1000;
@@ -95,7 +93,8 @@ export async function createBooking(params: {
 	email: string;
 	clientName: string;
 	originUrl: string;
-	outSum?: string;
+	outSum: string;
+	product?: 'single' | 'package';
 	sbClientId?: number | null;
 }) {
 	const now = nowIso();
@@ -160,8 +159,8 @@ export async function createBooking(params: {
 
 	// Create payment FIRST — if Robokassa is down, no booking row is created (no cleanup needed)
 	const payment = await createPayment({
-		outSum: params.outSum ?? CONSULTATION_PRICE,
-		description: params.outSum === PACKAGE_PRICE ? 'Пакет консультаций' : 'Консультация',
+		outSum: params.outSum,
+		description: params.product === 'package' ? 'Пакет консультаций' : 'Консультация',
 		email: params.email,
 		expiresInMinutes: 15,
 		successUrl: `${params.originUrl}/booking/success`,
