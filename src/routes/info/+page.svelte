@@ -603,7 +603,7 @@
 						<span class="text-[16px] font-medium text-white/55 lg:text-[18px]">/ 4 сессии</span>
 					</div>
 					<p class="mt-5 text-[16px] leading-relaxed text-white/75 lg:text-[18px]">
-						Для устойчивых изменений, а не временного облегчения.
+						Для достижения устойчивых изменений в повседневной жизни
 					</p>
 					<ul class="mt-6 flex flex-col gap-2.5 text-[16px] text-white/90 lg:text-[18px]">
 						<li class="flex items-center gap-2.5">

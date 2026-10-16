@@ -972,7 +972,9 @@
 					<h2 class="font-caveat text-[34px] font-bold text-navy md:pt-[35px] lg:text-[40px]">
 						Разовая сессия
 					</h2>
-					<div class="mt-2 text-[18px] font-extrabold text-navy lg:text-[20px]">{formatRubles(prices.single)}</div>
+					<div class="mt-2 text-[18px] font-extrabold text-navy lg:text-[20px]">
+						{formatRubles(prices.single)}
+					</div>
 					<p class="mt-5 text-[16px] leading-relaxed text-foreground/75 lg:text-[18px]">
 						Если хотите разобраться в конкретной ситуации, познакомиться с подходом или понять,
 						нужна ли вам терапия вообще.
@@ -1030,14 +1032,26 @@
 					<h2 class="font-caveat text-[34px] font-bold text-white lg:text-[40px]">
 						Регулярные встречи
 					</h2>
-					<div class="mt-2 flex items-baseline gap-2">
-						<span class="text-[18px] font-extrabold lg:text-[20px]">{formatRubles(prices.package)}</span>
-						<span class="text-[16px] font-medium text-white/55 lg:text-[18px]">/ 4 сессии</span>
+
+					<div class="mt-2 flex items-baseline justify-between gap-3">
+						<div class="flex items-baseline gap-2">
+							<span class="text-[18px] font-extrabold lg:text-[20px]">
+								{formatRubles(prices.package)}
+							</span>
+							<span class="text-[16px] font-medium text-white/55 lg:text-[18px]"> / 4 сессии </span>
+						</div>
+
+						<span class="text-[13px] font-medium whitespace-nowrap text-white/45 lg:text-[14px]">
+							{Math.round(prices.package / 4).toLocaleString('ru-RU')} ₽ / сессия
+						</span>
 					</div>
+
 					<p class="mt-5 text-[16px] leading-relaxed text-white/75 lg:text-[18px]">
-						Для устойчивых изменений, а не временного облегчения.
+						Для достижения устойчивых изменений в повседневной жизни
 					</p>
-					<ul class="mt-6 flex flex-col gap-2.5 text-[16px] text-white/90 lg:text-[18px]">
+
+					<ul class="mt-6 flex flex-col gap-2.5 text-[16px]">
+						text-white/90 lg:text-[18px]">
 						<li class="flex items-center gap-2.5">
 							<span class="h-1.5 w-1.5 rounded-full bg-primary"></span>Система трекинга прогресса
 						</li>
