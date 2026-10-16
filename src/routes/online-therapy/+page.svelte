@@ -206,12 +206,12 @@
 			</aside>
 
 			<div class="min-w-0">
-				<!-- Мобильная версия: две колонки вкладок, без горизонтального скролла и якорей. -->
+				<!-- Мобильная версия: горизонтальные вкладки, можно свайпать по строке. -->
 				<div class="mb-7 lg:hidden">
 					<div class="mb-3 text-[12px] font-extrabold tracking-[0.13em] text-foreground/50 uppercase">
 						Разделы
 					</div>
-					<div class="grid grid-cols-2 gap-2" role="tablist" aria-label="Разделы перед началом работы">
+					<div class="-mx-5 flex snap-x snap-proximity gap-2 overflow-x-auto overscroll-x-contain px-5 pb-2 touch-pan-x [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" role="tablist" aria-label="Разделы перед началом работы">
 						{#each groups as group, i}
 							<button
 								type="button"
@@ -222,10 +222,10 @@
 								tabindex={activeTab === i ? 0 : -1}
 								onclick={() => (activeTab = i)}
 								onkeydown={(event) => handleTabKeydown(event, i)}
-								class="flex min-h-[76px] min-w-0 items-start gap-2 rounded-xl border px-3 py-3 text-left text-[13px] leading-snug font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary {activeTab === i ? 'border-navy bg-navy text-white' : 'border-[#e4dccb] bg-card text-navy'}"
+								class="relative flex shrink-0 snap-start items-center gap-2 whitespace-nowrap px-3 py-3 text-left text-[14px] leading-snug font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary {activeTab === i ? 'text-navy after:absolute after:right-3 after:bottom-0 after:left-3 after:h-[3px] after:rounded-full after:bg-primary' : 'text-foreground/55 hover:text-navy'}"
 							>
-								<span class="shrink-0 text-[12px] font-extrabold {activeTab === i ? 'text-primary' : 'text-primary/90'}">{group.num}</span>
-								<span class="min-w-0 break-words">
+								<span class="shrink-0 text-[12px] font-extrabold text-primary">{group.num}</span>
+								<span class="shrink-0">
 									{group.title[0]}{#if group.title[1]} {group.title[1]}{/if}
 								</span>
 							</button>
