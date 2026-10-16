@@ -278,7 +278,7 @@
 <section class="mx-auto max-w-[1600px] bg-background px-5 py-14 md:pb-20 xl:px-0">
 	<Reveal width="full">
 		<div class="mx-auto mb-10 flex items-center gap-4 md:max-w-[760px] md:gap-6 lg:max-w-[1210px]">
-			<h2 class="font-caveatfont-bold text-[34px] whitespace-nowrap text-navy lg:text-[40px]">
+			<h2 class="font-caveat font-bold text-[34px] whitespace-nowrap text-navy lg:text-[40px]">
 				с чем работаю
 			</h2>
 			<span class="h-0.5 flex-1">
@@ -540,7 +540,9 @@
 					<h2 class="font-caveat text-[34px] font-bold text-navy md:pt-[35px] lg:text-[40px]">
 						Разовая сессия
 					</h2>
-					<div class="mt-2 text-[18px] font-extrabold text-navy lg:text-[20px]">{formatRubles(data.prices.single)}</div>
+					<div class="mt-2 text-[18px] font-extrabold text-navy lg:text-[20px]">
+						{formatRubles(data.prices.single)}
+					</div>
 					<p class="mt-5 text-[16px] leading-relaxed text-foreground/75 lg:text-[18px]">
 						Если хотите разобраться в конкретной ситуации, познакомиться с подходом или понять,
 						нужна ли вам терапия вообще.
@@ -595,13 +597,24 @@
 						class="mb-2 inline-block w-fit rounded-full bg-primary px-3 py-1 text-[11px] font-extrabold tracking-[0.07em] text-navy uppercase"
 						>Рекомендуемый формат</span
 					>
+
 					<h2 class="font-caveat text-[34px] font-bold text-white lg:text-[40px]">
 						Регулярные встречи
 					</h2>
-					<div class="mt-2 flex items-baseline gap-2">
-						<span class="text-[18px] font-extrabold lg:text-[20px]">{formatRubles(data.prices.package)}</span>
-						<span class="text-[16px] font-medium text-white/55 lg:text-[18px]">/ 4 сессии</span>
+
+					<div class="mt-2 flex items-baseline justify-between gap-3">
+						<div class="flex items-baseline gap-2">
+							<span class="text-[18px] font-extrabold lg:text-[20px]">
+								{formatRubles(data.prices.package)}
+							</span>
+							<span class="text-[16px] font-medium text-white/55 lg:text-[18px]"> / 4 сессии </span>
+						</div>
+
+						<span class="text-[13px] font-medium whitespace-nowrap text-white/45 lg:text-[14px]">
+							{Math.round(data.prices.package / 4).toLocaleString('ru-RU')} ₽ / сессия
+						</span>
 					</div>
+
 					<p class="mt-5 text-[16px] leading-relaxed text-white/75 lg:text-[18px]">
 						Для достижения устойчивых изменений в повседневной жизни
 					</p>
