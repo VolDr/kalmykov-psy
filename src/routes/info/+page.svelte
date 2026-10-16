@@ -535,7 +535,7 @@
 			<!-- LIGHT -->
 			<Reveal width="full">
 				<div
-					class="flex h-full flex-col rounded-[22px] border border-navy/12 bg-[#fdfaf3] p-6 lg:px-8"
+					class="flex h-full flex-col rounded-[22px] bg-[#fdfaf3] p-6 lg:px-8"
 				>
 					<h2 class="font-caveat text-[34px] font-bold text-navy md:pt-[35px] lg:text-[40px]">
 						Разовая сессия
