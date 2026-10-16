@@ -1,49 +1,23 @@
-﻿<!--
-  ════════════════════════════════════════════════════════════════
-  ПОРТ: полная замена  src/routes/online-therapy/+page.svelte
-  ────────────────────────────────────────────────────────────────
-  Редизайн страницы «Как строится работа» (макет «Перед началом работы»).
-  · Header / Footer берутся из +layout.svelte (онлайн-терапия в layout НЕ скрыта) —
-    поэтому здесь только контент страницы. PageHero больше не нужен.
-  · Данные те же: onlineTherapyBlocks. 14 блоков сгруппированы в 5 разделов.
-  · Клик по теме раскрывает её полный текст в правой колонке (master-detail),
-    повторный клик возвращает краткую сводку раздела.
-  · Требует токенов из app.css.additions.css (font-caveat, text-navy) —
-    они уже добавлены при порте «верха».
-  · Иконки — через iconify-плагин (icon-[lucide--…]), как в Header.svelte.
-  ════════════════════════════════════════════════════════════════
--->
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { onlineTherapyBlocks } from '$lib/data/online-therapy';
 	import type { PageData } from './$types';
 	import { formatRubles } from '$lib/pricing';
-	let { data }: { data: PageData } = $props();
 	import MarkdownLink from '$lib/components/MarkdownLink.svelte';
 	import Reveal from '$lib/components/Reveal.svelte';
-	import { cubicOut } from 'svelte/easing';
 
-	function panelEnter(node: Element, { duration = 300 }: { duration?: number } = {}) {
-		return {
-			duration,
-			css: (t: number) => {
-				const e = cubicOut(t);
-				return `opacity:${e};transform:translateY(${(1 - e) * 10}px);filter:blur(${(1 - e) * 3}px)`;
-			}
-		};
-	}
+	let { data }: { data: PageData } = $props();
 
-	// Цена берётся из таблицы тарифов; query-параметры её не меняют.
+	// Все формулировки берутся из действующей страницы. Меняется только представление.
 	const blocks = $derived(
 		onlineTherapyBlocks.map((block) =>
 			block.title === 'Оплата и стоимость'
-				? { ...block, data: [`${formatRubles(data.prices.single)} за сессию.`, ...block.data] }
+				? { ...block, data: [formatRubles(data.prices.single) + ' за сессию.', ...block.data] }
 				: block
 		)
 	);
-	// быстрый доступ к тексту блока по его заголовку
-	const byTitle = $derived(Object.fromEntries(blocks.map((b) => [b.title, b.data])));
+	const byTitle = $derived(Object.fromEntries(blocks.map((block) => [block.title, block.data])));
 
-	// ── группировка в 5 разделов (label — что видит пользователь, key — заголовок блока) ──
 	type Topic = { label: string; key: string };
 	type Group = {
 		num: string;
@@ -99,18 +73,47 @@
 			topics: [
 				{ label: 'Обратная связь', key: 'Обратная связь' },
 				{ label: 'Длительность работы', key: 'Длительность работы' },
-
 				{ label: 'Завершение терапии', key: 'Завершение работы' }
 			]
 		}
 	];
 
-	// выбранная тема в каждом разделе (null = показываем сводку)
-	let selected = $state<(number | null)[]>(groups.map(() => null));
+	// На мобильных устройствах разделы переключаются вкладками, без горизонтального скролла.
+	let activeTab = $state(0);
+	let activeSection = $state(0);
 
-	function toggle(i: number, j: number) {
-		selected[i] = selected[i] === j ? null : j;
+	function handleTabKeydown(event: KeyboardEvent, index: number) {
+		const direction = event.key === 'ArrowRight' ? 1 : event.key === 'ArrowLeft' ? -1 : 0;
+		if (direction === 0 && event.key !== 'Home' && event.key !== 'End') return;
+		event.preventDefault();
+		const next =
+			event.key === 'Home'
+				? 0
+				: event.key === 'End'
+					? groups.length - 1
+					: (index + direction + groups.length) % groups.length;
+		activeTab = next;
+		document.getElementById('consent-tab-' + next)?.focus();
 	}
+
+	onMount(() => {
+		// Подсветка раздела в боковом содержании при прокрутке на широком экране.
+		const updateActiveSection = () => {
+			let current = 0;
+			for (let index = 0; index < groups.length; index++) {
+				const section = document.getElementById('consent-section-' + index);
+				if (section && section.getBoundingClientRect().top <= 190) current = index;
+			}
+			activeSection = current;
+		};
+		updateActiveSection();
+		window.addEventListener('scroll', updateActiveSection, { passive: true });
+		window.addEventListener('resize', updateActiveSection);
+		return () => {
+			window.removeEventListener('scroll', updateActiveSection);
+			window.removeEventListener('resize', updateActiveSection);
+		};
+	});
 </script>
 
 <svelte:head>
@@ -171,98 +174,106 @@
 	</div>
 </section>
 
-<!-- ═══════════════════ РАЗДЕЛЫ 01–05 ═══════════════════ -->
+<!-- ═══════════════════ РАЗДЕЛЫ И СОДЕРЖАНИЕ ═══════════════════ -->
 <section class="bg-background pt-8 pb-6">
 	<div class="mx-auto px-5 md:max-w-[760px] lg:max-w-[1200px] xl:px-0">
 		<div class="h-px w-full bg-[#d8cfbc]"></div>
 
-		{#each groups as group, i}
-			{@const sel = selected[i]}
-			<Reveal width="full">
-				<div
-					class="grid grid-cols-[52px_1fr] gap-x-5 gap-y-5 py-10 lg:grid-cols-[54px_300px_1fr_2fr] lg:border-b lg:border-[#e4dccb] lg:py-11"
-				>
-					<!-- номер -->
-					<div
-						class="-mt-[10px] font-caveat text-[42px] leading-none font-bold text-primary lg:text-[54px]"
-					>
-						{group.num}
-					</div>
+		<div class="grid gap-8 pt-8 pb-12 lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-14 lg:pt-14 xl:gap-20">
+			<!-- Десктоп: фиксированное содержание, текст разделов полностью раскрыт. -->
+			<aside class="hidden lg:block" aria-label="Содержание">
+				<div class="sticky top-28">
+					<p class="mb-5 text-[12px] font-extrabold tracking-[0.13em] text-foreground/50 uppercase">
+						Содержание
+					</p>
+					<nav aria-label="Разделы страницы" class="border-t border-[#e4dccb]">
+						{#each groups as group, i}
+							<a
+								href={'#consent-section-' + i}
+								onclick={() => (activeSection = i)}
+								aria-current={activeSection === i ? 'location' : undefined}
+								class="group flex items-center gap-3 border-b border-[#e4dccb] py-4 text-left text-[15px] leading-snug font-semibold transition-colors hover:text-primary {activeSection === i ? 'text-primary' : 'text-navy'}"
+							>
+								<span class="w-7 shrink-0 text-[14px] font-extrabold text-primary/75">{group.num}</span>
+								<span class="min-w-0 flex-1">
+									{group.title[0]}{#if group.title[1]} {group.title[1]}{/if}
+								</span>
+								<span class="icon-[lucide--chevron-right] h-4 w-4 shrink-0 transition-opacity {activeSection === i ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}"></span>
+							</a>
+						{/each}
+					</nav>
+				</div>
+			</aside>
 
-					<!-- иконка + заголовок -->
-					<div class="col-start-2 flex max-h-fit items-center gap-2 lg:col-start-auto">
-						<img src={group.icon} alt="" class="h-9 w-9 shrink-0" aria-hidden="true" />
-						<h2
-							class="m-0 text-[19px] leading-[1.22] font-extrabold [overflow-wrap:break-word] [hyphens:auto] text-navy"
-						>
-							{group.title[0]}<br />{group.title[1]}
-						</h2>
+			<div class="min-w-0">
+				<!-- Мобильная версия: две колонки вкладок, без горизонтального скролла и якорей. -->
+				<div class="mb-7 lg:hidden">
+					<div class="mb-3 text-[12px] font-extrabold tracking-[0.13em] text-foreground/50 uppercase">
+						Разделы
 					</div>
-
-					<!-- темы (кликабельные) -->
-					<div class="col-span-2 flex flex-col lg:col-span-1">
-						{#each group.topics as topic, j}
+					<div class="grid grid-cols-2 gap-2" role="tablist" aria-label="Разделы перед началом работы">
+						{#each groups as group, i}
 							<button
 								type="button"
-								onclick={() => toggle(i, j)}
-								class="group flex w-full items-center justify-between gap-3 border-b border-[#e4dccb] px-0.5 py-3 text-left text-[16px] font-semibold transition-all duration-200 lg:text-[19px] {j ===
-								0
-									? 'border-t border-[#e4dccb]'
-									: ''} {sel === j ? 'font-bold text-navy' : 'text-foreground/85 hover:text-navy'}"
+								id={'consent-tab-' + i}
+								role="tab"
+								aria-selected={activeTab === i}
+								aria-controls={'consent-section-' + i}
+								tabindex={activeTab === i ? 0 : -1}
+								onclick={() => (activeTab = i)}
+								onkeydown={(event) => handleTabKeydown(event, i)}
+								class="flex min-h-[76px] min-w-0 items-start gap-2 rounded-xl border px-3 py-3 text-left text-[13px] leading-snug font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary {activeTab === i ? 'border-navy bg-navy text-white' : 'border-[#e4dccb] bg-card text-navy'}"
 							>
-								<span>{topic.label}</span>
-								<!-- десктоп: шеврон вправо; мобиль: шеврон вниз -->
-								<span
-									class="icon-[lucide--chevron-down] h-4 w-4 shrink-0 text-primary transition-all
-										duration-200 lg:hidden
-										{sel === j ? 'rotate-180' : ''}"
-								></span>
-								<span
-									class="icon-[lucide--chevron-right] hidden h-4 w-4 shrink-0 text-primary transition-all duration-200 lg:block {sel ===
-									j
-										? 'translate-x-0 opacity-100'
-										: '-translate-x-1 opacity-0 group-hover:translate-x-0 group-hover:opacity-60'}"
-								></span>
+								<span class="shrink-0 text-[12px] font-extrabold {activeTab === i ? 'text-primary' : 'text-primary/90'}">{group.num}</span>
+								<span class="min-w-0 break-words">
+									{group.title[0]}{#if group.title[1]} {group.title[1]}{/if}
+								</span>
 							</button>
+						{/each}
+					</div>
+				</div>
 
-							<!-- мобиль: inline-контент под каждой темой -->
-							{#if sel === j}
-								<div
-									class="border-b border-[#e4dccb] px-0.5 py-4 lg:hidden"
-									in:panelEnter={{ duration: 150 }}
-								>
-									<div class="flex flex-col gap-2.5 text-[15px] leading-relaxed text-foreground/75">
+				<!-- Десктоп: все разделы подряд. Мобильная версия: только выбранная вкладка. -->
+				{#each groups as group, i}
+					<section
+						id={'consent-section-' + i}
+						role="tabpanel"
+						aria-labelledby={'consent-tab-' + i}
+						class="scroll-mt-28 border-b border-[#e4dccb] pb-9 lg:mb-12 lg:pb-12 {activeTab === i ? 'block' : 'hidden lg:block'}"
+					>
+						<div class="mb-7 grid grid-cols-[44px_36px_minmax(0,1fr)] items-start gap-x-2.5 lg:mb-9 lg:grid-cols-[58px_44px_minmax(0,1fr)] lg:gap-x-3">
+							<span class="font-caveat text-[38px] leading-none font-bold text-primary lg:text-[50px]">
+								{group.num}
+							</span>
+							<img src={group.icon} alt="" class="mt-1 h-8 w-8 object-contain lg:h-9 lg:w-9" aria-hidden="true" />
+							<div class="min-w-0">
+								<h2 class="m-0 text-[22px] leading-tight font-extrabold text-navy lg:text-[28px]">
+									{group.title[0]}{#if group.title[1]}<span class="block">{group.title[1]}</span>{/if}
+								</h2>
+								<p class="mt-3 max-w-[620px] text-[13px] leading-relaxed text-foreground/60 lg:text-[14px]">
+									{group.summary}
+								</p>
+							</div>
+						</div>
+
+						<div class="lg:pl-[114px]">
+							{#each group.topics as topic}
+								<div class="border-t border-[#e4dccb] py-5 lg:py-6">
+									<h3 class="mb-2 text-[17px] leading-snug font-extrabold text-navy lg:text-[19px]">
+										{topic.label}
+									</h3>
+									<div class="flex max-w-[640px] flex-col gap-2.5 text-[15px] leading-[1.85] text-foreground/75 lg:text-[16px]">
 										{#each byTitle[topic.key] ?? [] as para}
 											<p><MarkdownLink text={para} /></p>
 										{/each}
 									</div>
 								</div>
-							{/if}
-						{/each}
-					</div>
-
-					<!-- десктоп: правая панель со сводкой / текстом темы -->
-					<div class="col-span-1 hidden pt-1 lg:block" style="min-height: 80px;">
-						{#key sel}
-							<div in:panelEnter={{ duration: 220 }}>
-								{#if sel === null}
-									<p class="text-[16px] leading-relaxed text-foreground/75">{group.summary}</p>
-								{:else}
-									<span class="mb-2.5 block text-[16px] font-extrabold text-navy"
-										>{group.topics[sel].label}</span
-									>
-									<div class="flex flex-col gap-2.5 text-[15px] leading-relaxed text-foreground/75">
-										{#each byTitle[group.topics[sel].key] ?? [] as para}
-											<p><MarkdownLink text={para} /></p>
-										{/each}
-									</div>
-								{/if}
-							</div>
-						{/key}
-					</div>
-				</div>
-			</Reveal>
-		{/each}
+							{/each}
+						</div>
+					</section>
+				{/each}
+			</div>
+		</div>
 
 		<!-- ═══════════════════ ПЛАШКА ═══════════════════ -->
 		<Reveal width="full">
