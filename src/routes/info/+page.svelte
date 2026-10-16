@@ -598,9 +598,14 @@
 					<h2 class="font-caveat text-[34px] font-bold text-white lg:text-[40px]">
 						Регулярные встречи
 					</h2>
-					<div class="mt-2 flex items-baseline gap-2">
-						<span class="text-[18px] font-extrabold lg:text-[20px]">{formatRubles(data.prices.package)}</span>
-						<span class="text-[16px] font-medium text-white/55 lg:text-[18px]">/ 4 сессии</span>
+					<div class="mt-2 flex items-baseline justify-between gap-3">
+						<div class="flex items-baseline gap-2">
+							<span class="text-[18px] font-extrabold lg:text-[20px]">{formatRubles(data.prices.package)}</span>
+							<span class="text-[16px] font-medium text-white/55 lg:text-[18px]">/ 4 сессии</span>
+						</div>
+						<span class="text-[13px] font-medium whitespace-nowrap text-white/45 lg:text-[14px]">
+							{Math.round(data.prices.package / 4).toLocaleString('ru-RU')} ₽ / сессия
+						</span>
 					</div>
 					<p class="mt-5 text-[16px] leading-relaxed text-white/75 lg:text-[18px]">
 						Для достижения устойчивых изменений в повседневной жизни
