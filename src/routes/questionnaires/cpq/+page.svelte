@@ -10,7 +10,6 @@
 		saveAssessmentState
 	} from '$lib/utils/questionnaire/assessmentState';
 
-	const url = 'https://kalmykov-psy.ru/questionnaires/cpq';
 	const options = [
 		{ label: 'Совсем нет', value: 1 },
 		{ label: 'Иногда', value: 2 },
@@ -124,7 +123,6 @@
 		content="Русская версия опросника клинического перфекционизма CPQ с корректным подсчётом общего и факторных баллов."
 	/>
 	<meta name="robots" content="index, follow" />
-	<link rel="canonical" href={url} />
 </svelte:head>
 
 <AssessmentPage
