@@ -160,7 +160,7 @@
 	<link rel="canonical" href={url} />
 </svelte:head>
 
-<AssessmentPage {title} {description} time="5–7 минут" questions="9 пунктов + вопрос о влиянии">
+<AssessmentPage {title} {description} time="5–7 минут" questions="9 пунктов + вопрос о влиянии" methodologyKey="phq9">
 	{#snippet info()}
 		<p>
 			PHQ-9 помогает оценить выраженность симптомов, но не заменяет клиническое интервью и не
