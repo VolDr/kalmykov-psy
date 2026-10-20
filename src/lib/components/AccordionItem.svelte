@@ -52,7 +52,7 @@
 		class={cn(
 			'group flex w-full cursor-pointer text-left transition-colors',
 			variant === 'education'
-				? 'items-center gap-5 rounded-[18px] border border-navy/5 bg-white/40 px-5 py-6 shadow-[0_10px_32px_rgba(43,42,78,0.025)] transition-[background-color,border-color,box-shadow] duration-200 hover:border-primary/25 hover:bg-[#fffdf7] hover:shadow-[0_12px_36px_rgba(43,42,78,0.04)] md:px-8 md:py-7 lg:px-10'
+				? 'items-center gap-5 rounded-[18px] bg-white/40 px-5 py-6 shadow-[0_10px_32px_rgba(43,42,78,0.025)] transition-[background-color,box-shadow] duration-200 hover:bg-[#fffdf7] hover:shadow-[0_12px_36px_rgba(43,42,78,0.04)] md:px-8 md:py-7 lg:px-10'
 				: 'p-4',
 			className
 		)}
