@@ -52,7 +52,7 @@
 		class={cn(
 			'group flex w-full cursor-pointer text-left transition-colors',
 			variant === 'education'
-				? 'items-center gap-5 rounded-[18px] bg-white/40 px-5 py-6 shadow-[0_10px_32px_rgba(43,42,78,0.025)] transition-[background-color,box-shadow] duration-200 hover:bg-[#fffdf7] hover:shadow-[0_12px_36px_rgba(43,42,78,0.04)] md:px-8 md:py-7 lg:px-10'
+				? 'items-center gap-5 rounded-[18px] bg-white/40 p-4 shadow-[0_10px_32px_rgba(43,42,78,0.025)] transition-[background-color,box-shadow] duration-200 hover:bg-[#fffdf7] hover:shadow-[0_12px_36px_rgba(43,42,78,0.04)]'
 				: 'p-4',
 			className
 		)}
@@ -69,7 +69,8 @@
 		</div>
 		{#if variant === 'education'}
 			<svg
-				class={cn('h-7 w-7 shrink-0 text-navy transition-[transform,color] duration-200 group-hover:text-primary', open && 'rotate-90')}
+				class="education-chevron h-7 w-7 shrink-0 text-navy group-hover:text-primary"
+				data-expanded={open}
 				viewBox="0 0 24 24"
 				fill="none"
 				stroke="currentColor"
@@ -118,7 +119,23 @@
 </div>
 
 <style>
+	.education-chevron {
+		transform: rotate(0deg);
+		transform-origin: center;
+		transition:
+			transform 260ms cubic-bezier(0.22, 1, 0.36, 1),
+			color 180ms ease;
+	}
+
+	.education-chevron[data-expanded='true'] {
+		transform: rotate(90deg);
+	}
+
 	@media (prefers-reduced-motion: reduce) {
+		.education-chevron {
+			transition: none;
+		}
+
 		div {
 			transition: none !important;
 		}
