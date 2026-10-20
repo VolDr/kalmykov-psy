@@ -12,7 +12,7 @@
 		saveAssessmentState
 	} from '$lib/utils/questionnaire/assessmentState';
 
-	const url = 'https://kalmykov.pro/questionnaires/psi';
+	const url = 'https://kalmykov-psy.ru/questionnaires/psi';
 	const options = [
 		{ label: 'Не согласен', value: 1 },
 		{ label: 'Скорее нет', value: 2 },
