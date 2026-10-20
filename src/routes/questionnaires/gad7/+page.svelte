@@ -38,7 +38,7 @@
 	});
 	let answers = $state(initialState.answers);
 	let currentStep = $state(Math.min(initialState.currentStep, questions.length - 1));
-	let showResults = $state(
+	let showResults = $state<boolean>(
 		initialState.showResults &&
 			questions.every((question) => initialState.answers[question.id] !== undefined)
 	);
