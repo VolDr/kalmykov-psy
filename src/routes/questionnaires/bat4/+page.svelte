@@ -10,7 +10,7 @@
 		saveAssessmentState
 	} from '$lib/utils/questionnaire/assessmentState';
 
-	const url = 'https://kalmykov.pro/questionnaires/bat4';
+	const url = 'https://kalmykov-psy.ru/questionnaires/bat4';
 	const options = [
 		{ label: 'Никогда', value: 1 },
 		{ label: 'Редко', value: 2 },
