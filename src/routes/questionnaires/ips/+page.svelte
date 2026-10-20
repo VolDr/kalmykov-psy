@@ -12,7 +12,6 @@
 		saveAssessmentState
 	} from '$lib/utils/questionnaire/assessmentState';
 
-	const url = 'https://kalmykov-psy.ru/questionnaires/ips';
 	const options = [
 		{ label: 'Не согласен', value: 1 },
 		{ label: 'Скорее нет', value: 2 },
@@ -114,7 +113,6 @@
 		content="Русская версия шкалы иррациональной прокрастинации IPS П. Стила с исходными вариантами ответов."
 	/>
 	<meta name="robots" content="index, follow" />
-	<link rel="canonical" href={url} />
 </svelte:head>
 
 <AssessmentPage
