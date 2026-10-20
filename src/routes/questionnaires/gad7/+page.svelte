@@ -14,7 +14,6 @@
 
 	const title = 'GAD-7';
 	const description = 'Оценка выраженности тревожных симптомов за последние две недели';
-	const url = 'https://kalmykov-psy.ru/questionnaires/gad7';
 	const options = [
 		{ label: 'Совсем нет', value: 0 },
 		{ label: 'В течение нескольких дней', value: 1 },
@@ -112,7 +111,6 @@
 		content="Валидированная русская версия GAD-7 для оценки выраженности тревожных симптомов."
 	/>
 	<meta name="robots" content="index, follow" />
-	<link rel="canonical" href={url} />
 </svelte:head>
 
 <AssessmentPage {title} {description} time="2–4 минуты" questions="7 вопросов">
