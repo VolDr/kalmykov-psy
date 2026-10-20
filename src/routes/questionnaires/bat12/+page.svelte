@@ -12,7 +12,6 @@
 		saveAssessmentState
 	} from '$lib/utils/questionnaire/assessmentState';
 
-	const url = 'https://kalmykov-psy.ru/questionnaires/bat12';
 	const options = [
 		{ label: 'Никогда', value: 1 },
 		{ label: 'Редко', value: 2 },
@@ -111,7 +110,6 @@
 		content="Официальная русская форма BAT-12 для скрининга выраженности признаков профессионального выгорания."
 	/>
 	<meta name="robots" content="index, follow" />
-	<link rel="canonical" href={url} />
 </svelte:head>
 
 <AssessmentPage
