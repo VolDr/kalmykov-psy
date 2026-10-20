@@ -7,8 +7,15 @@
 		header,
 		children,
 		isOpen = false,
-		class: className = ''
-	}: { header: Snippet; children: Snippet; isOpen?: boolean; class?: string } = $props();
+		class: className = '',
+		variant = 'default'
+	}: {
+		header: Snippet;
+		children: Snippet;
+		isOpen?: boolean;
+		class?: string;
+		variant?: 'default' | 'education';
+	} = $props();
 
 	let open = $state(isOpen);
 
@@ -41,40 +48,66 @@
 
 <div>
 	<button
-		class={cn('group flex w-full cursor-pointer p-4 text-left transition-colors', className)}
+		type="button"
+		class={cn(
+			'group flex w-full cursor-pointer text-left transition-colors',
+			variant === 'education'
+				? 'items-center gap-5 rounded-[18px] border border-navy/5 bg-white/40 px-5 py-6 shadow-[0_10px_32px_rgba(43,42,78,0.025)] transition-[background-color,border-color,box-shadow] duration-200 hover:border-primary/25 hover:bg-[#fffdf7] hover:shadow-[0_12px_36px_rgba(43,42,78,0.04)] md:px-8 md:py-7 lg:px-10'
+				: 'p-4',
+			className
+		)}
 		onclick={toggle}
 		aria-expanded={open}
-		autocomplete="off"
 	>
 		<div
-			class="min-w-0 cursor-pointer transition-colors duration-300 group-hover:text-primary lg:min-w-full"
+			class={cn(
+				'min-w-0 cursor-pointer transition-colors duration-300',
+				variant === 'education' ? 'flex-1' : 'group-hover:text-primary lg:min-w-full'
+			)}
 		>
 			{@render header()}
 		</div>
-		<div class="t-icon-swap ml-auto shrink-0 cursor-pointer" data-state={open ? 'b' : 'a'}>
-			<span class="t-icon" data-icon="a">
-				<svg
-					class="h-6 w-6 transition-colors duration-300 group-hover:text-primary"
-					fill="none"
-					stroke="currentColor"
-					viewBox="0 0 24 24"
-					stroke-width="2"
-				>
-					<path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
-				</svg>
-			</span>
-			<span class="t-icon" data-icon="b">
-				<svg
-					class="h-6 w-6 transition-colors duration-300 group-hover:text-primary"
-					fill="none"
-					stroke="currentColor"
-					viewBox="0 0 24 24"
-					stroke-width="2"
-				>
-					<path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7" />
-				</svg>
-			</span>
-		</div>
+		{#if variant === 'education'}
+			<svg
+				class={cn('h-7 w-7 shrink-0 text-navy transition-[transform,color] duration-200 group-hover:text-primary', open && 'rotate-90')}
+				viewBox="0 0 24 24"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="2.2"
+				stroke-linecap="round"
+				stroke-linejoin="round"
+				aria-hidden="true"
+			>
+				<path d="m9 5 7 7-7 7" />
+			</svg>
+		{:else}
+			<div class="t-icon-swap ml-auto shrink-0 cursor-pointer" data-state={open ? 'b' : 'a'}>
+				<span class="t-icon" data-icon="a">
+					<svg
+						class="h-6 w-6 transition-colors duration-300 group-hover:text-primary"
+						fill="none"
+						stroke="currentColor"
+						viewBox="0 0 24 24"
+						stroke-width="2"
+						aria-hidden="true"
+					>
+						<path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+					</svg>
+				</span>
+				<span class="t-icon" data-icon="b">
+					<svg
+						class="h-6 w-6 transition-colors duration-300 group-hover:text-primary"
+						fill="none"
+						stroke="currentColor"
+						viewBox="0 0 24 24"
+						stroke-width="2"
+						aria-hidden="true"
+					>
+						<path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7" />
+					</svg>
+				</span>
+			</div>
+		{/if}
 	</button>
 
 	{#if open}
