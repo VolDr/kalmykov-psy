@@ -17,6 +17,7 @@
 -->
 <script lang="ts">
 	import { questionnaireCategories } from '$lib/data/content';
+	import { page } from '$app/state';
 	import Reveal from '$lib/components/Reveal.svelte';
 	import ButtonSvg from '$lib/components/ui/ButtonSvg.svelte';
 	import { reachGoal } from '$lib/metrika';
@@ -35,11 +36,11 @@
 		isIntroModalOpen = false;
 	}
 
-	const url = `${import.meta.env.VITE_URL}/questionnaires`;
-	const ogImage = `${import.meta.env.VITE_URL}/header.webp`;
+	const url = $derived(page.data.canonicalUrl);
+	const ogImage = $derived(new URL('/header.webp', url).href);
 
 	const title =
-		'Психологические опросники онлайн | Тесты на депрессию, тревогу, перфекционизм, прокрастинацию и выгорание';
+		'Психологические опросники онлайн — выгорание, тревога, прокрастинация';
 	const description =
 		'Бесплатные психологические опросники онлайн: PHQ-9 на депрессивные симптомы, GAD-7 на тревожность, CPQ на перфекционизм, ПШ/ИПШ на прокрастинацию, BAT на признаки выгорания. Скрининговые результаты с пояснениями и ограничениями.';
 
@@ -176,12 +177,7 @@
 <svelte:head>
 	<title>{title}</title>
 	<meta name="description" content={description} />
-	<meta
-		name="keywords"
-		content="психологические тесты онлайн, тест на депрессию, тест на тревожность, тест на перфекционизм, тест на прокрастинацию, тест на выгорание, PHQ-9, GAD-7, CPQ, PSI, IPS, BAT, опросники, самодиагностика, психологическая помощь"
-	/>
 	<meta name="robots" content="index, follow" />
-	<link rel="canonical" href={url} />
 
 	<meta property="og:type" content="website" />
 	<meta property="og:title" content={title} />
@@ -210,9 +206,9 @@
 				</span>
 
 				<h1
-					class="relative mb-0 inline-block w-fit font-caveat text-[52px] leading-[1.1] font-bold tracking-[1px] text-navy lg:text-[72px]"
+					class="relative mb-0 inline-block w-fit font-caveat text-[42px] leading-[1.1] font-bold tracking-[1px] text-navy md:text-[52px] lg:text-[64px]"
 				>
-					Что вас беспокоит?
+					Психологические опросники
 					<svg
 						class="block h-3.5 w-full text-primary md:h-4"
 						viewBox="0 0 520 18"
@@ -230,8 +226,8 @@
 				</h1>
 
 				<p class="mt-6 max-w-[470px] text-lg leading-[1.7] text-foreground/75 md:text-[18px]">
-					Психологические опросники. Выберите тему, которая сейчас актуальна для вас, и пройдите
-					подходящий опросник.
+					Выберите актуальную тему и пройдите подходящий опросник.
+					Результаты помогают оценить симптомы, но не заменяют профессиональную диагностику.
 				</p>
 			</div>
 		</Reveal>
