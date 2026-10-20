@@ -14,7 +14,7 @@
 
 	const title = 'PHQ-9';
 	const description = 'Скрининг выраженности депрессивных симптомов за последние две недели';
-	const url = 'https://kalmykov.pro/questionnaires/phq9';
+	const url = 'https://kalmykov-psy.ru/questionnaires/phq9';
 	const options = [
 		{ label: 'Ни разу', value: 0 },
 		{ label: 'Несколько дней', value: 1 },
