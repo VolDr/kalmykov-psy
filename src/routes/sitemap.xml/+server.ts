@@ -24,6 +24,12 @@ export async function GET() {
 		)
 		.join('')}
 	<url>
+		<loc>${baseUrl}/info</loc>
+	</url>
+	<url>
+		<loc>${baseUrl}/articles</loc>
+	</url>
+	<url>
 		<loc>${baseUrl}/for-doctors</loc>
 	</url>
 	<url>
