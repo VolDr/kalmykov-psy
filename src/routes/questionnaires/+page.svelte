@@ -181,7 +181,6 @@
 		content="психологические тесты онлайн, тест на депрессию, тест на тревожность, тест на перфекционизм, тест на прокрастинацию, тест на выгорание, PHQ-9, GAD-7, CPQ, PSI, IPS, BAT, опросники, самодиагностика, психологическая помощь"
 	/>
 	<meta name="robots" content="index, follow" />
-	<link rel="canonical" href={url} />
 
 	<meta property="og:type" content="website" />
 	<meta property="og:title" content={title} />
