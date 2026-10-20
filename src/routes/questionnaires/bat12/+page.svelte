@@ -11,8 +11,6 @@
 		loadAssessmentState,
 		saveAssessmentState
 	} from '$lib/utils/questionnaire/assessmentState';
-
-	const url = 'https://kalmykov.pro/questionnaires/bat12';
 	const options = [
 		{ label: 'Никогда', value: 1 },
 		{ label: 'Редко', value: 2 },
@@ -111,7 +109,6 @@
 		content="Официальная русская форма BAT-12 для скрининга выраженности признаков профессионального выгорания."
 	/>
 	<meta name="robots" content="index, follow" />
-	<link rel="canonical" href={url} />
 </svelte:head>
 
 <AssessmentPage
@@ -119,7 +116,7 @@
 	description="Короткая форма для скрининга и наблюдения за динамикой профессионального выгорания"
 	time="4–6 минут"
 	questions="12 вопросов"
->
+ methodologyKey="bat12">
 	{#snippet info()}
 		<p>
 			Границы 2,54 и 2,96 получены прежде всего на работающих выборках Нидерландов, Бельгии и
