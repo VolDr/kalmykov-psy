@@ -83,37 +83,41 @@
 </script>
 
 <div class="w-full scroll-mt-24 pt-2 md:pt-4" id="education">
-	<AccordionItem isOpen={isOpen || openFromHash}>
+	<AccordionItem isOpen={isOpen || openFromHash} variant="education">
 		{#snippet header()}
 			<Reveal width="full" axis="x">
 				<div class="text-left">
-					<div class="mb-11 flex items-center gap-4 md:gap-6">
-						<h2
-							class={cn(
-								'font-caveat text-[34px] font-bold whitespace-nowrap text-navy lg:text-[40px]',
-								titleClass
-							)}
+					<h2
+						class={cn(
+							'relative inline-block whitespace-nowrap pb-1 font-caveat text-[34px] leading-[1.1] font-bold text-navy lg:text-[40px]',
+							titleClass
+						)}
+					>
+						где я учился
+						<svg
+							viewBox="0 0 240 16"
+							preserveAspectRatio="none"
+							class="pointer-events-none absolute -bottom-1 -left-2 h-[14px] w-[calc(100%+16px)]"
+							aria-hidden="true"
 						>
-							где я учился
-						</h2>
-						<span class="h-0.5 flex-1">
-							<svg
-								viewBox="0 0 600 22"
-								preserveAspectRatio="none"
-								class="block h-[22px] w-full"
-								aria-hidden="true"
-							>
-								<path
-									d="M2 12 C200 6 400 16 598 10"
-									stroke="var(--color-muted-foreground)"
-									stroke-width="1.5"
-									fill="none"
-									stroke-linecap="round"
-								/>
-							</svg>
-						</span>
-					</div>
-					<p class="-mt-7 pl-4 text-[16px] leading-relaxed text-foreground/55 lg:text-[18px]">
+							<path
+								d="M3 9 C65 5 152 5 237 9"
+								stroke="var(--color-marker)"
+								stroke-width="5"
+								stroke-linecap="round"
+								fill="none"
+							/>
+							<path
+								d="M43 12 C91 10 164 9 215 10"
+								stroke="var(--color-marker)"
+								stroke-width="2"
+								stroke-linecap="round"
+								fill="none"
+								opacity=".6"
+							/>
+						</svg>
+					</h2>
+					<p class="mt-4 text-[16px] leading-relaxed text-foreground/55 lg:text-[18px]">
 						Здесь можно посмотреть мои документы об образовании, если для вас это важно.
 					</p>
 				</div>
