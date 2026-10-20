@@ -1,0 +1,42 @@
+name: Questionnaire SEO validation
+
+on:
+  pull_request:
+    branches: [wip-2]
+    paths:
+      - 'src/routes/questionnaires/**'
+      - 'src/routes/surveys/**'
+      - 'src/routes/+page.svelte'
+      - 'src/routes/+layout.server.js'
+      - 'src/routes/sitemap.xml/**'
+      - 'src/routes/online-therapy/**'
+      - 'src/lib/components/questionnaire/**'
+      - 'src/lib/components/layout/MainGridNew.svelte'
+      - 'src/lib/data/content.ts'
+      - 'src/lib/data/questionnaireMethodology.ts'
+      - 'scripts/check-questionnaire-seo.mjs'
+      - '.github/workflows/questionnaires-seo.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Dependencies
+        run: npm ci
+      - name: SEO invariants
+        run: node scripts/check-questionnaire-seo.mjs
+      - name: Svelte typecheck
+        run: npm run check
+      - name: Production build
+        run: npm run build
