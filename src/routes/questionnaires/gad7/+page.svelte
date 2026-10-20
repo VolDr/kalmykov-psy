@@ -114,12 +114,6 @@
 </svelte:head>
 
 <AssessmentPage {title} {description} time="2–4 минуты" questions="7 вопросов" methodologyKey="gad7">
-	{#snippet info()}
-		<p>
-			Русская версия GAD-7 валидирована для общей популяции. Клинические чувствительность и
-			специфичность этой адаптации требуют дальнейшего изучения.
-		</p>
-	{/snippet}
 	{#if !showResults}
 		<AssessmentWizard
 			step={currentStep + 1}
