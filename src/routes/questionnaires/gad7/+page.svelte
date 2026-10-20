@@ -12,7 +12,7 @@
 		saveAssessmentState
 	} from '$lib/utils/questionnaire/assessmentState';
 
-	const title = 'GAD-7';
+	const title = 'Опросник тревожных симптомов GAD-7';
 	const description = 'Оценка выраженности тревожных симптомов за последние две недели';
 	const url = 'https://kalmykov.pro/questionnaires/gad7';
 	const options = [
