@@ -17,6 +17,7 @@
 -->
 <script lang="ts">
 	import { questionnaireCategories } from '$lib/data/content';
+	import { page } from '$app/state';
 	import Reveal from '$lib/components/Reveal.svelte';
 	import ButtonSvg from '$lib/components/ui/ButtonSvg.svelte';
 	import { reachGoal } from '$lib/metrika';
@@ -35,8 +36,8 @@
 		isIntroModalOpen = false;
 	}
 
-	const url = `${import.meta.env.VITE_URL}/questionnaires`;
-	const ogImage = `${import.meta.env.VITE_URL}/header.webp`;
+	const url = $derived(page.data.canonicalUrl);
+	const ogImage = $derived(new URL('/header.webp', url).href);
 
 	const title =
 		'Психологические опросники онлайн | Тесты на депрессию, тревогу, перфекционизм, прокрастинацию и выгорание';
