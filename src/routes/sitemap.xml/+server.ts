@@ -5,7 +5,7 @@ const questionnaires = ['phq9', 'gad7', 'cpq', 'psi', 'ips', 'bat12', 'bat23', '
 export async function GET() {
 	const baseUrl = VITE_URL || 'https://kalmykov-psy.ru';
 
-	// No <lastmod>: the repository does not track a reliable per-page content update date.
+	// Modification dates are omitted until reliable per-page timestamps are available.
 
 	const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
