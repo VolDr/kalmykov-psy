@@ -14,7 +14,7 @@
 
 	const title = 'GAD-7';
 	const description = 'Оценка выраженности тревожных симптомов за последние две недели';
-	const url = 'https://kalmykov.pro/questionnaires/gad7';
+	const url = 'https://kalmykov-psy.ru/questionnaires/gad7';
 	const options = [
 		{ label: 'Совсем нет', value: 0 },
 		{ label: 'В течение нескольких дней', value: 1 },
