@@ -66,7 +66,7 @@
 	);
 	let answers = $state(initialState.answers);
 	let currentStep = $state(Math.min(initialState.currentStep, initialScore > 0 ? 9 : 8));
-	let showResults = $state(
+	let showResults = $state<boolean>(
 		initialState.showResults &&
 			questions.every((question) => initialState.answers[question.id] !== undefined)
 	);
