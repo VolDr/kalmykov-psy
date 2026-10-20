@@ -349,13 +349,6 @@
 				</Reveal>
 			{/each}
 		</div>
-		<p class="mt-6 text-[15px] leading-relaxed text-foreground/70 lg:text-[17px]">
-			Если хотите оценить выраженность признаков выгорания, можно пройти
-			<a href="/questionnaires/bat12" class="font-semibold text-navy underline decoration-primary underline-offset-4 hover:text-primary">опросник выгорания BAT-12</a>.
-			При трудностях с откладыванием задач доступна
-			<a href="/questionnaires/psi" class="font-semibold text-navy underline decoration-primary underline-offset-4 hover:text-primary">шкала прокрастинации П. Стила (PSI)</a>.
-			Опросники не устанавливают диагноз и не объясняют причины симптомов.
-		</p>
 	</div>
 </section>
 
