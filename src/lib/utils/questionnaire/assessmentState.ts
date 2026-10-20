@@ -43,7 +43,7 @@ export function loadAssessmentState<T extends AssessmentState>(storageKey: strin
 	}
 }
 
-export function saveAssessmentState(storageKey: string, state: AssessmentState): void {
+export function saveAssessmentState<T extends AssessmentState>(storageKey: string, state: T): void {
 	if (!browser) return;
 
 	try {
