@@ -8,9 +8,7 @@
 		description: string;
 		time: string;
 		questions: string;
-		infoTitle?: string;
 		methodologyKey?: QuestionnaireMethodologyKey;
-		info?: Snippet;
 		children: Snippet;
 	};
 
@@ -19,9 +17,7 @@
 		description,
 		time,
 		questions,
-		infoTitle = 'О методике и ограничениях',
 		methodologyKey,
-		info,
 		children
 	}: Props = $props();
 </script>
@@ -46,17 +42,6 @@
 				<span class="h-1 w-1 rounded-full bg-[#b7b19f]"></span>
 				<span>{questions}</span>
 			</div>
-
-			{#if info}
-				<section
-					class="mt-5 rounded-2xl bg-card px-4 py-4 text-[13px] leading-[1.55] text-foreground/70 md:px-5 md:py-5 md:text-[14px]"
-				>
-					<h2 class="mb-2 text-[15px] font-bold text-navy md:text-[16px]">{infoTitle}</h2>
-					<div class="space-y-2">
-						{@render info()}
-					</div>
-				</section>
-			{/if}
 		</header>
 
 		{@render children()}
