@@ -10,7 +10,6 @@
 		saveAssessmentState
 	} from '$lib/utils/questionnaire/assessmentState';
 
-	const url = 'https://kalmykov-psy.ru/questionnaires/bat4';
 	const options = [
 		{ label: 'Никогда', value: 1 },
 		{ label: 'Редко', value: 2 },
@@ -79,7 +78,6 @@
 		content="BAT-4 — ультракороткая шкала для группового и организационного скрининга выгорания без неподтверждённых индивидуальных порогов."
 	/>
 	<meta name="robots" content="index, follow" />
-	<link rel="canonical" href={url} />
 </svelte:head>
 
 <AssessmentPage
