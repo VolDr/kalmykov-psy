@@ -214,7 +214,7 @@ export const questionnaireMethodology = {
 	bat23: {
 		title: 'Полный опросник выгорания BAT-23 и общая форма BAT-22',
 		intro:
-			'Burnout Assessment Tool (BAT) оценивает основные симптомы выгорания. На странице доступны две разные официальные формы: рабочая BAT-23 и общая BAT-22. Выбор зависит от того, есть ли у человека работа; ответы в версиях не следует механически объединять.',
+			'Burnout Assessment Tool (BAT) оценивает основные симптомы выгорания. На странице доступны две разные официальные формы: рабочая BAT-23 и общая BAT-22. Рабочая форма предназначена для тех, кто работает, а общая — прежде всего для людей, длительно отсутствующих на работе; данные разных форм не следует механически объединять.',
 		sections: [
 			{
 				heading: 'Что измеряет BAT',
@@ -234,7 +234,8 @@ export const questionnaireMethodology = {
 		],
 		sources: [
 			{ label: 'Schaufeli et al. (2020). Разработка и валидность BAT', href: 'https://www.mdpi.com/1660-4601/17/24/9495' },
-			{ label: 'Schaufeli et al. (2023). Пороговые значения BAT', href: 'https://doi.org/10.5271/sjweh.4093' }
+			{ label: 'Schaufeli et al. (2023). Пороговые значения BAT', href: 'https://doi.org/10.5271/sjweh.4093' },
+			{ label: 'Schaufeli, De Witte & Desart (2020). Руководство BAT 2.0 (включая общую форму)', href: 'https://burnoutassessmenttool.be/wp-content/uploads/2020/08/User-Manual-BAT-version-2.0.pdf' }
 		],
 		related: [
 			{ label: 'Короткая форма BAT-12', href: '/questionnaires/bat12' },
