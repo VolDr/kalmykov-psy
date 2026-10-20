@@ -18,7 +18,7 @@
 	type Question = { id: string; text: string };
 	type Zone = { severity: string; tone: ResultTone };
 
-	const url = 'https://kalmykov.pro/questionnaires/bat23';
+	const url = 'https://kalmykov-psy.ru/questionnaires/bat23';
 	const options = [
 		{ label: 'Никогда', value: 1 },
 		{ label: 'Редко', value: 2 },
