@@ -10,7 +10,7 @@
 		saveAssessmentState
 	} from '$lib/utils/questionnaire/assessmentState';
 
-	const url = 'https://kalmykov.pro/questionnaires/cpq';
+	const url = 'https://kalmykov-psy.ru/questionnaires/cpq';
 	const options = [
 		{ label: 'Совсем нет', value: 1 },
 		{ label: 'Иногда', value: 2 },
