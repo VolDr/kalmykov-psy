@@ -161,7 +161,7 @@ export const questionnaireCategories: Category[] = [
 		category: 'Прокрастинация',
 		questionnaires: [
 			{
-				title: 'Шкала прокрастинации (PSI)',
+				title: 'Шкала прокрастинации П. Стила (PSI)',
 				link: '/questionnaires/psi',
 				description: 'Полная шкала прокрастинации для оценки склонности откладывать дела на потом.',
 				time: '8-10 минут'
