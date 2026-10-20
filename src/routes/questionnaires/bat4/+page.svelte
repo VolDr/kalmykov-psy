@@ -98,7 +98,6 @@
 		>
 			<AssessmentQuestion
 				id={currentQuestion.id}
-				number={currentStep + 1}
 				text={currentQuestion.text}
 				{options}
 				value={answers[currentQuestion.id]}

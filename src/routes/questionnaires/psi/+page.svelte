@@ -137,7 +137,7 @@
 <AssessmentPage
 	title="Шкала прокрастинации П. Стила (PSI)"
 	description="Оценка общей склонности откладывать важные дела"
-	time="8–10 минут"
+	time="7–10 минут"
 	questions="29 вопросов"
  methodologyKey="psi">
 	{#if !showResults}
@@ -153,7 +153,6 @@
 		>
 			<AssessmentQuestion
 				id={currentQuestion.id}
-				number={currentStep + 1}
 				text={currentQuestion.text}
 				{options}
 				value={answers[currentQuestion.id]}

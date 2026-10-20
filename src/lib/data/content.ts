@@ -136,13 +136,13 @@ export const questionnaireCategories: Category[] = [
 				title: 'Опросник депрессивного состояния (PHQ-9)',
 				link: '/questionnaires/phq9',
 				description: 'Скрининговый опросник для оценки выраженности депрессивных симптомов.',
-				time: '5-7 минут'
+				time: '2-4 минуты'
 			},
 			{
 				title: 'Опросник генерализованного тревожного расстройства (GAD-7)',
 				link: '/questionnaires/gad7',
 				description: 'Скрининговый опросник для оценки выраженности тревожных симптомов.',
-				time: '2-4 минуты'
+				time: '2-3 минуты'
 			}
 		]
 	},
@@ -153,7 +153,7 @@ export const questionnaireCategories: Category[] = [
 				title: 'Опросник клинического перфекционизма (CPQ)',
 				link: '/questionnaires/cpq',
 				description: 'Оценка выраженности перфекционистских тенденций по трём факторам.',
-				time: '3-6 минут'
+				time: '3-5 минут'
 			}
 		]
 	},
@@ -164,14 +164,14 @@ export const questionnaireCategories: Category[] = [
 				title: 'Шкала прокрастинации П. Стила (PSI)',
 				link: '/questionnaires/psi',
 				description: 'Полная шкала прокрастинации для оценки склонности откладывать дела на потом.',
-				time: '8-10 минут'
+				time: '7-10 минут'
 			},
 			{
 				title: 'Шкала иррациональной прокрастинации (IPS)',
 				link: '/questionnaires/ips',
 				description:
 					'Короткая шкала для оценки откладывания дел вопреки пониманию негативных последствий.',
-				time: '5-7 минут'
+				time: '2-4 минуты'
 			}
 		]
 	},
@@ -189,14 +189,14 @@ export const questionnaireCategories: Category[] = [
 				link: '/questionnaires/bat12',
 				description:
 					'Короткая версия опросника для оценки и мониторинга признаков профессионального выгорания.',
-				time: '4-6 минут'
+				time: '3-5 минут'
 			},
 			{
-				title: 'Полный опросник выгорания BAT-23 / BAT-22',
+				title: 'Полный опросник выгорания BAT-23',
 				link: '/questionnaires/bat23',
 				description:
-					'Оценка признаков выгорания: рабочая форма из 23 пунктов и общая из 22 пунктов.',
-				time: '8-12 минут'
+					'Оценка четырёх основных признаков выгорания, 23 пункта.',
+				time: '6-10 минут'
 			}
 		]
 	}

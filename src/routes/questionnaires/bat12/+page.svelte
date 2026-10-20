@@ -114,7 +114,7 @@
 <AssessmentPage
 	title="Опросник выгорания BAT-12"
 	description="Короткая форма для скрининга и наблюдения за динамикой профессионального выгорания"
-	time="4–6 минут"
+	time="3–5 минут"
 	questions="12 вопросов"
  methodologyKey="bat12">
 	{#if !showResults}
@@ -130,7 +130,6 @@
 		>
 			<AssessmentQuestion
 				id={currentQuestion.id}
-				number={currentStep + 1}
 				text={currentQuestion.text}
 				{options}
 				value={answers[currentQuestion.id]}

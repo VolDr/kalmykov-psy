@@ -117,7 +117,7 @@
 <AssessmentPage
 	title="Шкала иррациональной прокрастинации (IPS)"
 	description="Короткая шкала П. Стила о добровольном откладывании дел вопреки ожидаемым последствиям"
-	time="5–7 минут"
+	time="2–4 минуты"
 	questions="9 вопросов"
  methodologyKey="ips">
 	{#if !showResults}
@@ -133,7 +133,6 @@
 		>
 			<AssessmentQuestion
 				id={currentQuestion.id}
-				number={currentStep + 1}
 				text={currentQuestion.text}
 				{options}
 				value={answers[currentQuestion.id]}

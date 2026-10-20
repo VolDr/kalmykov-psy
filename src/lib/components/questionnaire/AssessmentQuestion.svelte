@@ -6,7 +6,6 @@
 
 	type Props = {
 		id: string;
-		number?: number;
 		text: string;
 		options: AssessmentOption[];
 		value?: number;
@@ -18,7 +17,6 @@
 
 	let {
 		id,
-		number,
 		text,
 		options,
 		value,
@@ -35,26 +33,18 @@
 	aria-describedby={error ? `${id}-error` : undefined}
 >
 	<legend
-		class="mb-3 flex min-h-24 w-full items-start gap-3 text-[16px] leading-[1.45] font-semibold text-navy md:mb-4 md:min-h-20 md:gap-4 md:text-[18px]"
+		class="mb-3 w-full text-[16px] leading-[1.45] font-semibold text-navy md:mb-4 md:text-[18px]"
 	>
-		{#if number !== undefined}
-			<span
-				class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-card font-caveat text-[20px] font-bold text-primary md:h-9 md:w-9 md:text-[22px]"
-				aria-hidden="true"
-			>
-				{number}
-			</span>
-		{/if}
-		<span class="pt-0.5 md:pt-1">{text}</span>
+		{text}
 	</legend>
 
 	{#if hint}
-		<p class="mb-3 text-[13px] leading-relaxed text-muted-foreground md:ml-[52px] md:text-[14px]">
+		<p class="mb-3 text-[13px] leading-relaxed text-muted-foreground md:text-[14px]">
 			{hint}
 		</p>
 	{/if}
 
-	<div class="grid gap-2 md:ml-[52px] md:grid-cols-2">
+	<div class="grid gap-2 md:grid-cols-2">
 		{#each options as option}
 			<label
 				class={`flex min-h-11 cursor-pointer items-center gap-3 rounded-xl border px-3.5 py-2.5 text-[14px] leading-snug transition-[border-color,background-color,color] duration-200 ease-out-quart md:min-h-12 md:px-4 md:py-3 md:text-[15px] ${
@@ -89,7 +79,7 @@
 	</div>
 
 	{#if error}
-		<p id={`${id}-error`} class="mt-3 text-[14px] font-medium text-red-700 md:ml-[52px]">
+		<p id={`${id}-error`} class="mt-3 text-[14px] font-medium text-red-700">
 			Ответьте на этот вопрос
 		</p>
 	{/if}

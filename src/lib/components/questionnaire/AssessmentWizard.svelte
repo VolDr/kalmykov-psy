@@ -49,7 +49,7 @@
 
 <section
 	bind:this={section}
-	class="flex scroll-mt-[72px] flex-col py-4 md:scroll-mt-[96px] md:py-6"
+	class="flex scroll-mt-[72px] flex-col pt-0 pb-4 md:scroll-mt-[96px] md:pt-0 md:pb-6"
 	aria-label={`${stepLabel} ${step} из ${total}`}
 >
 	<div class="mb-3 md:mb-5">

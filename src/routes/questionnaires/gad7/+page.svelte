@@ -113,7 +113,7 @@
 	<meta name="robots" content="index, follow" />
 </svelte:head>
 
-<AssessmentPage {title} {description} time="2–4 минуты" questions="7 вопросов" methodologyKey="gad7">
+<AssessmentPage {title} {description} time="2–3 минуты" questions="7 вопросов" methodologyKey="gad7">
 	{#if !showResults}
 		<AssessmentWizard
 			step={currentStep + 1}
@@ -127,7 +127,6 @@
 		>
 			<AssessmentQuestion
 				id={currentQuestion.id}
-				number={currentStep + 1}
 				text={currentQuestion.text}
 				{options}
 				value={answers[currentQuestion.id]}

@@ -24,7 +24,7 @@
 
 <section class="min-h-[100svh] bg-background px-4 pt-[82px] pb-8 md:px-5 md:pt-[120px] md:pb-12">
 	<div class="mx-auto w-full max-w-[760px]">
-		<header class="mb-8 md:mb-10">
+		<header class="mb-3 md:mb-5">
 			<h1
 				class="font-caveat text-[34px] leading-[0.95] font-bold tracking-[0.3px] text-navy md:text-[44px]"
 			>
