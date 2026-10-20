@@ -12,7 +12,7 @@
 		saveAssessmentState
 	} from '$lib/utils/questionnaire/assessmentState';
 
-	const title = 'PHQ-9';
+	const title = 'Опросник депрессивных симптомов PHQ-9';
 	const description = 'Скрининг выраженности депрессивных симптомов за последние две недели';
 	const url = 'https://kalmykov.pro/questionnaires/phq9';
 	const options = [
