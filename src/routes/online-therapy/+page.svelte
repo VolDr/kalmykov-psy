@@ -275,6 +275,17 @@
 			</div>
 		</div>
 
+		<nav aria-label="Опросники для самонаблюдения" class="mt-2 border-t border-[#e4dccb] pt-8">
+			<h2 class="text-[20px] font-extrabold text-navy lg:text-[24px]">Опросники для оценки состояния</h2>
+			<p class="mt-3 max-w-[800px] text-[15px] leading-relaxed text-foreground/75">
+				До консультации или в процессе работы можно использовать опросники для оценки выраженности симптомов.
+				Доступны <a href="/questionnaires/bat12" class="font-semibold text-navy underline decoration-primary underline-offset-4 hover:text-primary">BAT-12 для признаков выгорания</a>,
+				<a href="/questionnaires/gad7" class="font-semibold text-navy underline decoration-primary underline-offset-4 hover:text-primary">GAD-7 для тревожных симптомов</a> и
+				<a href="/questionnaires/phq9" class="font-semibold text-navy underline decoration-primary underline-offset-4 hover:text-primary">PHQ-9 для депрессивных симптомов</a>.
+				Это не способ поставить диагноз самостоятельно.
+			</p>
+		</nav>
+
 		<!-- ═══════════════════ ПЛАШКА ═══════════════════ -->
 		<Reveal width="full">
 			<div
