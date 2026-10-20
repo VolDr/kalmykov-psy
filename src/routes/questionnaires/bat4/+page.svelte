@@ -9,8 +9,6 @@
 		loadAssessmentState,
 		saveAssessmentState
 	} from '$lib/utils/questionnaire/assessmentState';
-
-	const url = 'https://kalmykov.pro/questionnaires/bat4';
 	const options = [
 		{ label: 'Никогда', value: 1 },
 		{ label: 'Редко', value: 2 },
@@ -79,7 +77,6 @@
 		content="BAT-4 — ультракороткая шкала для группового и организационного скрининга выгорания без неподтверждённых индивидуальных порогов."
 	/>
 	<meta name="robots" content="index, follow" />
-	<link rel="canonical" href={url} />
 </svelte:head>
 
 <AssessmentPage
@@ -87,7 +84,7 @@
 	description="Ультракороткая форма для группового и организационного скрининга"
 	time="1–2 минуты"
 	questions="4 вопроса"
->
+ methodologyKey="bat4">
 	{#snippet info()}
 		<p>
 			BAT-4 разработан для оценки показателей в группах и организациях. Опубликованных границ для
