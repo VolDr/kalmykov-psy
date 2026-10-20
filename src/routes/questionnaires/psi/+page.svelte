@@ -11,8 +11,6 @@
 		loadAssessmentState,
 		saveAssessmentState
 	} from '$lib/utils/questionnaire/assessmentState';
-
-	const url = 'https://kalmykov.pro/questionnaires/psi';
 	const options = [
 		{ label: 'Не согласен', value: 1 },
 		{ label: 'Скорее нет', value: 2 },
@@ -128,21 +126,20 @@
 </script>
 
 <svelte:head>
-	<title>Шкала прокрастинации PSI онлайн</title>
+	<title>Шкала прокрастинации П. Стила (PSI) — онлайн</title>
 	<meta
 		name="description"
 		content="Русская 29-пунктовая шкала прокрастинации PSI П. Стила с опубликованным алгоритмом подсчёта."
 	/>
 	<meta name="robots" content="index, follow" />
-	<link rel="canonical" href={url} />
 </svelte:head>
 
 <AssessmentPage
-	title="Шкала прокрастинации PSI"
+	title="Шкала прокрастинации П. Стила (PSI)"
 	description="Оценка общей склонности откладывать важные дела"
 	time="8–10 минут"
 	questions="29 вопросов"
->
+ methodologyKey="psi">
 	{#snippet info()}
 		<p>
 			Русская апробация шкалы проведена на выборке 213 человек. Это ограничивает переносимость
