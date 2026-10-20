@@ -3,7 +3,7 @@ import { VITE_URL } from '$env/static/private';
 const questionnaires = ['phq9', 'gad7', 'cpq', 'psi', 'ips', 'bat12', 'bat23', 'bat4'];
 
 export async function GET() {
-	const baseUrl = VITE_URL || 'https://kalmykov-psy.ru';
+	const baseUrl = (VITE_URL || 'https://kalmykov-psy.ru').replace(/\/+$/, '');
 
 	// Modification dates are omitted until reliable per-page timestamps are available.
 
