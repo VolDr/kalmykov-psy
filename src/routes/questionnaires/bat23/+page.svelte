@@ -18,7 +18,6 @@
 	type Question = { id: string; text: string };
 	type Zone = { severity: string; tone: ResultTone };
 
-	const url = 'https://kalmykov-psy.ru/questionnaires/bat23';
 	const options = [
 		{ label: 'Никогда', value: 1 },
 		{ label: 'Редко', value: 2 },
@@ -256,7 +255,6 @@
 		content="Официальные русские формы BAT: 23 пункта для работающих и отдельная общая версия из 22 пунктов."
 	/>
 	<meta name="robots" content="index, follow" />
-	<link rel="canonical" href={url} />
 </svelte:head>
 
 <AssessmentPage
