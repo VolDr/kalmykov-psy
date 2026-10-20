@@ -12,9 +12,8 @@
 		saveAssessmentState
 	} from '$lib/utils/questionnaire/assessmentState';
 
-	const title = 'PHQ-9';
+	const title = 'Опросник депрессивных симптомов PHQ-9';
 	const description = 'Скрининг выраженности депрессивных симптомов за последние две недели';
-	const url = 'https://kalmykov.pro/questionnaires/phq9';
 	const options = [
 		{ label: 'Ни разу', value: 0 },
 		{ label: 'Несколько дней', value: 1 },
@@ -67,7 +66,7 @@
 	);
 	let answers = $state(initialState.answers);
 	let currentStep = $state(Math.min(initialState.currentStep, initialScore > 0 ? 9 : 8));
-	let showResults = $state(
+	let showResults = $state<boolean>(
 		initialState.showResults &&
 			questions.every((question) => initialState.answers[question.id] !== undefined)
 	);
@@ -151,16 +150,15 @@
 </script>
 
 <svelte:head>
-	<title>Тест на депрессивные симптомы PHQ-9 онлайн</title>
+	<title>Опросник депрессивных симптомов PHQ-9 — онлайн</title>
 	<meta
 		name="description"
 		content="Русская версия PHQ-9 для скрининга выраженности депрессивных симптомов. Результат не является диагнозом."
 	/>
 	<meta name="robots" content="index, follow" />
-	<link rel="canonical" href={url} />
 </svelte:head>
 
-<AssessmentPage {title} {description} time="5–7 минут" questions="9 пунктов + вопрос о влиянии">
+<AssessmentPage {title} {description} time="5–7 минут" questions="9 пунктов + вопрос о влиянии" methodologyKey="phq9">
 	{#snippet info()}
 		<p>
 			PHQ-9 помогает оценить выраженность симптомов, но не заменяет клиническое интервью и не

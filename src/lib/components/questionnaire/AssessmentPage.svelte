@@ -1,4 +1,6 @@
 <script lang="ts">
+	import AssessmentMethodology from './AssessmentMethodology.svelte';
+	import { questionnaireMethodology, type QuestionnaireMethodologyKey } from '$lib/data/questionnaireMethodology';
 	import type { Snippet } from 'svelte';
 
 	type Props = {
@@ -7,6 +9,7 @@
 		time: string;
 		questions: string;
 		infoTitle?: string;
+		methodologyKey?: QuestionnaireMethodologyKey;
 		info?: Snippet;
 		children: Snippet;
 	};
@@ -17,6 +20,7 @@
 		time,
 		questions,
 		infoTitle = 'О методике и ограничениях',
+		methodologyKey,
 		info,
 		children
 	}: Props = $props();
@@ -56,5 +60,9 @@
 		</header>
 
 		{@render children()}
+
+		{#if methodologyKey}
+			<AssessmentMethodology details={questionnaireMethodology[methodologyKey]} />
+		{/if}
 	</div>
 </section>

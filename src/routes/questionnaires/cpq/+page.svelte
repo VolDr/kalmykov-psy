@@ -9,8 +9,6 @@
 		loadAssessmentState,
 		saveAssessmentState
 	} from '$lib/utils/questionnaire/assessmentState';
-
-	const url = 'https://kalmykov.pro/questionnaires/cpq';
 	const options = [
 		{ label: 'Совсем нет', value: 1 },
 		{ label: 'Иногда', value: 2 },
@@ -46,7 +44,7 @@
 	});
 	let answers = $state(initialState.answers);
 	let currentStep = $state(Math.min(initialState.currentStep, questions.length - 1));
-	let showResults = $state(
+	let showResults = $state<boolean>(
 		initialState.showResults &&
 			questions.every((question) => initialState.answers[question.id] !== undefined)
 	);
@@ -118,13 +116,12 @@
 </script>
 
 <svelte:head>
-	<title>Тест на перфекционизм CPQ онлайн</title>
+	<title>Опросник клинического перфекционизма (CPQ) — онлайн</title>
 	<meta
 		name="description"
 		content="Русская версия опросника клинического перфекционизма CPQ с корректным подсчётом общего и факторных баллов."
 	/>
 	<meta name="robots" content="index, follow" />
-	<link rel="canonical" href={url} />
 </svelte:head>
 
 <AssessmentPage
@@ -132,7 +129,7 @@
 	description="Оценка перфекционистских тенденций за последний месяц"
 	time="3–6 минут"
 	questions="12 вопросов"
->
+ methodologyKey="cpq">
 	{#snippet info()}
 		<p>
 			CPQ даёт общий показатель от 12 до 48 баллов: чем он выше, тем сильнее выражены измеряемые

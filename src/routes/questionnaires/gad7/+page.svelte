@@ -12,9 +12,8 @@
 		saveAssessmentState
 	} from '$lib/utils/questionnaire/assessmentState';
 
-	const title = 'GAD-7';
+	const title = 'Опросник тревожных симптомов GAD-7';
 	const description = 'Оценка выраженности тревожных симптомов за последние две недели';
-	const url = 'https://kalmykov.pro/questionnaires/gad7';
 	const options = [
 		{ label: 'Совсем нет', value: 0 },
 		{ label: 'В течение нескольких дней', value: 1 },
@@ -39,7 +38,7 @@
 	});
 	let answers = $state(initialState.answers);
 	let currentStep = $state(Math.min(initialState.currentStep, questions.length - 1));
-	let showResults = $state(
+	let showResults = $state<boolean>(
 		initialState.showResults &&
 			questions.every((question) => initialState.answers[question.id] !== undefined)
 	);
@@ -106,16 +105,15 @@
 </script>
 
 <svelte:head>
-	<title>Тест на тревогу GAD-7 онлайн</title>
+	<title>Опросник тревожных симптомов GAD-7 — онлайн</title>
 	<meta
 		name="description"
 		content="Валидированная русская версия GAD-7 для оценки выраженности тревожных симптомов."
 	/>
 	<meta name="robots" content="index, follow" />
-	<link rel="canonical" href={url} />
 </svelte:head>
 
-<AssessmentPage {title} {description} time="2–4 минуты" questions="7 вопросов">
+<AssessmentPage {title} {description} time="2–4 минуты" questions="7 вопросов" methodologyKey="gad7">
 	{#snippet info()}
 		<p>
 			Русская версия GAD-7 валидирована для общей популяции. Клинические чувствительность и

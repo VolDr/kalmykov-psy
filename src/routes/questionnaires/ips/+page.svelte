@@ -11,8 +11,6 @@
 		loadAssessmentState,
 		saveAssessmentState
 	} from '$lib/utils/questionnaire/assessmentState';
-
-	const url = 'https://kalmykov.pro/questionnaires/ips';
 	const options = [
 		{ label: 'Не согласен', value: 1 },
 		{ label: 'Скорее нет', value: 2 },
@@ -41,7 +39,7 @@
 	});
 	let answers = $state(initialState.answers);
 	let currentStep = $state(Math.min(initialState.currentStep, questions.length - 1));
-	let showResults = $state(
+	let showResults = $state<boolean>(
 		initialState.showResults &&
 			questions.every((question) => initialState.answers[question.id] !== undefined)
 	);
@@ -108,21 +106,20 @@
 </script>
 
 <svelte:head>
-	<title>Шкала иррациональной прокрастинации IPS онлайн</title>
+	<title>Шкала иррациональной прокрастинации (IPS) П. Стила</title>
 	<meta
 		name="description"
 		content="Русская версия шкалы иррациональной прокрастинации IPS П. Стила с исходными вариантами ответов."
 	/>
 	<meta name="robots" content="index, follow" />
-	<link rel="canonical" href={url} />
 </svelte:head>
 
 <AssessmentPage
-	title="Шкала иррациональной прокрастинации"
+	title="Шкала иррациональной прокрастинации (IPS)"
 	description="Короткая шкала П. Стила о добровольном откладывании дел вопреки ожидаемым последствиям"
 	time="5–7 минут"
 	questions="9 вопросов"
->
+ methodologyKey="ips">
 	{#snippet info()}
 		<p>
 			В исследовании русской адаптации внутренняя согласованность IPS была слабой: α = 0,363.
