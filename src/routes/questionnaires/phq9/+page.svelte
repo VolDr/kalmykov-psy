@@ -14,7 +14,6 @@
 
 	const title = 'PHQ-9';
 	const description = 'Скрининг выраженности депрессивных симптомов за последние две недели';
-	const url = 'https://kalmykov-psy.ru/questionnaires/phq9';
 	const options = [
 		{ label: 'Ни разу', value: 0 },
 		{ label: 'Несколько дней', value: 1 },
@@ -157,7 +156,6 @@
 		content="Русская версия PHQ-9 для скрининга выраженности депрессивных симптомов. Результат не является диагнозом."
 	/>
 	<meta name="robots" content="index, follow" />
-	<link rel="canonical" href={url} />
 </svelte:head>
 
 <AssessmentPage {title} {description} time="5–7 минут" questions="9 пунктов + вопрос о влиянии">
