@@ -17,8 +17,6 @@
 	type Version = 'work' | 'general';
 	type Question = { id: string; text: string };
 	type Zone = { severity: string; tone: ResultTone };
-
-	const url = 'https://kalmykov.pro/questionnaires/bat23';
 	const options = [
 		{ label: 'Никогда', value: 1 },
 		{ label: 'Редко', value: 2 },
@@ -250,17 +248,16 @@
 </script>
 
 <svelte:head>
-	<title>Полный опросник выгорания BAT онлайн</title>
+	<title>Опросник профессионального выгорания BAT-23 онлайн</title>
 	<meta
 		name="description"
 		content="Официальные русские формы BAT: 23 пункта для работающих и отдельная общая версия из 22 пунктов."
 	/>
 	<meta name="robots" content="index, follow" />
-	<link rel="canonical" href={url} />
 </svelte:head>
 
 <AssessmentPage
-	title="Полный опросник выгорания BAT"
+	title="Опросник выгорания BAT — полная версия"
 	description="Официальная версия для работающих или отдельная общая форма"
 	time="8–12 минут"
 	questions={version === 'general'
@@ -268,7 +265,7 @@
 		: version === 'work'
 			? '23 вопроса'
 			: '22 или 23 вопроса'}
->
+ methodologyKey="bat23">
 	{#snippet info()}
 		<p>
 			Для работающих используется официальная 23-пунктовая форма. Для неработающих — официальная
