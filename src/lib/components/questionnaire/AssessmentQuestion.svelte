@@ -44,7 +44,7 @@
 		</p>
 	{/if}
 
-	<div class="grid gap-2 md:grid-cols-2">
+	<div class="grid gap-2">
 		{#each options as option}
 			<label
 				class={`flex min-h-11 cursor-pointer items-center gap-3 rounded-xl border px-3.5 py-2.5 text-[14px] leading-snug transition-[border-color,background-color,color] duration-200 ease-out-quart md:min-h-12 md:px-4 md:py-3 md:text-[15px] ${

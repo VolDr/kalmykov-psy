@@ -40,9 +40,9 @@
 	const ogImage = $derived(new URL('/header.webp', url).href);
 
 	const title =
-		'Психологические опросники онлайн — выгорание, тревога, прокрастинация';
+		'Психологические тесты онлайн: выгорание, тревога, депрессия';
 	const description =
-		'Бесплатные психологические опросники онлайн: PHQ-9 на депрессивные симптомы, GAD-7 на тревожность, CPQ на перфекционизм, ПШ/ИПШ на прокрастинацию, BAT на признаки выгорания. Скрининговые результаты с пояснениями и ограничениями.';
+		'Бесплатные научные опросники онлайн: выгорание (BAT), тревога (GAD-7), депрессия (PHQ-9), перфекционизм, прокрастинация, синдром самозванца. С пояснениями.';
 
 	type Questionnaire = {
 		title: string;
@@ -66,6 +66,7 @@
 		| 'depression'
 		| 'perfectionism'
 		| 'procrastination'
+		| 'impostor'
 		| 'other';
 
 	type Topic = {
@@ -111,6 +112,13 @@
 			icon: '/procrastination.webp'
 		},
 		{
+			id: 'impostor',
+			title: 'Синдром самозванца',
+			description:
+				'Ощущение, что успех незаслужен, страх разоблачения и обесценивание своих достижений.',
+			icon: 'icon-[lucide--venetian-mask]'
+		},
+		{
 			id: 'other',
 			title: 'Другие темы',
 			description: 'Сон, стресс, самооценка, удовлетворённость жизнью и другие аспекты.',
@@ -131,6 +139,8 @@
 		const ownText = `${questionnaire.title} ${questionnaire.description}`.toLowerCase();
 		const categoryText = questionnaire.sourceCategory.toLowerCase();
 
+		// раньше прокрастинации: «ipss» иначе совпадёт с «ips»
+		if (/(самозван|impostor|ipss)/i.test(ownText)) return 'impostor';
 		if (/(bat|выгоран|истощен|истощён|burnout)/i.test(ownText)) return 'burnout';
 		if (/(gad|тревож|тревог|anxiety)/i.test(ownText)) return 'anxiety';
 		if (/(phq|депресс|подавлен|depression)/i.test(ownText)) return 'depression';
@@ -252,7 +262,11 @@
 					<!-- тема: иконка + заголовок + описание -->
 					<div>
 						<div class="flex items-center gap-5">
-							<img src={group.topic.icon} alt="" class="h-10 w-10 shrink-0" aria-hidden="true" />
+							{#if group.topic.icon.startsWith('/')}
+								<img src={group.topic.icon} alt="" class="h-10 w-10 shrink-0" aria-hidden="true" />
+							{:else}
+								<span class={`${group.topic.icon} h-10 w-10 shrink-0 text-primary`} aria-hidden="true"></span>
+							{/if}
 							<h2 class="m-0 text-[27px] leading-[1.1] font-extrabold tracking-[-0.3px] text-navy">
 								{group.topic.title}
 							</h2>

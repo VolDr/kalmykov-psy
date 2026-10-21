@@ -10,6 +10,7 @@
 		severity?: string;
 		tone: ResultTone;
 		description?: string;
+		thresholds?: number[];
 	};
 
 	type Props = {
@@ -21,6 +22,7 @@
 		tone: ResultTone;
 		recommendation: string;
 		note?: string;
+		thresholds?: number[];
 		subscales?: ResultSubscale[];
 		actions?: Snippet;
 	};
@@ -34,6 +36,7 @@
 		tone,
 		recommendation,
 		note,
+		thresholds = [],
 		subscales = [],
 		actions
 	}: Props = $props();
@@ -46,7 +49,6 @@
 		red: { text: 'text-[#a64235]', bar: 'oklch(0.58 0.16 30)' }
 	} as const;
 
-	const percent = $derived(Math.min(100, Math.max(0, (value / max) * 100)));
 	const copyText = $derived.by(() => {
 		const lines = [title, `${value.toFixed(decimals)} / ${max.toFixed(decimals)}`, severity];
 		if (subscales.length > 0) {
@@ -89,6 +91,30 @@
 	});
 </script>
 
+{#snippet scaleBar(
+	barValue: number,
+	barMax: number,
+	barTone: ResultTone,
+	marks: number[],
+	heightClass: string
+)}
+	<div class={`relative w-full ${heightClass}`}>
+		<div class="h-full w-full overflow-hidden rounded-full bg-[#e4dccb]">
+			<div
+				class="h-full rounded-full transition-[width] duration-500 ease-out-quart"
+				style={`width: ${Math.min(100, Math.max(0, (barValue / barMax) * 100))}%; background: ${colors[barTone].bar};`}
+			></div>
+		</div>
+		{#each marks as mark (mark)}
+			<span
+				class="pointer-events-none absolute -top-1 -bottom-1 w-0.5 -translate-x-1/2 rounded-full bg-navy/70"
+				style={`left: ${Math.min(100, Math.max(0, (mark / barMax) * 100))}%;`}
+				aria-hidden="true"
+			></span>
+		{/each}
+	</div>
+{/snippet}
+
 <section class="scroll-mt-20 space-y-7" aria-live="polite">
 	<div>
 		<h2 class="text-[30px] leading-tight font-extrabold tracking-[-0.5px] text-navy md:text-[36px]">
@@ -97,11 +123,8 @@
 	</div>
 
 	<div class="rounded-[22px] bg-card p-6 sm:p-8">
-		<div class="mb-4 h-2.5 w-full overflow-hidden rounded-full bg-[#e4dccb]">
-			<div
-				class="h-full rounded-full transition-[width] duration-500 ease-out-quart"
-				style={`width: ${percent}%; background: ${colors[tone].bar};`}
-			></div>
+		<div class="mb-4">
+			{@render scaleBar(value, max, tone, thresholds, 'h-2.5')}
 		</div>
 
 		<div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
@@ -134,11 +157,14 @@
 									· {subscale.severity}{/if}
 							</p>
 						</div>
-						<div class="mt-3 h-2 overflow-hidden rounded-full bg-[#e4dccb]">
-							<div
-								class="h-full rounded-full"
-								style={`width: ${Math.min(100, (subscale.value / subscale.max) * 100)}%; background: ${colors[subscale.tone].bar};`}
-							></div>
+						<div class="mt-3">
+							{@render scaleBar(
+								subscale.value,
+								subscale.max,
+								subscale.tone,
+								subscale.thresholds ?? [],
+								'h-2'
+							)}
 						</div>
 						{#if subscale.description}
 							<p class="mt-3 text-[14px] leading-relaxed text-foreground/70">

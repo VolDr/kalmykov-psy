@@ -22,11 +22,15 @@
 	<div class="mt-9 border-t border-[#e4dccb] pt-6">
 		<h3 class="text-[17px] font-bold text-navy">Научные источники</h3>
 		<ul class="mt-3 list-disc space-y-2 pl-5 text-[14px] leading-[1.6] md:text-[15px]">
-			{#each details.sources as source (source.href)}
+			{#each details.sources as source (source.label)}
 				<li>
-					<a href={source.href} target="_blank" rel="noopener noreferrer" class="underline decoration-primary/60 underline-offset-4 hover:decoration-primary">
+					{#if source.href}
+						<a href={source.href} target="_blank" rel="noopener noreferrer" class="underline decoration-primary/60 underline-offset-4 hover:decoration-primary">
+							{source.label}
+						</a>
+					{:else}
 						{source.label}
-					</a>
+					{/if}
 				</li>
 			{/each}
 		</ul>

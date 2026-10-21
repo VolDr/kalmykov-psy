@@ -144,10 +144,10 @@
 </script>
 
 <svelte:head>
-	<title>Опросник депрессивных симптомов PHQ-9 — онлайн</title>
+	<title>Тест на депрессию PHQ-9 онлайн — шкала депрессии</title>
 	<meta
 		name="description"
-		content="Русская версия PHQ-9 для скрининга выраженности депрессивных симптомов. Результат не является диагнозом."
+		content="Пройдите тест PHQ-9 онлайн: 9 вопросов о симптомах депрессии за последние две недели. Бесплатно, 2–4 минуты, результат с пояснением. Не заменяет диагноз."
 	/>
 	<meta name="robots" content="index, follow" />
 </svelte:head>
@@ -158,7 +158,7 @@
 			step={currentStep + 1}
 			total={flowQuestions.length}
 			instruction={isImpactQuestion
-				? 'Этот ответ не входит в сумму PHQ-9'
+				? undefined
 				: 'Насколько часто это беспокоило вас в течение прошедших двух недель?'}
 			canGoBack={currentStep > 0}
 			{canGoNext}
@@ -194,6 +194,7 @@
 			<AssessmentResult
 				value={score}
 				max={27}
+				thresholds={[5, 10, 15, 20]}
 				severity={result.severity}
 				tone={result.tone}
 				recommendation={result.recommendation}

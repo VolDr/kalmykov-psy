@@ -107,7 +107,14 @@
 		groups.map((group): ResultSubscale => {
 			const value = group.ids.reduce((sum, id) => sum + (answers[id] ?? 0), 0) / group.ids.length;
 			const current = zone(value, group.orange, group.red);
-			return { name: group.name, value, max: 5, severity: current.severity, tone: current.tone };
+			return {
+				name: group.name,
+				value,
+				max: 5,
+				severity: current.severity,
+				tone: current.tone,
+				thresholds: [group.orange, group.red]
+			};
 		})
 	);
 
@@ -140,10 +147,10 @@
 </script>
 
 <svelte:head>
-	<title>Опросник профессионального выгорания BAT-23 онлайн</title>
+	<title>Тест на выгорание BAT-23 онлайн — полная версия</title>
 	<meta
 		name="description"
-		content="Официальная русская форма BAT-23 для оценки признаков профессионального выгорания."
+		content="Пройдите полную официальную русскую форму BAT-23: 23 вопроса об истощении, отстранённости, концентрации и эмоциях на работе. Бесплатно, итог по четырём шкалам."
 	/>
 	<meta name="robots" content="index, follow" />
 </svelte:head>
@@ -181,10 +188,10 @@
 				value={mean}
 				max={5}
 				decimals={2}
+				thresholds={[2.59, 3.02]}
 				severity={totalResult.severity}
 				tone={totalResult.tone}
 				recommendation={totalResult.recommendation}
-				note="Общий порог: оранжевая зона с 2,59, красная — с 3,02. Пороговые значения предварительные и получены не на российской выборке."
 				{subscales}
 			>
 				{#snippet actions()}<Button

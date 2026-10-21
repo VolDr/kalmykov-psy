@@ -1,6 +1,6 @@
 import { VITE_URL } from '$env/static/private';
 
-const questionnaires = ['phq9', 'gad7', 'cpq', 'psi', 'ips', 'bat12', 'bat23', 'bat4'];
+const questionnaires = ['phq9', 'gad7', 'cpq', 'psi', 'ips', 'gps9', 'impostor', 'ipss3', 'bat12', 'bat23', 'bat4'];
 
 export async function GET() {
 	const baseUrl = (VITE_URL || 'https://kalmykov-psy.ru').replace(/\/+$/, '');

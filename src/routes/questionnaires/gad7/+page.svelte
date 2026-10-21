@@ -105,10 +105,10 @@
 </script>
 
 <svelte:head>
-	<title>Опросник тревожных симптомов GAD-7 — онлайн</title>
+	<title>Тест на тревожность GAD-7 онлайн — шкала тревоги</title>
 	<meta
 		name="description"
-		content="Валидированная русская версия GAD-7 для оценки выраженности тревожных симптомов."
+		content="Пройдите тест GAD-7 онлайн: 7 вопросов о симптомах тревоги за последние две недели. Бесплатно, 2–3 минуты, результат с пояснением. Не заменяет диагноз."
 	/>
 	<meta name="robots" content="index, follow" />
 </svelte:head>
@@ -138,6 +138,7 @@
 			<AssessmentResult
 				value={score}
 				max={21}
+				thresholds={[5, 10, 15]}
 				severity={result.severity}
 				tone={result.tone}
 				recommendation={result.recommendation}

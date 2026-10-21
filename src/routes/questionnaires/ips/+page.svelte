@@ -106,10 +106,10 @@
 </script>
 
 <svelte:head>
-	<title>Шкала иррациональной прокрастинации (IPS) П. Стила</title>
+	<title>Тест на иррациональную прокрастинацию IPS онлайн</title>
 	<meta
 		name="description"
-		content="Пройдите шкалу иррациональной прокрастинации IPS П. Стила онлайн: 9 вопросов об откладывании дел вопреки ожидаемым последствиям. Результат с пояснениями."
+		content="Пройдите шкалу иррациональной прокрастинации П. Стила онлайн: 9 вопросов об откладывании дел вопреки последствиям. Бесплатно, 2–4 минуты, с пояснением."
 	/>
 	<meta name="robots" content="index, follow" />
 </svelte:head>
@@ -144,10 +144,10 @@
 			<AssessmentResult
 				value={score}
 				max={45}
+				thresholds={[23, 38]}
 				severity={result.severity}
 				tone={result.tone}
 				recommendation={result.recommendation}
-				note="Обратные пункты 2, 5 и 8 уже пересчитаны. Интервалы: 9–22, 23–37 и 38–45 баллов."
 			>
 				{#snippet actions()}<Button
 						type="button"

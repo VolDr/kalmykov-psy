@@ -126,17 +126,17 @@
 </script>
 
 <svelte:head>
-	<title>Шкала прокрастинации П. Стила (PSI) — онлайн</title>
+	<title>Тест на прокрастинацию П. Стила (PSI) онлайн</title>
 	<meta
 		name="description"
-		content="Русская 29-пунктовая шкала прокрастинации PSI П. Стила с опубликованным алгоритмом подсчёта."
+		content="Пройдите шкалу прокрастинации Пирса Стила онлайн: 29 вопросов о том, как вы откладываете дела в учёбе и работе. Бесплатно, результат с уровнем и пояснением."
 	/>
 	<meta name="robots" content="index, follow" />
 </svelte:head>
 
 <AssessmentPage
 	title="Шкала прокрастинации П. Стила (PSI)"
-	description="Оценка общей склонности откладывать важные дела"
+	description="Подробная оценка склонности откладывать дела в учёбе и работе"
 	time="7–10 минут"
 	questions="29 вопросов"
  methodologyKey="psi">
@@ -164,10 +164,10 @@
 			<AssessmentResult
 				value={score}
 				max={145}
+				thresholds={[74, 118]}
 				severity={result.severity}
 				tone={result.tone}
 				recommendation={result.recommendation}
-				note="Обратные пункты 9, 10, 11, 21, 22, 23, 28 и 29 уже пересчитаны. Интервалы: 29–73, 74–117 и 118–145 баллов."
 			>
 				{#snippet actions()}<Button
 						type="button"

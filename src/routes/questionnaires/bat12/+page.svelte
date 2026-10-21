@@ -103,10 +103,10 @@
 </script>
 
 <svelte:head>
-	<title>Короткий опросник выгорания BAT-12 онлайн</title>
+	<title>Тест на профессиональное выгорание BAT-12 онлайн</title>
 	<meta
 		name="description"
-		content="Официальная русская форма BAT-12 для скрининга выраженности признаков профессионального выгорания."
+		content="Пройдите короткую официальную форму BAT-12 онлайн: 12 вопросов о признаках профессионального выгорания. Бесплатно, 3–5 минут, результат по модели светофора."
 	/>
 	<meta name="robots" content="index, follow" />
 </svelte:head>
@@ -142,10 +142,10 @@
 				value={mean}
 				max={5}
 				decimals={2}
+				thresholds={[2.54, 2.96]}
 				severity={result.severity}
 				tone={result.tone}
 				recommendation={result.recommendation}
-				note="Использованы объединённые предварительные пороги исследования 2023 года: 1,00–2,53; 2,54–2,95; 2,96–5,00."
 			>
 				{#snippet actions()}<Button
 						type="button"
