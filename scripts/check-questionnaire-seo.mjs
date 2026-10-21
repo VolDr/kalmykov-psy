@@ -2,9 +2,10 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
 const read = (file) => readFileSync(file, 'utf8');
-const ids = ['phq9', 'gad7', 'cpq', 'psi', 'ips', 'bat4', 'bat12', 'bat23'];
+const ids = ['phq9', 'gad7', 'cpq', 'psi', 'ips', 'gps9', 'impostor', 'ipss3', 'bat4', 'bat12', 'bat23'];
 const layout = read('src/routes/+layout.svelte');
 const content = read('src/lib/data/questionnaireMethodology.ts');
+const catalogue = read('src/lib/data/content.ts');
 const index = read('src/routes/questionnaires/+page.svelte');
 const sitemap = read('src/routes/sitemap.xml/+server.ts');
 
@@ -22,10 +23,12 @@ for (const id of ids) {
   assert.doesNotMatch(page, /rel="canonical"/, `Duplicate canonical: ${id}`);
   assert.doesNotMatch(page, /kalmykov\.pro/, `Legacy domain: ${id}`);
   assert.match(content, new RegExp(`\\b${id}: \\{`), `Missing content record: ${id}`);
+  assert.ok(catalogue.includes(`/questionnaires/${id}`), `Missing catalogue link: ${id}`);
+  assert.ok(sitemap.includes(`'${id}'`), `Missing sitemap entry: ${id}`);
 }
 
 const sourceLinks = content.match(/href: 'https:\/\//g) ?? [];
-assert.ok(sourceLinks.length >= 8, 'Expected a science source per questionnaire');
+assert.ok(sourceLinks.length >= ids.length, 'Expected a science source per questionnaire');
 assert.match(read('src/routes/surveys/+server.ts'), /redirect\(301, '\/questionnaires'\)/);
 assert.match(read('src/routes/surveys/[...slug]/+server.ts'), /redirect\(301, `\/questionnaires\/\$\{slug\}`\)/);
 
