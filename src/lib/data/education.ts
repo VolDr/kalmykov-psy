@@ -15,21 +15,27 @@ export const educationGroups: EducationGroup[] = [
 		category: 'Основное образование',
 		items: [
 			{
+				title: 'Психология личности',
+				details: 'РАНХиГС, 2025 - н.в.',
+				completed: false
+			},
+			{
 				title: 'Мастерство психологического консультирования',
 				details: '500 часов, Психодемия, 2024',
 				diploma: '/mpk.webp', // Существующий файл
 				completed: true
-			},
-			{
-				title: 'Психология личности',
-				details: 'РАНХиГС, 2025 - н.в.',
-				completed: false
 			}
 		]
 	},
 	{
 		category: 'Подходы',
 		items: [
+			{
+				title: 'ACT для всех',
+				details: 'Академия Современной Психологии, 2025',
+				diploma: '/act.webp', // Добавь файл
+				completed: true
+			},
 			{
 				title: 'Когнитивно-поведенческая терапия',
 				details: '262 часа, Психодемия, 2024',
@@ -40,18 +46,17 @@ export const educationGroups: EducationGroup[] = [
 				title: 'Когнитивно-поведенческая терапия: теория, стратегия, техники',
 				details: '72 часа, Спб ИДПО для психологов и психотерапевтов, 2024',
 				completed: true
-			},
-			{
-				title: 'ACT для всех',
-				details: 'Академия Современной Психологии, 2025',
-				diploma: '/act.webp', // Добавь файл
-				completed: true
 			}
 		]
 	},
 	{
 		category: 'Специализации',
 		items: [
+			{
+				title: 'Сексология',
+				details: 'Академия Современной Психологии, 2025 - н.в.',
+				completed: false
+			},
 			{
 				title: 'Работа с хронической болью',
 				details: 'Психосалат, 2025',
@@ -63,11 +68,6 @@ export const educationGroups: EducationGroup[] = [
 				details: 'НУСТ, 2025',
 				diploma: '/klinpsy.webp', // Добавь файл
 				completed: true
-			},
-			{
-				title: 'Сексология',
-				details: 'Академия Современной Психологии, 2025 - н.в.',
-				completed: false
 			}
 		]
 	},
@@ -75,40 +75,15 @@ export const educationGroups: EducationGroup[] = [
 		category: 'Конференции',
 		items: [
 			{
-				title: "Док Пси Фест'23",
-				details: '7 дней, ноябрь 2023',
-				diploma: '/diploma13129454.webp', // Существующий файл
+				title: 'Radically Open Conference 2025',
+				details: '2 дня, декабрь 2025',
+				diploma: '/ro-dbt.webp', // Добавь файл
 				completed: true
 			},
 			{
-				title: 'Конференция "Гештальт-мозаика"',
-				details: '96 часов, январь 2024',
-				diploma: '/diploma14282846.webp', // Существующий файл
-				completed: true
-			},
-			{
-				title: 'Док Пси Фест.Мини',
-				details: '2 дня, март 2024',
-				diploma: '/diploma15042285.webp', // Существующий файл
-				completed: true
-			},
-			{
-				title: "Док Пси Фест'24",
-				details: '10 дней, сентябрь 2024',
-				diploma: '/diploma17382016.webp', // Существующий файл
-				completed: true
-			},
-			{
-				title:
-					'CBT Approach in Counseling and Psychotherapy: Trends and Innovations in Research and Practice',
-				details: '3 дня, ноябрь 2024',
-				diploma: '/Certificate-2024_8116415.webp', // Существующий файл
-				completed: true
-			},
-			{
-				title: "Док Пси Фест'25",
-				details: '10 дней, июнь 2025',
-				diploma: '/diploma20859704.webp', // Существующий файл
+				title: 'Ментализация в психотерапии и за её пределами',
+				details: '3 дня, ноябрь 2025',
+				diploma: '/mbt.webp', // Добавь файл
 				completed: true
 			},
 			{
@@ -119,15 +94,40 @@ export const educationGroups: EducationGroup[] = [
 				completed: true
 			},
 			{
-				title: 'Ментализация в психотерапии и за её пределами',
-				details: '3 дня, ноябрь 2025',
-				diploma: '/mbt.webp', // Добавь файл
+				title: "Док Пси Фест'25",
+				details: '10 дней, июнь 2025',
+				diploma: '/diploma20859704.webp', // Существующий файл
 				completed: true
 			},
 			{
-				title: 'Radically Open Conference 2025',
-				details: '2 дня, декабрь 2025',
-				diploma: '/ro-dbt.webp', // Добавь файл
+				title:
+					'CBT Approach in Counseling and Psychotherapy: Trends and Innovations in Research and Practice',
+				details: '3 дня, ноябрь 2024',
+				diploma: '/Certificate-2024_8116415.webp', // Существующий файл
+				completed: true
+			},
+			{
+				title: "Док Пси Фест'24",
+				details: '10 дней, сентябрь 2024',
+				diploma: '/diploma17382016.webp', // Существующий файл
+				completed: true
+			},
+			{
+				title: 'Док Пси Фест.Мини',
+				details: '2 дня, март 2024',
+				diploma: '/diploma15042285.webp', // Существующий файл
+				completed: true
+			},
+			{
+				title: 'Конференция "Гештальт-мозаика"',
+				details: '96 часов, январь 2024',
+				diploma: '/diploma14282846.webp', // Существующий файл
+				completed: true
+			},
+			{
+				title: "Док Пси Фест'23",
+				details: '7 дней, ноябрь 2023',
+				diploma: '/diploma13129454.webp', // Существующий файл
 				completed: true
 			}
 		]
@@ -136,8 +136,9 @@ export const educationGroups: EducationGroup[] = [
 		category: 'Остальное',
 		items: [
 			{
-				title: 'Прикладная математика и информатика',
-				details: 'Тульский государственный университет, 2019',
+				title: 'Теория Реляционных Фреймов',
+				details: '11 часов, Психосалат, 2025',
+				diploma: '/rft.webp', // Существующий файл
 				completed: true
 			},
 			{
@@ -159,9 +160,8 @@ export const educationGroups: EducationGroup[] = [
 				completed: true
 			},
 			{
-				title: 'Теория Реляционных Фреймов',
-				details: '11 часов, Психосалат, 2025',
-				diploma: '/rft.webp', // Существующий файл
+				title: 'Прикладная математика и информатика',
+				details: 'Тульский государственный университет, 2019',
 				completed: true
 			}
 		]
