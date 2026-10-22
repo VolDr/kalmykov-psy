@@ -83,7 +83,12 @@
 </script>
 
 <div class="w-full scroll-mt-24 pt-2 md:pt-4" id="education">
-	<AccordionItem isOpen={isOpen || openFromHash} variant="education">
+	<!-- шапке и подписям — отступ 20px как у остальных секций; карусель во всю ширину, отступ у крайних карточек -->
+	<AccordionItem
+		isOpen={isOpen || openFromHash}
+		variant="education"
+		class="mx-5 w-[calc(100%-2.5rem)] xl:mx-0 xl:w-full"
+	>
 		{#snippet header()}
 			<Reveal width="full" axis="x">
 				<div class="text-left">
@@ -128,7 +133,7 @@
 			{#each educationGroups as group, groupIndex}
 				<div class="education-section {groupIndex > 0 ? 'mt-12' : 'mt-2'}">
 					<div
-						class="flex items-end justify-between pl-4 {categoryExplanations[group.category]
+						class="flex items-end justify-between pl-5 xl:pl-4 {categoryExplanations[group.category]
 							? 'mb-3'
 							: 'mb-6'}"
 					>
@@ -162,14 +167,14 @@
 
 					{#if categoryExplanations[group.category]}
 						<p
-							class="mb-6 max-w-[700px] pr-20 pl-4 text-[16px] leading-relaxed text-foreground/60 lg:text-[18px]"
+							class="mb-6 max-w-[700px] pr-20 pl-5 text-[16px] xl:pl-4 leading-relaxed text-foreground/60 lg:text-[18px]"
 						>
 							{categoryExplanations[group.category]}
 						</p>
 					{/if}
 
 					<div
-						class="education-carousel my-scroll flex w-full snap-x snap-mandatory scroll-pl-4 gap-4 overflow-x-auto pt-2 pb-6 [-ms-overflow-style:none] [scrollbar-width:none] md:[scrollbar-color:var(--color-primary)_var(--color-background)] md:[scrollbar-width:thin] [&::-webkit-scrollbar]:hidden md:[&::-webkit-scrollbar]:block md:[&::-webkit-scrollbar]:h-1.5 md:[&::-webkit-scrollbar-thumb]:rounded-full md:[&::-webkit-scrollbar-thumb]:bg-primary/70 md:hover:[&::-webkit-scrollbar-thumb]:bg-primary md:[&::-webkit-scrollbar-track]:rounded-full md:[&::-webkit-scrollbar-track]:bg-background"
+						class="education-carousel my-scroll flex w-full snap-x snap-mandatory scroll-pl-5 gap-4 xl:scroll-pl-4 overflow-x-auto pt-2 pb-6 [-ms-overflow-style:none] [scrollbar-width:none] md:[scrollbar-color:var(--color-primary)_var(--color-background)] md:[scrollbar-width:thin] [&::-webkit-scrollbar]:hidden md:[&::-webkit-scrollbar]:block md:[&::-webkit-scrollbar]:h-1.5 md:[&::-webkit-scrollbar-thumb]:rounded-full md:[&::-webkit-scrollbar-thumb]:bg-primary/70 md:hover:[&::-webkit-scrollbar-thumb]:bg-primary md:[&::-webkit-scrollbar-track]:rounded-full md:[&::-webkit-scrollbar-track]:bg-background"
 						onwheel={handleWheelScroll}
 					>
 						{#each group.items as item, idx}
@@ -182,7 +187,10 @@
 									item.diploma
 										? 'border-navy/10 bg-[#fdfaf3] outline-0 hover:cursor-pointer hover:border-primary/50 hover:shadow-[0_8px_30px_rgb(0,0,0,0.05)] focus:outline-primary focus-visible:outline-primary'
 										: 'border-navy/10 bg-background',
-									{ 'ml-4': idx === 0, 'mr-4': idx === group.items.length - 1 }
+									{
+										'ml-5 xl:ml-4': idx === 0,
+										'mr-5 xl:mr-4': idx === group.items.length - 1
+									}
 								)}
 							>
 								<div class="relative z-10 flex w-full flex-col">

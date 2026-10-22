@@ -116,7 +116,7 @@
 			title: 'Синдром самозванца',
 			description:
 				'Ощущение, что успех незаслужен, страх разоблачения и обесценивание своих достижений.',
-			icon: 'icon-[lucide--venetian-mask]'
+			icon: '/impostor.webp'
 		},
 		{
 			id: 'other',

@@ -100,6 +100,9 @@ params     jsonb
 **Опросники (`QuestionnaireStep.svelte`):**
 `questionnaire_email_submitted`, `questionnaire_progress_25/50/75`, `questionnaire_completed` (params: `result`, `questions_answered`, `email_provided`), `questionnaire_telegram_click`.
 
+**Блок автора под справкой на `/questionnaires/*` ([QuestionnaireAuthor.svelte](../src/lib/components/questionnaire/QuestionnaireAuthor.svelte)):**
+`questionnaire_intro_click` (кнопка «Записаться на встречу-знакомство»), `questionnaire_booking_click` (ссылка «Вопросов нет, хочу на консультацию»); оба с параметром `questionnaire` (= ключ опросника: `phq9`, `bat23`, …). Заводить в Метрике по одному разу.
+
 **Клип-статьи (`useful/[slug]`, `ClipQuiz.svelte`, см. [docs/clip-articles.md](clip-articles.md)):**
 Имена целей общие для всех статей, конкретная статья различается по параметру `article` (= slug):
 `clip_opened`, `clip_progress_25/50/75`, `clip_quiz_started`, `clip_quiz_completed` (params: `article`, `result`), `clip_bot_results_click` (params: `article`, `result`). Заводить в Метрике по одному разу — покрывают все будущие клип-статьи.

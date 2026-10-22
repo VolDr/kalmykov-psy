@@ -7,6 +7,7 @@
 	import Button from '$lib/components/ui/Button.svelte';
 	import ImageWithShadow from '$lib/components/ImageWithShadow.svelte';
 	import MarkdownLink from '$lib/components/MarkdownLink.svelte';
+	import { sessionFaq } from '$lib/data/sessionFaq';
 	import EducationNew from '$lib/components/sections/EducationNew.svelte';
 	import Media from '$lib/components/sections/Media.svelte';
 	import { fade, slide } from 'svelte/transition';
@@ -1291,7 +1292,7 @@
 		</Reveal>
 
 		<div class="flex flex-col border-t border-navy/12">
-			{#each [{ q: 'сколько нужно сессий?', a: 'Предсказать заранее — почти невозможно. У каждого своя динамика. Кто-то уходит через три месяца, кто-то работает год. Психика не укладывается в расписание. Могу сказать точно, что я работаю <strong class="font-semibold text-foreground">не на количество сессий, а на то, чтобы вы перестали в них нуждаться.</strong>' }, { q: 'как часто нужно встречаться?', a: 'Наиболее эффективно — раз в неделю: это поддерживает терапевтический процесс в нужном ритме. Как только появятся устойчивые изменения, частоту можно постепенно снижать.' }, { q: 'будут задания между сессиями?', a: 'Да — изменения происходят не на сессиях, а в жизни между ними. Но это не школа: задания мы подбираем <strong class="font-semibold text-foreground">под ваш темп и контекст</strong>, и только, если они необходимы. Мы всегда будем адаптировать их под вас.' }, { q: 'не могу сформулировать запрос — это обязательно?', a: 'Нет. Достаточно общего ощущения, что что-то идёт не так. Конкретный запрос мы сформулируем вместе в процессе — именно для этого и нужна первая встреча.' }, { q: 'боюсь осуждения', a: 'На сессиях нет места осуждению — ни морализаторства, ни «правильных» эмоций. Пространство терапии — это безопасная среда. Делитесь только тем, к чему готовы, в своём темпе.' }, { q: 'буду нервничать на первой встрече — это нормально?', a: 'Абсолютно нормально. Волноваться перед первым разговором — естественно. Моя задача — сделать так, чтобы уже через несколько минут вам стало спокойнее.' }] as item, i}
+			{#each sessionFaq as item, i}
 				<Reveal width="full">
 					<div class="border-b border-navy/12">
 						<button
@@ -1317,9 +1318,9 @@
 						{#if openFaq[i]}
 							<div
 								transition:slide={{ duration: 300 }}
-								class="pb-6 pl-[42px] text-[16px] leading-relaxed text-foreground/75 lg:text-[16px] lg:text-[18px]"
+								class="pb-6 pl-[42px] text-[16px] leading-relaxed text-foreground/75 lg:text-[16px] lg:text-[18px] [&_strong]:text-foreground"
 							>
-								{@html item.a}
+								<MarkdownLink text={item.a} />
 							</div>
 						{/if}
 					</div>
