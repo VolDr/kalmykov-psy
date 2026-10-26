@@ -16,7 +16,7 @@ export const educationGroups: EducationGroup[] = [
 		items: [
 			{
 				title: 'Психология личности',
-				details: 'РАНХиГС, 2025 - н.в.',
+				details: 'Магистратура, РАНХиГС, 2025 - н.в.',
 				completed: false
 			},
 			{
