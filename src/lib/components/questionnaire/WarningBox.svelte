@@ -4,9 +4,9 @@
   critical — акцент destructive, warning — золотой, info — navy. Логика/пропсы не изменены.
 -->
 <script lang="ts">
-	import MarkdownLink from '$lib/components/MarkdownLink.svelte';
-	import type { Warning } from '$lib/data/questionnaires/types';
-	import { cn } from '$lib/utils';
+	import MarkdownLink from '#lib/components/MarkdownLink.svelte';
+	import type { Warning } from '#lib/data/questionnaires/types.js';
+	import { cn } from '#lib/utils.js';
 
 	type Props = {
 		warning: Warning;

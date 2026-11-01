@@ -1,10 +1,10 @@
 import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
-import { clientService, serializeClient } from '$lib/server/client.server';
-import { contactService, serializeContact } from '$lib/server/contact.server';
-import { currentStateService, serializeCurrentState } from '$lib/server/current-state.server';
-import { feedbackService, serializeFeedback } from '$lib/server/feedback.server';
-import { activityService, serializeActivity } from '$lib/server/activity.server';
+import { clientService, serializeClient } from '#lib/server/client.server.js';
+import { contactService, serializeContact } from '#lib/server/contact.server.js';
+import { currentStateService, serializeCurrentState } from '#lib/server/current-state.server.js';
+import { feedbackService, serializeFeedback } from '#lib/server/feedback.server.js';
+import { activityService, serializeActivity } from '#lib/server/activity.server.js';
 
 export const load: PageServerLoad = async ({ url }) => {
 	const clientId = url.searchParams.get('clientId');

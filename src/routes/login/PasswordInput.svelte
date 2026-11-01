@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Input } from '$lib/components/ui/input';
+	import { Input } from '#lib/components/ui/input/index.js';
 	let { error, isSubmitting }: { error?: string; isSubmitting: boolean } = $props();
 	let showPassword = $state(false);
 </script>

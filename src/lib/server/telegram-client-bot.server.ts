@@ -2,7 +2,7 @@ import { AsyncLocalStorage } from 'node:async_hooks';
 import type { Api, Context } from 'grammy';
 import { Bot, GrammyError } from 'grammy';
 import { SocksProxyAgent } from 'socks-proxy-agent';
-import { TELEGRAM_CLIENT_BOT_TOKEN } from '$env/static/private';
+import { TELEGRAM_CLIENT_BOT_TOKEN } from '$app/env/private';
 import {
 	attachMetrikaClientId,
 	getContactByTelegramId,
@@ -299,6 +299,7 @@ clientBot.on('message', async (ctx) => {
 	const quizMatch = new RegExp(`^/start\\s+${QUIZ_START_PREFIX}([A-Za-z0-9_-]{1,64})$`).exec(
 		ctx.message.text?.trim() ?? ''
 	);
+
 	if (quizMatch && (await handleQuizDeeplink(contact, quizMatch[1]))) return;
 
 	// Кнопка напоминания «не забрали разбор» (/start quiz_result): токена нет,
@@ -379,6 +380,7 @@ clientBot.on('callback_query:data', async (ctx) => {
 			stepId,
 			sourceMessageId
 		);
+
 		await answerCallbackSafely(() =>
 			ctx.answerCallbackQuery(alert ? { text: alert, show_alert: true } : {})
 		);

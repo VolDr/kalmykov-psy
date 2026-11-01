@@ -1,3 +1,4 @@
+import { requireAuth } from '#lib/server/protected.js';
 import { redirect, fail } from '@sveltejs/kit';
 import { z } from 'zod';
 import type { PageServerLoad, Actions } from './$types';
@@ -12,11 +13,13 @@ const editProfileSchema = z.object({
 	description: z.string().optional()
 });
 
-export const load: PageServerLoad = async ({ url, locals }) => {
-	const { clientService } = await import('$lib/server/client.server');
-	const { sourceService } = await import('$lib/server/source.server');
-	const { contactService, serializeContact } = await import('$lib/server/contact.server');
-	const { contactTypeService } = await import('$lib/server/contact-type.server');
+export const load: PageServerLoad = async (event) => {
+	requireAuth(event);
+	const { url, locals } = event;
+	const { clientService } = await import('#lib/server/client.server.js');
+	const { sourceService } = await import('#lib/server/source.server.js');
+	const { contactService, serializeContact } = await import('#lib/server/contact.server.js');
+	const { contactTypeService } = await import('#lib/server/contact-type.server.js');
 
 	const clientId = url.searchParams.get('clientId');
 
@@ -51,8 +54,10 @@ export const load: PageServerLoad = async ({ url, locals }) => {
 };
 
 export const actions: Actions = {
-	addContact: async ({ request }) => {
-		const { contactService } = await import('$lib/server/contact.server');
+	addContact: async (event) => {
+		requireAuth(event);
+		const { request } = event;
+		const { contactService } = await import('#lib/server/contact.server.js');
 
 		const formData = await request.formData();
 		const clientId = formData.get('clientId') as string;
@@ -72,8 +77,10 @@ export const actions: Actions = {
 		return { success: true };
 	},
 
-	updateContact: async ({ request }) => {
-		const { contactService } = await import('$lib/server/contact.server');
+	updateContact: async (event) => {
+		requireAuth(event);
+		const { request } = event;
+		const { contactService } = await import('#lib/server/contact.server.js');
 
 		const formData = await request.formData();
 		const contactId = formData.get('contactId') as string;
@@ -92,8 +99,10 @@ export const actions: Actions = {
 		return { success: true };
 	},
 
-	deleteContact: async ({ request }) => {
-		const { contactService } = await import('$lib/server/contact.server');
+	deleteContact: async (event) => {
+		requireAuth(event);
+		const { request } = event;
+		const { contactService } = await import('#lib/server/contact.server.js');
 
 		const formData = await request.formData();
 		const contactId = formData.get('contactId') as string;
@@ -107,8 +116,10 @@ export const actions: Actions = {
 		return { success: true };
 	},
 
-	updateProfile: async ({ request }) => {
-		const { clientService } = await import('$lib/server/client.server');
+	updateProfile: async (event) => {
+		requireAuth(event);
+		const { request } = event;
+		const { clientService } = await import('#lib/server/client.server.js');
 
 		const formData = await request.formData();
 		const data = Object.fromEntries(formData);

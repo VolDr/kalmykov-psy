@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import { Calendar } from '$lib/components/ui/calendar';
+	import { Calendar } from '#lib/components/ui/calendar/index.js';
 	import { CalendarDate, type DateValue } from '@internationalized/date';
 
 	let { data } = $props();

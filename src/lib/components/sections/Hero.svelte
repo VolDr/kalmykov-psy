@@ -1,6 +1,6 @@
 <script lang="ts">
-	import HeroBackground from '$lib/components/HeroBackground.svelte';
-	import BookButton from '$lib/components/BookButton.svelte';
+	import HeroBackground from '#lib/components/HeroBackground.svelte';
+	import BookButton from '#lib/components/BookButton.svelte';
 </script>
 
 <section data-hero class="relative overflow-hidden text-gray-100 xl:min-h-[max(50vh,972px)]">

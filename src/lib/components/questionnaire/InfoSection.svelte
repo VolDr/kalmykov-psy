@@ -1,15 +1,9 @@
-<!--
-  Заменяет: src/lib/components/questionnaire/InfoSection.svelte
-  Дизайн: для type === 'warning' — статичная плашка с пунктирной золотой рамкой,
-  звездой/сердечком и золотым заголовком (как в макете BAT-4).
-  Остальные типы остаются раскрывающимися (AccordionItem) как раньше.
--->
 <script lang="ts">
-	import { browser } from '$app/environment';
-	import AccordionItem from '$lib/components/AccordionItem.svelte';
-	import MarkdownLink from '$lib/components/MarkdownLink.svelte';
-	import type { InfoSection } from '$lib/data/questionnaires/types';
-	import { cn } from '$lib/utils';
+	import { browser } from '$app/env';
+	import AccordionItem from '#lib/components/AccordionItem.svelte';
+	import MarkdownLink from '#lib/components/MarkdownLink.svelte';
+	import type { InfoSection } from '#lib/data/questionnaires/types.js';
+	import { cn } from '#lib/utils.js';
 
 	type Props = {
 		section: InfoSection;
@@ -44,12 +38,20 @@
 	});
 
 	const iconClass = section.icon ? iconMap[section.icon as keyof typeof iconMap] : null;
+
 	const styleClass = section.type ? typeStyles[section.type] : 'border-background bg-white';
 
 	const paragraphs = $derived(
 		typeof section.content === 'string' ? section.content.split('\n\n') : []
 	);
 </script>
+
+<!--
+  Заменяет: src/lib/components/questionnaire/InfoSection.svelte
+  Дизайн: для type === 'warning' — статичная плашка с пунктирной золотой рамкой,
+  звездой/сердечком и золотым заголовком (как в макете BAT-4).
+  Остальные типы остаются раскрывающимися (AccordionItem) как раньше.
+-->
 
 {#if section.type === 'warning'}
 	<!-- Плашка «Важно» — пунктирная рамка -->
@@ -71,7 +73,7 @@
 				stroke="currentColor"
 				stroke-width="2.4"
 				stroke-linejoin="round"
-			/>
+			></path>
 		</svg>
 
 		<div class="space-y-2">
@@ -100,7 +102,7 @@
 				stroke-width="2.4"
 				stroke-linecap="round"
 				stroke-linejoin="round"
-			/>
+			></path>
 		</svg>
 	</div>
 {:else}

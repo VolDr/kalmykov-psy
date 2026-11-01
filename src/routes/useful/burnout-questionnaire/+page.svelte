@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { onMount, tick } from 'svelte';
-	import Questionnaire from '$lib/components/questionnaire/QuestionnaireStep.svelte';
+	import Questionnaire from '#lib/components/questionnaire/QuestionnaireStep.svelte';
 	import { bat23Config } from '../../../configs/bat23ConfigSoft';
-	import { sendEvent } from '$lib/client/leadMagnetTracking';
-	import { lmLog } from '$lib/client/lmDebug';
-	import { landOnHashTarget } from '$lib/hashLanding';
+	import { sendEvent } from '#lib/client/leadMagnetTracking.js';
+	import { lmLog } from '#lib/client/lmDebug.js';
+	import { landOnHashTarget } from '#lib/hashLanding.js';
 
 	export const ssr = false;
 

@@ -5,10 +5,10 @@
 -->
 <script lang="ts">
 	import type { Snippet } from 'svelte';
-	import MarkdownLink from '$lib/components/MarkdownLink.svelte';
-	import type { ScoringInterpretation } from '$lib/data/questionnaires/types';
-	import type { SubscaleResult } from '$lib/utils/questionnaire/scoringEngine';
-	import { cn } from '$lib/utils';
+	import MarkdownLink from '#lib/components/MarkdownLink.svelte';
+	import type { ScoringInterpretation } from '#lib/data/questionnaires/types.js';
+	import type { SubscaleResult } from '#lib/utils/questionnaire/scoringEngine.js';
+	import { cn } from '#lib/utils.js';
 
 	type Props = {
 		score: number;

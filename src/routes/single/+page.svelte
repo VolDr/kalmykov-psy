@@ -9,10 +9,10 @@
   ════════════════════════════════════════════════════════════════
 -->
 <script lang="ts">
-	import { reachGoal } from '$lib/metrika';
+	import { reachGoal } from '#lib/metrika.js';
 	import type { PageData } from './$types';
 	let { data }: { data: PageData } = $props();
-	import PaymentLegalNotice from '$lib/components/PaymentLegalNotice.svelte';
+	import PaymentLegalNotice from '#lib/components/PaymentLegalNotice.svelte';
 
 	const PRICE_DISPLAY = $derived(data.price.toLocaleString('ru-RU'));
 

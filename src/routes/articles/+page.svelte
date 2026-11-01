@@ -1,5 +1,5 @@
 <script lang="ts">
-	import Reveal from '$lib/components/Reveal.svelte';
+	import Reveal from '#lib/components/Reveal.svelte';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();

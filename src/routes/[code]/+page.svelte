@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import { invalidateAll } from '$app/navigation';
+	import { refreshAll } from '$app/navigation';
 	import { toast } from 'svelte-sonner';
-	import { Checkbox } from '$lib/components/ui/checkbox';
-	import { Button } from '$lib/components/ui/button';
-	import AdminFeedback from '$lib/components/AdminFeedback.svelte';
-	import Feedback from '$lib/components/Feedback.svelte';
-	import CurrentState from '$lib/components/CurrentState.svelte';
+	import { Checkbox } from '#lib/components/ui/checkbox/index.js';
+	import { Button } from '#lib/components/ui/button/index.js';
+	import AdminFeedback from '#lib/components/AdminFeedback.svelte';
+	import Feedback from '#lib/components/Feedback.svelte';
+	import CurrentState from '#lib/components/CurrentState.svelte';
 
 	let { data, form } = $props();
 
@@ -57,7 +57,7 @@
 				submitting = true;
 				return async ({ update }) => {
 					await update({ reset: false });
-					await invalidateAll();
+					await refreshAll();
 				};
 			}}
 		>
@@ -116,7 +116,7 @@
 				submitting = true;
 				return async ({ update }) => {
 					await update({ reset: false });
-					await invalidateAll();
+					await refreshAll();
 				};
 			}}
 		>

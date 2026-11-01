@@ -3,7 +3,8 @@ import type { Actions, PageServerLoad } from './$types';
 import { db } from '../../../../..';
 import * as schema from '../../../../../db/schema';
 import { eq } from 'drizzle-orm';
-import { requireAuth } from '$lib/server/protected';
+import { requireAuth } from '#lib/server/protected.js';
+import { instagramMessageError } from '#lib/instagram-message.js';
 
 export const load: PageServerLoad = async ({ params }) => {
 	const id = parseInt(params.id, 10);
@@ -48,9 +49,13 @@ export const actions = {
 		const mediaId = (form.get('mediaId') as string)?.trim() || null;
 		const commentReplyText = (form.get('commentReplyText') as string)?.trim() || null;
 		const dmText = (form.get('dmText') as string)?.trim() || null;
+		const dmButtonTitle = (form.get('dmButtonTitle') as string)?.trim() || null;
+		const dmButtonUrl = (form.get('dmButtonUrl') as string)?.trim() || null;
 		const enabled = form.get('enabled') === 'on';
 
 		if (!name) return fail(400, { error: 'Укажите название правила' });
+		const messageError = instagramMessageError(dmText ?? '', dmButtonTitle, dmButtonUrl);
+		if (messageError) return fail(400, { error: messageError });
 		if (enabled) {
 			if (keywords.length === 0) {
 				return fail(400, { error: 'Для включённого правила нужно хотя бы одно ключевое слово' });
@@ -70,6 +75,8 @@ export const actions = {
 				mediaId: rule.triggerType === 'comment' ? mediaId : null,
 				commentReplyText: rule.triggerType === 'comment' ? commentReplyText : null,
 				dmText,
+				dmButtonTitle,
+				dmButtonUrl,
 				enabled,
 				updatedAt: new Date().toISOString()
 			})

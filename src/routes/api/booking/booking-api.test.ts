@@ -1,17 +1,17 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-vi.mock('$lib/server/pricing.server', () => ({
+vi.mock('#lib/server/pricing.server.js', () => ({
 	getPricing: vi.fn(async () => ({ single: 4000, package: 14000 }))
 }));
 
 // Mock createBooking before importing the server module
-vi.mock('$lib/server/booking.server', () => ({
+vi.mock('#lib/server/booking.server.js', () => ({
 	createBooking: vi.fn()
 }));
 
 import { POST } from './+server';
-import { isRateLimited, _clearIpWindowForTest } from '$lib/server/rate-limit.server';
-import { createBooking } from '$lib/server/booking.server';
+import { isRateLimited, _clearIpWindowForTest } from '#lib/server/rate-limit.server.js';
+import { createBooking } from '#lib/server/booking.server.js';
 
 const mockCreateBooking = vi.mocked(createBooking);
 

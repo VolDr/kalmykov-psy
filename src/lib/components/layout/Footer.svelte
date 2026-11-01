@@ -15,7 +15,12 @@
   ════════════════════════════════════════════════════════════════
 -->
 <script lang="ts">
-	import { socialLinks, footerInfo, navigationLinks, telegramChannel } from '$lib/data/navigation';
+	import {
+		socialLinks,
+		footerInfo,
+		navigationLinks,
+		telegramChannel
+	} from '#lib/data/navigation.js';
 
 	const iconMap: Record<string, string> = {
 		Telegram: 'icon-[ri--telegram-line]'

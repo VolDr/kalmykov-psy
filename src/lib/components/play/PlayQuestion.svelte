@@ -5,7 +5,7 @@
 	import QuestionImage from './QuestionImage.svelte';
 	import Scoreboard from './Scoreboard.svelte';
 	import TextAnswerForm from './TextAnswerForm.svelte';
-	import type { RoomView } from '$lib/data/game-room-types';
+	import type { RoomView } from '#lib/data/game-room-types.js';
 
 	type Props = {
 		view: RoomView;

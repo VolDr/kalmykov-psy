@@ -15,13 +15,13 @@
   ════════════════════════════════════════════════════════════════
 -->
 <script lang="ts">
-	import { Calendar } from '$lib/components/ui/calendar';
+	import { Calendar } from '#lib/components/ui/calendar/index.js';
 	import type { DateValue } from '@internationalized/date';
-	import { cn } from '$lib/utils';
-	import { reachGoal } from '$lib/metrika';
-	import PaymentLegalNotice from '$lib/components/PaymentLegalNotice.svelte';
-	import TelegramQuestionsLink from '$lib/components/TelegramQuestionsLink.svelte';
-	import type { SlotInfo } from '$lib/server/booking.server';
+	import { cn } from '#lib/utils.js';
+	import { reachGoal } from '#lib/metrika.js';
+	import PaymentLegalNotice from '#lib/components/PaymentLegalNotice.svelte';
+	import TelegramQuestionsLink from '#lib/components/TelegramQuestionsLink.svelte';
+	import type { SlotInfo } from '#lib/server/booking.server.js';
 
 	let { data } = $props();
 

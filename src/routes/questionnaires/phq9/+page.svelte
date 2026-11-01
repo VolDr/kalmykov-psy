@@ -1,16 +1,16 @@
 <script lang="ts">
 	import { tick } from 'svelte';
-	import AssessmentPage from '$lib/components/questionnaire/AssessmentPage.svelte';
-	import AssessmentQuestion from '$lib/components/questionnaire/AssessmentQuestion.svelte';
+	import AssessmentPage from '#lib/components/questionnaire/AssessmentPage.svelte';
+	import AssessmentQuestion from '#lib/components/questionnaire/AssessmentQuestion.svelte';
 	import AssessmentResult, {
 		type ResultTone
-	} from '$lib/components/questionnaire/AssessmentResult.svelte';
-	import AssessmentWizard from '$lib/components/questionnaire/AssessmentWizard.svelte';
-	import Button from '$lib/components/ui/Button.svelte';
+	} from '#lib/components/questionnaire/AssessmentResult.svelte';
+	import AssessmentWizard from '#lib/components/questionnaire/AssessmentWizard.svelte';
+	import Button from '#lib/components/ui/Button.svelte';
 	import {
 		loadAssessmentState,
 		saveAssessmentState
-	} from '$lib/utils/questionnaire/assessmentState';
+	} from '#lib/utils/questionnaire/assessmentState.js';
 
 	const title = 'Опросник депрессивных симптомов PHQ-9';
 	const description = 'Скрининг выраженности депрессивных симптомов за последние две недели';
@@ -152,7 +152,13 @@
 	<meta name="robots" content="index, follow" />
 </svelte:head>
 
-<AssessmentPage {title} {description} time="2–4 минуты" questions="9 пунктов + вопрос о влиянии" methodologyKey="phq9">
+<AssessmentPage
+	{title}
+	{description}
+	time="2–4 минуты"
+	questions="9 пунктов + вопрос о влиянии"
+	methodologyKey="phq9"
+>
 	{#if !showResults}
 		<AssessmentWizard
 			step={currentStep + 1}

@@ -1,7 +1,6 @@
 <script lang="ts">
-	import ButtonSvg from '$lib/components/ui/ButtonSvg.svelte';
-	import TelegramQuestionsLink from '$lib/components/TelegramQuestionsLink.svelte';
-	import { reachGoal } from '$lib/metrika';
+	import ButtonSvg from '#lib/components/ui/ButtonSvg.svelte';
+	import { reachGoal } from '#lib/metrika.js';
 
 	type Props = {
 		/** Ключ опросника — уходит параметром в цели Метрики. */
@@ -71,6 +70,5 @@
 				Вопросов нет, хочу на консультацию
 			</a>
 		</div>
-		<TelegramQuestionsLink class="mt-5 text-center" />
 	</div>
 </section>

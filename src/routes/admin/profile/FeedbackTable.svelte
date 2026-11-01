@@ -2,7 +2,7 @@
 	import dayjs from 'dayjs';
 	import customParseFormat from 'dayjs/plugin/customParseFormat';
 	import 'dayjs/locale/ru';
-	import { PUBLIC_SITE_URL } from '$env/static/public';
+	import { PUBLIC_SITE_URL } from '$app/env/public';
 
 	dayjs.extend(customParseFormat);
 	dayjs.locale('ru');

@@ -1,5 +1,5 @@
 ﻿<script lang="ts">
-	import type { NextStepsInfo } from '$lib/data/questionnaires/types';
+	import type { NextStepsInfo } from '#lib/data/questionnaires/types.js';
 
 	type Props = {
 		nextSteps: NextStepsInfo;

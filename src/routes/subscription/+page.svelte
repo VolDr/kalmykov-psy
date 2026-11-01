@@ -1,9 +1,9 @@
-﻿<script lang="ts">
-	import { page } from '$app/stores';
-	import Footer from '$lib/components/layout/Footer.svelte';
-	import Button from '$lib/components/ui/Button.svelte';
+<script lang="ts">
+	import { page } from '$app/state';
+	import Footer from '#lib/components/layout/Footer.svelte';
+	import Button from '#lib/components/ui/Button.svelte';
 
-	let email = $state($page.url.searchParams.get('email') ?? '');
+	let email = $state(page.url.searchParams.get('email') ?? '');
 	let consent = $state(false);
 	// Добавлено состояние для согласия на обработку ПД
 	let privacyConsent = $state(false);
@@ -63,9 +63,11 @@
 				<p class="mb-3 text-sm font-medium tracking-widest text-foreground/40 uppercase">
 					рассылка
 				</p>
+
 				<h1 class="mb-4 font-caveat text-3xl leading-tight font-semibold text-navy md:text-4xl">
 					Материалы о выгорании
 				</h1>
+
 				<p class="max-w-[600px] text-lg leading-relaxed text-foreground/70">
 					Подпишитесь на рассылку, чтобы получать полезные материалы, практические идеи и разбор
 					исследований по работе с выгоранием и прокрастинацией. Без воды и мотивационных цитат.
@@ -116,7 +118,7 @@
 										stroke-width="1.75"
 										stroke-linecap="round"
 										stroke-linejoin="round"
-									/>
+									></path>
 								</svg>
 							{/if}
 						</span>
@@ -145,7 +147,7 @@
 										stroke-width="1.75"
 										stroke-linecap="round"
 										stroke-linejoin="round"
-									/>
+									></path>
 								</svg>
 							{/if}
 						</span>
@@ -194,8 +196,8 @@
 						stroke-linecap="round"
 						stroke-linejoin="round"
 					>
-						<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-						<polyline points="22 4 12 14.01 9 11.01" />
+						<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+						<polyline points="22 4 12 14.01 9 11.01"></polyline>
 					</svg>
 				</div>
 				<h2 class="mb-3 font-caveat text-2xl font-semibold text-foreground">Проверьте почту</h2>

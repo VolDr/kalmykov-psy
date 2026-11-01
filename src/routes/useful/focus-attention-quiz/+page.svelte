@@ -1,18 +1,18 @@
 <script lang="ts">
 	import { onDestroy } from 'svelte';
 	import { afterNavigate } from '$app/navigation';
-	import { landOnHashTarget } from '$lib/hashLanding';
-	import { browser } from '$app/environment';
-	import { initScrollGoals } from '$lib/useScrollGoals';
+	import { landOnHashTarget } from '#lib/hashLanding.js';
+	import { browser } from '$app/env';
+	import { initScrollGoals } from '#lib/useScrollGoals.js';
 	import { fly } from 'svelte/transition';
-	import { reachGoal } from '$lib/metrika';
-	import { sendEvent, setupLeadMagnetTracking } from '$lib/client/leadMagnetTracking';
-	import { lmLog } from '$lib/client/lmDebug';
-	import ButtonSvg from '$lib/components/ui/ButtonSvg.svelte';
-	import ButtonHint from '$lib/components/leadmagnet/ButtonHint.svelte';
-	import FocusAttentionArticle from '$lib/components/leadmagnet/FocusAttentionArticle.svelte';
-	import TelegramQuestionsLink from '$lib/components/TelegramQuestionsLink.svelte';
-	import ClipQuiz from '$lib/components/questionnaire/ClipQuiz.svelte';
+	import { reachGoal } from '#lib/metrika.js';
+	import { sendEvent, setupLeadMagnetTracking } from '#lib/client/leadMagnetTracking.js';
+	import { lmLog } from '#lib/client/lmDebug.js';
+	import ButtonSvg from '#lib/components/ui/ButtonSvg.svelte';
+	import ButtonHint from '#lib/components/leadmagnet/ButtonHint.svelte';
+	import FocusAttentionArticle from '#lib/components/leadmagnet/FocusAttentionArticle.svelte';
+	import TelegramQuestionsLink from '#lib/components/TelegramQuestionsLink.svelte';
+	import ClipQuiz from '#lib/components/questionnaire/ClipQuiz.svelte';
 	import { bat23Config } from '../../../configs/bat23ConfigSoft';
 
 	/**
@@ -101,7 +101,8 @@
 	// /go/fq/a/ ведёт на #acquaintance — блок с кнопкой опросника. Нативный переход к
 	// якорю сбивают reveal-анимация и догрузка шрифтов, поэтому приземляемся сами.
 	// Если шаг восстановился на опроснике, блока нет — человек и так на опроснике.
-	afterNavigate(({ to }) => {
+	afterNavigate(({ to, shallow, type }) => {
+		if (shallow && type === 'goto') return;
 		if (to?.url.hash === '#acquaintance' && ctaSection) landOnHashTarget(ctaSection);
 	});
 	let ctaSeen = false;
@@ -139,11 +140,9 @@
 	const RESULT_TEXT_ORANGE =
 		'Общий показатель в оранжевой зоне — признаки выгорания уже заметны, и на них стоит обратить внимание.\n\n' +
 		'Такой результат означает, что нагрузка уже начинает сказываться на состоянии. При этом у разных людей выгорание проявляется по-разному: у кого-то сильнее накапливается истощение, у кого-то меняется отношение к работе, а у кого-то становится труднее концентрироваться или справляться с эмоциональной нагрузкой.';
-
 	const RESULT_TEXT_RED =
 		'Общий показатель в красной зоне — признаки выгорания выражены сильно.\n\n' +
 		'Такой результат говорит о том, что перегрузка уже заметно отражается на состоянии. Здесь особенно важно посмотреть не только на итоговый балл, но и на то, какие именно проявления выгорания выражены сильнее — от этого зависит, на что стоит обратить внимание в первую очередь.';
-
 	const BOT_CTA_TEXT =
 		'В телеграм-боте я пришлю подробный разбор вашего результата по четырём сферам: истощению, внутреннему дистанцированию от работы, когнитивным и эмоциональным затруднениям.\n\n' +
 		'Вы увидите, как выглядит именно ваш профиль, и получите рекомендации по каждой сфере.';
@@ -219,6 +218,7 @@
 				>
 					Когда одной техники мало
 				</h2>
+
 				<div class="flex flex-col gap-[18px] text-[clamp(16px,1.8vw,18px)] leading-[1.75]">
 					<p>
 						Техника помогает возвращать внимание из рабочих мыслей в то, чем вы занимаетесь сейчас.

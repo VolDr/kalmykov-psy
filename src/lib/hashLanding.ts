@@ -1,4 +1,4 @@
-import { browser } from '$app/environment';
+import { browser } from '$app/env';
 
 /** Сколько держим цель после приземления, мс */
 const SETTLE_MS = 1500;

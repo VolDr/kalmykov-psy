@@ -1,6 +1,6 @@
 <script lang="ts">
-	import Button from '$lib/components/ui/Button.svelte';
-	import { MAX_TEXT_ANSWER } from '$lib/data/game-answer-match';
+	import Button from '#lib/components/ui/Button.svelte';
+	import { MAX_TEXT_ANSWER } from '#lib/data/game-answer-match.js';
 
 	type Props = {
 		/** Что игрок уже отправил; null — ещё не отвечал */

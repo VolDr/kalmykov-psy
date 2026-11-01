@@ -6,7 +6,7 @@
 		questionnaireMethodology,
 		type MethodologyPage,
 		type QuestionnaireMethodologyKey
-	} from '$lib/data/questionnaireMethodology';
+	} from '#lib/data/questionnaireMethodology.js';
 	import type { Snippet } from 'svelte';
 
 	type Props = {
@@ -62,7 +62,12 @@
 				'@type': 'BreadcrumbList',
 				itemListElement: [
 					{ '@type': 'ListItem', position: 1, name: 'Главная', item: `${siteUrl}/` },
-					{ '@type': 'ListItem', position: 2, name: 'Опросники', item: `${siteUrl}/questionnaires` },
+					{
+						'@type': 'ListItem',
+						position: 2,
+						name: 'Опросники',
+						item: `${siteUrl}/questionnaires`
+					},
 					{ '@type': 'ListItem', position: 3, name: title, item: url }
 				]
 			}

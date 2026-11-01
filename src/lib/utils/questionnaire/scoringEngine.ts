@@ -1,4 +1,4 @@
-import type { QuestionnaireConfig, ScoringInterpretation } from '$lib/data/questionnaires/types';
+import type { QuestionnaireConfig, ScoringInterpretation } from '#lib/data/questionnaires/types.js';
 
 export interface SubscaleResult {
 	id: string;

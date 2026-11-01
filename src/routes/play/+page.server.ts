@@ -1,7 +1,7 @@
 import { fail, redirect } from '@sveltejs/kit';
-import { getPublishedQuiz, listPublishedQuizzes } from '$lib/server/game-quizzes.server';
-import { createRoom, isCreateLimited } from '$lib/server/game-rooms.server';
-import { writePlayerToken } from '$lib/server/game-cookie.server';
+import { getPublishedQuiz, listPublishedQuizzes } from '#lib/server/game-quizzes.server.js';
+import { createRoom, isCreateLimited } from '#lib/server/game-rooms.server.js';
+import { writePlayerToken } from '#lib/server/game-cookie.server.js';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async () => ({ quizzes: await listPublishedQuizzes() });

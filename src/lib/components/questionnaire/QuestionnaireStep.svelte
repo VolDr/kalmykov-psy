@@ -1,16 +1,16 @@
-﻿<script lang="ts">
-	import { browser } from '$app/environment';
-	import { reachGoal } from '$lib/metrika';
+<script lang="ts">
+	import { browser } from '$app/env';
+	import { reachGoal } from '#lib/metrika.js';
 	import QuestionRenderer from './QuestionRenderer.svelte';
 	import ScoreDisplay from './ScoreDisplay.svelte';
 	import NextSteps from './NextSteps.svelte';
-	import type { QuestionnaireConfig } from '$lib/data/questionnaires/types';
+	import type { QuestionnaireConfig } from '#lib/data/questionnaires/types.js';
 	import {
 		calculateScore,
 		evaluateWarnings,
 		shouldDisplayQuestion
-	} from '$lib/utils/questionnaire/scoringEngine';
-	import { formatResultsForClipboard } from '$lib/utils/questionnaire/formatResults';
+	} from '#lib/utils/questionnaire/scoringEngine.js';
+	import { formatResultsForClipboard } from '#lib/utils/questionnaire/formatResults.js';
 	import Button from '../ui/Button.svelte';
 	import ButtonSvg from '../ui/ButtonSvg.svelte';
 	import TelegramQuestionsLink from '../TelegramQuestionsLink.svelte';
@@ -44,8 +44,8 @@
 	const introHref = $derived(
 		sbClientId ? `/booking?acquaintance&sb_client_id=${sbClientId}` : '/booking?acquaintance'
 	);
-	const therapyHref = $derived(sbClientId ? `/booking?sb_client_id=${sbClientId}` : '/booking');
 
+	const therapyHref = $derived(sbClientId ? `/booking?sb_client_id=${sbClientId}` : '/booking');
 	const storageKey = `questionnaire-${config.id}-wizard-state`;
 
 	const questionSteps = config.questions.filter((q) => q.type !== 'subheading');
@@ -256,29 +256,8 @@
 		if (!trimmedEmail || !isEmailValid) return;
 
 		const data = new FormData();
-		data.append('email', state.email);
-		data.append(
-			'score',
-			currentScore.averageScore?.toFixed(2) || currentScore.totalScore.toString()
-		);
-		data.append('severity', currentScore.interpretation.severity);
-
-		data.append('total_recommendation', currentScore.interpretation.recommendation);
-
-		const colorMap: Record<string, string> = {
-			green: '#10b981',
-			orange: '#f59e0b',
-			red: '#ef4444'
-		};
-		data.append('color', colorMap[currentScore.interpretation.color] || '#191919');
-
-		currentScore.subscales.forEach((sub, i) => {
-			data.append(`sub${i}_name`, sub.name);
-			data.append(`sub${i}_score`, sub.averageScore?.toFixed(2) || sub.score.toString());
-			data.append(`sub${i}_severity`, sub.interpretation.severity);
-			data.append(`sub${i}_color`, colorMap[sub.interpretation.color] || '#191919');
-			data.append(`sub${i}_desc`, sub.description);
-		});
+		data.append('email', trimmedEmail);
+		data.append('answers', JSON.stringify(state.answers));
 
 		fetch('?/sendResults', {
 			method: 'POST',
@@ -626,6 +605,7 @@
 					>
 						Что дальше
 					</h3>
+
 					<div class="flex flex-col gap-4 text-[16px] leading-[1.7] text-foreground/80">
 						<p>
 							Сейчас по ответам не видно выраженных признаков выгорания. Если хотите сохранить
@@ -658,6 +638,7 @@
 					>
 						Что делать дальше
 					</h3>
+
 					<div class="flex flex-col gap-4 text-[clamp(15px,1.6vw,17px)] leading-[1.7]">
 						{#if currentScore.interpretation.color === 'orange'}
 							<p>

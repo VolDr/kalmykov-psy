@@ -1,6 +1,6 @@
 ﻿<script lang="ts">
-	import { contacts } from '$lib/data/content';
-	import PageHero from '$lib/components/PageHero.svelte';
+	import { contacts } from '#lib/data/content.js';
+	import PageHero from '#lib/components/PageHero.svelte';
 </script>
 
 <svelte:head>

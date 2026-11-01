@@ -2,7 +2,7 @@
 	import dayjs from 'dayjs';
 	import customParseFormat from 'dayjs/plugin/customParseFormat';
 	import 'dayjs/locale/ru';
-	import { PUBLIC_SITE_URL } from '$env/static/public';
+	import { PUBLIC_SITE_URL } from '$app/env/public';
 
 	dayjs.extend(customParseFormat);
 	dayjs.locale('ru');
@@ -25,9 +25,9 @@
 
 	const sortedData = $derived(
 		[...currentState].sort((a, b) => {
-			const date1 = dayjs(a.datetime);
-			const date2 = dayjs(b.datetime);
-			return date2.diff(date1);
+		const date1 = dayjs(a.datetime);
+		const date2 = dayjs(b.datetime);
+		return date2.diff(date1);
 		})
 	);
 

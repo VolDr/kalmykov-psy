@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { parseQuizJson, type ImportedMeta } from '$lib/data/game-quiz-json';
+	import { parseQuizJson, type ImportedMeta } from '#lib/data/game-quiz-json.js';
 	import type { GameQuestion } from '../../../db/schema';
 
 	type Props = {

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import ButtonSvg from '$lib/components/ui/ButtonSvg.svelte';
-	import { cookieBannerDone } from '$lib/stores/cookieConsent';
+	import ButtonSvg from '#lib/components/ui/ButtonSvg.svelte';
+	import { cookieBannerDone } from '#lib/stores/cookieConsent.js';
 
 	const STORAGE_KEY = 'cookie_consent';
 

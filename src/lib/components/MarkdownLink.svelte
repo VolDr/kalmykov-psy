@@ -1,5 +1,5 @@
 ﻿<script lang="ts">
-	import { parseMarkdownLinks, isExternalUrl } from '$lib/utils/markdown';
+	import { parseMarkdownLinks, isExternalUrl } from '#lib/utils/markdown.js';
 
 	type Props = { text: string; class?: string; onLinkClick?: () => void };
 	let { text, class: className = '', onLinkClick }: Props = $props();

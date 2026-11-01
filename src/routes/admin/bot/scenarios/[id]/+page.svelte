@@ -1,7 +1,6 @@
 <script lang="ts">
-	import { enhance } from '$app/forms';
+	import { enhance, type SubmitFunction } from '$app/forms';
 	import { resolve } from '$app/paths';
-	import type { SubmitFunction } from '@sveltejs/kit';
 
 	let { data, form } = $props();
 
@@ -228,11 +227,12 @@
 								</label>
 							</div>
 							{#if step.buttonAction === 'check_subscription'}
-								<p class="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">
-									Шаг-шлагбаум: бот покажет кнопку со ссылкой выше плюс кнопку «Я подписался» и
-									остановит цепочку. Дальше она пойдёт, только когда подписка подтвердится. Текст
-									кнопки проверки и алерта — в
-									<a href={resolve('/admin/bot/quiz')} class="underline">настройках бота</a>.
+								<p
+									class="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800"
+								>
+									Шаг-шлагбаум: бот покажет кнопку со ссылкой выше плюс кнопку «Я подписался» и остановит цепочку. Дальше она пойдёт, только когда подписка подтвердится. Текст кнопки проверки и алерта — в
+									<a href={resolve('admin/bot/quiz')} class="underline">настройках бота</a>
+									.
 								</p>
 							{/if}
 							<div class="space-y-1">
@@ -484,7 +484,7 @@
 					method="POST"
 					action="?/previewLaunch"
 					use:enhance={keepLaunchForm}
-					oninput={() => (launchDirty = true)}
+					oninput={() => launchDirty = true}
 					class="space-y-3"
 				>
 					<label class="block text-xs font-medium text-stone-500">
@@ -632,9 +632,7 @@
 					<p class="mt-3 text-xs text-red-600">{form.cancelLaunchError}</p>
 				{/if}
 				{#if data.scenario.triggerType === 'start_param'}
-					<p class="mt-2 text-xs break-all text-stone-400">
-						Диплинк: t.me/&lt;бот&gt;?start={data.scenario.triggerValue}
-					</p>
+					<p class="mt-2 text-xs break-all text-stone-400">Диплинк: t.me/&lt;бот&gt;?start={data.scenario.triggerValue}</p>
 				{/if}
 			</div>
 
@@ -657,24 +655,17 @@
 			<div class="mt-4 rounded-xl border bg-white p-4 text-xs text-stone-500">
 				<p class="mb-1 font-semibold text-stone-600">Форматирование сообщений</p>
 				<p>
-					**текст** — <b>жирный</b>, [текст](https://ссылка) — ссылка. Переносы строк и пустые
-					строки между абзацами сохраняются как есть. Кнопка (текст + ссылка) появится под
-					сообщением; в ссылке кнопки тоже работает &#123;contact_id&#125;.
+					**текст** —
+					<b>жирный</b>
+					, [текст](https://ссылка) — ссылка. Переносы строк и пустые строки между абзацами сохраняются как есть. Кнопка (текст + ссылка) появится под сообщением; в ссылке кнопки тоже работает {'{contact_id}'}.
 				</p>
 				<p class="mt-3 mb-1 font-semibold text-stone-600">Подстановки в сообщениях</p>
 				<p>
-					&#123;contact_id&#125; — id контакта (для персональных ссылок вида
-					/go/f/a/&#123;contact_id&#125;), &#123;first_name&#125; — имя. Салеботовский
-					#&#123;client_id&#125; тоже распознаётся. Работает и в тексте, и в ссылке кнопки.
+					{'{contact_id}'} — id контакта (для персональных ссылок вида /go/f/a/{'{contact_id}'}), {'{first_name}'} — имя. Салеботовский #{'{client_id}'} тоже распознаётся. Работает и в тексте, и в ссылке кнопки.
 				</p>
 				<p class="mt-3 mb-1 font-semibold text-stone-600">Событийные ключи с сайта</p>
 				<p>
-					Сценарий с триггером «Диплинк» запускается и событиями сайта, если значение совпадает с
-					ключом: lm_&lt;магнит&gt;_opened (открыл), lm_&lt;магнит&gt;_read75 (дочитал),
-					lm_&lt;магнит&gt;_completed (прошёл опросник на странице) — магниты: otpusk, focus,
-					focusq, burnout, quiz. Плюс intro_booked, consultation_booked и quiz_results_delivered
-					(бот выдал разбор опросника). Кнопка «забрать разбор» для напоминания после
-					lm_&lt;магнит&gt;_completed: https://t.me/kalmykov_psy_bot?start=quiz_result.
+					Сценарий с триггером «Диплинк» запускается и событиями сайта, если значение совпадает с ключом: lm_&lt;магнит&gt;_opened (открыл), lm_&lt;магнит&gt;_read75 (дочитал), lm_&lt;магнит&gt;_completed (прошёл опросник на странице) — магниты: otpusk, focus, focusq, burnout, quiz. Плюс intro_booked, consultation_booked и quiz_results_delivered (бот выдал разбор опросника). Кнопка «забрать разбор» для напоминания после lm_&lt;магнит&gt;_completed: https://t.me/kalmykov_psy_bot?start=quiz_result.
 				</p>
 			</div>
 		</div>

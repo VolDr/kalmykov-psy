@@ -1,12 +1,15 @@
-import { json } from '@sveltejs/kit';
+
 import type { RequestHandler } from './$types';
 import { bat23Config } from '../../../configs/bat23ConfigSoft';
-import { calculateScore, validateAnswers } from '$lib/utils/questionnaire/scoringEngine';
-import { getEnabledClipArticleBySlug, STATIC_QUIZ_SLUGS } from '$lib/server/clip-articles.server';
-import { createQuizResult, getQuizBotSettings } from '$lib/server/quiz-results.server';
-import { getContactByPublicId } from '$lib/server/bot-contacts.server';
-import { getBotUsername } from '$lib/server/telegram-client-bot.server';
-import { QUIZ_START_PREFIX } from '$lib/server/quiz-bot.server';
+import { calculateScore, validateAnswers } from '#lib/utils/questionnaire/scoringEngine.js';
+import {
+	getEnabledClipArticleBySlug,
+	STATIC_QUIZ_SLUGS
+} from '#lib/server/clip-articles.server.js';
+import { createQuizResult, getQuizBotSettings } from '#lib/server/quiz-results.server.js';
+import { getContactByPublicId } from '#lib/server/bot-contacts.server.js';
+import { getBotUsername } from '#lib/server/telegram-client-bot.server.js';
+import { QUIZ_START_PREFIX } from '#lib/server/quiz-bot.server.js';
 
 /**
  * Финал опросника на клип-статье: пересчитывает результат на сервере (клиент
@@ -32,28 +35,28 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 	try {
 		body = await request.json();
 	} catch {
-		return json({ error: 'Invalid JSON' }, { status: 400 });
+		return Response.json({ error: 'Invalid JSON' }, { status: 400 });
 	}
 	if (body === null || typeof body !== 'object' || Array.isArray(body)) {
-		return json({ error: 'Invalid request body' }, { status: 400 });
+		return Response.json({ error: 'Invalid request body' }, { status: 400 });
 	}
 
 	const { articleSlug, answers } = body as Record<string, unknown>;
 
 	if (typeof articleSlug !== 'string') {
-		return json({ error: 'Invalid articleSlug' }, { status: 400 });
+		return Response.json({ error: 'Invalid articleSlug' }, { status: 400 });
 	}
 	// Статические страницы с опросником (например, вариант B лид-магнита focus)
 	// записи в clip_articles не имеют — для них достаточно слага из белого списка
 	if (!STATIC_QUIZ_SLUGS.has(articleSlug)) {
 		const article = await getEnabledClipArticleBySlug(articleSlug);
 		if (!article || !article.quizEnabled) {
-			return json({ error: 'Unknown article' }, { status: 400 });
+			return Response.json({ error: 'Unknown article' }, { status: 400 });
 		}
 	}
 
 	if (answers === null || typeof answers !== 'object' || Array.isArray(answers)) {
-		return json({ error: 'Invalid answers' }, { status: 400 });
+		return Response.json({ error: 'Invalid answers' }, { status: 400 });
 	}
 
 	// Каждый ответ должен ссылаться на существующий вопрос и его вариант
@@ -62,14 +65,14 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 		const question = bat23Config.questions.find((q) => q.id === questionId);
 		if (!question || question.type !== 'radio') continue;
 		if (typeof value !== 'number' || !question.options?.some((o) => o.value === value)) {
-			return json({ error: 'Invalid answer value' }, { status: 400 });
+			return Response.json({ error: 'Invalid answer value' }, { status: 400 });
 		}
 		cleanAnswers[questionId] = value;
 	}
 
 	const { isValid } = validateAnswers(cleanAnswers, bat23Config);
 	if (!isValid) {
-		return json({ error: 'Not all questions answered' }, { status: 400 });
+		return Response.json({ error: 'Not all questions answered' }, { status: 400 });
 	}
 
 	const score = calculateScore(cleanAnswers, bat23Config);
@@ -112,7 +115,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 		);
 	}
 
-	return json({
+	return Response.json({
 		severity: result.severity,
 		color: result.color,
 		averageScore: result.averageScore,

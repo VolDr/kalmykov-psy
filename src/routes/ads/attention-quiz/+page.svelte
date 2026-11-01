@@ -1,5 +1,5 @@
 <script lang="ts">
-	import AttentionAdPitch from '$lib/components/leadmagnet/AttentionAdPitch.svelte';
+	import AttentionAdPitch from '#lib/components/leadmagnet/AttentionAdPitch.svelte';
 </script>
 
 <!--

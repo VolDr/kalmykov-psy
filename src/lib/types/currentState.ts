@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const currentStateSchema = z.object({
-	smallId: z.string().min(4),
+	smallId: z.string().min(4).max(64),
 	family: z.coerce.number().min(0).max(10),
 	generally: z.coerce.number().min(0).max(10),
 	individual: z.coerce.number().min(0).max(10),

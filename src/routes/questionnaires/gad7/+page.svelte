@@ -1,16 +1,16 @@
 <script lang="ts">
 	import { tick } from 'svelte';
-	import AssessmentPage from '$lib/components/questionnaire/AssessmentPage.svelte';
-	import AssessmentQuestion from '$lib/components/questionnaire/AssessmentQuestion.svelte';
+	import AssessmentPage from '#lib/components/questionnaire/AssessmentPage.svelte';
+	import AssessmentQuestion from '#lib/components/questionnaire/AssessmentQuestion.svelte';
 	import AssessmentResult, {
 		type ResultTone
-	} from '$lib/components/questionnaire/AssessmentResult.svelte';
-	import AssessmentWizard from '$lib/components/questionnaire/AssessmentWizard.svelte';
-	import Button from '$lib/components/ui/Button.svelte';
+	} from '#lib/components/questionnaire/AssessmentResult.svelte';
+	import AssessmentWizard from '#lib/components/questionnaire/AssessmentWizard.svelte';
+	import Button from '#lib/components/ui/Button.svelte';
 	import {
 		loadAssessmentState,
 		saveAssessmentState
-	} from '$lib/utils/questionnaire/assessmentState';
+	} from '#lib/utils/questionnaire/assessmentState.js';
 
 	const title = 'Опросник тревожных симптомов GAD-7';
 	const description = 'Оценка выраженности тревожных симптомов за последние две недели';
@@ -113,7 +113,13 @@
 	<meta name="robots" content="index, follow" />
 </svelte:head>
 
-<AssessmentPage {title} {description} time="2–3 минуты" questions="7 вопросов" methodologyKey="gad7">
+<AssessmentPage
+	{title}
+	{description}
+	time="2–3 минуты"
+	questions="7 вопросов"
+	methodologyKey="gad7"
+>
 	{#if !showResults}
 		<AssessmentWizard
 			step={currentStep + 1}

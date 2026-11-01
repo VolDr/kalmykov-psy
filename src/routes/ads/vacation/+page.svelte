@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { reachGoal } from '$lib/metrika';
-	import { botDeepLink, requestMetrikaClientId } from '$lib/tg-handoff';
+	import { reachGoal } from '#lib/metrika.js';
+	import { botDeepLink, requestMetrikaClientId } from '#lib/tg-handoff.js';
 
 	// Ссылка готова сразу — без ClientID, если счётчик не ответит. Как только он
 	// ответит, href обновится. Ничего не ждём в момент клика: асинхронный переход

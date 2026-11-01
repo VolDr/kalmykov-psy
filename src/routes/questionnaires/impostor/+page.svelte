@@ -1,16 +1,16 @@
 <script lang="ts">
 	import { tick } from 'svelte';
-	import AssessmentPage from '$lib/components/questionnaire/AssessmentPage.svelte';
-	import AssessmentQuestion from '$lib/components/questionnaire/AssessmentQuestion.svelte';
+	import AssessmentPage from '#lib/components/questionnaire/AssessmentPage.svelte';
+	import AssessmentQuestion from '#lib/components/questionnaire/AssessmentQuestion.svelte';
 	import AssessmentResult, {
 		type ResultTone
-	} from '$lib/components/questionnaire/AssessmentResult.svelte';
-	import AssessmentWizard from '$lib/components/questionnaire/AssessmentWizard.svelte';
-	import Button from '$lib/components/ui/Button.svelte';
+	} from '#lib/components/questionnaire/AssessmentResult.svelte';
+	import AssessmentWizard from '#lib/components/questionnaire/AssessmentWizard.svelte';
+	import Button from '#lib/components/ui/Button.svelte';
 	import {
 		loadAssessmentState,
 		saveAssessmentState
-	} from '$lib/utils/questionnaire/assessmentState';
+	} from '#lib/utils/questionnaire/assessmentState.js';
 	const options = [
 		{ label: 'Почти никогда, совсем не про меня', value: 1 },
 		{ label: 'Редко', value: 2 },

@@ -5,8 +5,8 @@
   Логика/пропсы не изменены, добавлен опциональный `number` (порядковый номер вопроса).
 -->
 <script lang="ts">
-	import type { QuestionnaireQuestion } from '$lib/data/questionnaires/types';
-	import { cn } from '$lib/utils';
+	import type { QuestionnaireQuestion } from '#lib/data/questionnaires/types.js';
+	import { cn } from '#lib/utils.js';
 
 	type Props = {
 		question: QuestionnaireQuestion;

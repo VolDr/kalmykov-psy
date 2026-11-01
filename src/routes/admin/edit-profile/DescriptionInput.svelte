@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { Textarea } from '$lib/components/ui/textarea';
-	import { Label } from '$lib/components/ui/label';
+	import { Textarea } from '#lib/components/ui/textarea/index.js';
+	import { Label } from '#lib/components/ui/label/index.js';
 
 	let { description = $bindable(''), error }: { description?: string; error?: string } = $props();
 </script>

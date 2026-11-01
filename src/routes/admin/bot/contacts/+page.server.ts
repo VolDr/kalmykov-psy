@@ -1,8 +1,8 @@
 import type { PageServerLoad } from './$types';
-import { listContacts } from '$lib/server/bot-contacts.server';
-import { funnelStats } from '$lib/server/bot-funnel.server';
-import { listChannelPosts, postStartKey } from '$lib/server/bot-channel-posts.server';
-import { getBotAccessCheckState } from '$lib/server/bot-contact-access.server';
+import { listContacts } from '#lib/server/bot-contacts.server.js';
+import { funnelStats } from '#lib/server/bot-funnel.server.js';
+import { listChannelPosts, postStartKey } from '#lib/server/bot-channel-posts.server.js';
+import { getBotAccessCheckState } from '#lib/server/bot-contact-access.server.js';
 
 export const load: PageServerLoad = async ({ url }) => {
 	const search = url.searchParams.get('search') ?? '';

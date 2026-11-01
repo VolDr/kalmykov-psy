@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import { resolve } from '$app/paths';
 
 	let { data, form } = $props();
 
@@ -13,6 +14,7 @@
 		if (rule.triggerType === 'comment' && rule.commentReplyText) parts.push('ответ на коммент');
 		if (rule.dmText)
 			parts.push(rule.triggerType === 'comment' ? 'сообщение в директ' : 'ответ в директе');
+		if (rule.dmButtonTitle && rule.dmButtonUrl) parts.push(`кнопка «${rule.dmButtonTitle}»`);
 		return parts.length > 0 ? parts.join(' + ') : 'не настроено';
 	}
 </script>
@@ -28,6 +30,32 @@
 		комментария, ответ на входящее в директе. На один комментарий/сообщение срабатывает первое
 		подходящее правило.
 	</p>
+
+	<div class="mb-6 max-w-3xl border-y border-border py-3 text-sm">
+		{#if !data.tokenStatus.configured}
+			<p class="text-muted-foreground">
+				Instagram не подключён: добавьте токен доступа на сервере.
+			</p>
+		{:else if data.tokenStatus.refreshFailed}
+			<p class="font-medium text-destructive">Не удалось автоматически продлить токен.</p>
+			<p class="mt-1 text-muted-foreground">
+				Новый токен можно продлевать через 24 часа после создания. Повторяем попытку раз в сутки.
+				Если ошибка сохраняется, проверьте подключение и доступ к файлу токена на сервере.
+			</p>
+		{:else}
+			<p class="font-medium text-foreground">Автопродление токена включено</p>
+			<p class="mt-1 text-muted-foreground">
+				{#if data.tokenStatus.expiresAt}
+					Токен действует до {new Date(data.tokenStatus.expiresAt).toLocaleDateString('ru-RU', {
+						timeZone: 'Europe/Moscow'
+					})}.
+				{:else}
+					После первого продления здесь появится срок действия.
+				{/if}
+				Продлеваем заранее, примерно раз в 30 дней.
+			</p>
+		{/if}
+	</div>
 
 	<form
 		method="POST"
@@ -88,7 +116,10 @@
 					{#each data.rules as rule (rule.id)}
 						<tr class="border-b last:border-0 hover:bg-stone-50">
 							<td class="px-4 py-2">
-								<a href="/admin/bot/instagram/{rule.id}" class="text-blue-600 hover:underline">
+								<a
+									href={resolve('/admin/bot/instagram/[id]', { id: String(rule.id) })}
+									class="text-blue-600 hover:underline"
+								>
 									{rule.name}
 								</a>
 							</td>

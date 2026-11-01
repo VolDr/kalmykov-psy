@@ -1,10 +1,10 @@
-import { json } from '@sveltejs/kit';
+
 import type { RequestHandler } from './$types';
 import { sql } from 'drizzle-orm';
 import { db } from '../../..';
 import { leadMagnetEvents } from '../../../db/schema';
-import { addTagsToContact, getContactByPublicId } from '$lib/server/bot-contacts.server';
-import { triggerScenarioByKey } from '$lib/server/bot-scenarios.server';
+import { addTagsToContact, getContactByPublicId } from '#lib/server/bot-contacts.server.js';
+import { triggerScenarioByKey } from '#lib/server/bot-scenarios.server.js';
 
 // Чтобы подключить новый лид-магнит, достаточно добавить его сюда.
 // На событие контакту вешается тег lm_<name>_<event>, и если существует включённый
@@ -39,44 +39,44 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 	const publicId = rawCookie ? parseInt(rawCookie, 10) : NaN;
 	if (!Number.isSafeInteger(publicId) || publicId <= 0) {
 		console.log(`[lm-progress] скип: нет куки sb_client_id (значение: ${rawCookie ?? '—'})`);
-		return json({ ok: true, skipped: true, reason: 'no_cookie' });
+		return Response.json({ ok: true, skipped: true, reason: 'no_cookie' });
 	}
 
 	// Старые куки (Salebot-ID или внутренние id до перехода на public_id) — скипаем
 	const contact = await getContactByPublicId(publicId);
 	if (!contact) {
 		console.log(`[lm-progress] скип: контакт с public_id=${publicId} не найден`);
-		return json({ ok: true, skipped: true, reason: 'contact_not_found' });
+		return Response.json({ ok: true, skipped: true, reason: 'contact_not_found' });
 	}
 
 	let body: unknown;
 	try {
 		body = await request.json();
 	} catch {
-		return json({ error: 'Invalid JSON' }, { status: 400 });
+		return Response.json({ error: 'Invalid JSON' }, { status: 400 });
 	}
 
 	if (body === null || typeof body !== 'object' || Array.isArray(body)) {
-		return json({ error: 'Invalid request body' }, { status: 400 });
+		return Response.json({ error: 'Invalid request body' }, { status: 400 });
 	}
 
 	const { leadMagnet, event, progress } = body as Record<string, unknown>;
 
 	// Validate leadMagnet
 	if (!(ALLOWED_LEAD_MAGNETS as readonly unknown[]).includes(leadMagnet)) {
-		return json({ error: 'Invalid leadMagnet' }, { status: 400 });
+		return Response.json({ error: 'Invalid leadMagnet' }, { status: 400 });
 	}
 
 	// Validate event
 	if (!(ALLOWED_EVENTS as readonly unknown[]).includes(event)) {
-		return json({ error: 'Invalid event' }, { status: 400 });
+		return Response.json({ error: 'Invalid event' }, { status: 400 });
 	}
 
 	// Validate progress for read75
 	if (event === 'read75') {
 		const progressNum = Number(progress);
 		if (!Number.isFinite(progressNum) || progressNum < 75) {
-			return json({ error: 'progress must be >= 75 for read75' }, { status: 400 });
+			return Response.json({ error: 'progress must be >= 75 for read75' }, { status: 400 });
 		}
 	}
 
@@ -102,7 +102,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 		}
 	} catch (err) {
 		console.error(`[lm-progress] Ошибка обработки ${event}:`, err);
-		return json({ error: 'Event processing failed' }, { status: 500 });
+		return Response.json({ error: 'Event processing failed' }, { status: 500 });
 	}
 
 	// Журнал последнего события (для отладки). Best-effort, на ответ не влияет.
@@ -134,5 +134,5 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 		console.error('[lm-progress] DB upsert error (не критично):', dbErr);
 	}
 
-	return json({ success: true, chain });
+	return Response.json({ success: true, chain });
 };

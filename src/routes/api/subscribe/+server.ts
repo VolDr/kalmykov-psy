@@ -1,50 +1,50 @@
-import { json } from '@sveltejs/kit';
-import { MAILOPOST_API_TOKEN } from '$env/static/private';
-import { subscriberService } from '$lib/server/subscriber.server';
+import { z } from 'zod';
+import { MAILOPOST_API_TOKEN } from '$app/env/private';
+import { subscriberService } from '#lib/server/subscriber.server.js';
+import { consumeLimit, limits, limitResponse } from '#lib/server/request-limits.server.js';
+import type { RequestHandler } from './$types';
 
-export async function POST({ request, url }) {
-	console.log('POST: Start subscription process');
-	const { email } = await request.json();
-	console.log('POST: Received email:', email);
+const schema = z.object({ email: z.email().max(254) }).strict();
 
-	if (!email || !email.includes('@')) {
-		console.log('POST: Invalid email provided');
-		return json({ error: 'Invalid email' }, { status: 400 });
-	}
-
+export const POST: RequestHandler = async ({ request, url }) => {
+	let body: unknown;
 	try {
-		console.log('POST: Calling upsertPending for email:', email);
+		body = await request.json();
+	} catch {
+		return Response.json({ error: 'Некорректный запрос' }, { status: 400 });
+	}
+	const parsed = schema.safeParse(body);
+	if (!parsed.success) return Response.json({ error: 'Некорректный email' }, { status: 400 });
+	const { email } = parsed.data;
+	try {
+		const limit = await consumeLimit(limits.mailRecipient, email.toLowerCase());
+		if (!limit.allowed) return limitResponse(limit);
 		const record = await subscriberService.upsertPending(email);
-		console.log('POST: Received record from upsertPending:', record);
-
-		const confirmLink = `${url.origin}/confirm?token=${record.token}`;
-		console.log('POST: Generated confirmLink:', confirmLink);
-
-		console.log('POST: Sending request to Mailopost API');
-		const response = await fetch(`https://api.mailopost.ru/v1/email/templates/1850796/messages`, {
+		if (!record.token) throw new Error('Confirmation token unavailable');
+		const confirmLink = new URL('/confirm', url.origin);
+		confirmLink.searchParams.set('token', record.token);
+		const response = await fetch('https://api.mailopost.ru/v1/email/templates/1850796/messages', {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
-				Authorization: `Bearer ${MAILOPOST_API_TOKEN}`
+				Authorization: 'Bearer ' + MAILOPOST_API_TOKEN
 			},
-			body: JSON.stringify({
-				to: email,
-				params: { confirm_link: confirmLink }
-			})
+			body: JSON.stringify({ to: email, params: { confirm_link: confirmLink.href } }),
+			signal: AbortSignal.timeout(10_000)
 		});
-
-		console.log('POST: Mailopost response status:', response.status);
-
 		if (!response.ok) {
-			const errorData = await response.text();
-			console.error('POST: Mailopost error data:', errorData);
-			throw new Error(`Ошибка Mailopost: ${response.status}`);
+			console.error('[subscription] mail failed', { status: response.status });
+			return Response.json(
+				{ error: 'Не удалось отправить письмо. Попробуйте позже.' },
+				{ status: 502 }
+			);
 		}
-
-		console.log('POST: Successfully sent subscription email');
-		return json({ success: true });
-	} catch (error: any) {
-		console.error('POST: CATCH ERROR:', error.message || error);
-		return json({ error: error.message || 'Внутренняя ошибка сервера' }, { status: 500 });
+		return Response.json({ success: true });
+	} catch {
+		console.error('[subscription] request failed');
+		return Response.json(
+			{ error: 'Сервис временно недоступен. Попробуйте позже.' },
+			{ status: 503 }
+		);
 	}
-}
+};

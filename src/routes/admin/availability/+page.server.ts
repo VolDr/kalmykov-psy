@@ -1,13 +1,13 @@
 import { fail } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
-import { requireAuth } from '$lib/server/protected';
+import { requireAuth } from '#lib/server/protected.js';
 import { db } from '../../..';
 import * as schema from '../../../db/schema';
 import { eq, asc, and, lt, gt, gte, sql } from 'drizzle-orm';
 import dayjs from 'dayjs';
 import timezone from 'dayjs/plugin/timezone';
 import utc from 'dayjs/plugin/utc';
-import { parseAvailabilityBulkText } from '$lib/server/availability-bulk';
+import { parseAvailabilityBulkText } from '#lib/server/availability-bulk.js';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);

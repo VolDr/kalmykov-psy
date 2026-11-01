@@ -1,7 +1,7 @@
 import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
-import { getBookingByPaymentId } from '$lib/server/booking.server';
-import { getPaymentById } from '$lib/server/robokassa.server';
+import { getBookingByPaymentId } from '#lib/server/booking.server.js';
+import { getPaymentById } from '#lib/server/robokassa.server.js';
 
 export const load: PageServerLoad = async ({ url }) => {
 	const invIdStr = url.searchParams.get('InvId');

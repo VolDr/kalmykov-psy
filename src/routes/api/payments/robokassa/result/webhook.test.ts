@@ -1,18 +1,18 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-vi.mock('$lib/server/robokassa.server', () => ({
+vi.mock('#lib/server/robokassa.server.js', () => ({
 	markPaid: vi.fn(),
 	getPaymentById: vi.fn()
 }));
 
-vi.mock('$lib/server/booking.server', () => ({
+vi.mock('#lib/server/booking.server.js', () => ({
 	confirmByPaymentId: vi.fn(),
 	getBookingByPaymentId: vi.fn()
 }));
 
 import { POST } from './+server';
-import { markPaid } from '$lib/server/robokassa.server';
-import { confirmByPaymentId } from '$lib/server/booking.server';
+import { markPaid } from '#lib/server/robokassa.server.js';
+import { confirmByPaymentId } from '#lib/server/booking.server.js';
 
 const mockMarkPaid = vi.mocked(markPaid);
 const mockConfirm = vi.mocked(confirmByPaymentId);

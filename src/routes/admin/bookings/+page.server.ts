@@ -1,10 +1,10 @@
 import { fail } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
-import { requireAuth } from '$lib/server/protected';
+import { requireAuth } from '#lib/server/protected.js';
 import { db } from '../../..';
 import * as schema from '../../../db/schema';
 import { desc, eq } from 'drizzle-orm';
-import { telegramService } from '$lib/server/telegram.server';
+import { telegramService } from '#lib/server/telegram.server.js';
 
 export const load: PageServerLoad = async (event) => {
 	requireAuth(event);

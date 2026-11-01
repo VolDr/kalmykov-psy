@@ -1,14 +1,14 @@
 <script lang="ts">
 	import { tick } from 'svelte';
-	import AssessmentPage from '$lib/components/questionnaire/AssessmentPage.svelte';
-	import AssessmentQuestion from '$lib/components/questionnaire/AssessmentQuestion.svelte';
-	import AssessmentResult from '$lib/components/questionnaire/AssessmentResult.svelte';
-	import AssessmentWizard from '$lib/components/questionnaire/AssessmentWizard.svelte';
-	import Button from '$lib/components/ui/Button.svelte';
+	import AssessmentPage from '#lib/components/questionnaire/AssessmentPage.svelte';
+	import AssessmentQuestion from '#lib/components/questionnaire/AssessmentQuestion.svelte';
+	import AssessmentResult from '#lib/components/questionnaire/AssessmentResult.svelte';
+	import AssessmentWizard from '#lib/components/questionnaire/AssessmentWizard.svelte';
+	import Button from '#lib/components/ui/Button.svelte';
 	import {
 		loadAssessmentState,
 		saveAssessmentState
-	} from '$lib/utils/questionnaire/assessmentState';
+	} from '#lib/utils/questionnaire/assessmentState.js';
 	const options = [
 		{ label: 'Совершенно не согласен(на)', value: 1 },
 		{ label: 'Скорее не согласен(на)', value: 2 },

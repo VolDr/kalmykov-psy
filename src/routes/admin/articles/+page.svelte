@@ -1,8 +1,8 @@
 <script lang="ts">
 	import type { PageData, ActionData } from './$types';
 	import { enhance } from '$app/forms';
-	import Button from '$lib/components/ui/Button.svelte';
-	import Card from '$lib/components/ui/card/card.svelte';
+	import Button from '#lib/components/ui/Button.svelte';
+	import Card from '#lib/components/ui/card/card.svelte';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
 

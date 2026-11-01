@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import { invalidateAll } from '$app/navigation';
+	import { refreshAll } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { onMount } from 'svelte';
 
@@ -21,7 +21,7 @@
 
 	// Живое обновление ленты: перезагружаем данные, пока открыта карточка
 	onMount(() => {
-		const interval = setInterval(() => invalidateAll(), 7000);
+		const interval = setInterval(() => refreshAll(), 7000);
 		return () => clearInterval(interval);
 	});
 
@@ -58,15 +58,13 @@
 	<div class="lg:col-span-2">
 		<a
 			href={data.fromArchive
-				? `${resolve('/admin/bot/contacts')}?view=archive`
-				: resolve('/admin/bot/contacts')}
+				? `${resolve('admin/bot/contacts')}?view=archive`
+				: resolve('admin/bot/contacts')}
 			class="mb-4 inline-block text-sm text-blue-600 hover:underline"
 			>← {data.fromArchive ? 'В архив' : 'Все контакты'}</a
 		>
 		<h1 class="mb-1 text-2xl font-semibold">{displayName(data.contact)}</h1>
-		<p class="mb-4 text-xs text-stone-400">
-			ID для ссылок (&#123;contact_id&#125;): {data.contact.publicId}
-		</p>
+		<p class="mb-4 text-xs text-stone-400">ID для ссылок ({'{contact_id}'}): {data.contact.publicId}</p>
 
 		<div
 			bind:this={messagesEl}

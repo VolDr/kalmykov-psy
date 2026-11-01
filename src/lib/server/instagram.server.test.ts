@@ -1,9 +1,26 @@
 import { describe, expect, it, vi } from 'vitest';
 
-vi.mock('$env/dynamic/private', () => ({ env: { INSTAGRAM_ACCESS_TOKEN: 'test-token' } }));
+vi.mock('$app/env/private', () => ({ INSTAGRAM_ACCESS_TOKEN: 'test-token', INSTAGRAM_PROXY: '' }));
 vi.mock('../..', () => ({ db: {} }));
+vi.mock('./instagram-http.server', () => ({
+	instagramRequest: vi.fn(async () => ({ message_id: 'sent' }))
+}));
+vi.mock('./instagram-token.server', () => ({
+	InstagramTokenStore: class {
+		getToken() {
+			return Promise.resolve('refreshed-token');
+		}
+	}
+}));
 
-import { findMatchingRule, ruleMatchesText, type InstagramRule } from './instagram.server';
+import {
+	findMatchingRule,
+	ruleMatchesText,
+	sendDm,
+	privateReplyToComment,
+	type InstagramRule
+} from './instagram.server';
+import { instagramRequest } from './instagram-http.server';
 
 function makeRule(overrides: Partial<InstagramRule> = {}): InstagramRule {
 	return {
@@ -15,6 +32,8 @@ function makeRule(overrides: Partial<InstagramRule> = {}): InstagramRule {
 		mediaId: null,
 		commentReplyText: 'Ответил в директ!',
 		dmText: 'Держи гайд',
+		dmButtonTitle: null,
+		dmButtonUrl: null,
 		enabled: true,
 		hits: 0,
 		lastHitAt: null,
@@ -73,5 +92,32 @@ describe('findMatchingRule', () => {
 	it('правило без mediaId срабатывает на любом посте', () => {
 		const rules = [makeRule()];
 		expect(findMatchingRule(rules, 'фокус', 'media-2')?.id).toBe(1);
+	});
+});
+
+describe('message delivery', () => {
+	it('sends a single private reply containing a link button using the refreshed token', async () => {
+		vi.mocked(instagramRequest).mockClear();
+		await privateReplyToComment('comment-1', 'Вот гайд', {
+			title: 'Открыть',
+			url: 'https://example.com/guide'
+		});
+		expect(instagramRequest).toHaveBeenCalledTimes(1);
+		const [url, token, , payload] = vi.mocked(instagramRequest).mock.calls[0];
+		expect(url.pathname).toBe('/v23.0/me/messages');
+		expect(token).toBe('refreshed-token');
+		expect(payload).toMatchObject({
+			recipient: { comment_id: 'comment-1' },
+			message: { attachment: { payload: { template_type: 'button' } } }
+		});
+	});
+
+	it('preserves ordinary DM recipient addressing and text without a button', async () => {
+		vi.mocked(instagramRequest).mockClear();
+		await sendDm('sender-1', 'Ответ');
+		expect(vi.mocked(instagramRequest).mock.calls[0][3]).toEqual({
+			recipient: { id: 'sender-1' },
+			message: { text: 'Ответ' }
+		});
 	});
 });

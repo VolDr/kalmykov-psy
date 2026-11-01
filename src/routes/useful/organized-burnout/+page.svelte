@@ -1,13 +1,13 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
 	import { afterNavigate } from '$app/navigation';
-	import { initScrollGoals } from '$lib/useScrollGoals';
-	import { reachGoal } from '$lib/metrika';
-	import { setupLeadMagnetTracking } from '$lib/client/leadMagnetTracking';
-	import { lmLog } from '$lib/client/lmDebug';
-	import { landOnHashTarget } from '$lib/hashLanding';
-	import ButtonSvg from '$lib/components/ui/ButtonSvg.svelte';
-	import TelegramQuestionsLink from '$lib/components/TelegramQuestionsLink.svelte';
+	import { initScrollGoals } from '#lib/useScrollGoals.js';
+	import { reachGoal } from '#lib/metrika.js';
+	import { setupLeadMagnetTracking } from '#lib/client/leadMagnetTracking.js';
+	import { lmLog } from '#lib/client/lmDebug.js';
+	import { landOnHashTarget } from '#lib/hashLanding.js';
+	import ButtonSvg from '#lib/components/ui/ButtonSvg.svelte';
+	import TelegramQuestionsLink from '#lib/components/TelegramQuestionsLink.svelte';
 
 	let { data } = $props();
 
@@ -74,7 +74,9 @@
 
 	// afterNavigate стреляет после того как SvelteKit закончил свой scroll —
 	// перебиваем его и доводим до цели, когда высоты устаканятся
-	afterNavigate(({ to }) => {
+	afterNavigate(({ to, shallow, type }) => {
+		if (shallow && type === 'goto') return;
+
 		if (to?.url.hash === '#acquaintance' && ctaSection) {
 			landOnHashTarget(ctaSection);
 		}
@@ -126,6 +128,7 @@
 		>
 			Это читают те, кто уже перестал верить советам
 		</h2>
+
 		<div class="flex flex-col gap-[18px] text-[clamp(16px,1.8vw,18px)] leading-[1.75]">
 			<p>
 				Вы прошли курс по продуктивности. Купили правильный ежедневник. Настроили систему задач.
@@ -148,6 +151,7 @@
 		>
 			История, которую вы, скорее всего, уже проживаете
 		</h2>
+
 		<div class="flex flex-col gap-[18px] text-[clamp(16px,1.8vw,18px)] leading-[1.75]">
 			<p>
 				Познакомьтесь с Колей. Продуктовый менеджер, умный, с опытом в IT лет на десять. Из тех, кто
@@ -245,6 +249,7 @@
 		>
 			Что на самом деле происходит — и почему это не лень
 		</h2>
+
 		<div class="flex flex-col gap-[18px] text-[clamp(16px,1.8vw,18px)] leading-[1.75]">
 			<p>
 				Выгорание — это не плохое расписание. Это ситуация, когда правила, по которым вы привыкли
@@ -319,6 +324,7 @@
 			>
 				Кто я и почему пишу про это так уверенно
 			</h2>
+
 			<div class="flex flex-col gap-4 text-[clamp(15px,1.6vw,17px)] leading-[1.75] text-foreground">
 				<p>
 					Меня зовут Андрей Калмыков, я клинический психолог. Я помогаю людям, которые живут в
@@ -369,11 +375,13 @@
 		>
 			Где находится настоящая точка входа
 		</h2>
+
 		<div class="flex flex-col gap-[18px] text-[clamp(16px,1.8vw,18px)] leading-[1.75]">
 			<p>
 				Подход, который я использую, направлен не на борьбу с симптомами, а с тем, что их
 				производит.
 			</p>
+
 			<p>
 				Сначала мы выявляем убеждения, которые поддерживают истощение. Перфекционизм, «мне нужно
 				всегда быть на связи», страх ошибки — это не черты характера. Это усвоенные паттерны,

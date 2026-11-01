@@ -1,6 +1,6 @@
 <script lang="ts">
 	import PauseButton from './PauseButton.svelte';
-	import type { RoomView } from '$lib/data/game-room-types';
+	import type { RoomView } from '#lib/data/game-room-types.js';
 
 	type Props = {
 		view: RoomView;

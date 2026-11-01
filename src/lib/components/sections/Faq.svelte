@@ -1,8 +1,8 @@
 <script lang="ts">
-	import AccordionItem from '$lib/components/AccordionItem.svelte';
-	import Reveal from '$lib/components/Reveal.svelte';
-	import MarkdownLink from '$lib/components/MarkdownLink.svelte';
-	import { faqItems } from '$lib/data/faq';
+	import AccordionItem from '#lib/components/AccordionItem.svelte';
+	import Reveal from '#lib/components/Reveal.svelte';
+	import MarkdownLink from '#lib/components/MarkdownLink.svelte';
+	import { faqItems } from '#lib/data/faq.js';
 </script>
 
 <div class="flex w-full scroll-mt-24 flex-col items-center gap-2.5 md:gap-3.5" id="faq">

@@ -74,11 +74,9 @@ export function destroySession(cookies: Cookies): void {
 }
 
 export async function verifyUser(username: string, password: string): Promise<boolean> {
-	console.log(db.query.account);
 	const user = (
 		await db.select().from(schema.account).where(eq(schema.account.username, username)).limit(1)
 	)[0];
-	console.log(user);
 	if (!user) return false;
 	return await bcrypt.compare(password, user.password);
 }

@@ -15,9 +15,11 @@ import {
 	date,
 	jsonb,
 	pgEnum,
-	check
+	check,
+	primaryKey
 } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
+import type { TranslationField, TranslationItem } from '../lib/data/translation';
 
 // --- Telegram-бот: CRM-контакты и инбокс (Фаза 1, см. docs/bot.md) ---
 
@@ -384,6 +386,9 @@ export const instagramRules = pgTable('instagram_rules', {
 	commentReplyText: text('comment_reply_text'),
 	// Сообщение в директ: private reply на коммент или ответ в переписке
 	dmText: text('dm_text'),
+	// Необязательная URL-кнопка в том же сообщении, включая private reply.
+	dmButtonTitle: text('dm_button_title'),
+	dmButtonUrl: text('dm_button_url'),
 	enabled: boolean('enabled').default(false).notNull(),
 	hits: integer('hits').default(0).notNull(),
 	lastHitAt: timestamp('last_hit_at', { withTimezone: true, mode: 'string' }),
@@ -1040,4 +1045,98 @@ export const servicePricing = pgTable(
 		check('service_pricing_single_price_check', sql`${table.singlePrice} BETWEEN 1 AND 1000000`),
 		check('service_pricing_package_price_check', sql`${table.packagePrice} BETWEEN 1 AND 1000000`)
 	]
+);
+
+// Shared security counters for all application workers.
+export const securityRateLimits = pgTable(
+	'security_rate_limits',
+	{
+		keyHash: text('key_hash').primaryKey(),
+		hits: integer('hits').notNull(),
+		resetAt: timestamp('reset_at', { withTimezone: true, mode: 'string' }).notNull()
+	},
+	(table) => [index('security_rate_limits_reset_at_idx').on(table.resetAt)]
+);
+
+// --- Перевод опросников по закрытой ссылке /translate/<token> (миграция 0024) ---
+
+export const translationDocs = pgTable(
+	'translation_docs',
+	{
+		id: bigserial('id', { mode: 'number' }).primaryKey(),
+		token: text('token').notNull(),
+		title: text('title').notNull(),
+		items: jsonb('items')
+			.$type<TranslationItem[]>()
+			.default(sql`'[]'::jsonb`)
+			.notNull(),
+		// Указания переводчику: абзацы через пустую строку, **жирный** поддерживается
+		guide: text('guide').default('').notNull(),
+		createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' })
+			.defaultNow()
+			.notNull()
+	},
+	(table) => [uniqueIndex('translation_docs_token_key').on(table.token)]
+);
+
+export const translationEntries = pgTable(
+	'translation_entries',
+	{
+		docId: bigint('doc_id', { mode: 'number' })
+			.notNull()
+			.references(() => translationDocs.id, { onDelete: 'cascade' }),
+		itemKey: text('item_key').notNull(),
+		translation: text('translation').default('').notNull(),
+		comment: text('comment').default('').notNull(),
+		translationVersion: integer('translation_version').default(0).notNull(),
+		commentVersion: integer('comment_version').default(0).notNull(),
+		updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'string' })
+			.defaultNow()
+			.notNull()
+	},
+	(table) => [primaryKey({ columns: [table.docId, table.itemKey] })]
+);
+
+// Квитанции нужны и после последующих правок: повтор запроса не меняет перевод.
+export const translationOperations = pgTable(
+	'translation_operations',
+	{
+		docId: bigint('doc_id', { mode: 'number' })
+			.notNull()
+			.references(() => translationDocs.id, { onDelete: 'cascade' }),
+		operationId: text('operation_id').notNull(),
+		itemKey: text('item_key').notNull(),
+		field: text('field').$type<TranslationField>().notNull(),
+		value: text('value').notNull(),
+		expectedVersion: integer('expected_version').notNull(),
+		version: integer('version').notNull(),
+		createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' })
+			.defaultNow()
+			.notNull()
+	},
+	(table) => [primaryKey({ columns: [table.docId, table.operationId] })]
+);
+
+// Журнал заходов и правок. Правки одного поля подряд с одного IP склеиваются
+// в одну запись (old_value — до начала серии, new_value — последнее, last_at — время).
+export const translationEvents = pgTable(
+	'translation_events',
+	{
+		id: bigserial('id', { mode: 'number' }).primaryKey(),
+		docId: bigint('doc_id', { mode: 'number' })
+			.notNull()
+			.references(() => translationDocs.id, { onDelete: 'cascade' }),
+		kind: text('kind').$type<'visit' | 'edit'>().notNull(),
+		ip: text('ip').notNull(),
+		userAgent: text('user_agent'),
+		itemKey: text('item_key'),
+		field: text('field').$type<TranslationField>(),
+		oldValue: text('old_value'),
+		newValue: text('new_value'),
+		createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' })
+			.defaultNow()
+			.notNull(),
+		lastAt: timestamp('last_at', { withTimezone: true, mode: 'string' }).defaultNow().notNull()
+	},
+	(table) => [index('translation_events_doc_idx').on(table.docId, table.id)]
 );

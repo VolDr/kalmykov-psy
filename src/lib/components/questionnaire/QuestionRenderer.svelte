@@ -3,7 +3,7 @@
   Изменение: прокидывает `number` в RadioQuestion (для рукописной нумерации вопросов).
 -->
 <script lang="ts">
-	import type { QuestionnaireQuestion } from '$lib/data/questionnaires/types';
+	import type { QuestionnaireQuestion } from '#lib/data/questionnaires/types.js';
 	import RadioQuestion from './RadioQuestion.svelte';
 	import SubheadingQuestion from './SubheadingQuestion.svelte';
 

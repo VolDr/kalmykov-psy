@@ -5,7 +5,7 @@
 	import PasswordInput from './PasswordInput.svelte';
 	import Submit from './Submit.svelte';
 
-	import Button from '$lib/components/ui/Button.svelte';
+	import Button from '#lib/components/ui/Button.svelte';
 
 	let { form }: { form: ActionData } = $props();
 	let isSubmitting = $state(false);

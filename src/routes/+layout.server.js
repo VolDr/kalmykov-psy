@@ -1,4 +1,4 @@
-import { VITE_URL } from '$env/static/private';
+import { VITE_URL } from '$app/env/private';
 
 /** @type {import('./$types').LayoutServerLoad} */
 export const load = ({ url, locals }) => {

@@ -1,6 +1,9 @@
 import { fail } from '@sveltejs/kit';
-import { MAILOPOST_API_TOKEN } from '$env/static/private';
+import { MAILOPOST_API_TOKEN } from '$app/env/private';
 import type { PageServerLoad } from './$types';
+import { z } from 'zod';
+import { scoreBat23 } from '#lib/server/quiz-scoring.server.js';
+import { consumeLimit, limits } from '#lib/server/request-limits.server.js';
 
 // Сначала cookie (установлен /go/q/[clientId]), фоллбэк — URL-параметр
 export const load: PageServerLoad = async ({ cookies, url }) => {
@@ -13,68 +16,60 @@ export const load: PageServerLoad = async ({ cookies, url }) => {
 };
 
 export const actions = {
-	sendResults: async ({ request }) => {
+	sendResults: async ({ request, setHeaders }) => {
 		const data = await request.formData();
-		const email = data.get('email')?.toString();
-
-		if (!email || !email.includes('@')) {
+		const email = data.get('email')?.toString().trim();
+		if (!z.email().max(254).safeParse(email).success || !email)
+			return fail(400, { success: false });
+		let answers: unknown;
+		try {
+			answers = JSON.parse(String(data.get('answers') ?? ''));
+		} catch {
 			return fail(400, { success: false });
 		}
-
+		const score = scoreBat23(answers);
+		if (!score) return fail(400, { success: false });
 		try {
-			const params = {
-				score: data.get('score')?.toString() || '',
-				severity: data.get('severity')?.toString() || '',
-				total_recommendation: data.get('total_recommendation')?.toString() || '',
-				color: data.get('color')?.toString() || '#191919',
-
-				sub0_name: data.get('sub0_name')?.toString() || '',
-				sub0_score: data.get('sub0_score')?.toString() || '',
-				sub0_severity: data.get('sub0_severity')?.toString() || '',
-				sub0_desc: data.get('sub0_desc')?.toString() || '',
-				sub0_color: data.get('sub0_color')?.toString() || '#191919',
-
-				sub1_name: data.get('sub1_name')?.toString() || '',
-				sub1_score: data.get('sub1_score')?.toString() || '',
-				sub1_severity: data.get('sub1_severity')?.toString() || '',
-				sub1_desc: data.get('sub1_desc')?.toString() || '',
-				sub1_color: data.get('sub1_color')?.toString() || '#191919',
-
-				sub2_name: data.get('sub2_name')?.toString() || '',
-				sub2_score: data.get('sub2_score')?.toString() || '',
-				sub2_severity: data.get('sub2_severity')?.toString() || '',
-				sub2_desc: data.get('sub2_desc')?.toString() || '',
-				sub2_color: data.get('sub2_color')?.toString() || '#191919',
-
-				sub3_name: data.get('sub3_name')?.toString() || '',
-				sub3_score: data.get('sub3_score')?.toString() || '',
-				sub3_severity: data.get('sub3_severity')?.toString() || '',
-				sub3_desc: data.get('sub3_desc')?.toString() || '',
-				sub3_color: data.get('sub3_color')?.toString() || '#191919'
+			const limit = await consumeLimit(limits.mailRecipient, email.toLowerCase());
+			if (!limit.allowed) {
+				setHeaders({ 'Retry-After': String(limit.retryAfter) });
+				return fail(429, { success: false });
+			}
+			const colors: Record<string, string> = {
+				green: '#10b981',
+				orange: '#f59e0b',
+				red: '#ef4444'
 			};
-
-			const response = await fetch(`https://api.mailopost.ru/v1/email/templates/1850507/messages`, {
+			const params: Record<string, string> = {
+				score: score.averageScore?.toFixed(2) ?? String(score.totalScore),
+				severity: score.interpretation.severity,
+				total_recommendation: score.interpretation.recommendation,
+				color: colors[score.interpretation.color] ?? '#191919'
+			};
+			(score.subscales ?? []).forEach((sub, i) => {
+				params['sub' + i + '_name'] = sub.name;
+				params['sub' + i + '_score'] = sub.averageScore?.toFixed(2) ?? String(sub.score);
+				params['sub' + i + '_severity'] = sub.interpretation.severity;
+				params['sub' + i + '_desc'] = sub.description ?? '';
+				params['sub' + i + '_color'] = colors[sub.interpretation.color] ?? '#191919';
+			});
+			const response = await fetch('https://api.mailopost.ru/v1/email/templates/1850507/messages', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
-					Authorization: `Bearer ${MAILOPOST_API_TOKEN}`
+					Authorization: 'Bearer ' + MAILOPOST_API_TOKEN
 				},
-				body: JSON.stringify({
-					to: email,
-					params: params
-				})
+				body: JSON.stringify({ to: email, params }),
+				signal: AbortSignal.timeout(10_000)
 			});
-
 			if (!response.ok) {
-				const errorData = await response.json();
-				console.error('Ошибка Mailopost API:', errorData);
-				throw new Error('Mailopost API Error');
+				console.error('[quiz-mail] delivery failed', { status: response.status });
+				return fail(502, { success: false });
 			}
-
 			return { success: true };
-		} catch (error) {
-			console.error('Email background send error:', error);
-			return fail(500, { success: false });
+		} catch {
+			console.error('[quiz-mail] request failed');
+			return fail(503, { success: false });
 		}
 	}
-};
+} satisfies import('./$types').Actions;

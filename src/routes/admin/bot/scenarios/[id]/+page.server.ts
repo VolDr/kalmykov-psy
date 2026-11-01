@@ -3,7 +3,7 @@ import type { Actions, PageServerLoad } from './$types';
 import { db } from '../../../../..';
 import * as schema from '../../../../../db/schema';
 import { and, asc, desc, eq, gt, lt, ne, sql } from 'drizzle-orm';
-import { requireAuth } from '$lib/server/protected';
+import { requireAuth } from '#lib/server/protected.js';
 import {
 	cancelScheduledLaunch,
 	deleteStepAndRepointQueue,
@@ -11,13 +11,13 @@ import {
 	previewSegment,
 	validateTrigger,
 	type SegmentFilter
-} from '$lib/server/bot-scenarios.server';
-import { tgFormat, TELEGRAM_MESSAGE_LIMIT } from '$lib/server/telegram-client-bot.server';
+} from '#lib/server/bot-scenarios.server.js';
+import { tgFormat, TELEGRAM_MESSAGE_LIMIT } from '#lib/server/telegram-client-bot.server.js';
 import {
 	deleteStepFileFromDisk,
 	MAX_STEP_FILE_BYTES,
 	saveStepFile
-} from '$lib/server/bot-step-files.server';
+} from '#lib/server/bot-step-files.server.js';
 
 const UNIT_SECONDS: Record<string, number> = {
 	seconds: 1,

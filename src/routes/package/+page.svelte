@@ -1,5 +1,5 @@
 <script lang="ts">
-	import PaymentLegalNotice from '$lib/components/PaymentLegalNotice.svelte';
+	import PaymentLegalNotice from '#lib/components/PaymentLegalNotice.svelte';
 	import type { PageData } from './$types';
 	let { data }: { data: PageData } = $props();
 

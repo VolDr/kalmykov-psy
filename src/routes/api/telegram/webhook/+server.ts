@@ -1,6 +1,6 @@
 import { webhookCallback } from 'grammy';
-import { TELEGRAM_WEBHOOK_SECRET } from '$env/static/private';
-import { clientBot } from '$lib/server/telegram-client-bot.server';
+import { TELEGRAM_WEBHOOK_SECRET } from '$app/env/private';
+import { clientBot } from '#lib/server/telegram-client-bot.server.js';
 import type { RequestHandler } from './$types';
 
 // Telegram стучится сюда напрямую по HTTPS — прокси для входящих не нужен

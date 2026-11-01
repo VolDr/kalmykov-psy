@@ -1,7 +1,7 @@
 import { db } from '../..';
 import * as schema from '../../db/schema';
 import { and, eq, inArray, isNotNull, isNull, or, sql } from 'drizzle-orm';
-import { env } from '$env/dynamic/private';
+import { YANDEX_METRIKA_OAUTH_TOKEN } from '$app/env/private';
 
 /** Счётчик Метрики — тот же, что в src/lib/metrika.ts и в +layout.svelte */
 const COUNTER_ID = 105424317;
@@ -102,7 +102,7 @@ export async function funnelStats(days = 30) {
  * чтобы они не висели в очереди вечно.
  */
 export async function uploadOfflineConversions(): Promise<{ sent: number; expired: number }> {
-	const token = env.YANDEX_METRIKA_OAUTH_TOKEN?.trim();
+	const token = YANDEX_METRIKA_OAUTH_TOKEN?.trim();
 	if (!token) return { sent: 0, expired: 0 };
 
 	const fresh = sql`> now() - interval '21 days'`;
@@ -155,6 +155,7 @@ export async function uploadOfflineConversions(): Promise<{ sent: number; expire
 	if (lines.length === 0) return { sent: 0, expired };
 
 	const form = new FormData();
+
 	form.append(
 		'file',
 		new Blob([['ClientId,Target,DateTime', ...lines].join('\n')], { type: 'text/csv' }),
@@ -163,7 +164,11 @@ export async function uploadOfflineConversions(): Promise<{ sent: number; expire
 
 	const response = await fetch(
 		`https://api-metrika.yandex.net/management/v1/counter/${COUNTER_ID}/offline_conversions/upload?client_id_type=CLIENT_ID`,
-		{ method: 'POST', headers: { Authorization: `OAuth ${token}` }, body: form }
+		{
+			method: 'POST',
+			headers: { Authorization: `OAuth ${token}` },
+			body: form
+		}
 	);
 
 	// Не помечаем отправленными — уедут следующим запуском через час
@@ -207,7 +212,6 @@ async function closeExpired(): Promise<number> {
 			)
 		)
 		.returning({ id: schema.botContacts.id });
-
 	const subscribed = await db
 		.update(schema.botContacts)
 		.set({ metrikaSubscribedSentAt: sql`now()` })

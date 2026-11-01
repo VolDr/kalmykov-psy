@@ -7,7 +7,7 @@
 		MAX_OPTIONS,
 		MIN_OPTIONS,
 		parseImageUrl
-	} from '$lib/data/game-quiz-json';
+	} from '#lib/data/game-quiz-json.js';
 
 	type Kind = 'choice' | 'multi' | 'text';
 

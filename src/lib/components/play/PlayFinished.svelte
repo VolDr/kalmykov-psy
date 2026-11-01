@@ -1,7 +1,7 @@
 <script lang="ts">
-	import Button from '$lib/components/ui/Button.svelte';
+	import Button from '#lib/components/ui/Button.svelte';
 	import Scoreboard from './Scoreboard.svelte';
-	import type { RoomView } from '$lib/data/game-room-types';
+	import type { RoomView } from '#lib/data/game-room-types.js';
 
 	type Props = {
 		view: RoomView;

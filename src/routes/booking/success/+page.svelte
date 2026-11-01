@@ -11,8 +11,8 @@
 -->
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { reachGoal } from '$lib/metrika';
-	import TelegramQuestionsLink from '$lib/components/TelegramQuestionsLink.svelte';
+	import { reachGoal } from '#lib/metrika.js';
+	import TelegramQuestionsLink from '#lib/components/TelegramQuestionsLink.svelte';
 
 	let { data } = $props();
 

@@ -1,4 +1,4 @@
-import type { QuestionnaireConfig } from '$lib/data/questionnaires/types';
+import type { QuestionnaireConfig } from '#lib/data/questionnaires/types.js';
 
 export const bat23Config: QuestionnaireConfig = {
 	id: 'bat23',

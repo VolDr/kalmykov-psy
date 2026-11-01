@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { RoomView } from '$lib/data/game-room-types';
+import type { RoomView } from '#lib/data/game-room-types.js';
 import {
 	_resetForTest,
 	createRoom,

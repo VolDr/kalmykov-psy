@@ -1,24 +1,10 @@
-﻿<!--
-  ════════════════════════════════════════════════════════════════
-  ИСПРАВЛЕНО:  src/lib/components/layout/Header.svelte
-  ────────────────────────────────────────────────────────────────
-  Полная замена. Что починено:
-  1. ПОЛУПРОЗРАЧНОСТЬ (bg-background/90 + backdrop-blur) теперь только
-     на ОСНОВНОЙ строке (логотип + меню + «Записаться»), а строка
-     якорей (запросы/подход/обо мне/стоимость/вопрос-ответ) висит ПОД
-     ней без фона — больше нет высокой «слащавой» плашки.
-  2. АКТИВНЫЙ якорь снова явно подсвечивается: navy + жирный +
-     жёлтое подчёркивание (раньше было еле заметное muted→navy).
-  Логика IntersectionObserver / scroll / мобильное меню — без изменений.
-  ════════════════════════════════════════════════════════════════
--->
 <script lang="ts">
-	import { navigationLinks, anchorLinks } from '$lib/data/navigation';
+	import { navigationLinks, anchorLinks } from '#lib/data/navigation.js';
 	import { page } from '$app/state';
-	import { cn } from '$lib/utils';
+	import { cn } from '#lib/utils.js';
 	import { onMount } from 'svelte';
 	import { afterNavigate } from '$app/navigation';
-	import Button from '$lib/components/ui/Button.svelte';
+	import Button from '#lib/components/ui/Button.svelte';
 	import ButtonSvg from '../ui/ButtonSvg.svelte';
 
 	let {
@@ -103,7 +89,9 @@
 		menuColor = scrollY > threshold ? 'black' : initialMenuColor;
 	}
 
-	afterNavigate(() => {
+	afterNavigate(({ shallow, type }) => {
+		if (shallow && type === 'goto') return;
+
 		closeMenu();
 	});
 
@@ -117,6 +105,20 @@
 	});
 </script>
 
+<!--
+  ════════════════════════════════════════════════════════════════
+  ИСПРАВЛЕНО:  src/lib/components/layout/Header.svelte
+  ────────────────────────────────────────────────────────────────
+  Полная замена. Что починено:
+  1. ПОЛУПРОЗРАЧНОСТЬ (bg-background/90 + backdrop-blur) теперь только
+     на ОСНОВНОЙ строке (логотип + меню + «Записаться»), а строка
+     якорей (запросы/подход/обо мне/стоимость/вопрос-ответ) висит ПОД
+     ней без фона — больше нет высокой «слащавой» плашки.
+  2. АКТИВНЫЙ якорь снова явно подсвечивается: navy + жирный +
+     жёлтое подчёркивание (раньше было еле заметное muted→navy).
+  Логика IntersectionObserver / scroll / мобильное меню — без изменений.
+  ════════════════════════════════════════════════════════════════
+-->
 <!-- ====================== DESKTOP ====================== -->
 <!-- Внешний контейнер теперь ПРОЗРАЧНЫЙ — фон только на верхней строке -->
 <div bind:this={headerElement} class="fixed top-0 left-0 z-20 hidden w-full flex-col md:flex">

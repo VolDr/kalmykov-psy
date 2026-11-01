@@ -1,16 +1,16 @@
 <script lang="ts">
 	import { tick } from 'svelte';
-	import AssessmentPage from '$lib/components/questionnaire/AssessmentPage.svelte';
-	import AssessmentQuestion from '$lib/components/questionnaire/AssessmentQuestion.svelte';
+	import AssessmentPage from '#lib/components/questionnaire/AssessmentPage.svelte';
+	import AssessmentQuestion from '#lib/components/questionnaire/AssessmentQuestion.svelte';
 	import AssessmentResult, {
 		type ResultTone
-	} from '$lib/components/questionnaire/AssessmentResult.svelte';
-	import AssessmentWizard from '$lib/components/questionnaire/AssessmentWizard.svelte';
-	import Button from '$lib/components/ui/Button.svelte';
+	} from '#lib/components/questionnaire/AssessmentResult.svelte';
+	import AssessmentWizard from '#lib/components/questionnaire/AssessmentWizard.svelte';
+	import Button from '#lib/components/ui/Button.svelte';
 	import {
 		loadAssessmentState,
 		saveAssessmentState
-	} from '$lib/utils/questionnaire/assessmentState';
+	} from '#lib/utils/questionnaire/assessmentState.js';
 	const options = [
 		{ label: 'Не согласен', value: 1 },
 		{ label: 'Скорее нет', value: 2 },
@@ -119,7 +119,8 @@
 	description="Короткая шкала П. Стила о добровольном откладывании дел вопреки ожидаемым последствиям"
 	time="2–4 минуты"
 	questions="9 вопросов"
- methodologyKey="ips">
+	methodologyKey="ips"
+>
 	{#if !showResults}
 		<AssessmentWizard
 			step={currentStep + 1}

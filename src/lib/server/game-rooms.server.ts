@@ -1,8 +1,8 @@
 import { randomBytes, randomInt } from 'node:crypto';
 import type { GameQuestion } from '../../db/schema';
-import type { PlayerView, RoomPhase, RoomView } from '$lib/data/game-room-types';
-import { MAX_TEXT_ANSWER, isAnswerCorrect } from '$lib/data/game-answer-match';
-import { multiFraction } from '$lib/data/game-multi-score';
+import type { PlayerView, RoomPhase, RoomView } from '#lib/data/game-room-types.js';
+import { MAX_TEXT_ANSWER, isAnswerCorrect } from '#lib/data/game-answer-match.js';
+import { multiFraction } from '#lib/data/game-multi-score.js';
 
 /**
  * Комнаты викторины живут в памяти процесса (сайт работает одним процессом, см.

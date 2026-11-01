@@ -1,7 +1,7 @@
 import type { PageServerLoad } from './$types';
-import { getAvailabilities } from '$lib/server/booking.server';
-import { getPricing } from '$lib/server/pricing.server';
-import { toPaymentAmount } from '$lib/pricing';
+import { getAvailabilities } from '#lib/server/booking.server.js';
+import { getPricing } from '#lib/server/pricing.server.js';
+import { toPaymentAmount } from '#lib/pricing.js';
 
 export const load: PageServerLoad = async ({ url }) => {
 	const sbClientId = url.searchParams.get('sb_client_id');

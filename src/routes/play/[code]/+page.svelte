@@ -1,13 +1,13 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { createWakeLock } from '$lib/client/wakeLock';
-	import Button from '$lib/components/ui/Button.svelte';
-	import PlayLobby from '$lib/components/play/PlayLobby.svelte';
-	import PlayQuestion from '$lib/components/play/PlayQuestion.svelte';
-	import PlayFinished from '$lib/components/play/PlayFinished.svelte';
-	import PausedScreen from '$lib/components/play/PausedScreen.svelte';
-	import CountdownScreen from '$lib/components/play/CountdownScreen.svelte';
-	import type { RoomAction, RoomView } from '$lib/data/game-room-types';
+	import { createWakeLock } from '#lib/client/wakeLock.js';
+	import Button from '#lib/components/ui/Button.svelte';
+	import PlayLobby from '#lib/components/play/PlayLobby.svelte';
+	import PlayQuestion from '#lib/components/play/PlayQuestion.svelte';
+	import PlayFinished from '#lib/components/play/PlayFinished.svelte';
+	import PausedScreen from '#lib/components/play/PausedScreen.svelte';
+	import CountdownScreen from '#lib/components/play/CountdownScreen.svelte';
+	import type { RoomAction, RoomView } from '#lib/data/game-room-types.js';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();

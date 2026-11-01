@@ -1,8 +1,11 @@
-import { articleService, serializeArticle } from '$lib/server/article.server';
-import { fail, json } from '@sveltejs/kit';
+import { requireAuth } from '#lib/server/protected.js';
+import { articleService, serializeArticle } from '#lib/server/article.server.js';
+import { fail } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ url }) => {
+export const load: PageServerLoad = async (event) => {
+	requireAuth(event);
+	const { url } = event;
 	const articles = await articleService.getAll();
 
 	// If requesting a specific article (for editing)
@@ -19,7 +22,9 @@ export const load: PageServerLoad = async ({ url }) => {
 };
 
 export const actions: Actions = {
-	delete: async ({ request }) => {
+	delete: async (event) => {
+		requireAuth(event);
+		const { request } = event;
 		const formData = await request.formData();
 		const id = formData.get('id') as string;
 
@@ -36,7 +41,9 @@ export const actions: Actions = {
 		}
 	},
 
-	save: async ({ request }) => {
+	save: async (event) => {
+		requireAuth(event);
+		const { request } = event;
 		const formData = await request.formData();
 		const id = formData.get('id') as string | null;
 		const title = formData.get('title') as string;

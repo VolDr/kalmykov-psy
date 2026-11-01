@@ -1,9 +1,9 @@
 ﻿<script lang="ts">
 	import { onMount } from 'svelte';
-	import { reachGoal } from '$lib/metrika';
+	import { reachGoal } from '#lib/metrika.js';
 	import ButtonSvg from './ui/ButtonSvg.svelte';
 	import { get } from 'svelte/store';
-	import { cookieBannerDone } from '$lib/stores/cookieConsent';
+	import { cookieBannerDone } from '#lib/stores/cookieConsent.js';
 
 	interface Props {
 		text: string;

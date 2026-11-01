@@ -3,7 +3,7 @@ import type { Actions, PageServerLoad } from './$types';
 import { db } from '../../../..';
 import * as schema from '../../../../db/schema';
 import { desc, eq, sql } from 'drizzle-orm';
-import { requireAuth } from '$lib/server/protected';
+import { requireAuth } from '#lib/server/protected.js';
 
 export const load: PageServerLoad = async () => {
 	const broadcasts = await db

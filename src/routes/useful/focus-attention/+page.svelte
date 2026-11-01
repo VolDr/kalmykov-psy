@@ -1,14 +1,14 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { afterNavigate } from '$app/navigation';
-	import { initScrollGoals } from '$lib/useScrollGoals';
-	import { reachGoal } from '$lib/metrika';
-	import { setupLeadMagnetTracking } from '$lib/client/leadMagnetTracking';
-	import { lmLog } from '$lib/client/lmDebug';
-	import { landOnHashTarget } from '$lib/hashLanding';
-	import ButtonSvg from '$lib/components/ui/ButtonSvg.svelte';
-	import FocusAttentionArticle from '$lib/components/leadmagnet/FocusAttentionArticle.svelte';
-	import TelegramQuestionsLink from '$lib/components/TelegramQuestionsLink.svelte';
+	import { initScrollGoals } from '#lib/useScrollGoals.js';
+	import { reachGoal } from '#lib/metrika.js';
+	import { setupLeadMagnetTracking } from '#lib/client/leadMagnetTracking.js';
+	import { lmLog } from '#lib/client/lmDebug.js';
+	import { landOnHashTarget } from '#lib/hashLanding.js';
+	import ButtonSvg from '#lib/components/ui/ButtonSvg.svelte';
+	import FocusAttentionArticle from '#lib/components/leadmagnet/FocusAttentionArticle.svelte';
+	import TelegramQuestionsLink from '#lib/components/TelegramQuestionsLink.svelte';
 
 	let { data } = $props();
 
@@ -51,7 +51,9 @@
 		};
 	});
 
-	afterNavigate(({ to }) => {
+	afterNavigate(({ to, shallow, type }) => {
+		if (shallow && type === 'goto') return;
+
 		if (to?.url.hash === '#acquaintance' && ctaSection) {
 			landOnHashTarget(ctaSection);
 		}
@@ -72,6 +74,7 @@
 			>
 				Где заканчивается техника и начинается более сложная работа
 			</h2>
+
 			<div class="flex flex-col gap-[18px] text-[clamp(16px,1.8vw,18px)] leading-[1.75]">
 				<p>
 					Техника помогает возвращать внимание. Но если его снова и снова тянет к работе — обычно

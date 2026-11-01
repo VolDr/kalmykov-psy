@@ -1,7 +1,7 @@
 import { fail } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
-import { requireAuth } from '$lib/server/protected';
-import { getPricing, savePricing } from '$lib/server/pricing.server';
+import { requireAuth } from '#lib/server/protected.js';
+import { getPricing, savePricing } from '#lib/server/pricing.server.js';
 
 export const load: PageServerLoad = async (event) => {
 	requireAuth(event);

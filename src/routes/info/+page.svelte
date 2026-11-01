@@ -16,16 +16,16 @@
   ════════════════════════════════════════════════════════════════
 -->
 <script lang="ts">
-	import MarkdownLink from '$lib/components/MarkdownLink.svelte';
-	import { sessionFaq, sessionFaqJsonLd } from '$lib/data/sessionFaq';
+	import MarkdownLink from '#lib/components/MarkdownLink.svelte';
+	import { sessionFaq, sessionFaqJsonLd } from '#lib/data/sessionFaq.js';
 	import type { PageData } from './$types';
-	import { formatRubles } from '$lib/pricing';
+	import { formatRubles } from '#lib/pricing.js';
 	let { data }: { data: PageData } = $props();
-	import Reveal from '$lib/components/Reveal.svelte';
-	import EducationNew from '$lib/components/sections/EducationNew.svelte';
-	import ButtonSvg from '$lib/components/ui/ButtonSvg.svelte';
-	import TextSvg from '$lib/components/ui/TextSvg.svelte';
-	import { reachGoal } from '$lib/metrika';
+	import Reveal from '#lib/components/Reveal.svelte';
+	import EducationNew from '#lib/components/sections/EducationNew.svelte';
+	import ButtonSvg from '#lib/components/ui/ButtonSvg.svelte';
+	import TextSvg from '#lib/components/ui/TextSvg.svelte';
+	import { reachGoal } from '#lib/metrika.js';
 	import { fade, slide } from 'svelte/transition';
 
 	const siteUrl = import.meta.env.VITE_URL || 'https://kalmykov-psy.ru';
@@ -280,7 +280,7 @@
 <section class="mx-auto max-w-[1600px] bg-background px-5 py-14 md:pb-20 xl:px-0">
 	<Reveal width="full">
 		<div class="mx-auto mb-10 flex items-center gap-4 md:max-w-[760px] md:gap-6 lg:max-w-[1210px]">
-			<h2 class="font-caveat font-bold text-[34px] whitespace-nowrap text-navy lg:text-[40px]">
+			<h2 class="font-caveat text-[34px] font-bold whitespace-nowrap text-navy lg:text-[40px]">
 				с чем работаю
 			</h2>
 			<span class="h-0.5 flex-1">
@@ -537,9 +537,7 @@
 		<div class="grid grid-cols-1 items-stretch gap-7 md:grid-cols-[1fr_1.08fr]">
 			<!-- LIGHT -->
 			<Reveal width="full">
-				<div
-					class="flex h-full flex-col rounded-[22px] bg-[#fdfaf3] p-6 lg:px-8"
-				>
+				<div class="flex h-full flex-col rounded-[22px] bg-[#fdfaf3] p-6 lg:px-8">
 					<h2 class="font-caveat text-[34px] font-bold text-navy md:pt-[35px] lg:text-[40px]">
 						Разовая сессия
 					</h2>

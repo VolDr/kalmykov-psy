@@ -1,5 +1,5 @@
 import type { PageServerLoad } from './$types';
-import { requireAuth } from '$lib/server/protected';
+import { requireAuth } from '#lib/server/protected.js';
 import { db } from '../../..';
 import * as schema from '../../../db/schema';
 import { desc } from 'drizzle-orm';

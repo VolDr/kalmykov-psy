@@ -1,0 +1,29 @@
+name: Security regressions and production build
+
+on:
+  pull_request:
+  push:
+    branches: [wip-2]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    env:
+      VITE_URL: https://kalmykov-psy.ru
+      PUBLIC_SITE_URL: https://kalmykov-psy.ru
+      MAILOPOST_API_TOKEN: ci-placeholder
+      TELEGRAM_WEBHOOK_SECRET: ci-placeholder
+      TELEGRAM_CLIENT_BOT_TOKEN: 123456789:ci-placeholder-token-not-real
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run build

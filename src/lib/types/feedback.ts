@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const feedbackSchema = z.object({
-	smallId: z.string().min(4),
+	smallId: z.string().min(4).max(64),
 	attitude: z.coerce.number().min(0).max(10),
 	generally: z.coerce.number().min(0).max(10),
 	goals: z.coerce.number().min(0).max(10),

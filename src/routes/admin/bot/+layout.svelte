@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 	import { page } from '$app/state';
-	import { cn } from '$lib/utils';
+	import { cn } from '#lib/utils.js';
 
 	let { children }: { children: Snippet } = $props();
 

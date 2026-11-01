@@ -1,4 +1,4 @@
-import { requireAuth } from '$lib/server/protected';
+import { requireAuth } from '#lib/server/protected.js';
 import type { LayoutServerLoad } from './$types';
 import { db } from '../..';
 import * as schema from '../../db/schema';

@@ -1,10 +1,10 @@
 ﻿<script lang="ts">
-	import { Card } from '$lib/components/ui/card';
-	import { Badge } from '$lib/components/ui/badge';
-	import { Avatar } from '$lib/components/ui/avatar';
-	import { Button } from '$lib/components/ui/button';
+	import { Card } from '#lib/components/ui/card/index.js';
+	import { Badge } from '#lib/components/ui/badge/index.js';
+	import { Avatar } from '#lib/components/ui/avatar/index.js';
+	import { Button } from '#lib/components/ui/button/index.js';
 	import dayjs from 'dayjs';
-	import { cn } from '$lib/utils';
+	import { cn } from '#lib/utils.js';
 
 	let {
 		activity

@@ -1,23 +1,26 @@
+import { randomBytes } from 'node:crypto';
+import { requireAuth } from '#lib/server/protected.js';
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
-import { schemaRecordNewClient, schemaRecordExistingClient } from '$lib/types/record';
-import { clientService } from '$lib/server/client.server';
-import { contactService } from '$lib/server/contact.server';
-import { activityService } from '$lib/server/activity.server';
-import { sourceService } from '$lib/server/source.server';
-import { feedbackService } from '$lib/server/feedback.server';
-import { currentStateService } from '$lib/server/current-state.server';
+import { schemaRecordNewClient, schemaRecordExistingClient } from '#lib/types/record.js';
+import { clientService } from '#lib/server/client.server.js';
+import { contactService } from '#lib/server/contact.server.js';
+import { activityService } from '#lib/server/activity.server.js';
+import { sourceService } from '#lib/server/source.server.js';
+import { feedbackService } from '#lib/server/feedback.server.js';
+import { currentStateService } from '#lib/server/current-state.server.js';
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import * as locale from 'dayjs/locale/ru.js';
-import { v4 as uuid } from 'uuid';
 
 dayjs.extend(customParseFormat);
 dayjs.locale(locale.name);
 
 type ContactType = 'phone' | 'telegram';
 
-export const load: PageServerLoad = async ({ url }) => {
+export const load: PageServerLoad = async (event) => {
+	requireAuth(event);
+	const { url } = event;
 	let initialClientId = url.searchParams.get('clientId') ?? undefined;
 	let initialDate = url.searchParams.get('date') ?? undefined;
 
@@ -141,9 +144,7 @@ function checkContactIsPhone(phone: string, explicitType?: string) {
 
 async function createFeedback(clientId: string, datetime: Date | string) {
 	async function _createFeedback() {
-		const smallId = [...uuid().slice(-7, -1).toLocaleLowerCase()]
-			.map((c) => (Math.random() < 0.3 ? c : c.toUpperCase()))
-			.join('');
+		const smallId = randomBytes(16).toString('base64url');
 		if ((await feedbackService.get(smallId, {})) || (await currentStateService.get(smallId, {}))) {
 			throw new Error('Already exists');
 		}
@@ -172,9 +173,7 @@ async function createFeedback(clientId: string, datetime: Date | string) {
 
 async function createCurrentState(clientId: string, datetime: Date | string) {
 	async function _createCurrentState() {
-		const smallId = [...uuid().slice(-7, -1).toLocaleLowerCase()]
-			.map((c) => (Math.random() < 0.3 ? c : c.toUpperCase()))
-			.join('');
+		const smallId = randomBytes(16).toString('base64url');
 		if ((await feedbackService.get(smallId, {})) || (await currentStateService.get(smallId, {}))) {
 			throw new Error('Already exists');
 		}
@@ -222,7 +221,9 @@ async function updateCurrentState(
 }
 
 export const actions = {
-	default: async ({ request }) => {
+	default: async (event) => {
+		requireAuth(event);
+		const { request } = event;
 		const formData = await request.formData();
 		const intent = formData.get('intent');
 

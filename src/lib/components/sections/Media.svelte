@@ -10,7 +10,7 @@
   ════════════════════════════════════════════════════════════════
 -->
 <script lang="ts">
-	import Reveal from '$lib/components/Reveal.svelte';
+	import Reveal from '#lib/components/Reveal.svelte';
 
 	function handleWheelScroll(e: WheelEvent) {
 		const target = e.currentTarget as HTMLElement;

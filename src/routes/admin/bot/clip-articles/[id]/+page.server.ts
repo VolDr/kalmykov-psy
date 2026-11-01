@@ -1,6 +1,6 @@
 import { error, fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
-import { requireAuth } from '$lib/server/protected';
+import { requireAuth } from '#lib/server/protected.js';
 import {
 	deleteClipArticle,
 	getClipArticle,
@@ -8,7 +8,7 @@ import {
 	parsePagesJson,
 	updateClipArticle,
 	validateSlug
-} from '$lib/server/clip-articles.server';
+} from '#lib/server/clip-articles.server.js';
 
 async function loadArticleOr404(idParam: string) {
 	const id = parseInt(idParam, 10);

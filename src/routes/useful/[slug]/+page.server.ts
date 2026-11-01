@@ -1,6 +1,6 @@
 import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
-import { getEnabledClipArticleBySlug } from '$lib/server/clip-articles.server';
+import { getEnabledClipArticleBySlug } from '#lib/server/clip-articles.server.js';
 
 export const load: PageServerLoad = async ({ params }) => {
 	const article = await getEnabledClipArticleBySlug(params.slug);

@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { onlineTherapyBlocks } from '$lib/data/online-therapy';
+	import { onlineTherapyBlocks } from '#lib/data/online-therapy.js';
 	import type { PageData } from './$types';
-	import { formatRubles } from '$lib/pricing';
-	import MarkdownLink from '$lib/components/MarkdownLink.svelte';
-	import Reveal from '$lib/components/Reveal.svelte';
+	import { formatRubles } from '#lib/pricing.js';
+	import MarkdownLink from '#lib/components/MarkdownLink.svelte';
+	import Reveal from '#lib/components/Reveal.svelte';
 
 	let { data }: { data: PageData } = $props();
 
@@ -179,7 +179,9 @@
 	<div class="mx-auto px-5 md:max-w-[760px] lg:max-w-[1200px] xl:px-0">
 		<div class="h-px w-full bg-[#d8cfbc]"></div>
 
-		<div class="grid gap-8 pt-8 pb-12 lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-14 lg:pt-14 xl:gap-20">
+		<div
+			class="grid gap-8 pt-8 pb-12 lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-14 lg:pt-14 xl:gap-20"
+		>
 			<!-- Десктоп: фиксированное содержание, текст разделов полностью раскрыт. -->
 			<aside class="hidden lg:block" aria-label="Содержание">
 				<div class="sticky top-28">
@@ -192,13 +194,24 @@
 								href={'#consent-section-' + i}
 								onclick={() => (activeSection = i)}
 								aria-current={activeSection === i ? 'location' : undefined}
-								class="group flex items-center gap-3 border-b border-[#e4dccb] py-4 text-left text-[15px] leading-snug font-semibold transition-colors hover:text-primary {activeSection === i ? 'text-primary' : 'text-navy'}"
+								class="group flex items-center gap-3 border-b border-[#e4dccb] py-4 text-left text-[15px] leading-snug font-semibold transition-colors hover:text-primary {activeSection ===
+								i
+									? 'text-primary'
+									: 'text-navy'}"
 							>
-								<span class="w-7 shrink-0 text-[14px] font-extrabold text-primary/75">{group.num}</span>
+								<span class="w-7 shrink-0 text-[14px] font-extrabold text-primary/75"
+									>{group.num}</span
+								>
 								<span class="min-w-0 flex-1">
-									{group.title[0]}{#if group.title[1]} {group.title[1]}{/if}
+									{group.title[0]}{#if group.title[1]}
+										{group.title[1]}{/if}
 								</span>
-								<span class="icon-[lucide--chevron-right] h-4 w-4 shrink-0 transition-opacity {activeSection === i ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}"></span>
+								<span
+									class="icon-[lucide--chevron-right] h-4 w-4 shrink-0 transition-opacity {activeSection ===
+									i
+										? 'opacity-100'
+										: 'opacity-0 group-hover:opacity-100'}"
+								></span>
 							</a>
 						{/each}
 					</nav>
@@ -208,10 +221,16 @@
 			<div class="min-w-0">
 				<!-- Мобильная версия: горизонтальные вкладки, можно свайпать по строке. -->
 				<div class="mb-7 lg:hidden">
-					<div class="mb-3 text-[12px] font-extrabold tracking-[0.13em] text-foreground/50 uppercase">
+					<div
+						class="mb-3 text-[12px] font-extrabold tracking-[0.13em] text-foreground/50 uppercase"
+					>
 						Разделы
 					</div>
-					<div class="-mx-5 flex snap-x snap-proximity gap-2 overflow-x-auto overscroll-x-contain px-5 pb-2 touch-pan-x [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" role="tablist" aria-label="Разделы перед началом работы">
+					<div
+						class="-mx-5 flex touch-pan-x snap-x snap-proximity gap-2 overflow-x-auto overscroll-x-contain px-5 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+						role="tablist"
+						aria-label="Разделы перед началом работы"
+					>
 						{#each groups as group, i}
 							<button
 								type="button"
@@ -222,11 +241,15 @@
 								tabindex={activeTab === i ? 0 : -1}
 								onclick={() => (activeTab = i)}
 								onkeydown={(event) => handleTabKeydown(event, i)}
-								class="relative flex shrink-0 snap-start items-center gap-2 whitespace-nowrap px-3 py-3 text-left text-[14px] leading-snug font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary {activeTab === i ? 'text-navy after:absolute after:right-3 after:bottom-0 after:left-3 after:h-[3px] after:rounded-full after:bg-primary' : 'text-foreground/55 hover:text-navy'}"
+								class="relative flex shrink-0 snap-start items-center gap-2 px-3 py-3 text-left text-[14px] leading-snug font-semibold whitespace-nowrap transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary {activeTab ===
+								i
+									? 'text-navy after:absolute after:right-3 after:bottom-0 after:left-3 after:h-[3px] after:rounded-full after:bg-primary'
+									: 'text-foreground/55 hover:text-navy'}"
 							>
 								<span class="shrink-0 text-[12px] font-extrabold text-primary">{group.num}</span>
 								<span class="shrink-0">
-									{group.title[0]}{#if group.title[1]} {group.title[1]}{/if}
+									{group.title[0]}{#if group.title[1]}
+										{group.title[1]}{/if}
 								</span>
 							</button>
 						{/each}
@@ -239,18 +262,32 @@
 						id={'consent-section-' + i}
 						role="tabpanel"
 						aria-labelledby={'consent-tab-' + i}
-						class="scroll-mt-28 border-b border-[#e4dccb] pb-9 lg:mb-12 lg:pb-12 {activeTab === i ? 'block' : 'hidden lg:block'}"
+						class="scroll-mt-28 border-b border-[#e4dccb] pb-9 lg:mb-12 lg:pb-12 {activeTab === i
+							? 'block'
+							: 'hidden lg:block'}"
 					>
-						<div class="mb-7 grid grid-cols-[44px_36px_minmax(0,1fr)] items-start gap-x-2.5 lg:mb-9 lg:grid-cols-[58px_44px_minmax(0,1fr)] lg:gap-x-3">
-							<span class="font-caveat text-[38px] leading-none font-bold text-primary lg:text-[50px]">
+						<div
+							class="mb-7 grid grid-cols-[44px_36px_minmax(0,1fr)] items-start gap-x-2.5 lg:mb-9 lg:grid-cols-[58px_44px_minmax(0,1fr)] lg:gap-x-3"
+						>
+							<span
+								class="font-caveat text-[38px] leading-none font-bold text-primary lg:text-[50px]"
+							>
 								{group.num}
 							</span>
-							<img src={group.icon} alt="" class="mt-1 h-8 w-8 object-contain lg:h-9 lg:w-9" aria-hidden="true" />
+							<img
+								src={group.icon}
+								alt=""
+								class="mt-1 h-8 w-8 object-contain lg:h-9 lg:w-9"
+								aria-hidden="true"
+							/>
 							<div class="min-w-0">
 								<h2 class="m-0 text-[22px] leading-tight font-extrabold text-navy lg:text-[28px]">
-									{group.title[0]}{#if group.title[1]}<span class="block">{group.title[1]}</span>{/if}
+									{group.title[0]}{#if group.title[1]}<span class="block">{group.title[1]}</span
+										>{/if}
 								</h2>
-								<p class="mt-3 max-w-[620px] text-[13px] leading-relaxed text-foreground/60 lg:text-[14px]">
+								<p
+									class="mt-3 max-w-[620px] text-[13px] leading-relaxed text-foreground/60 lg:text-[14px]"
+								>
 									{group.summary}
 								</p>
 							</div>
@@ -262,7 +299,9 @@
 									<h3 class="mb-2 text-[17px] leading-snug font-extrabold text-navy lg:text-[19px]">
 										{topic.label}
 									</h3>
-									<div class="flex max-w-[640px] flex-col gap-2.5 text-[15px] leading-[1.85] text-foreground/75 lg:text-[16px]">
+									<div
+										class="flex max-w-[640px] flex-col gap-2.5 text-[15px] leading-[1.85] text-foreground/75 lg:text-[16px]"
+									>
 										{#each byTitle[topic.key] ?? [] as para}
 											<p><MarkdownLink text={para} /></p>
 										{/each}

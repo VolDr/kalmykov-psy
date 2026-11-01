@@ -217,8 +217,7 @@ export const questionnaireCategories: Category[] = [
 			{
 				title: 'Полный опросник выгорания BAT-23',
 				link: '/questionnaires/bat23',
-				description:
-					'Оценка четырёх основных признаков выгорания, 23 пункта.',
+				description: 'Оценка четырёх основных признаков выгорания, 23 пункта.',
 				time: '6-10 минут'
 			}
 		]

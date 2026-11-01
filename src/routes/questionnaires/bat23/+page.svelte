@@ -1,17 +1,17 @@
 <script lang="ts">
 	import { tick } from 'svelte';
-	import AssessmentPage from '$lib/components/questionnaire/AssessmentPage.svelte';
-	import AssessmentQuestion from '$lib/components/questionnaire/AssessmentQuestion.svelte';
+	import AssessmentPage from '#lib/components/questionnaire/AssessmentPage.svelte';
+	import AssessmentQuestion from '#lib/components/questionnaire/AssessmentQuestion.svelte';
 	import AssessmentResult, {
 		type ResultSubscale,
 		type ResultTone
-	} from '$lib/components/questionnaire/AssessmentResult.svelte';
-	import AssessmentWizard from '$lib/components/questionnaire/AssessmentWizard.svelte';
-	import Button from '$lib/components/ui/Button.svelte';
+	} from '#lib/components/questionnaire/AssessmentResult.svelte';
+	import AssessmentWizard from '#lib/components/questionnaire/AssessmentWizard.svelte';
+	import Button from '#lib/components/ui/Button.svelte';
 	import {
 		loadAssessmentState,
 		saveAssessmentState
-	} from '$lib/utils/questionnaire/assessmentState';
+	} from '#lib/utils/questionnaire/assessmentState.js';
 
 	type Question = { id: string; text: string };
 	type Zone = { severity: string; tone: ResultTone };
@@ -160,8 +160,8 @@
 	description="Официальная русская версия для работающих"
 	time="6–10 минут"
 	questions="23 вопроса"
- methodologyKey="bat23">
-
+	methodologyKey="bat23"
+>
 	{#if !showResults}
 		<AssessmentWizard
 			step={currentStep + 1}

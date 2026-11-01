@@ -1,5 +1,5 @@
-import { browser } from '$app/environment';
-import { reachGoal } from '$lib/metrika';
+import { browser } from '$app/env';
+import { reachGoal } from '#lib/metrika.js';
 
 export function initScrollGoals() {
 	if (!browser) return;

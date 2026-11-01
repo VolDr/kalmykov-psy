@@ -1,9 +1,9 @@
-import { json } from '@sveltejs/kit';
+
 import type { RequestHandler } from './$types';
-import { createPayment } from '$lib/server/robokassa.server';
-import { getPricing } from '$lib/server/pricing.server';
-import { toPaymentAmount } from '$lib/pricing';
-import { isRateLimited } from '$lib/server/rate-limit.server';
+import { createPayment } from '#lib/server/robokassa.server.js';
+import { getPricing } from '#lib/server/pricing.server.js';
+import { toPaymentAmount } from '#lib/pricing.js';
+import { isRateLimited } from '#lib/server/rate-limit.server.js';
 
 const PRODUCTS = {
 	single: {
@@ -17,7 +17,7 @@ const PRODUCTS = {
 export const POST: RequestHandler = async ({ request, url, getClientAddress }) => {
 	const ip = getClientAddress();
 	if (isRateLimited(ip)) {
-		return json({ error: 'Слишком много запросов. Попробуйте через минуту.' }, { status: 429 });
+		return Response.json({ error: 'Слишком много запросов. Попробуйте через минуту.' }, { status: 429 });
 	}
 
 	const { email, product } = await request.json();
@@ -25,15 +25,15 @@ export const POST: RequestHandler = async ({ request, url, getClientAddress }) =
 	const trimmedEmail = String(email ?? '').trim();
 
 	if (!trimmedEmail) {
-		return json({ error: 'Введите email' }, { status: 400 });
+		return Response.json({ error: 'Введите email' }, { status: 400 });
 	}
 	if (trimmedEmail.length > 254 || !trimmedEmail.includes('@')) {
-		return json({ error: 'Некорректный email' }, { status: 400 });
+		return Response.json({ error: 'Некорректный email' }, { status: 400 });
 	}
 
 	const prod = PRODUCTS[product as keyof typeof PRODUCTS];
 	if (!prod) {
-		return json({ error: 'Неверный тип продукта' }, { status: 400 });
+		return Response.json({ error: 'Неверный тип продукта' }, { status: 400 });
 	}
 
 	const prices = await getPricing();
@@ -45,5 +45,5 @@ export const POST: RequestHandler = async ({ request, url, getClientAddress }) =
 		failUrl: `${url.origin}/booking/fail`
 	});
 
-	return json(payment);
+	return Response.json(payment);
 };

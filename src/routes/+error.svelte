@@ -1,7 +1,7 @@
 ﻿<script lang="ts">
 	// 1. Импортируем хранилище page
 	import { page } from '$app/state';
-	import Button from '$lib/components/ui/Button.svelte';
+	import Button from '#lib/components/ui/Button.svelte';
 
 	const is404 = page.status === 404;
 	const is5xx = page.status >= 500;

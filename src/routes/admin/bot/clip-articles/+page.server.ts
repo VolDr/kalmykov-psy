@@ -1,12 +1,12 @@
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
-import { requireAuth } from '$lib/server/protected';
+import { requireAuth } from '#lib/server/protected.js';
 import {
 	createClipArticle,
 	isSlugCollision,
 	listClipArticles,
 	validateSlug
-} from '$lib/server/clip-articles.server';
+} from '#lib/server/clip-articles.server.js';
 
 export const load: PageServerLoad = async () => {
 	return { articles: await listClipArticles() };

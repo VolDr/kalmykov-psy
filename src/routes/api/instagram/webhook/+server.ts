@@ -1,7 +1,7 @@
 import crypto from 'node:crypto';
-import { text } from '@sveltejs/kit';
-import { env } from '$env/dynamic/private';
-import { processInstagramWebhook } from '$lib/server/instagram.server';
+
+import { INSTAGRAM_VERIFY_TOKEN, INSTAGRAM_APP_SECRET } from '$app/env/private';
+import { processInstagramWebhook } from '#lib/server/instagram.server.js';
 import type { RequestHandler } from './$types';
 
 // Верификация подписки: Meta делает GET с hub.challenge при настройке вебхука
@@ -11,21 +11,20 @@ export const GET: RequestHandler = ({ url }) => {
 	const token = url.searchParams.get('hub.verify_token');
 	const challenge = url.searchParams.get('hub.challenge');
 
-	if (mode === 'subscribe' && token && token === env.INSTAGRAM_VERIFY_TOKEN && challenge) {
-		return text(challenge);
+	if (mode === 'subscribe' && token && token === INSTAGRAM_VERIFY_TOKEN && challenge) {
+		return new Response(challenge);
 	}
 	return new Response('Forbidden', { status: 403 });
 };
 
 /** Подпись Meta: sha256=HMAC(app secret, raw body). Сравнение — constant-time. */
 function signatureValid(rawBody: string, header: string | null): boolean {
-	if (!env.INSTAGRAM_APP_SECRET) return true; // секрет не настроен — проверку не включаем
+	if (!INSTAGRAM_APP_SECRET) return true; // секрет не настроен — проверку не включаем
 	if (!header?.startsWith('sha256=')) return false;
-	const expected = crypto
-		.createHmac('sha256', env.INSTAGRAM_APP_SECRET)
-		.update(rawBody)
-		.digest('hex');
+
+	const expected = crypto.createHmac('sha256', INSTAGRAM_APP_SECRET).update(rawBody).digest('hex');
 	const received = header.slice('sha256='.length);
+
 	if (received.length !== expected.length) return false;
 	return crypto.timingSafeEqual(Buffer.from(received, 'utf8'), Buffer.from(expected, 'utf8'));
 }
@@ -43,5 +42,5 @@ export const POST: RequestHandler = async ({ request }) => {
 	} catch (err) {
 		console.error('[instagram] Ошибка вебхука:', err);
 	}
-	return text('OK');
+	return new Response('OK');
 };

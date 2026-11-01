@@ -1,25 +1,19 @@
-﻿<!--
-  Заменяет: src/lib/components/questionnaire/Questionnaire.svelte
-  Дизайн перенесён из макета: плашка «Важно», нумерованные вопросы (Caveat),
-  варианты-карточки, золотая кнопка, аккуратный блок результата.
-  Логика (скоринг, валидация, localStorage, копирование) НЕ изменена.
--->
 <script lang="ts">
 	import { tick } from 'svelte';
-	import { browser } from '$app/environment';
+	import { browser } from '$app/env';
 	import InfoSection from './InfoSection.svelte';
 	import WarningBox from './WarningBox.svelte';
 	import QuestionRenderer from './QuestionRenderer.svelte';
 	import ScoreDisplay from './ScoreDisplay.svelte';
 	import NextSteps from './NextSteps.svelte';
-	import type { QuestionnaireConfig } from '$lib/data/questionnaires/types';
+	import type { QuestionnaireConfig } from '#lib/data/questionnaires/types.js';
 	import {
 		calculateScore,
 		validateAnswers,
 		evaluateWarnings,
 		shouldDisplayQuestion
-	} from '$lib/utils/questionnaire/scoringEngine';
-	import { formatResultsForClipboard } from '$lib/utils/questionnaire/formatResults';
+	} from '#lib/utils/questionnaire/scoringEngine.js';
+	import { formatResultsForClipboard } from '#lib/utils/questionnaire/formatResults.js';
 	import Button from '../ui/Button.svelte';
 
 	type Props = {
@@ -173,6 +167,13 @@
 	}
 </script>
 
+<!--
+  Заменяет: src/lib/components/questionnaire/Questionnaire.svelte
+  Дизайн перенесён из макета: плашка «Важно», нумерованные вопросы (Caveat),
+  варианты-карточки, золотая кнопка, аккуратный блок результата.
+  Логика (скоринг, валидация, localStorage, копирование) НЕ изменена.
+-->
+
 <div class="space-y-10 py-8 md:space-y-12 md:py-12">
 	<!-- Information Sections (плашка «Важно» и т.п.) -->
 	<div class="space-y-4 px-5 xl:px-0">
@@ -279,10 +280,11 @@
 			{/if}
 
 			<!-- Action Buttons -->
+
 			<div class="flex flex-col gap-4 pt-2 sm:flex-row sm:items-stretch sm:justify-center">
-				<Button variant="primary" onclick={handleReset} class="w-full justify-center sm:w-auto">
-					Пройти заново
-				</Button>
+				<Button variant="primary" onclick={handleReset} class="w-full justify-center sm:w-auto"
+					>Пройти заново</Button
+				>
 
 				<Button
 					variant="primary"

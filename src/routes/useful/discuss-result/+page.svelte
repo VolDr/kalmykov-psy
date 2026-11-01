@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { reachGoal } from '$lib/metrika';
-	import { lmLog } from '$lib/client/lmDebug';
-	import ButtonSvg from '$lib/components/ui/ButtonSvg.svelte';
-	import TelegramQuestionsLink from '$lib/components/TelegramQuestionsLink.svelte';
+	import { reachGoal } from '#lib/metrika.js';
+	import { lmLog } from '#lib/client/lmDebug.js';
+	import ButtonSvg from '#lib/components/ui/ButtonSvg.svelte';
+	import TelegramQuestionsLink from '#lib/components/TelegramQuestionsLink.svelte';
 
 	/**
 	 * «Почему всё снова возвращается» — куда ведёт кнопка в боте после разбора

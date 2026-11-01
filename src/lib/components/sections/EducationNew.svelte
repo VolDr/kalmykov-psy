@@ -1,9 +1,9 @@
 ﻿<script lang="ts">
-	import AccordionItem from '$lib/components/AccordionItem.svelte';
-	import DiplomaModal from '$lib/components/DiplomaModal.svelte';
-	import Reveal from '$lib/components/Reveal.svelte';
-	import { educationGroups } from '$lib/data/education';
-	import { cn } from '$lib/utils';
+	import AccordionItem from '#lib/components/AccordionItem.svelte';
+	import DiplomaModal from '#lib/components/DiplomaModal.svelte';
+	import Reveal from '#lib/components/Reveal.svelte';
+	import { educationGroups } from '#lib/data/education.js';
+	import { cn } from '#lib/utils.js';
 
 	let { isOpen = false, titleClass = '' }: { isOpen?: boolean; titleClass?: string } = $props();
 	let openFromHash = $state(false);
@@ -94,7 +94,7 @@
 				<div class="text-left">
 					<h2
 						class={cn(
-							'relative inline-block whitespace-nowrap pb-1 font-caveat text-[34px] leading-[1.1] font-bold text-navy lg:text-[40px]',
+							'relative inline-block pb-1 font-caveat text-[34px] leading-[1.1] font-bold whitespace-nowrap text-navy lg:text-[40px]',
 							titleClass
 						)}
 					>
@@ -167,14 +167,14 @@
 
 					{#if categoryExplanations[group.category]}
 						<p
-							class="mb-6 max-w-[700px] pr-20 pl-5 text-[16px] xl:pl-4 leading-relaxed text-foreground/60 lg:text-[18px]"
+							class="mb-6 max-w-[700px] pr-20 pl-5 text-[16px] leading-relaxed text-foreground/60 lg:text-[18px] xl:pl-4"
 						>
 							{categoryExplanations[group.category]}
 						</p>
 					{/if}
 
 					<div
-						class="education-carousel my-scroll flex w-full snap-x snap-mandatory scroll-pl-5 gap-4 xl:scroll-pl-4 overflow-x-auto pt-2 pb-6 [-ms-overflow-style:none] [scrollbar-width:none] md:[scrollbar-color:var(--color-primary)_var(--color-background)] md:[scrollbar-width:thin] [&::-webkit-scrollbar]:hidden md:[&::-webkit-scrollbar]:block md:[&::-webkit-scrollbar]:h-1.5 md:[&::-webkit-scrollbar-thumb]:rounded-full md:[&::-webkit-scrollbar-thumb]:bg-primary/70 md:hover:[&::-webkit-scrollbar-thumb]:bg-primary md:[&::-webkit-scrollbar-track]:rounded-full md:[&::-webkit-scrollbar-track]:bg-background"
+						class="education-carousel my-scroll flex w-full snap-x snap-mandatory scroll-pl-5 gap-4 overflow-x-auto pt-2 pb-6 [-ms-overflow-style:none] [scrollbar-width:none] md:[scrollbar-color:var(--color-primary)_var(--color-background)] md:[scrollbar-width:thin] xl:scroll-pl-4 [&::-webkit-scrollbar]:hidden md:[&::-webkit-scrollbar]:block md:[&::-webkit-scrollbar]:h-1.5 md:[&::-webkit-scrollbar-thumb]:rounded-full md:[&::-webkit-scrollbar-thumb]:bg-primary/70 md:hover:[&::-webkit-scrollbar-thumb]:bg-primary md:[&::-webkit-scrollbar-track]:rounded-full md:[&::-webkit-scrollbar-track]:bg-background"
 						onwheel={handleWheelScroll}
 					>
 						{#each group.items as item, idx}

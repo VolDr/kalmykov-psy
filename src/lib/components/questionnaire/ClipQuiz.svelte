@@ -1,14 +1,14 @@
 <script lang="ts">
-	import { browser } from '$app/environment';
-	import { reachGoal } from '$lib/metrika';
-	import { lmLog } from '$lib/client/lmDebug';
+	import { browser } from '$app/env';
+	import { reachGoal } from '#lib/metrika.js';
+	import { lmLog } from '#lib/client/lmDebug.js';
 	import QuestionRenderer from './QuestionRenderer.svelte';
-	import MarkdownLink from '$lib/components/MarkdownLink.svelte';
+	import MarkdownLink from '#lib/components/MarkdownLink.svelte';
 	import Button from '../ui/Button.svelte';
 	import ButtonSvg from '../ui/ButtonSvg.svelte';
 	import TelegramQuestionsLink from '../TelegramQuestionsLink.svelte';
-	import type { QuestionnaireConfig } from '$lib/data/questionnaires/types';
-	import { calculateScore, shouldDisplayQuestion } from '$lib/utils/questionnaire/scoringEngine';
+	import type { QuestionnaireConfig } from '#lib/data/questionnaires/types.js';
+	import { calculateScore, shouldDisplayQuestion } from '#lib/utils/questionnaire/scoringEngine.js';
 
 	type SavedResult = {
 		severity: string;

@@ -1,6 +1,6 @@
 <script lang="ts">
-	import MainGridNew from '$lib/components/layout/MainGridNew.svelte';
-	import { sessionFaqJsonLd } from '$lib/data/sessionFaq';
+	import MainGridNew from '#lib/components/layout/MainGridNew.svelte';
+	import { sessionFaqJsonLd } from '#lib/data/sessionFaq.js';
 	import type { PageData } from './$types';
 	let { data }: { data: PageData } = $props();
 </script>

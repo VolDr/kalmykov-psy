@@ -1,6 +1,6 @@
 ﻿<script lang="ts">
-	import BookButton from '$lib/components/BookButton.svelte';
-	import Reveal from '$lib/components/Reveal.svelte';
+	import BookButton from '#lib/components/BookButton.svelte';
+	import Reveal from '#lib/components/Reveal.svelte';
 
 	// Пропсы остаются теми же
 	const { format, duration, price }: { format: string; duration: string; price: string } = $props();

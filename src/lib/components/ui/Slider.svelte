@@ -1,6 +1,6 @@
 ﻿<script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
-	import { browser } from '$app/environment';
+	import { browser } from '$app/env';
 
 	interface Props {
 		editable: boolean;
@@ -32,7 +32,7 @@
 
 			// Apply direct style changes for even smoother updates
 			if (thumbRef && sliderRef) {
-				const percentage = (newValue / 10) * 100;
+				const percentage = newValue / 10 * 100;
 
 				if (trackFillRef) {
 					trackFillRef.style.width = `${percentage}%`;
@@ -217,7 +217,7 @@
 </script>
 
 <div class="w-full max-w-lg select-none">
-	<input type="hidden" {name} value={currValue} />
+	<input type="hidden" name={name} value={currValue} />
 
 	<!-- Slider track container with optimized styles for GPU acceleration -->
 	<div
@@ -236,7 +236,7 @@
 		<div
 			bind:this={trackFillRef}
 			class={`absolute h-full rounded ${editable ? 'bg-primary-light' : 'bg-secondary'}`}
-			style="width: {(currValue / 10) * 100}%; transform: translateZ(0); will-change: width;"
+			style="width: {currValue / 10 * 100}%; transform: translateZ(0); will-change: width;"
 		></div>
 
 		<!-- Thumb with hardware acceleration optimizations -->
@@ -244,10 +244,7 @@
 			<div
 				bind:this={thumbRef}
 				class="absolute top-1/2 h-4 w-4 cursor-grab touch-none rounded-full border-2 border-primary-light bg-white shadow active:cursor-grabbing"
-				style="left: calc({(currValue / 10) *
-					100}% - 0.5rem); transform: translateZ(0) translateY(-50%); transition: {isDragging
-					? 'none'
-					: 'left 0.05s ease-out'};"
+				style="left: calc({currValue / 10 * 100}% - 0.5rem); transform: translateZ(0) translateY(-50%); transition: {isDragging ? 'none' : 'left 0.05s ease-out'};"
 				onmousedown={handleThumbMouseDown}
 				ontouchstart={handleThumbTouchStart}
 				role="presentation"

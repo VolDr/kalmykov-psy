@@ -1,4 +1,4 @@
-import { activityService, serializeActivity } from '$lib/server/activity.server';
+import { activityService, serializeActivity } from '#lib/server/activity.server.js';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async () => {

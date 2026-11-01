@@ -1,20 +1,20 @@
 ﻿<script lang="ts">
-	import HeroBackground from '$lib/components/HeroBackground.svelte';
-	import { formatRubles, type ServicePrices } from '$lib/pricing';
+	import HeroBackground from '#lib/components/HeroBackground.svelte';
+	import { formatRubles, type ServicePrices } from '#lib/pricing.js';
 	let { prices }: { prices: ServicePrices } = $props();
-	import Reveal from '$lib/components/Reveal.svelte';
-	import AccordionItem from '$lib/components/AccordionItem.svelte';
-	import Button from '$lib/components/ui/Button.svelte';
-	import ImageWithShadow from '$lib/components/ImageWithShadow.svelte';
-	import MarkdownLink from '$lib/components/MarkdownLink.svelte';
-	import { sessionFaq } from '$lib/data/sessionFaq';
-	import EducationNew from '$lib/components/sections/EducationNew.svelte';
-	import Media from '$lib/components/sections/Media.svelte';
+	import Reveal from '#lib/components/Reveal.svelte';
+	import AccordionItem from '#lib/components/AccordionItem.svelte';
+	import Button from '#lib/components/ui/Button.svelte';
+	import ImageWithShadow from '#lib/components/ImageWithShadow.svelte';
+	import MarkdownLink from '#lib/components/MarkdownLink.svelte';
+	import { sessionFaq } from '#lib/data/sessionFaq.js';
+	import EducationNew from '#lib/components/sections/EducationNew.svelte';
+	import Media from '#lib/components/sections/Media.svelte';
 	import { fade, slide } from 'svelte/transition';
 
 	import { onMount } from 'svelte';
-	import { reachGoal } from '$lib/metrika';
-	import { initScrollGoals } from '$lib/useScrollGoals';
+	import { reachGoal } from '#lib/metrika.js';
+	import { initScrollGoals } from '#lib/useScrollGoals.js';
 	import ButtonSvg from '../ui/ButtonSvg.svelte';
 	import TextSvg from '../ui/TextSvg.svelte';
 
@@ -967,9 +967,7 @@
 		<div class="grid grid-cols-1 items-stretch gap-7 md:grid-cols-[1fr_1.08fr]">
 			<!-- LIGHT -->
 			<Reveal width="full">
-				<div
-					class="flex h-full flex-col rounded-[22px] bg-[#fdfaf3] p-6 lg:px-8"
-				>
+				<div class="flex h-full flex-col rounded-[22px] bg-[#fdfaf3] p-6 lg:px-8">
 					<h2 class="font-caveat text-[34px] font-bold text-navy md:pt-[35px] lg:text-[40px]">
 						Разовая сессия
 					</h2>
@@ -1051,8 +1049,7 @@
 						Для достижения устойчивых изменений в повседневной жизни
 					</p>
 
-					<ul class="mt-6 flex flex-col gap-2.5 text-[16px]">
-						text-white/90 lg:text-[18px]">
+					<ul class="mt-6 flex flex-col gap-2.5 text-[16px] text-white/90 lg:text-[18px]">
 						<li class="flex items-center gap-2.5">
 							<span class="h-1.5 w-1.5 rounded-full bg-primary"></span>Система трекинга прогресса
 						</li>

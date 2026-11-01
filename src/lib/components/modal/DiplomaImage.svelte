@@ -1,6 +1,6 @@
 ﻿<script lang="ts">
 	import { cubicOut } from 'svelte/easing';
-	import { cn } from '$lib/utils';
+	import { cn } from '#lib/utils.js';
 
 	function pageSlide(
 		_node: Element,

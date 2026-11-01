@@ -3,7 +3,8 @@ import type { Actions, PageServerLoad } from './$types';
 import { db } from '../../../..';
 import * as schema from '../../../../db/schema';
 import { desc, eq, sql } from 'drizzle-orm';
-import { requireAuth } from '$lib/server/protected';
+import { requireAuth } from '#lib/server/protected.js';
+import { getInstagramTokenStatus } from '#lib/server/instagram.server.js';
 
 export const load: PageServerLoad = async () => {
 	const rules = await db
@@ -11,7 +12,14 @@ export const load: PageServerLoad = async () => {
 		.from(schema.instagramRules)
 		.orderBy(desc(schema.instagramRules.createdAt));
 
-	return { rules };
+	const tokenStatus = await getInstagramTokenStatus().catch(() => ({
+		configured: true,
+		refreshedAt: null,
+		expiresAt: null,
+		nextAttemptAt: null,
+		refreshFailed: true
+	}));
+	return { rules, tokenStatus };
 };
 
 export const actions = {

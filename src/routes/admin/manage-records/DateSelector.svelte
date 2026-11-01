@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { Calendar, Day as CalendarDay } from '$lib/components/ui/calendar';
-	import { Card } from '$lib/components/ui/card';
-	import { cn } from '$lib/utils';
+	import { Calendar, Day as CalendarDay } from '#lib/components/ui/calendar/index.js';
+	import { Card } from '#lib/components/ui/card/index.js';
+	import { cn } from '#lib/utils.js';
 	import dayjs from 'dayjs';
 	import { goto } from '$app/navigation';
 	import { CalendarDate, fromDate, toCalendarDate } from '@internationalized/date';

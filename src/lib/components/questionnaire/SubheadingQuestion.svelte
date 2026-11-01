@@ -3,7 +3,7 @@
   Дизайн: заголовок группы вопросов — крупный, насыщенный, navy (как в макете).
 -->
 <script lang="ts">
-	import type { QuestionnaireQuestion } from '$lib/data/questionnaires/types';
+	import type { QuestionnaireQuestion } from '#lib/data/questionnaires/types.js';
 
 	type Props = {
 		question: QuestionnaireQuestion;

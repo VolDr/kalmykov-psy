@@ -1,9 +1,9 @@
 ﻿<script lang="ts">
-	import AccordionItem from '$lib/components/AccordionItem.svelte';
-	import DiplomaModal from '$lib/components/DiplomaModal.svelte';
-	import Reveal from '$lib/components/Reveal.svelte';
-	import { educationGroups } from '$lib/data/education';
-	import { cn } from '$lib/utils';
+	import AccordionItem from '#lib/components/AccordionItem.svelte';
+	import DiplomaModal from '#lib/components/DiplomaModal.svelte';
+	import Reveal from '#lib/components/Reveal.svelte';
+	import { educationGroups } from '#lib/data/education.js';
+	import { cn } from '#lib/utils.js';
 
 	let { isOpen = false }: { isOpen?: boolean } = $props();
 	let isModalOpen = $state(false);

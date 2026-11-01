@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { db } from '../..';
 import * as schema from '../../db/schema';
 import type { GameQuestion } from '../../db/schema';
-import { parseQuestions } from '$lib/data/game-quiz-json';
+import { parseQuestions } from '#lib/data/game-quiz-json.js';
 
 const quizSchema = z.object({
 	title: z.string().trim().min(1, 'Укажите название').max(120),

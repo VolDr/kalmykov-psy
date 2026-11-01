@@ -1,6 +1,6 @@
 ﻿<script lang="ts">
-	import Footer from '$lib/components/layout/Footer.svelte';
-	import Button from '$lib/components/ui/Button.svelte';
+	import Footer from '#lib/components/layout/Footer.svelte';
+	import Button from '#lib/components/ui/Button.svelte';
 
 	let { data } = $props();
 </script>

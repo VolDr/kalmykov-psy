@@ -1,160 +1,188 @@
 {
-  "version": "7",
-  "dialect": "postgresql",
-  "entries": [
-    {
-      "idx": 0,
-      "version": "7",
-      "when": 1762968873449,
-      "tag": "0000_green_ultimates",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1783074017090,
-      "tag": "0001_baseline_pre_bot",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1783074439591,
-      "tag": "0002_bot_core",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1783087874089,
-      "tag": "0003_bot_scenarios",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1783089720836,
-      "tag": "0004_step_buttons",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "7",
-      "when": 1783105588293,
-      "tag": "0005_broadcasts",
-      "breakpoints": true
-    },
-    {
-      "idx": 6,
-      "version": "7",
-      "when": 1783123787647,
-      "tag": "0006_contact_public_id",
-      "breakpoints": true
-    },
-    {
-      "idx": 7,
-      "version": "7",
-      "when": 1783124155697,
-      "tag": "0007_scenario_cooldown",
-      "breakpoints": true
-    },
-    {
-      "idx": 8,
-      "version": "7",
-      "when": 1783204667763,
-      "tag": "0008_instagram_rules",
-      "breakpoints": true
-    },
-    {
-      "idx": 9,
-      "version": "7",
-      "when": 1783295633665,
-      "tag": "0009_step_files",
-      "breakpoints": true
-    },
-    {
-      "idx": 10,
-      "version": "7",
-      "when": 1783357074704,
-      "tag": "0010_clip_articles",
-      "breakpoints": true
-    },
-    {
-      "idx": 11,
-      "version": "7",
-      "when": 1785739200000,
-      "tag": "0011_step_conditions",
-      "breakpoints": true
-    },
-    {
-      "idx": 12,
-      "version": "7",
-      "when": 1785739201000,
-      "tag": "0012_contact_funnel",
-      "breakpoints": true
-    },
-    {
-      "idx": 13,
-      "version": "7",
-      "when": 1785740527000,
-      "tag": "0013_subscription_gates",
-      "breakpoints": true
-    },
-    {
-      "idx": 14,
-      "version": "7",
-      "when": 1786980524679,
-      "tag": "0014_callback_idempotency",
-      "breakpoints": true
-    },
-    {
-      "idx": 15,
-      "version": "7",
-      "when": 1786980524680,
-      "tag": "0015_skipped_step_status",
-      "breakpoints": true
-    },
-    {
-      "idx": 16,
-      "version": "7",
-      "when": 1787001900000,
-      "tag": "0016_chain_depth_and_quiz_delivery",
-      "breakpoints": true
-    },
-    {
-      "idx": 17,
-      "version": "7",
-      "when": 1787264288890,
-      "tag": "0017_post_analytics_dashboard",
-      "breakpoints": true
-    },
-    {
-      "idx": 18,
-      "version": "7",
-      "when": 1789318800000,
-      "tag": "0018_quiz_results_site_contact",
-      "breakpoints": true
-    },
-    {
-      "idx": 19,
-      "version": "7",
-      "when": 1789405200000,
-      "tag": "0019_game_quizzes",
-      "breakpoints": true
-    },
-    {
-      "idx": 20,
-      "version": "7",
-      "when": 1789491600000,
-      "tag": "0020_broadcast_runs_only_idle",
-      "breakpoints": true
-    },
-    {
-      "idx": 21,
-      "version": "7",
-      "when": 1792110000000,
-      "tag": "0021_service_pricing",
-      "breakpoints": true
-    }
-  ]
+	"version": "7",
+	"dialect": "postgresql",
+	"entries": [
+		{
+			"idx": 0,
+			"version": "7",
+			"when": 1762968873449,
+			"tag": "0000_green_ultimates",
+			"breakpoints": true
+		},
+		{
+			"idx": 1,
+			"version": "7",
+			"when": 1783074017090,
+			"tag": "0001_baseline_pre_bot",
+			"breakpoints": true
+		},
+		{
+			"idx": 2,
+			"version": "7",
+			"when": 1783074439591,
+			"tag": "0002_bot_core",
+			"breakpoints": true
+		},
+		{
+			"idx": 3,
+			"version": "7",
+			"when": 1783087874089,
+			"tag": "0003_bot_scenarios",
+			"breakpoints": true
+		},
+		{
+			"idx": 4,
+			"version": "7",
+			"when": 1783089720836,
+			"tag": "0004_step_buttons",
+			"breakpoints": true
+		},
+		{
+			"idx": 5,
+			"version": "7",
+			"when": 1783105588293,
+			"tag": "0005_broadcasts",
+			"breakpoints": true
+		},
+		{
+			"idx": 6,
+			"version": "7",
+			"when": 1783123787647,
+			"tag": "0006_contact_public_id",
+			"breakpoints": true
+		},
+		{
+			"idx": 7,
+			"version": "7",
+			"when": 1783124155697,
+			"tag": "0007_scenario_cooldown",
+			"breakpoints": true
+		},
+		{
+			"idx": 8,
+			"version": "7",
+			"when": 1783204667763,
+			"tag": "0008_instagram_rules",
+			"breakpoints": true
+		},
+		{
+			"idx": 9,
+			"version": "7",
+			"when": 1783295633665,
+			"tag": "0009_step_files",
+			"breakpoints": true
+		},
+		{
+			"idx": 10,
+			"version": "7",
+			"when": 1783357074704,
+			"tag": "0010_clip_articles",
+			"breakpoints": true
+		},
+		{
+			"idx": 11,
+			"version": "7",
+			"when": 1785739200000,
+			"tag": "0011_step_conditions",
+			"breakpoints": true
+		},
+		{
+			"idx": 12,
+			"version": "7",
+			"when": 1785739201000,
+			"tag": "0012_contact_funnel",
+			"breakpoints": true
+		},
+		{
+			"idx": 13,
+			"version": "7",
+			"when": 1785740527000,
+			"tag": "0013_subscription_gates",
+			"breakpoints": true
+		},
+		{
+			"idx": 14,
+			"version": "7",
+			"when": 1786980524679,
+			"tag": "0014_callback_idempotency",
+			"breakpoints": true
+		},
+		{
+			"idx": 15,
+			"version": "7",
+			"when": 1786980524680,
+			"tag": "0015_skipped_step_status",
+			"breakpoints": true
+		},
+		{
+			"idx": 16,
+			"version": "7",
+			"when": 1787001900000,
+			"tag": "0016_chain_depth_and_quiz_delivery",
+			"breakpoints": true
+		},
+		{
+			"idx": 17,
+			"version": "7",
+			"when": 1787264288890,
+			"tag": "0017_post_analytics_dashboard",
+			"breakpoints": true
+		},
+		{
+			"idx": 18,
+			"version": "7",
+			"when": 1789318800000,
+			"tag": "0018_quiz_results_site_contact",
+			"breakpoints": true
+		},
+		{
+			"idx": 19,
+			"version": "7",
+			"when": 1789405200000,
+			"tag": "0019_game_quizzes",
+			"breakpoints": true
+		},
+		{
+			"idx": 20,
+			"version": "7",
+			"when": 1789491600000,
+			"tag": "0020_broadcast_runs_only_idle",
+			"breakpoints": true
+		},
+		{
+			"idx": 21,
+			"version": "7",
+			"when": 1792110000000,
+			"tag": "0021_service_pricing",
+			"breakpoints": true
+		},
+		{
+			"idx": 22,
+			"version": "7",
+			"when": 1792922400000,
+			"tag": "0022_security_rate_limits",
+			"breakpoints": true
+		},
+		{
+			"idx": 23,
+			"version": "7",
+			"when": 1793091600000,
+			"tag": "0023_instagram_link_button",
+			"breakpoints": true
+		},
+		{
+			"idx": 24,
+			"version": "7",
+			"when": 1793523600000,
+			"tag": "0024_translation_docs",
+			"breakpoints": true
+		},
+		{
+			"idx": 25,
+			"version": "7",
+			"when": 1793527200000,
+			"tag": "0025_translation_save_versions",
+			"breakpoints": true
+		}
+	]
 }

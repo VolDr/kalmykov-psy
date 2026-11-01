@@ -1,5 +1,5 @@
 <script lang="ts">
-	import HeroBackground from '$lib/components/HeroBackground.svelte';
+	import HeroBackground from '#lib/components/HeroBackground.svelte';
 	import type { Snippet } from 'svelte';
 
 	type Props = {

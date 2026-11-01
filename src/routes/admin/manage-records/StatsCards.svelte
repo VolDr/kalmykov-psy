@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Card } from '$lib/components/ui/card';
+	import { Card } from '#lib/components/ui/card/index.js';
 	import dayjs from 'dayjs';
 
 	let { activities }: { activities: any[] } = $props();

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { footerInfo } from '$lib/data/navigation';
+	import { footerInfo } from '#lib/data/navigation.js';
 </script>
 
 <footer class="w-full border-t border-navy/10 bg-background py-5">

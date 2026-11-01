@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import type { GameQuestion } from '../../../db/schema';
-	import { quizToJson, type ImportedMeta } from '$lib/data/game-quiz-json';
+	import { quizToJson, type ImportedMeta } from '#lib/data/game-quiz-json.js';
 	import QuestionCard from './QuestionCard.svelte';
 	import QuizJsonPanel from './QuizJsonPanel.svelte';
 

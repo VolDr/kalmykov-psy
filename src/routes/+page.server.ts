@@ -1,4 +1,4 @@
 import type { PageServerLoad } from './$types';
-import { getPricing } from '$lib/server/pricing.server';
+import { getPricing } from '#lib/server/pricing.server.js';
 
 export const load: PageServerLoad = async () => ({ prices: await getPricing() });

@@ -3,14 +3,14 @@ import type { Actions, PageServerLoad } from './$types';
 import { db } from '../../../..';
 import * as schema from '../../../../db/schema';
 import { and, asc, eq } from 'drizzle-orm';
-import { requireAuth } from '$lib/server/protected';
+import { requireAuth } from '#lib/server/protected.js';
 import {
 	chatIdForApi,
 	listChannelPosts,
 	parsePostLink,
 	postButtonMarkup
-} from '$lib/server/bot-channel-posts.server';
-import { clientBotApi, getBotUsername } from '$lib/server/telegram-client-bot.server';
+} from '#lib/server/bot-channel-posts.server.js';
+import { clientBotApi, getBotUsername } from '#lib/server/telegram-client-bot.server.js';
 import { GrammyError } from 'grammy';
 
 /**

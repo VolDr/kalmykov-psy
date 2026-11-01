@@ -1,6 +1,6 @@
 import { db } from '../..';
 import * as schema from '../../db/schema';
-import { eq, asc } from 'drizzle-orm';
+import { and, eq, asc } from 'drizzle-orm';
 import { serializeClient } from './client.server';
 
 interface FeedbackDto {
@@ -66,6 +66,25 @@ class FeedbackService {
 			.returning();
 
 		return feedback;
+	}
+
+	/** A public submission must claim an open form atomically. */
+	async submit(
+		id: string,
+		payload: Pick<FeedbackDto, 'attitude' | 'goals' | 'method' | 'generally'>
+	) {
+		const [saved] = await db
+			.update(schema.feedback)
+			.set({ ...payload, editable: false, updatedAt: new Date().toISOString() })
+			.where(
+				and(
+					eq(schema.feedback.smallId, id),
+					eq(schema.feedback.editable, true),
+					eq(schema.feedback.disabled, false)
+				)
+			)
+			.returning();
+		return saved;
 	}
 
 	async updateByClientIdAndDate(

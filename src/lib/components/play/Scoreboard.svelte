@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { cn } from '$lib/utils';
-	import type { PlayerView, RoomPhase } from '$lib/data/game-room-types';
+	import { cn } from '#lib/utils.js';
+	import type { PlayerView, RoomPhase } from '#lib/data/game-room-types.js';
 
 	type Props = {
 		players: PlayerView[];

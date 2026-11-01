@@ -1,8 +1,8 @@
 import { fail } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
-import { requireAuth } from '$lib/server/protected';
-import { getQuizBotSettings, saveQuizBotSettings } from '$lib/server/quiz-results.server';
-import { tgFormat, TELEGRAM_MESSAGE_LIMIT } from '$lib/server/telegram-client-bot.server';
+import { requireAuth } from '#lib/server/protected.js';
+import { getQuizBotSettings, saveQuizBotSettings } from '#lib/server/quiz-results.server.js';
+import { tgFormat, TELEGRAM_MESSAGE_LIMIT } from '#lib/server/telegram-client-bot.server.js';
 import type { QuizSphereRecs } from '../../../../db/schema';
 import { bat23Config } from '../../../../configs/bat23ConfigSoft';
 

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { invalidateAll } from '$app/navigation';
+	import { refreshAll } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { onMount } from 'svelte';
 
@@ -7,7 +7,7 @@
 
 	onMount(() => {
 		const timer = setInterval(() => {
-			if (data.accessCheck.status === 'running') void invalidateAll();
+			if (data.accessCheck.status === 'running') void refreshAll();
 		}, 2_000);
 		return () => clearInterval(timer);
 	});
@@ -100,7 +100,7 @@
 		</div>
 		<div class="flex flex-wrap items-center justify-end gap-2">
 			<a
-				href={resolve(contactsViewHref(!data.archived))}
+				href={contactsViewHref(!data.archived)}
 				class="rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
 			>
 				{data.archived ? 'К активным контактам' : `Архив: ${data.chainStats.blocked}`}
@@ -308,13 +308,13 @@
 					{#if data.pagination.page > 1}
 						<a
 							class="rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm hover:bg-stone-50"
-							href={resolve(pageHref(data.pagination.page - 1))}>Назад</a
+							href={pageHref(data.pagination.page - 1)}>Назад</a
 						>
 					{/if}
 					{#each paginationItems(data.pagination.page, data.pagination.totalPages) as item (item)}
 						{#if typeof item === 'number'}
 							<a
-								href={resolve(pageHref(item))}
+								href={pageHref(item)}
 								aria-current={item === data.pagination.page ? 'page' : undefined}
 								class="min-w-10 rounded-lg px-3 py-2 text-center text-sm {item ===
 								data.pagination.page
@@ -328,7 +328,7 @@
 					{#if data.pagination.page < data.pagination.totalPages}
 						<a
 							class="rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm hover:bg-stone-50"
-							href={resolve(pageHref(data.pagination.page + 1))}>Дальше</a
+							href={pageHref(data.pagination.page + 1)}>Дальше</a
 						>
 					{/if}
 				</div>

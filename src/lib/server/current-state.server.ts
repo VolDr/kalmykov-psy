@@ -1,6 +1,6 @@
 import { db } from '../..';
 import * as schema from '../../db/schema';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { serializeClient } from './client.server';
 
 interface CurrentStateDto {
@@ -66,6 +66,25 @@ class CurrentStateService {
 			.returning();
 
 		return currentState;
+	}
+
+	/** A public submission must claim an open form atomically. */
+	async submit(
+		id: string,
+		payload: Pick<CurrentStateDto, 'individual' | 'family' | 'social' | 'generally'>
+	) {
+		const [saved] = await db
+			.update(schema.currentState)
+			.set({ ...payload, editable: false, updatedAt: new Date().toISOString() })
+			.where(
+				and(
+					eq(schema.currentState.smallId, id),
+					eq(schema.currentState.editable, true),
+					eq(schema.currentState.disabled, false)
+				)
+			)
+			.returning();
+		return saved;
 	}
 
 	async updateByClientIdAndDate(

@@ -1,13 +1,13 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
 	import { afterNavigate } from '$app/navigation';
-	import { initScrollGoals } from '$lib/useScrollGoals';
-	import { reachGoal } from '$lib/metrika';
-	import { setupLeadMagnetTracking } from '$lib/client/leadMagnetTracking';
-	import { lmLog } from '$lib/client/lmDebug';
-	import { landOnHashTarget } from '$lib/hashLanding';
-	import ButtonSvg from '$lib/components/ui/ButtonSvg.svelte';
-	import TelegramQuestionsLink from '$lib/components/TelegramQuestionsLink.svelte';
+	import { initScrollGoals } from '#lib/useScrollGoals.js';
+	import { reachGoal } from '#lib/metrika.js';
+	import { setupLeadMagnetTracking } from '#lib/client/leadMagnetTracking.js';
+	import { lmLog } from '#lib/client/lmDebug.js';
+	import { landOnHashTarget } from '#lib/hashLanding.js';
+	import ButtonSvg from '#lib/components/ui/ButtonSvg.svelte';
+	import TelegramQuestionsLink from '#lib/components/TelegramQuestionsLink.svelte';
 
 	let { data } = $props();
 
@@ -74,7 +74,9 @@
 
 	// afterNavigate стреляет после того как SvelteKit закончил свой scroll —
 	// перебиваем smooth-scroll instant'ом если в URL есть #acquaintance
-	afterNavigate(({ to }) => {
+	afterNavigate(({ to, shallow, type }) => {
+		if (shallow && type === 'goto') return;
+
 		if (to?.url.hash === '#acquaintance' && ctaSection) {
 			landOnHashTarget(ctaSection);
 		}
@@ -139,10 +141,11 @@
 	<section class="mx-auto mb-10 max-w-[680px] px-5 sm:mb-[60px]" data-reveal>
 		<h2
 			class="mb-[22px] font-caveat text-[clamp(26px,2.5vw,32px)] leading-[1.25] font-semibold tracking-[-0.01em]"
+		>История, которую вы, возможно, уже прожили</h2>
+
+		<div
+			class="flex flex-col gap-[18px] text-[clamp(16px,1.8vw,18px)] leading-[1.75]"
 		>
-			История, которую вы, возможно, уже прожили
-		</h2>
-		<div class="flex flex-col gap-[18px] text-[clamp(16px,1.8vw,18px)] leading-[1.75]">
 			<p>
 				Максим — тимлид в продуктовой компании. В марте взял три недели и уехал в Португалию. Первую
 				неделю отсыпался и не мог поверить, что не нужно никуда бежать. Вторую — гулял, читал, ходил
@@ -183,10 +186,11 @@
 	<section class="mx-auto mb-10 max-w-[680px] px-5 sm:mb-[60px]" data-reveal>
 		<h2
 			class="mb-[22px] font-caveat text-[clamp(26px,2.5vw,32px)] leading-[1.25] font-semibold tracking-[-0.01em]"
+		>Во всём виноваты камешки!</h2>
+
+		<div
+			class="flex flex-col gap-[18px] text-[clamp(16px,1.8vw,18px)] leading-[1.75]"
 		>
-			Во всём виноваты камешки!
-		</h2>
-		<div class="flex flex-col gap-[18px] text-[clamp(16px,1.8vw,18px)] leading-[1.75]">
 			<p>
 				У боксёра и активиста Мухаммеда Али есть фраза, которую исследователи выгорания цитируют так
 				часто, что она уже стала рабочим инструментом: <em
@@ -255,10 +259,11 @@
 	<section class="mx-auto mb-10 max-w-[680px] px-5 sm:mb-[60px]" data-reveal>
 		<h2
 			class="mb-[22px] font-caveat text-[clamp(26px,2.5vw,32px)] leading-[1.25] font-semibold tracking-[-0.01em]"
+		>Почему ничего не меняется, даже если очень стараться</h2>
+
+		<div
+			class="flex flex-col gap-[18px] text-[clamp(16px,1.8vw,18px)] leading-[1.75]"
 		>
-			Почему ничего не меняется, даже если очень стараться
-		</h2>
-		<div class="flex flex-col gap-[18px] text-[clamp(16px,1.8vw,18px)] leading-[1.75]">
 			<p>
 				После возвращения мы видим только результат: через несколько дней снова стало плохо. Поэтому
 				легко решить, что вы недостаточно долго отдыхали или не смогли полностью отключиться, или
@@ -309,10 +314,11 @@
 	<section class="mx-auto mb-10 max-w-[680px] px-5 sm:mb-[60px]" data-reveal>
 		<h2
 			class="font-navy mb-[22px] font-caveat text-[clamp(26px,2.5vw,32px)] leading-[1.25] tracking-[-0.01em]"
+		>Что будет, если ничего не менять</h2>
+
+		<div
+			class="flex flex-col gap-[18px] text-[clamp(16px,1.8vw,18px)] leading-[1.75]"
 		>
-			Что будет, если ничего не менять
-		</h2>
-		<div class="flex flex-col gap-[18px] text-[clamp(16px,1.8vw,18px)] leading-[1.75]">
 			<p>Вот что я обычно вижу у людей, которые живут в таком режиме достаточно долго.</p>
 			<p>
 				Анна — продакт в финтехе. По работе всё формально хорошо: ценят, повышают, проекты идут. Но
@@ -356,10 +362,11 @@
 		<div class="rounded-2xl bg-card px-6 py-7 sm:px-10 sm:py-9">
 			<h2
 				class="mb-[22px] font-caveat text-[clamp(26px,2.5vw,32px)] leading-[1.25] font-semibold tracking-[-0.01em]"
+			>Кто я и почему пишу про это так уверенно</h2>
+
+			<div
+				class="flex flex-col gap-4 text-[clamp(15px,1.6vw,17px)] leading-[1.75] text-foreground"
 			>
-				Кто я и почему пишу про это так уверенно
-			</h2>
-			<div class="flex flex-col gap-4 text-[clamp(15px,1.6vw,17px)] leading-[1.75] text-foreground">
 				<p>
 					Меня зовут Андрей Калмыков, я клинический психолог. Я помогаю людям, которые живут в
 					постоянной перегрузке, изменить рабочие привычки, образ жизни и способы справляться со
@@ -408,10 +415,11 @@
 	<section class="mx-auto mb-10 max-w-[680px] px-5 sm:mb-[60px]" data-reveal>
 		<h2
 			class="mb-[22px] font-caveat text-[clamp(26px,2.5vw,32px)] leading-[1.25] font-semibold tracking-[-0.01em]"
+		>Что действительно меняет ситуацию</h2>
+
+		<div
+			class="flex flex-col gap-[18px] text-[clamp(16px,1.8vw,18px)] leading-[1.75]"
 		>
-			Что действительно меняет ситуацию
-		</h2>
-		<div class="flex flex-col gap-[18px] text-[clamp(16px,1.8vw,18px)] leading-[1.75]">
 			<p>
 				Большинство подходов к выгоранию работают с симптомами: научись расслабляться, веди дневник,
 				медитируй, ложись спать раньше. Это, конечно, полезные вещи, но сами по себе они не меняют

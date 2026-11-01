@@ -276,7 +276,7 @@ describe('createBooking — business flow', () => {
 			email: 'a@b.com',
 			clientName: 'A',
 			originUrl: 'http://localhost',
-				outSum: '4000.00'
+			outSum: '4000.00'
 		});
 
 		expect(createPayment).toHaveBeenCalledTimes(1);
@@ -579,7 +579,7 @@ describe('createBooking — MSK timezone in description', () => {
 			email: 'a@b.com',
 			clientName: 'A',
 			originUrl: 'http://localhost',
-				outSum: '4000.00'
+			outSum: '4000.00'
 		});
 
 		expect(mockCreate).toHaveBeenCalledWith(

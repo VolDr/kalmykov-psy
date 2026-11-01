@@ -1,5 +1,5 @@
-import { normalizeCode, subscribe } from '$lib/server/game-rooms.server';
-import { readPlayerToken } from '$lib/server/game-cookie.server';
+import { normalizeCode, subscribe } from '#lib/server/game-rooms.server.js';
+import { readPlayerToken } from '#lib/server/game-cookie.server.js';
 import type { RequestHandler } from './$types';
 
 const HEARTBEAT_MS = 15_000;

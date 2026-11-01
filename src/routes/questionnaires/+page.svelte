@@ -16,11 +16,11 @@
   ════════════════════════════════════════════════════════════════
 -->
 <script lang="ts">
-	import { questionnaireCategories } from '$lib/data/content';
+	import { questionnaireCategories } from '#lib/data/content.js';
 	import { page } from '$app/state';
-	import Reveal from '$lib/components/Reveal.svelte';
-	import ButtonSvg from '$lib/components/ui/ButtonSvg.svelte';
-	import { reachGoal } from '$lib/metrika';
+	import Reveal from '#lib/components/Reveal.svelte';
+	import ButtonSvg from '#lib/components/ui/ButtonSvg.svelte';
+	import { reachGoal } from '#lib/metrika.js';
 	import { fade } from 'svelte/transition';
 
 	let isIntroModalOpen = $state(false);

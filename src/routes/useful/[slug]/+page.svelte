@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { browser } from '$app/environment';
+	import { browser } from '$app/env';
 	import { fly } from 'svelte/transition';
-	import { reachGoal } from '$lib/metrika';
-	import MarkdownLink from '$lib/components/MarkdownLink.svelte';
-	import ButtonSvg from '$lib/components/ui/ButtonSvg.svelte';
-	import ClipQuiz from '$lib/components/questionnaire/ClipQuiz.svelte';
+	import { reachGoal } from '#lib/metrika.js';
+	import MarkdownLink from '#lib/components/MarkdownLink.svelte';
+	import ButtonSvg from '#lib/components/ui/ButtonSvg.svelte';
+	import ClipQuiz from '#lib/components/questionnaire/ClipQuiz.svelte';
 	import { bat23Config } from '../../../configs/bat23ConfigSoft';
 
 	let { data } = $props();

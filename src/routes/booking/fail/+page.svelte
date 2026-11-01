@@ -7,8 +7,8 @@
 -->
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { reachGoal } from '$lib/metrika';
-	import TelegramQuestionsLink from '$lib/components/TelegramQuestionsLink.svelte';
+	import { reachGoal } from '#lib/metrika.js';
+	import TelegramQuestionsLink from '#lib/components/TelegramQuestionsLink.svelte';
 
 	// Общая страница провала для оплаты записи и прямой оплаты /pay
 	onMount(() => reachGoal('payment_failed'));

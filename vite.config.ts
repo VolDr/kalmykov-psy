@@ -1,14 +1,14 @@
+import adapter from '@sveltejs/adapter-node';
+
 import tailwindcss from '@tailwindcss/vite';
 import { sveltekit } from '@sveltejs/kit/vite';
-import { defineConfig } from 'vite';
+import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
-	plugins: [tailwindcss(), sveltekit()],
-	test: {
-		include: ['src/**/*.test.ts'],
-		environment: 'node'
-	},build: {
-  sourcemap: false,
-  reportCompressedSize: false
-}
+	plugins: [
+		tailwindcss(),
+		sveltekit({ adapter: adapter(), paths: { origin: 'https://kalmykov-psy.ru' } })
+	],
+	test: { include: ['src/**/*.test.ts'], environment: 'node' },
+	build: { sourcemap: false, reportCompressedSize: false }
 });

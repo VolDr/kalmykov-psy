@@ -1,4 +1,4 @@
-import type { QuestionnaireConfig, Warning } from '$lib/data/questionnaires/types';
+import type { QuestionnaireConfig, Warning } from '#lib/data/questionnaires/types.js';
 import type { ScoringResult } from './scoringEngine';
 
 /**

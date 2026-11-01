@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { tick, type Snippet } from 'svelte';
-	import Button from '$lib/components/ui/Button.svelte';
+	import Button from '#lib/components/ui/Button.svelte';
 
 	export type ResultTone = 'neutral' | 'green' | 'yellow' | 'orange' | 'red';
 	export type ResultSubscale = {

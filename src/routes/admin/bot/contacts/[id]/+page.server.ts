@@ -6,17 +6,17 @@ import {
 	logOutboundMessage,
 	setBotBlocked,
 	updateCrm
-} from '$lib/server/bot-contacts.server';
+} from '#lib/server/bot-contacts.server.js';
 import {
 	clientBotApi,
 	tgFormat,
 	TELEGRAM_MESSAGE_LIMIT
-} from '$lib/server/telegram-client-bot.server';
+} from '#lib/server/telegram-client-bot.server.js';
 import { GrammyError } from 'grammy';
 import { db } from '../../../../..';
 import * as schema from '../../../../../db/schema';
 import { and, asc, eq, sql } from 'drizzle-orm';
-import { requireAuth } from '$lib/server/protected';
+import { requireAuth } from '#lib/server/protected.js';
 
 async function loadContactOr404(id: number) {
 	const contact = await getContact(id);

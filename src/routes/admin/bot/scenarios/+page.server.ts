@@ -3,8 +3,8 @@ import type { Actions, PageServerLoad } from './$types';
 import { db } from '../../../..';
 import * as schema from '../../../../db/schema';
 import { desc, eq, sql } from 'drizzle-orm';
-import { requireAuth } from '$lib/server/protected';
-import { validateTrigger } from '$lib/server/bot-scenarios.server';
+import { requireAuth } from '#lib/server/protected.js';
+import { validateTrigger } from '#lib/server/bot-scenarios.server.js';
 
 export const load: PageServerLoad = async () => {
 	const scenarios = await db

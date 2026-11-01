@@ -1,7 +1,7 @@
 ﻿<script lang="ts">
 	import { cubicOut } from 'svelte/easing';
-	import { cn } from '$lib/utils';
-	import { swipe } from '$lib/actions/swipe';
+	import { cn } from '#lib/utils.js';
+	import { swipe } from '#lib/actions/swipe.js';
 
 	function pageSlide(
 		_node: Element,

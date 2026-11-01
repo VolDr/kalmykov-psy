@@ -1,17 +1,17 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import Hero from '$lib/components/sections/Hero.svelte';
-	import Faq from '$lib/components/sections/Faq.svelte';
-	import Education from '$lib/components/sections/Education.svelte';
-	import Media from '$lib/components/sections/Media.svelte';
-	import IssuesList from '$lib/components/sections/IssuesList.svelte';
-	import AboutSection from '$lib/components/sections/AboutSection.svelte';
-	import Approach from '$lib/components/sections/Approach.svelte';
-	import ConsultationInfo from '$lib/components/sections/ConsultationInfo.svelte';
-	import ImageWithShadow from '$lib/components/ImageWithShadow.svelte';
-	import Reveal from '$lib/components/Reveal.svelte';
-	import { issueGroups, aboutItems, consultationInfo } from '$lib/data/content';
-	import { formatRubles, type ServicePrices } from '$lib/pricing';
+	import Hero from '#lib/components/sections/Hero.svelte';
+	import Faq from '#lib/components/sections/Faq.svelte';
+	import Education from '#lib/components/sections/Education.svelte';
+	import Media from '#lib/components/sections/Media.svelte';
+	import IssuesList from '#lib/components/sections/IssuesList.svelte';
+	import AboutSection from '#lib/components/sections/AboutSection.svelte';
+	import Approach from '#lib/components/sections/Approach.svelte';
+	import ConsultationInfo from '#lib/components/sections/ConsultationInfo.svelte';
+	import ImageWithShadow from '#lib/components/ImageWithShadow.svelte';
+	import Reveal from '#lib/components/Reveal.svelte';
+	import { issueGroups, aboutItems, consultationInfo } from '#lib/data/content.js';
+	import { formatRubles, type ServicePrices } from '#lib/pricing.js';
 	let { prices }: { prices: ServicePrices } = $props();
 
 	let hash = $state('');

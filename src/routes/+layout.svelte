@@ -1,16 +1,16 @@
 <script lang="ts">
 	import '../app.css';
-	import Header from '$lib/components/layout/Header.svelte';
-	import Affix from '$lib/components/ui/Affix.svelte';
-	import Footer from '$lib/components/layout/Footer.svelte';
-	import FooterMini from '$lib/components/layout/FooterMini.svelte';
+	import Header from '#lib/components/layout/Header.svelte';
+	import Affix from '#lib/components/ui/Affix.svelte';
+	import Footer from '#lib/components/layout/Footer.svelte';
+	import FooterMini from '#lib/components/layout/FooterMini.svelte';
 	import { onNavigate, afterNavigate } from '$app/navigation';
-	import { createProgress } from '$lib/hooks/useProgress.js';
-	import ProgressBar from '$lib/components/ui/ProgressBar.svelte';
-	import { Toaster } from '$lib/components/ui/sonner';
-	import TelegramBanner from '$lib/components/TelegramBanner.svelte';
-	import { telegramChannel } from '$lib/data/navigation.js';
-	import CookieBanner from '$lib/components/CookieBanner.svelte';
+	import { createProgress } from '#lib/hooks/useProgress.js';
+	import ProgressBar from '#lib/components/ui/ProgressBar.svelte';
+	import { Toaster } from '#lib/components/ui/sonner/index.js';
+	import TelegramBanner from '#lib/components/TelegramBanner.svelte';
+	import { telegramChannel } from '#lib/data/navigation.js';
+	import CookieBanner from '#lib/components/CookieBanner.svelte';
 	import { page } from '$app/state';
 	let { children, data } = $props();
 	let { progress, action } = createProgress();
@@ -21,6 +21,8 @@
 	let isLoginRoute = $derived(data.pathname === '/login');
 	let isUsefulRoute = $derived(data.pathname?.startsWith('/useful'));
 	let isPlayRoute = $derived(data.pathname?.startsWith('/play'));
+	// Закрытая страница перевода опросника: без шапки, подвала, баннеров и Метрики
+	let isTranslateRoute = $derived(data.pathname?.startsWith('/translate/'));
 	let isAdRoute = $derived(data.pathname?.startsWith('/ads') || data.pathname?.startsWith('/play'));
 	let isLegalRoute = $derived(data.pathname === '/oferta' || data.pathname === '/privacy');
 	let burnoutQuestionnaireRoute = $derived(data.pathname === '/useful/burnout-questionnaire');
@@ -53,13 +55,16 @@
 		};
 	});
 
-	afterNavigate(() => {
+	afterNavigate(({ shallow, type }) => {
+		if (shallow && type === 'goto') return;
+
 		if (typeof window.ym === 'function') {
 			window.ym(105424317, 'hit', window.location.href);
 		}
 	});
 
 	onNavigate((navigation) => {
+		if (navigation.shallow && navigation.type === 'goto') return;
 		if (!document.startViewTransition) return;
 		if (navigation.to?.url.hash) return; // хэш-навигация — transition мешает scroll
 
@@ -81,13 +86,16 @@
 	<meta name="theme-color" content="#f7f5f0" />
 
 	<link rel="preload" href="/Caveat.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
+
 	<link rel="preload" href="/Aeonik.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
+
 	<script type="text/javascript">
 		// Счётчик не грузим на локальных адресах (включая дев-сервер, открытый по IP
 		// в локальной сети для проверки с телефона) и в админке: собственные сессии
 		// разработки и работы с CRM попадали в ту же статистику, на которой учатся
 		// стратегии Директа. То же для /play: игра с друзьями — не посетители сайта, а
 		// вебвизор не должен записывать имена и ответы игроков.
+		// Для /translate — тем более: вебвизор записывал бы набор перевода.
 		// window.ym остаётся undefined — reachGoal тихо no-op.
 		//
 		// Проверка именно такая — «исключаем локальное», а не «разрешаем прод»:
@@ -103,7 +111,7 @@
 			/^10\./.test(mtHost) ||
 			/^172\.(1[6-9]|2\d|3[01])\./.test(mtHost);
 
-		if (!mtIsLocal && !/^\/(admin|play)(\/|$)/.test(window.location.pathname)) {
+		if (!mtIsLocal && !/^\/(admin|play|translate)(\/|$)/.test(window.location.pathname)) {
 			(function (m, e, t, r, i, k, a) {
 				m[i] =
 					m[i] ||
@@ -144,7 +152,7 @@
 	>
 </svelte:head>
 
-{#if !isAdminRoute && !isCodeRoute && !isLoginRoute && !burnoutQuestionnaireRoute && !isUsefulRoute && !isAdRoute && !isPaymentResult}
+{#if !isAdminRoute && !isCodeRoute && !isLoginRoute && !burnoutQuestionnaireRoute && !isUsefulRoute && !isAdRoute && !isPaymentResult && !isTranslateRoute}
 	{#if page.url.pathname !== '/test-landing'}
 		<Header initialMenuColor="white" />
 	{/if}
@@ -155,7 +163,7 @@
 	<ProgressBar progress={$progress} />
 {/if}
 <Toaster position="top-right" />
-{#if !isUsefulRoute && !isPlayRoute}
+{#if !isUsefulRoute && !isPlayRoute && !isTranslateRoute}
 	<CookieBanner />
 {/if}
 
@@ -163,10 +171,10 @@
 	{@render children()}
 </main>
 
-{#if !isAdminRoute && !isCodeRoute && !isLoginRoute && !burnoutQuestionnaireRoute && !isPaymentResult && !isUsefulRoute && !isAdRoute}
+{#if !isAdminRoute && !isCodeRoute && !isLoginRoute && !burnoutQuestionnaireRoute && !isPaymentResult && !isUsefulRoute && !isAdRoute && !isTranslateRoute}
 	<TelegramBanner link={telegramChannel.link} text={telegramChannel.text} />
 {/if}
-{#if !isAdminRoute && !isCodeRoute && !isLoginRoute && !isPaymentResult && !isAdRoute && !isLegalRoute}
+{#if !isAdminRoute && !isCodeRoute && !isLoginRoute && !isPaymentResult && !isAdRoute && !isLegalRoute && !isTranslateRoute}
 	<Footer />
 {/if}
 {#if isAdRoute || isLegalRoute}

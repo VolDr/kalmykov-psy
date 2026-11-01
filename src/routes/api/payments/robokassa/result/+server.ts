@@ -1,9 +1,9 @@
 import type { RequestHandler } from './$types';
-import { markPaid, getPaymentById } from '$lib/server/robokassa.server';
-import { confirmByPaymentId, getBookingByPaymentId } from '$lib/server/booking.server';
-import { telegramService } from '$lib/server/telegram.server';
-import { addTagsToContact, getContactByPublicId } from '$lib/server/bot-contacts.server';
-import { triggerScenarioByKey } from '$lib/server/bot-scenarios.server';
+import { markPaid, getPaymentById } from '#lib/server/robokassa.server.js';
+import { confirmByPaymentId, getBookingByPaymentId } from '#lib/server/booking.server.js';
+import { telegramService } from '#lib/server/telegram.server.js';
+import { addTagsToContact, getContactByPublicId } from '#lib/server/bot-contacts.server.js';
+import { triggerScenarioByKey } from '#lib/server/bot-scenarios.server.js';
 
 export const POST: RequestHandler = async ({ request }) => {
 	const formData = await request.formData();

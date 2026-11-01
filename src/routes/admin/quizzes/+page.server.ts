@@ -1,6 +1,11 @@
 import { fail, redirect } from '@sveltejs/kit';
-import { requireAuth } from '$lib/server/protected';
-import { deleteQuiz, listQuizzes, parseQuizInput, saveQuiz } from '$lib/server/game-quizzes.server';
+import { requireAuth } from '#lib/server/protected.js';
+import {
+	deleteQuiz,
+	listQuizzes,
+	parseQuizInput,
+	saveQuiz
+} from '#lib/server/game-quizzes.server.js';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async (event) => {

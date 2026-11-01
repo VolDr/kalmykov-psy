@@ -1,6 +1,6 @@
 <script lang="ts">
-	import Reveal from '$lib/components/Reveal.svelte';
-	import ButtonSvg from '$lib/components/ui/ButtonSvg.svelte';
+	import Reveal from '#lib/components/Reveal.svelte';
+	import ButtonSvg from '#lib/components/ui/ButtonSvg.svelte';
 	import { marked, type Tokens } from 'marked';
 	import type { PageData } from './$types';
 

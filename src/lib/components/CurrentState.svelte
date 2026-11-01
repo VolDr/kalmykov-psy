@@ -1,5 +1,5 @@
 ﻿<script lang="ts">
-	import Slider from '$lib/components/ui/Slider.svelte';
+	import Slider from '#lib/components/ui/Slider.svelte';
 
 	interface CurrentStateData {
 		individual: number;

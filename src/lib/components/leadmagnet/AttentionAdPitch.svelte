@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { reachGoal } from '$lib/metrika';
-	import { botDeepLink, requestMetrikaClientId } from '$lib/tg-handoff';
+	import { reachGoal } from '#lib/metrika.js';
+	import { botDeepLink, requestMetrikaClientId } from '#lib/tg-handoff.js';
 
 	/**
 	 * Рекламная посадочная лид-магнита focus: питч и кнопка в бота. Текст общий

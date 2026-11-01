@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { Calendar } from '$lib/components/ui/calendar';
-	import { Card } from '$lib/components/ui/card';
-	import { Button } from '$lib/components/ui/button';
-	import { cn } from '$lib/utils';
+	import { Calendar } from '#lib/components/ui/calendar/index.js';
+	import { Card } from '#lib/components/ui/card/index.js';
+	import { Button } from '#lib/components/ui/button/index.js';
+	import { cn } from '#lib/utils.js';
 	import type { DateValue } from '@internationalized/date';
 	import { CalendarDate } from '@internationalized/date';
 

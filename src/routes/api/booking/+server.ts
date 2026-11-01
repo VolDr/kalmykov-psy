@@ -1,14 +1,14 @@
-import { json } from '@sveltejs/kit';
+
 import type { RequestHandler } from './$types';
-import { createBooking } from '$lib/server/booking.server';
-import { getPricing } from '$lib/server/pricing.server';
-import { toPaymentAmount } from '$lib/pricing';
-import { isRateLimited } from '$lib/server/rate-limit.server';
+import { createBooking } from '#lib/server/booking.server.js';
+import { getPricing } from '#lib/server/pricing.server.js';
+import { toPaymentAmount } from '#lib/pricing.js';
+import { isRateLimited } from '#lib/server/rate-limit.server.js';
 
 export const POST: RequestHandler = async ({ request, url, getClientAddress }) => {
 	const ip = getClientAddress();
 	if (isRateLimited(ip)) {
-		return json({ error: 'Слишком много запросов. Попробуйте через минуту.' }, { status: 429 });
+		return Response.json({ error: 'Слишком много запросов. Попробуйте через минуту.' }, { status: 429 });
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -16,7 +16,7 @@ export const POST: RequestHandler = async ({ request, url, getClientAddress }) =
 	try {
 		body = await request.json();
 	} catch {
-		return json({ error: 'Некорректный запрос' }, { status: 400 });
+		return Response.json({ error: 'Некорректный запрос' }, { status: 400 });
 	}
 	const { availabilityId, bookedAt, email, type, sbClientId: rawSbClientId } = body;
 	// The booking form asks for a Telegram contact. Keep accepting clientName so
@@ -36,21 +36,20 @@ export const POST: RequestHandler = async ({ request, url, getClientAddress }) =
 		!telegram ||
 		!email?.trim()
 	) {
-		return json({ error: 'Заполните все поля' }, { status: 400 });
+		return Response.json({ error: 'Заполните все поля' }, { status: 400 });
 	}
 
 	if (telegram.length > 64) {
-		return json({ error: 'Telegram слишком длинный' }, { status: 400 });
+		return Response.json({ error: 'Telegram слишком длинный' }, { status: 400 });
 	}
 
 	if (email.trim().length > 254 || !email.includes('@')) {
-		return json({ error: 'Некорректный email' }, { status: 400 });
+		return Response.json({ error: 'Некорректный email' }, { status: 400 });
 	}
 
 	if (isNaN(new Date(bookedAt).getTime())) {
-		return json({ error: 'Некорректное время слота' }, { status: 400 });
+		return Response.json({ error: 'Некорректное время слота' }, { status: 400 });
 	}
-
 
 	const sbClientIdNum =
 		rawSbClientId != null &&
@@ -76,9 +75,9 @@ export const POST: RequestHandler = async ({ request, url, getClientAddress }) =
 			product,
 			sbClientId: validSbClientId
 		});
-		return json(payment);
+		return Response.json(payment);
 	} catch (err) {
 		const message = err instanceof Error ? err.message : 'Ошибка сервера';
-		return json({ error: message }, { status: 400 });
+		return Response.json({ error: message }, { status: 400 });
 	}
 };

@@ -6,14 +6,14 @@
 		TableHead,
 		TableHeader,
 		TableRow
-	} from '$lib/components/ui/table';
-	import { Button } from '$lib/components/ui/button';
-	import { ScrollArea } from '$lib/components/ui/scroll-area';
+	} from '#lib/components/ui/table/index.js';
+	import { Button } from '#lib/components/ui/button/index.js';
+	import { ScrollArea } from '#lib/components/ui/scroll-area/index.js';
 	import RecordCard from './RecordCard.svelte';
 	import dayjs from 'dayjs';
 	import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
 	import { goto } from '$app/navigation';
-	import { cn } from '$lib/utils';
+	import { cn } from '#lib/utils.js';
 
 	dayjs.extend(isSameOrAfter);
 

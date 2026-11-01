@@ -1,9 +1,9 @@
 import { redirect, fail, error } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
-import { feedbackService, serializeFeedback } from '$lib/server/feedback.server';
-import { currentStateService, serializeCurrentState } from '$lib/server/current-state.server';
-import { feedbackSchema } from '$lib/types/feedback';
-import { currentStateSchema } from '$lib/types/currentState';
+import { feedbackService, serializeFeedback } from '#lib/server/feedback.server.js';
+import { currentStateService, serializeCurrentState } from '#lib/server/current-state.server.js';
+import { feedbackSchema } from '#lib/types/feedback.js';
+import { currentStateSchema } from '#lib/types/currentState.js';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
 	const code = params.code;
@@ -53,9 +53,11 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 };
 
 export const actions = {
-	send_feedback: async ({ request, locals }) => {
+	send_feedback: async ({ request, locals, params }) => {
 		const formData = await request.formData();
 		const data = Object.fromEntries(formData);
+		if (data.smallId !== params.code) return fail(404, { error: 'Форма не найдена' });
+		if (data.actionType && !locals.user) return fail(403, { error: 'Доступ запрещён' });
 
 		const isAuth = !!locals.user;
 
@@ -103,20 +105,20 @@ export const actions = {
 
 		const { smallId, attitude, goals, method, generally } = result.data;
 
-		await feedbackService.update(smallId, {
-			attitude,
-			goals,
-			method,
-			generally,
-			editable: false
-		});
+		const payload = { attitude, goals, method, generally };
+		const saved = isAuth
+			? await feedbackService.update(params.code, { ...payload, editable: false })
+			: await feedbackService.submit(params.code, payload);
 
+		if (!saved) return fail(409, { error: 'Форма недоступна или уже отправлена' });
 		return { success: true, message: 'Обратная связь отправлена' };
 	},
 
-	send_current_state: async ({ request, locals }) => {
+	send_current_state: async ({ request, locals, params }) => {
 		const formData = await request.formData();
 		const data = Object.fromEntries(formData);
+		if (data.smallId !== params.code) return fail(404, { error: 'Форма не найдена' });
+		if (data.actionType && !locals.user) return fail(403, { error: 'Доступ запрещён' });
 
 		const isAuth = !!locals.user;
 
@@ -164,14 +166,12 @@ export const actions = {
 
 		const { smallId, individual, family, social, generally } = result.data;
 
-		await currentStateService.update(smallId, {
-			individual,
-			family,
-			social,
-			generally,
-			editable: false
-		});
+		const payload = { individual, family, social, generally };
+		const saved = isAuth
+			? await currentStateService.update(params.code, { ...payload, editable: false })
+			: await currentStateService.submit(params.code, payload);
 
+		if (!saved) return fail(409, { error: 'Форма недоступна или уже отправлена' });
 		return { success: true, message: 'Текущее состояние отправлено' };
 	}
 } satisfies Actions;
