@@ -108,6 +108,13 @@
 
 			lastScrollTop = scrollTop;
 
+			// В разделе тарифов оставляем внимание на записи, без промо поверх карточек.
+			const pricing = document.getElementById('pricing')?.getBoundingClientRect();
+			if (pricing && pricing.top < clientHeight && pricing.bottom > 0) {
+				isShowing = false;
+				return;
+			}
+
 			// Логика показа/скрытия
 			// Если скроллим вниз и прошли порог — показываем
 			if (!isShowing && thresholdReached && isScrollingDown) {
@@ -130,7 +137,8 @@
 
 {#if isVisible}
 	<div
-		class="fixed bottom-4 left-1/2 z-[100] flex h-[70px] min-h-12 w-[600px] max-w-[70vw] -translate-x-1/2 items-center justify-between lg:max-w-[550px]"
+		class="fixed bottom-[calc(12px+env(safe-area-inset-bottom))] left-3 z-[100] flex min-h-14 w-[calc(100vw-88px)] items-center rounded-2xl bg-lilac sm:bottom-4 sm:left-1/2 sm:h-[70px] sm:w-[600px] sm:max-w-[70vw] sm:-translate-x-1/2 sm:justify-between sm:rounded-none sm:bg-transparent lg:max-w-[550px]"
+		inert={!isShowing}
 		style="transition: transform 400ms cubic-bezier(0.22,1,0.36,1), opacity 400ms cubic-bezier(0.22,1,0.36,1), filter 400ms; transform: translateY({isShowing
 			? '0px'
 			: '90px'}); opacity: {isShowing ? 1 : 0}; filter: blur({isShowing
@@ -141,7 +149,7 @@
 			viewBox="0 0 340 68"
 			preserveAspectRatio="none"
 			aria-hidden="true"
-			class="pointer-events-none absolute inset-0 h-full w-full drop-shadow-[0_8px_10px_rgba(231,225,244,0.18)]"
+			class="pointer-events-none absolute inset-0 hidden h-full w-full drop-shadow-[0_8px_10px_rgba(231,225,244,0.18)] sm:block"
 		>
 			<path
 				fill="#e7e1f4"
@@ -150,14 +158,28 @@
 		</svg>
 
 		<button
+			type="button"
 			onclick={closeBanner}
-			class="relative z-10 mt-2 ml-4 rotate-2 cursor-pointer pt-[5px] text-foreground hover:rotate-4 focus:outline-none lg:ml-7"
+			class="relative z-10 ml-1 flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-full text-foreground hover:rotate-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy sm:mt-2 sm:ml-2 lg:ml-5"
 			aria-label="Закрыть баннер"
 		>
 			<span class="icon-[lucide--x] h-5 w-5"></span>
 		</button>
 
-		<div class="relative z-10 mx-auto max-w-[80vw] text-center text-[15px] lg:text-[18px]">
+		<a
+			href={link}
+			target="_blank"
+			rel="noopener noreferrer"
+			onclick={handleLinkClick}
+			class="relative z-10 flex min-h-14 min-w-0 flex-1 items-center justify-between gap-2 rounded-r-2xl py-2 pr-4 text-[14px] leading-tight font-semibold text-navy focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy sm:hidden"
+		>
+			Мой Telegram-канал
+			<span class="icon-[lucide--arrow-up-right] h-4 w-4 shrink-0" aria-hidden="true"></span>
+		</a>
+
+		<div
+			class="relative z-10 mx-auto hidden min-w-0 text-center text-[15px] sm:block lg:text-[18px]"
+		>
 			<p class="pt-[10px]">
 				{text}
 				<ButtonSvg
@@ -166,12 +188,12 @@
 					width="70px"
 					onclick={handleLinkClick}
 					height="30px"
-					style="3"
+					variant="3"
 					textSize="19px">тык</ButtonSvg
 				>
 			</p>
 		</div>
 
-		<div class="w-6"></div>
+		<div class="hidden w-6 shrink-0 sm:block"></div>
 	</div>
 {/if}

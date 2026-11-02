@@ -19,6 +19,7 @@
 	import MarkdownLink from '#lib/components/MarkdownLink.svelte';
 	import { sessionFaq, sessionFaqJsonLd } from '#lib/data/sessionFaq.js';
 	import type { PageData } from './$types';
+	import PackagePrice from '#lib/components/PackagePrice.svelte';
 	import { formatRubles } from '#lib/pricing.js';
 	let { data }: { data: PageData } = $props();
 	import Reveal from '#lib/components/Reveal.svelte';
@@ -537,11 +538,13 @@
 		<div class="grid grid-cols-1 items-stretch gap-7 md:grid-cols-[1fr_1.08fr]">
 			<!-- LIGHT -->
 			<Reveal width="full">
-				<div class="flex h-full flex-col rounded-[22px] bg-[#fdfaf3] p-6 lg:px-8">
+				<div class="flex h-full flex-col rounded-[22px] bg-[#fdfaf3] p-5 sm:p-6 lg:px-8">
 					<h2 class="font-caveat text-[34px] font-bold text-navy md:pt-[35px] lg:text-[40px]">
 						Разовая сессия
 					</h2>
-					<div class="mt-2 text-[18px] font-extrabold text-navy lg:text-[20px]">
+					<div
+						class="mt-3 text-[26px] leading-tight font-extrabold whitespace-nowrap text-navy lg:text-[28px]"
+					>
 						{formatRubles(data.prices.single)}
 					</div>
 					<p class="mt-5 text-[16px] leading-relaxed text-foreground/75 lg:text-[18px]">
@@ -549,21 +552,21 @@
 						нужна ли вам терапия вообще.
 					</p>
 					<ul class="mt-6 flex flex-col gap-2.5 text-[14px] text-foreground/80 lg:text-[16px]">
-						<li class="flex items-center gap-2.5">
-							<span class="h-1.5 w-1.5 rounded-full bg-primary"></span>50 минут
+						<li class="flex items-start gap-2.5">
+							<span class="mt-2.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary"></span>50 минут
 						</li>
-						<li class="flex items-center gap-2.5">
-							<span class="h-1.5 w-1.5 rounded-full bg-primary"></span>Онлайн
+						<li class="flex items-start gap-2.5">
+							<span class="mt-2.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary"></span>Онлайн
 						</li>
 					</ul>
 					<!-- футер прижат вниз -->
 					<div class="mt-auto pt-8">
-						<div class="flex justify-center">
+						<div class="flex w-full justify-center">
 							<ButtonSvg
 								variant="1"
 								href="/booking"
 								mobileHeight="60px"
-								mobileWidth="250px"
+								mobileWidth="100%"
 								width="250px"
 								height="70px"
 								onclick={() => reachGoal('pricing_single_click')}>Записаться</ButtonSvg
@@ -585,12 +588,14 @@
 
 			<!-- DARK / рекомендуемый -->
 			<Reveal width="full">
-				<div class="relative flex h-full flex-col rounded-[22px] bg-navy p-6 text-white lg:px-8">
+				<div
+					class="relative flex h-full flex-col rounded-[22px] bg-navy p-5 text-white sm:p-6 lg:px-8"
+				>
 					<img
 						src="/heart_2.webp"
 						width="629"
 						height="572"
-						class="pointer-events-none absolute top-5 right-6 h-10 w-10 rotate-6 object-contain opacity-70"
+						class="pointer-events-none absolute top-5 right-6 hidden h-10 w-10 rotate-6 object-contain opacity-70 lg:block"
 						alt=""
 						aria-hidden="true"
 					/>
@@ -599,44 +604,38 @@
 						>Рекомендуемый формат</span
 					>
 
-					<h2 class="font-caveat text-[34px] font-bold text-white lg:text-[40px]">
+					<h2
+						class="font-caveat text-[32px] leading-tight font-bold text-white sm:text-[34px] lg:text-[40px]"
+					>
 						Регулярные встречи
 					</h2>
 
-					<div class="mt-2 flex items-baseline justify-between gap-3">
-						<div class="flex items-baseline gap-2">
-							<span class="text-[18px] font-extrabold lg:text-[20px]">
-								{formatRubles(data.prices.package)}
-							</span>
-							<span class="text-[16px] font-medium text-white/55 lg:text-[18px]"> / 4 сессии </span>
-						</div>
-
-						<span class="text-[13px] font-medium whitespace-nowrap text-white/45 lg:text-[14px]">
-							{Math.round(data.prices.package / 4).toLocaleString('ru-RU')} ₽ / сессия
-						</span>
-					</div>
+					<PackagePrice price={data.prices.package} />
 
 					<p class="mt-5 text-[16px] leading-relaxed text-white/75 lg:text-[18px]">
 						Для достижения устойчивых изменений в повседневной жизни
 					</p>
 					<ul class="mt-6 flex flex-col gap-2.5 text-[16px] text-white/90 lg:text-[18px]">
-						<li class="flex items-center gap-2.5">
-							<span class="h-1.5 w-1.5 rounded-full bg-primary"></span>Система трекинга прогресса
+						<li class="flex items-start gap-2.5">
+							<span class="mt-2.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary"></span>Система
+							трекинга прогресса
 						</li>
-						<li class="flex items-center gap-2.5">
-							<span class="h-1.5 w-1.5 rounded-full bg-primary"></span>Обратная связь по сессиям
+						<li class="flex items-start gap-2.5">
+							<span class="mt-2.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary"></span>Обратная
+							связь по сессиям
 						</li>
-						<li class="flex items-center gap-2.5">
-							<span class="h-1.5 w-1.5 rounded-full bg-primary"></span>Онлайн, гибкое расписание
+						<li class="flex items-start gap-2.5">
+							<span class="mt-2.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary"></span>Онлайн,
+							гибкое расписание
 						</li>
 					</ul>
 					<div class="mt-auto pt-8">
-						<div class="flex justify-center">
+						<div class="flex w-full justify-center">
 							<ButtonSvg
 								variant="4"
 								href="/booking?type=package"
 								mobileHeight="60px"
-								mobileWidth="250px"
+								mobileWidth="100%"
 								width="250px"
 								height="70px"
 								onclick={() => reachGoal('pricing_package_click')}
