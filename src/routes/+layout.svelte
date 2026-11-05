@@ -23,6 +23,7 @@
 	let isPlayRoute = $derived(data.pathname?.startsWith('/play'));
 	// Закрытая страница перевода опросника: без шапки, подвала, баннеров и Метрики
 	let isTranslateRoute = $derived(data.pathname?.startsWith('/translate/'));
+	let isMeetRoute = $derived(data.pathname?.startsWith('/meet'));
 	let isAdRoute = $derived(data.pathname?.startsWith('/ads') || data.pathname?.startsWith('/play'));
 	let isLegalRoute = $derived(data.pathname === '/oferta' || data.pathname === '/privacy');
 	let burnoutQuestionnaireRoute = $derived(data.pathname === '/useful/burnout-questionnaire');
@@ -111,7 +112,7 @@
 			/^10\./.test(mtHost) ||
 			/^172\.(1[6-9]|2\d|3[01])\./.test(mtHost);
 
-		if (!mtIsLocal && !/^\/(admin|play|translate)(\/|$)/.test(window.location.pathname)) {
+		if (!mtIsLocal && !/^\/(admin|play|translate|meet)(\/|$)/.test(window.location.pathname)) {
 			(function (m, e, t, r, i, k, a) {
 				m[i] =
 					m[i] ||
@@ -163,7 +164,7 @@
 	<ProgressBar progress={$progress} />
 {/if}
 <Toaster position="top-right" />
-{#if !isUsefulRoute && !isPlayRoute && !isTranslateRoute}
+{#if !isUsefulRoute && !isPlayRoute && !isTranslateRoute && !isMeetRoute}
 	<CookieBanner />
 {/if}
 
