@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="ru">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="robots" content="noindex, nofollow" />
+		<title>%sveltekit.status% — %sveltekit.error.message%</title>
+		<link rel="icon" href="/favicon.ico" type="image/svg+xml" />
+		<link rel="preload" href="/Aeonik.woff2" as="font" type="font/woff2" crossorigin />
+		<style>
+			@font-face {
+				font-family: Aeonik;
+				src: url('/Aeonik.woff2') format('woff2');
+				font-weight: 100 900;
+				font-display: swap;
+			}
+			html { font-size: 18px; }
+			@media (min-width: 960px) { html { font-size: 20px; } }
+			@media (min-width: 1200px) { html { font-size: 22px; } }
+			* { box-sizing: border-box; }
+			body {
+				margin: 0;
+				background: oklch(0.99 0 81);
+				color: oklch(0.145 0 0);
+				font-family: Aeonik, system-ui, sans-serif;
+				line-height: 1.5;
+			}
+			main {
+				min-height: 100vh;
+				min-height: 100dvh;
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				justify-content: center;
+				gap: 2.5rem;
+				padding: 2rem 1rem;
+				text-align: center;
+			}
+			svg { width: 2rem; height: 2rem; color: oklch(0.793 0.123 84); }
+			h1 { margin: 0; font-size: 1rem; font-weight: 400; }
+			p { margin: 0; max-width: 28rem; font-size: 1.125rem; line-height: 1.625; }
+			a {
+				display: inline-block;
+				padding: 10px 30px;
+				border-radius: 2rem;
+				background: oklch(0.793 0.123 84);
+				color: white;
+				text-decoration: none;
+				letter-spacing: 0.025em;
+			}
+			a:hover { background: oklch(0.84 0.1 86); }
+			a:focus-visible { outline: 2px solid currentColor; outline-offset: 4px; color: oklch(0.25 0.02 260); }
+			.not-found { display: none; }
+			body[data-status='404'] .not-found { display: block; }
+			body[data-status='404'] .other-error { display: none; }
+		</style>
+	</head>
+	<body data-status="%sveltekit.status%">
+		<!-- Errors thrown before resolve() cannot render +error.svelte. This page
+			uses the same 404 presentation without loading any protected page or layout. -->
+		<main>
+			<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+				<circle cx="12" cy="12" r="10" />
+				<path d="m16.24 7.76-2.12 6.36-6.36 2.12 2.12-6.36 6.36-2.12z" />
+			</svg>
+			<h1 class="not-found">Страница не найдена</h1>
+			<h1 class="other-error">Страница недоступна</h1>
+			<p class="not-found">Такой страницы нет!</p>
+			<p class="other-error">Не удалось открыть страницу. Попробуйте ещё раз позже.</p>
+			<a href="/">На главную</a>
+		</main>
+	</body>
+</html>
