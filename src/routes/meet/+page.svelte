@@ -149,6 +149,7 @@
 	}
 	async function join() {
 		if (!name.trim() || !room.trim() || !inviteToken || state !== 'preview') return;
+		try { window.localStorage.setItem(DISPLAY_NAME_KEY, name.trim()); } catch {}
 		state = 'connecting'; error = '';
 		try {
 			const response = await fetch('/api/meet/status?room=' + encodeURIComponent(room), {
