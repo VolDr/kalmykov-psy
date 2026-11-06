@@ -15,7 +15,7 @@
 	let loading = $state(false);
 	let error = $state('');
 	let name = $state('');
-	let password = $state('');
+	let inviteToken = $state('');
 	let room = $state('');
 	let copied = $state(false);
 	let state = $state<'preview'|'connecting'|'connected'>('preview');
@@ -75,7 +75,7 @@
 		return c;
 	}
 	async function join() {
-		if (!name.trim() || !room.trim() || state !== 'preview') return;
+		if (!room.trim() || !inviteToken || state !== 'preview') return;
 		state = 'connecting'; error = '';
 		try {
 			const response = await fetch('/api/meet/status?room=' + encodeURIComponent(room), {
@@ -88,7 +88,7 @@
 			const info = await response.json();
 			const sc = new ServerConnection();
 			connection = sc;
-			sc.onconnected = () => { sc.join(info.name, name.trim(), password).catch((e: Error) => { error = e.message; leave(); }); };
+			sc.onconnected = () => { sc.join(info.name, name.trim(), { type: 'token', token: inviteToken }).catch((e: Error) => { error = e.message; leave(); }); };
 			sc.onerror = (e: unknown) => { error = 'Ошибка соединения: ' + String(e); };
 			sc.onclose = () => { if (connection === sc) { connection = null; state = 'preview'; cleanRemote(); } };
 			sc.onjoined = (kind: string, group: string, perms: string[], _status: unknown, _data: unknown, code: string, message: string) => {
@@ -139,14 +139,16 @@
 	}
 	async function copyLink() {
 		try {
-			await navigator.clipboard.writeText(window.location.origin + '/meet?room=' + encodeURIComponent(room));
+			await navigator.clipboard.writeText(window.location.href);
 			copied = true; window.setTimeout(() => copied = false, 1800);
 		} catch { error = 'Не удалось скопировать ссылку.'; }
 	}
 	onMount(() => {
 		const params = new URLSearchParams(window.location.search);
 		room = params.get('room') || '';
-		if (params.get('name') === 'host') name = 'host';
+		const invite = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+		inviteToken = invite.get('token') || '';
+		name = invite.get('name') || 'Участник';
 		preview();
 		return () => { closeConnection(); stop(localStream); };
 	});
@@ -155,6 +157,7 @@
 <svelte:head>
 	<title>Видеовстреча — Андрей Калмыков</title>
 	<meta name="robots" content="noindex, nofollow" />
+	<meta name="referrer" content="no-referrer" />
 	<meta name="description" content="Защищенное пространство для онлайн-встреч." />
 </svelte:head>
 
@@ -183,24 +186,25 @@
 					</div>
 				</div>
 				<div class="fields">
-					<label for="meet-room">Комната</label><input id="meet-room" bind:value={room} placeholder="Название комнаты" autocomplete="off" />
-					<label for="meet-name">Ваше имя</label><input id="meet-name" bind:value={name} placeholder="Как к вам обращаться?" autocomplete="name" maxlength="60"/>
-					<label for="meet-password">Пароль комнаты</label><input id="meet-password" bind:value={password} type="password" placeholder="Пароль из приглашения (если нужен)" autocomplete="off"/>
-					<button class="primary" onclick={join} disabled={!name.trim() || !room.trim() || state === 'connecting'}>{state === 'connecting' ? 'Подключаемся…' : 'Присоединиться ко встрече'}<ArrowRight size={19}/></button>
+					<div class="invitation-label"><ShieldCheck size={18}/><span>{inviteToken ? 'Доступ по персональной ссылке' : 'Требуется персональная ссылка-приглашение'}</span></div>
+					<div class="invitation-info"><span>Комната</span><strong>{room || 'Не указана'}</strong></div>
+					<div class="invitation-info"><span>Вы входите как</span><strong>{name || 'Участник'}</strong></div>
+					{#if !inviteToken}<p class="invite-warning">Запросите личную ссылку у организатора встречи. Вход только по приглашению.</p>{/if}
+					<button class="primary" onclick={join} disabled={!inviteToken || !room.trim() || state === 'connecting'}>{state === 'connecting' ? 'Подключаемся…' : 'Присоединиться ко встрече'}<ArrowRight size={19}/></button>
 					<p class="hint">Без регистрации и установки приложений</p>
 				</div>
 			</section>
 		</main>
 	{:else}
 		<main class="call">
-			<div class="call-top"><div><strong>Встреча</strong><span>{room}</span></div><div class="call-meta"><Users size={17}/>{userCount} <button onclick={copyLink} title="Скопировать приглашение">{#if copied}<Check size={17}/>{:else}<Copy size={17}/>{/if}</button></div></div>
+			<div class="call-top"><div><strong>Встреча</strong><span>{room}</span></div><div class="call-meta"><Users size={17}/>{userCount} <button onclick={copyLink} title="Скопировать свою ссылку">{#if copied}<Check size={17}/>{:else}<Copy size={17}/>{/if}</button></div></div>
 			<div class="call-main">
 				<div class="tiles">
 					<div class="tile"><video use:streamAction={localStream} autoplay muted playsinline class:dim={!cameraEnabled}></video><div class="tile-label">Вы {#if !micEnabled}<MicOff size={14}/>{/if}</div></div>
 					{#each participants as peer (peer.id)}
 						<div class="tile"><video use:streamAction={peer.stream} autoplay playsinline></video><div class="tile-label">{peer.name}{peer.label === 'screenshare' ? ' · Экран' : ''}</div></div>
 					{/each}
-					{#if participants.length === 0}<div class="empty-tile"><Users size={36}/><strong>Ожидаем собеседника</strong><p>Скопируйте ссылку и отправьте приглашение</p><button onclick={copyLink}>{copied ? 'Ссылка скопирована' : 'Скопировать ссылку'} <Copy size={16}/></button></div>{/if}
+					{#if participants.length === 0}<div class="empty-tile"><Users size={36}/><strong>Ожидаем собеседника</strong><p>Другой участник войдет по своей личной ссылке</p></div>{/if}
 				</div>
 				{#if chatOpen}<aside class="chat"><div class="chat-heading">Сообщения <button onclick={() => chatOpen = false} aria-label="Закрыть чат"><X size={19}/></button></div><div class="chat-messages">{#each messages as message (message.id)}<div class="message"><strong>{message.self ? 'Вы' : message.name}</strong><p>{message.text}</p></div>{/each}</div><form onsubmit={(e) => { e.preventDefault(); sendChat(); }}><input bind:value={chatText} placeholder="Написать сообщение" aria-label="Сообщение"/><button type="submit" aria-label="Отправить сообщение"><Send size={19}/></button></form></aside>{/if}
 			</div>
@@ -230,6 +234,8 @@
 	.video video,.tile video{width:100%;height:100%;object-fit:cover}.video>video{transform:scaleX(-1)}.hidden{visibility:hidden}.placeholder{position:absolute;inset:0;color:#c5cec2;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;font-size:13px}.avatar{background:#465148;border-radius:50%;width:77px;height:77px;display:grid;place-items:center}.userlabel,.tile-label{position:absolute;bottom:18px;left:19px;background:#1e2621bc;color:white;border-radius:8px;padding:8px 12px;font-size:12px;display:flex;gap:9px;align-items:center}
 	.video-buttons{position:absolute;bottom:15px;right:17px;display:flex;gap:9px}.video-buttons button,.toolbar button{border:0;color:#fff;background:#4c5c4f;display:grid;place-items:center;cursor:pointer;width:44px;height:44px;border-radius:50%}.video-buttons button.off,.toolbar button.off{background:#ba7163}.video-buttons button:hover,.toolbar button:hover{filter:brightness(1.13)}
 	.fields{padding:21px 23px 0}.fields label{display:block;font-size:12px;font-weight:650;margin:11px 0 7px}.fields input,.chat input{width:100%;box-sizing:border-box;padding:12px 14px;border:1px solid #e0e3db;border-radius:9px;background:#fdfdfb;font:inherit;font-size:14px;color:#29322b;outline:none}.fields input:focus,.chat input:focus{border-color:#8a9b7e;box-shadow:0 0 0 3px #8a9b7e20}
+	.invitation-label{display:flex;align-items:center;gap:10px;margin:5px 0 17px;color:#526c51;font-size:13px;font-weight:650}
+	.invitation-info{display:flex;justify-content:space-between;gap:12px;align-items:center;border-top:1px solid #e9ece6;padding:13px 1px;font-size:13px}.invitation-info span{color:#888f85}.invitation-info strong{color:#364438;font-weight:650;overflow-wrap:anywhere;text-align:right}.invite-warning{font-size:12px;line-height:1.6;color:#a35b45;margin:14px 0}
 	.primary{margin-top:17px;width:100%;border:0;border-radius:10px;min-height:49px;display:flex;align-items:center;justify-content:center;gap:12px;background:#526c51;color:white;font:inherit;font-size:14px;font-weight:650;cursor:pointer}.primary:disabled{background:#a4b2a0;cursor:not-allowed}.hint{text-align:center;color:#9ba198;font-size:11px;margin:12px 0 0}
 	.call{flex:1;min-height:0;display:flex;flex-direction:column;padding:0 clamp(12px,3vw,50px) 18px;gap:17px}.call-top{display:flex;justify-content:space-between;align-items:center;padding:5px 10px}.call-top strong{font-size:16px;display:block}.call-top span{color:#859083;font-size:12px}.call-meta{display:flex;align-items:center;gap:9px;color:#707d71}.call-meta button,.chat button{border:0;background:transparent;color:inherit;cursor:pointer}
 	.call-main{display:flex;gap:16px;flex:1;min-height:350px}.tiles{flex:1;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:14px;align-content:center}.tile{position:relative;min-height:240px;aspect-ratio:16/10;background:#29312c;overflow:hidden;border-radius:17px}.tile video.dim{visibility:hidden}.empty-tile{border:1px dashed #cad1c8;border-radius:17px;min-height:240px;display:flex;align-items:center;justify-content:center;flex-direction:column;color:#879485;gap:12px}.empty-tile strong{color:#556151}.empty-tile p{font-size:13px;margin:0}.empty-tile button{background:#fff;border:1px solid #dce2d8;border-radius:9px;padding:10px 15px;display:flex;gap:8px;cursor:pointer;color:#4c6048}
