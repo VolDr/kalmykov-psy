@@ -19,14 +19,14 @@ export const load: PageServerLoad = async (event) => {
 	if (!galeneAdminConfigured()) {
 		return {
 			configured: false,
-			rooms: [] as string[],
+			rooms: [] as Awaited<ReturnType<typeof listManagedRooms>>,
 			backendError: 'Укажите GALENE_ADMIN_USER и GALENE_ADMIN_PASSWORD в окружении сайта.'
 		};
 	}
 	try {
 		return { configured: true, rooms: await listManagedRooms(), backendError: null };
 	} catch (error) {
-		return { configured: true, rooms: [] as string[], backendError: safeMessage(error) };
+		return { configured: true, rooms: [] as Awaited<ReturnType<typeof listManagedRooms>>, backendError: safeMessage(error) };
 	}
 };
 
