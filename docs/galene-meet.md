@@ -181,3 +181,7 @@ SvelteKit на том же VPS запрашивает `http://127.0.0.1:8443/gro
 - В стандартном клиенте Galene поддерживается размытие фона через опциональную MediaPipe (`static/mediapipe`); **в этом Svelte-клиенте оно пока не реализовано**. Размытие выполняется в браузере и не нагружает VPS.
 
 Документация Galene: https://galene.org/galene-api.html, https://galene.org/galene.html
+
+
+Размытие фона: [docs/galene-background-blur.md](galene-background-blur.md).
+Автовебинары MP4 по расписанию: [docs/scheduled-webinars.md](scheduled-webinars.md).
