@@ -36,36 +36,106 @@
 	let inviteToken = $state('');
 	let room = $state('');
 	let copied = $state(false);
-	let state = $state<'preview'|'connecting'|'connected'>('preview');
+	let state = $state<'preview'|'connecting'|'connected'|'kicked'>('preview');
+	let kickedReason = $state('Ведущий исключил вас из встречи.');
 	let participants: { id: string; source: string; name: string; stream: MediaStream | null; label: string; mediaStatus: string }[] = $state([]);
-	let remoteUsers: { id: string; name: string; raised: boolean }[] = $state([]);
+	let remoteUsers: { id: string; name: string; raised: boolean; raisedAt: number | null }[] = $state([]);
 	let userCount = $state(1);
 	let canPresent = $state(false);
 	let isModerator = $state(false);
 	let roomLocked = $state(false);
 	let roomLockPending = $state(false);
 	let myHandRaised = $state(false);
+	let myHandRaisedAt = $state<number | null>(null);
+	let handPending = $state(false);
+	let handSoundContext: AudioContext | null = null;
 	let membersOpen = $state(false);
 	let chatOpen = $state(false);
 	let chatText = $state('');
+
 	let messages: { id: string; source: string; name: string; text: string; self: boolean }[] = $state([]);
+	// Galene user data carries a UTC timestamp when the hand is raised, so all clients
+	// (including late joiners) reconstruct the same queue instead of relying on
+	// local arrival order of asynchronous WebSocket events.
+	const handQueue = $derived.by(() => {
+		const entries = [
+			...(myHandRaised ? [{ id: '__self__', name: 'Вы', at: myHandRaisedAt ?? Number.MAX_SAFE_INTEGER }] : []),
+			...remoteUsers.filter(u => u.raised).map(u => ({ id: u.id, name: u.name, at: u.raisedAt ?? Number.MAX_SAFE_INTEGER }))
+		];
+		return entries.sort((a, b) => a.at - b.at || a.id.localeCompare(b.id));
+	});
+	const handPosition = (id: string) => handQueue.findIndex(u => u.id === id) + 1;
+	const tileOrder = (id: string, label = '') => {
+		const inQueue = handPosition(id);
+		const streamOffset = label === 'screenshare' ? 1 : 0;
+		if (inQueue) return inQueue * 10 + streamOffset;
+		if (id === '__self__') return 10000;
+		const index = remoteUsers.findIndex(u => u.id === id);
+		return 10010 + (index === -1 ? remoteUsers.length : index) * 10 + streamOffset;
+	};
+	const orderedRemoteUsers = $derived([...remoteUsers].sort((a, b) => tileOrder(a.id) - tileOrder(b.id)));
 	const streamAction = (node: HTMLVideoElement, value: MediaStream | null) => {
 		node.srcObject = value;
 		node.play().catch(() => {});
 		return { update(next: MediaStream | null) { node.srcObject = next; if (next) node.play().catch(() => {}); }, destroy() { node.srcObject = null; } };
 	};
 	const stop = (media: MediaStream | null) => media?.getTracks().forEach(t => t.stop());
-	const cleanRemote = () => { participants = []; remoteUsers = []; userCount = 1; myHandRaised = false; membersOpen = false; messages = []; };
+	const cleanRemote = () => {
+		participants = []; remoteUsers = []; userCount = 1; myHandRaised = false; myHandRaisedAt = null;
+		handPending = false; membersOpen = false; messages = [];
+	};
 	function closeConnection() {
 		const old = connection;
 		connection = null;
 		try { old?.close(); } catch {}
 		outgoing = null; screenOutgoing = null;
 		stop(screenStream); screenStream = null;
+		// Stop inbound tracks immediately, even if the WebSocket close event is delayed.
+		participants.forEach(p => stop(p.stream));
 		cleanRemote();
 		isModerator = false;
 		roomLocked = false;
 		roomLockPending = false;
+	}
+
+	function kickStorageKey() { return 'kalmykov-meet-kicked:' + (inviteCode || room); }
+	function disconnectKicked(reason?: string) {
+		if (state === 'kicked') return;
+		kickedReason = reason?.trim() || 'Ведущий исключил вас из встречи.';
+		try { window.localStorage.setItem(kickStorageKey(), '1'); } catch {}
+		blurVersion++;
+		blurSession?.stop(); blurSession = null; blurInput = null;
+		closeConnection();
+		if (displayStream !== localStream) stop(displayStream);
+		stop(localStream);
+		localStream = null; displayStream = null;
+		canPresent = false; chatOpen = false; blurMenuOpen = false;
+		state = 'kicked';
+	}
+	function enableHandSound() {
+		try {
+			if (!handSoundContext) handSoundContext = new window.AudioContext();
+			void handSoundContext.resume().catch(() => {});
+		} catch { /* Sound is optional when the browser blocks audio. */ }
+	}
+	function playHandSound() {
+		const audio = handSoundContext;
+		if (!audio || audio.state !== 'running') return;
+		try {
+			const start = audio.currentTime;
+			const oscillator = audio.createOscillator();
+			const gain = audio.createGain();
+			oscillator.type = 'sine';
+			oscillator.frequency.setValueAtTime(660, start);
+			oscillator.frequency.setValueAtTime(880, start + 0.11);
+			gain.gain.setValueAtTime(0.0001, start);
+			gain.gain.exponentialRampToValueAtTime(0.09, start + 0.02);
+			gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.29);
+			oscillator.connect(gain);
+			gain.connect(audio.destination);
+			oscillator.start(start);
+			oscillator.stop(start + 0.30);
+		} catch { /* Browser audio may be unavailable. */ }
 	}
 	async function preview() {
 		if (!navigator.mediaDevices?.getUserMedia) { error = 'Для доступа к камере нужен HTTPS.'; return; }
@@ -199,6 +269,8 @@
 	}
 	async function join() {
 		if (!name.trim() || !room.trim() || (!inviteCode && !inviteToken) || state !== 'preview') return;
+		// Unlock Web Audio in the click gesture, before awaiting credentials or WebSocket.
+		enableHandSound();
 		try { window.localStorage.setItem(DISPLAY_NAME_KEY, name.trim()); } catch {}
 		state = 'connecting'; error = '';
 		try {
@@ -232,7 +304,12 @@
 			connection = sc;
 			sc.onconnected = () => { sc.join(info.name, name.trim(), { type: 'token', token: credential }).catch((e: Error) => { error = e.message; leave(); }); };
 			sc.onerror = (e: unknown) => { error = 'Ошибка соединения: ' + String(e); };
-			sc.onclose = () => { if (connection === sc) { connection = null; state = 'preview'; cleanRemote(); isModerator = false; roomLocked = false; roomLockPending = false; } };
+			sc.onclose = (_code: number, reason: string) => {
+				if (connection !== sc) return;
+				if (/kicked|исключ/i.test(reason || '')) { disconnectKicked('Ведущий исключил вас из встречи.'); return; }
+				closeConnection();
+				state = 'preview';
+			};
 			sc.onjoined = (kind: string, group: string, perms: string[], status: unknown, _data: unknown, code: string, message: string) => {
 				if (kind === 'join' || kind === 'change') {
 					// Galene broadcasts authoritative group status after a lock/unlock.
@@ -257,14 +334,23 @@
 				}
 			};
 			sc.onuser = (id: string, kind: string) => {
+				const oldRaised = remoteUsers.find(u => u.id === id)?.raised === true;
 				remoteUsers = Object.entries(sc.users)
 					.filter(([userId]) => userId !== sc.id)
 					.map(([userId, user]) => ({
 						id: userId,
 						name: (user as { username?: string }).username || 'Участник',
-						raised: (user as { data?: { raisehand?: boolean } }).data?.raisehand === true
+						raised: (user as { data?: { raisehand?: boolean } }).data?.raisehand === true,
+						raisedAt: Number.isFinite((user as { data?: { raisedAt?: number } }).data?.raisedAt) &&
+							(user as { data?: { raisedAt?: number } }).data!.raisedAt! > 0
+							? (user as { data: { raisedAt: number } }).data.raisedAt : null
 					}));
+				if (kind === 'change' && id !== sc.id && state === 'connected' &&
+					!oldRaised && remoteUsers.find(u => u.id === id)?.raised) playHandSound();
 				myHandRaised = sc.users[sc.id]?.data?.raisehand === true;
+				myHandRaisedAt = myHandRaised && Number.isFinite(sc.users[sc.id]?.data?.raisedAt)
+					? sc.users[sc.id].data.raisedAt : null;
+				if (id === sc.id) handPending = false;
 				userCount = remoteUsers.length + 1;
 				// Re-request tracks when a later participant begins presenting.
 				// Without this, the first person in the room can miss the
@@ -314,6 +400,7 @@
 			};
 			sc.onusermessage = (_id: string, _dest: string, _username: string, _time: Date, privileged: boolean, kind: string, operationError: string, value: unknown) => {
 				if (operationError) { roomLockPending = false; error = 'Galene: ' + operationError; return; }
+				if (kind === 'kicked' && privileged) { disconnectKicked('Ведущий исключил вас из встречи.'); return; }
 				if (kind === 'mute' && privileged) {
 					micEnabled = false;
 					// The sender's audio track must be disabled, not just the UI icon.
@@ -353,10 +440,18 @@
 		} catch (e) { if ((e as Error)?.name !== 'NotAllowedError') error = 'Не удалось показать экран.'; }
 	}
 	function toggleHand() {
-		if (!connection || state !== 'connected') return;
+		if (!connection || state !== 'connected' || handPending) return;
+		enableHandSound();
+		handPending = true;
+		const isRaising = !myHandRaised;
 		try {
-			connection.userAction('setdata', connection.id, { raisehand: myHandRaised ? null : true });
+			connection.userAction('setdata', connection.id, {
+				raisehand: isRaising ? true : null,
+				raisedAt: isRaising ? Date.now() : null
+			});
+			if (isRaising) playHandSound();
 		} catch {
+			handPending = false;
 			error = 'Не удалось изменить статус поднятой руки.';
 		}
 	}
@@ -422,8 +517,9 @@
 			const savedBlur = window.localStorage.getItem(BLUR_STORAGE_KEY);
 			blurMode = savedBlur === 'light' || savedBlur === 'strong' ? savedBlur : 'off';
 		} catch { blurMode = 'off'; }
-		preview();
-		return () => { blurVersion++; blurSession?.stop(); blurSession = null; blurInput = null; closeConnection(); stop(localStream); };
+		try { if (window.localStorage.getItem(kickStorageKey()) === '1') state = 'kicked'; } catch {}
+		if (state !== 'kicked') preview();
+		return () => { void handSoundContext?.close().catch(() => {}); handSoundContext = null; blurVersion++; blurSession?.stop(); blurSession = null; blurInput = null; closeConnection(); stop(localStream); };
 	});
 </script>
 
@@ -439,7 +535,17 @@
 		<a class="brand" href="/"><span class="logo">к<span>.</span></span><span>Андрей Калмыков<small>Видеовстречи</small></span></a>
 		<div class="private"><ShieldCheck size={17}/> Приватное пространство</div>
 	</header>
-	{#if state !== 'connected'}
+	{#if state === 'kicked'}
+		<main class="kicked-view" role="status">
+			<div class="kicked-panel">
+				<UserX size={45}/>
+				<h1>Вы исключены из встречи</h1>
+				<p>{kickedReason}</p>
+				<p>Связь и видеопотоки отключены. Для повторного доступа обратитесь к организатору.</p>
+				<a href="/">Вернуться на сайт</a>
+			</div>
+		</main>
+	{:else if state !== 'connected'}
 		<main class="prejoin">
 			<section class="intro">
 				<div class="eyebrow">● &nbsp; Онлайн-встреча</div>
