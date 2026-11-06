@@ -16,7 +16,8 @@ import {
 	jsonb,
 	pgEnum,
 	check,
-	primaryKey
+	primaryKey,
+	uuid
 } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
 import type { TranslationField, TranslationItem } from '../lib/data/translation';
@@ -1066,6 +1067,7 @@ export const translationDocs = pgTable(
 		id: bigserial('id', { mode: 'number' }).primaryKey(),
 		token: text('token').notNull(),
 		title: text('title').notNull(),
+		kind: text('kind').default('translation').notNull(),
 		items: jsonb('items')
 			.$type<TranslationItem[]>()
 			.default(sql`'[]'::jsonb`)
@@ -1139,4 +1141,135 @@ export const translationEvents = pgTable(
 		lastAt: timestamp('last_at', { withTimezone: true, mode: 'string' }).defaultNow().notNull()
 	},
 	(table) => [index('translation_events_doc_idx').on(table.docId, table.id)]
+);
+
+// --- Согласование переводов и экспертная оценка (миграции 0026–0030) ---
+// Вложенные JSON-структуры пока типизированы широко: исходные TS-модули
+// согласования находятся локально и не включены в репозиторий.
+
+export const translationReconciliations = pgTable(
+	'translation_reconciliations',
+	{
+		id: bigserial('id', { mode: 'number' }).primaryKey(),
+		sourceDocId: bigint('source_doc_id', { mode: 'number' })
+			.notNull()
+			.references(() => translationDocs.id, { onDelete: 'cascade' }),
+		finalDocId: bigint('final_doc_id', { mode: 'number' })
+			.notNull()
+			.references(() => translationDocs.id),
+		title: text('title').notNull(),
+		items: jsonb('items').$type<any[]>().notNull(),
+		variantA: jsonb('variant_a').$type<Record<string, any>>().notNull(),
+		variantB: jsonb('variant_b').$type<Record<string, any>>().notNull(),
+		createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' })
+			.defaultNow()
+			.notNull()
+	},
+	(table) => [
+		index('translation_reconciliations_source_idx').on(table.sourceDocId, table.id)
+	]
+);
+
+export const translationReviewers = pgTable(
+	'translation_reviewers',
+	{
+		reconciliationId: bigint('reconciliation_id', { mode: 'number' })
+			.notNull()
+			.references(() => translationReconciliations.id, { onDelete: 'cascade' }),
+		slot: integer('slot').notNull(),
+		docId: bigint('doc_id', { mode: 'number' })
+			.notNull()
+			.references(() => translationDocs.id),
+		profile: jsonb('profile').$type<Record<string, any>>().notNull()
+	},
+	(table) => [
+		primaryKey({ columns: [table.reconciliationId, table.slot] }),
+		uniqueIndex('translation_reviewers_doc_key').on(table.docId),
+		check('translation_reviewers_slot_check', sql`${table.slot} IN (1, 2)`)
+	]
+);
+
+export const translationReviewComments = pgTable(
+	'translation_review_comments',
+	{
+		id: uuid('id').defaultRandom().primaryKey(),
+		reconciliationId: bigint('reconciliation_id', { mode: 'number' })
+			.notNull()
+			.references(() => translationReconciliations.id, { onDelete: 'cascade' }),
+		slot: integer('slot').notNull(),
+		itemKey: text('item_key').notNull(),
+		body: text('body').notNull(),
+		createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' })
+			.defaultNow()
+			.notNull(),
+		deletedAt: timestamp('deleted_at', { withTimezone: true, mode: 'string' })
+	},
+	(table) => [
+		index('translation_review_comments_thread_idx').on(
+			table.reconciliationId, table.itemKey, table.createdAt
+		),
+		check('translation_review_comments_slot_check', sql`${table.slot} IN (1, 2)`)
+	]
+);
+
+export const translationBackTranslations = pgTable(
+	'translation_back_translations',
+	{
+		reconciliationId: bigint('reconciliation_id', { mode: 'number' })
+			.primaryKey()
+			.references(() => translationReconciliations.id, { onDelete: 'cascade' }),
+		docId: bigint('doc_id', { mode: 'number' })
+			.notNull()
+			.references(() => translationDocs.id, { onDelete: 'cascade' })
+	},
+	(table) => [uniqueIndex('translation_back_translations_doc_key').on(table.docId)]
+);
+
+export const translationExperts = pgTable(
+	'translation_experts',
+	{
+		id: bigserial('id', { mode: 'number' }).primaryKey(),
+		reconciliationId: bigint('reconciliation_id', { mode: 'number' })
+			.notNull()
+			.references(() => translationReconciliations.id, { onDelete: 'cascade' }),
+		docId: bigint('doc_id', { mode: 'number' })
+			.notNull()
+			.references(() => translationDocs.id, { onDelete: 'cascade' }),
+		name: text('name').notNull(),
+		personId: bigint('person_id', { mode: 'number' }).notNull(),
+		adminDocId: bigint('admin_doc_id', { mode: 'number' })
+			.references(() => translationDocs.id, { onDelete: 'set null' }),
+		createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' })
+			.defaultNow()
+			.notNull()
+	},
+	(table) => [
+		uniqueIndex('translation_experts_doc_key').on(table.docId),
+		index('translation_experts_review_idx').on(table.reconciliationId, table.id),
+		index('translation_experts_person_idx').on(table.personId, table.id),
+		uniqueIndex('translation_experts_admin_doc_key').on(table.adminDocId)
+	]
+);
+
+export const translationExpertComments = pgTable(
+	'translation_expert_comments',
+	{
+		id: uuid('id').defaultRandom().primaryKey(),
+		expertId: bigint('expert_id', { mode: 'number' })
+			.notNull()
+			.references(() => translationExperts.id, { onDelete: 'cascade' }),
+		slot: integer('slot').notNull(),
+		itemKey: text('item_key').notNull(),
+		body: text('body').notNull(),
+		createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' })
+			.defaultNow()
+			.notNull(),
+		deletedAt: timestamp('deleted_at', { withTimezone: true, mode: 'string' })
+	},
+	(table) => [
+		index('translation_expert_comments_thread_idx').on(
+			table.expertId, table.itemKey, table.createdAt
+		),
+		check('translation_expert_comments_slot_check', sql`${table.slot} IN (1, 2)`)
+	]
 );
