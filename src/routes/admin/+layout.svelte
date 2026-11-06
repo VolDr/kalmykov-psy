@@ -25,6 +25,7 @@
 					Статьи
 				</a>
 				<a href="/admin/meetings" class="text-sm font-medium text-gray-700 hover:text-gray-900">Видеовстречи</a>
+				<a href="/admin/webinars" class="text-sm font-medium text-gray-700 hover:text-gray-900">Автовебинары</a>
 				<a href="/admin/availability" class="text-sm font-medium text-gray-700 hover:text-gray-900">
 					Расписание
 				</a>
@@ -87,6 +88,7 @@
 						Статьи
 					</a>
 					<a href="/admin/meetings" class="block rounded-lg px-3 py-2 text-sm hover:bg-gray-100">Видеовстречи</a>
+					<a href="/admin/webinars" class="block rounded-lg px-3 py-2 text-sm hover:bg-gray-100">Автовебинары</a>
 					<a
 						href="/admin/availability"
 						class="block rounded-lg px-3 py-2 text-sm hover:bg-gray-100"
