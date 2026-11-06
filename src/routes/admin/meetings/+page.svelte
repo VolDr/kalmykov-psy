@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Plus, Trash2, RefreshCw, Video, ShieldCheck, Copy, ExternalLink, Link2, Clock3 } from '@lucide/svelte';
 	import type { ActionData, PageData } from './$types';
-	type MeetingInvite = { token: string; label: string; expires: string };
+	type MeetingInvite = { code: string; token: string; label: string; expires: string };
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
 	let deleting = $state<string | null>(null);
@@ -12,11 +12,8 @@
 	const reissued = $derived(form && 'reissued' in form ? form.reissued : null);
 	const error = $derived(form && 'error' in form ? form.error : null);
 
-	function inviteUrl(group: string, invite: MeetingInvite) {
-		// Keep the token in the URL fragment: it is not sent to nginx in HTTP
-		// requests and is omitted from the Referer header.
-		return '/meet?room=' + encodeURIComponent(group) + '#token=' +
-			encodeURIComponent(invite.token);
+	function inviteUrl(_group: string, invite: MeetingInvite) {
+		return '/meet/' + encodeURIComponent(invite.code);
 	}
 
 	function expiry(iso: string) {
@@ -165,7 +162,7 @@
 											</span>
 										</div>
 										<p class="mt-2 break-all text-xs text-stone-400">
-											Личная ссылка. Пароль не потребуется.
+											Короткая личная ссылка: /meet/{invite.code}
 										</p>
 										<div class="mt-3 flex flex-wrap gap-2">
 											<button type="button" class="inline-flex items-center gap-1.5 rounded-lg bg-stone-800 px-3 py-2 text-xs font-medium text-white hover:bg-stone-700" onclick={() => copyLink(room.id, invite)}>
@@ -193,7 +190,6 @@
 
 	<p class="text-xs leading-relaxed text-stone-500">
 		Ссылка дает доступ без дополнительного подтверждения личности: отправляйте ее только нужному человеку.
-		Если ссылка утекла, перевыпустите приглашения. Токены находятся в фрагменте URL и не отправляются
-		серверу сайта в адресе HTTP-запроса.
+		Если ссылка утекла, перевыпустите приглашения. Короткий код в адресе является секретом приглашения; при утечке перевыпустите ссылки.
 	</p>
 </div>
