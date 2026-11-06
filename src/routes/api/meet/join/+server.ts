@@ -23,9 +23,25 @@ export const POST: RequestHandler = async ({ request, url, locals }) => {
 	}
 	let body: unknown;
 	try {
-		const text = await request.text();
-		if (text.length > 256) throw new Error('Request too large');
-		body = JSON.parse(text);
+		if (!request.body) throw new Error('Empty request');
+		const reader = request.body.getReader();
+		const chunks: Uint8Array[] = [];
+		let size = 0;
+		try {
+			while (true) {
+				const { done, value } = await reader.read();
+				if (done) break;
+				size += value.byteLength;
+				if (size > 256) {
+					await reader.cancel();
+					throw new Error('Too long');
+				}
+				chunks.push(value);
+			}
+		} finally {
+			reader.releaseLock();
+		}
+		body = JSON.parse(Buffer.concat(chunks).toString('utf8'));
 	} catch {
 		return json({ error: 'Некорректный код встречи.' }, { status: 400, headers });
 	}
@@ -39,7 +55,10 @@ export const POST: RequestHandler = async ({ request, url, locals }) => {
 	}
 	// The site's existing login is the only authority for Galene operator
 	// privileges. Guests receive only the regular presentation token.
-	const isAdmin = Boolean(locals.user) && galeneAdminConfigured();
+	if (locals.user && !galeneAdminConfigured()) {
+		return json({ error: 'Настройки Galene недоступны. Обратитесь к администратору.' }, { status: 503, headers });
+	}
+	const isAdmin = Boolean(locals.user);
 	return json({
 		room: link.group,
 		token: isAdmin ? link.hostToken : link.guestToken,
