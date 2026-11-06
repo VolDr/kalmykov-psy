@@ -20,7 +20,8 @@
 	let room = $state('');
 	let copied = $state(false);
 	let state = $state<'preview'|'connecting'|'connected'>('preview');
-	let participants: { id: string; name: string; stream: MediaStream | null; label: string; mediaStatus: string }[] = $state([]);
+	let participants: { id: string; source: string; name: string; stream: MediaStream | null; label: string; mediaStatus: string }[] = $state([]);
+	let remoteUsers: { id: string; name: string }[] = $state([]);
 	let userCount = $state(1);
 	let canPresent = $state(false);
 	let chatOpen = $state(false);
@@ -32,7 +33,7 @@
 		return { update(next: MediaStream | null) { node.srcObject = next; if (next) node.play().catch(() => {}); }, destroy() { node.srcObject = null; } };
 	};
 	const stop = (media: MediaStream | null) => media?.getTracks().forEach(t => t.stop());
-	const cleanRemote = () => { participants = []; userCount = 1; };
+	const cleanRemote = () => { participants = []; remoteUsers = []; userCount = 1; };
 	function closeConnection() {
 		const old = connection;
 		connection = null;
@@ -72,6 +73,9 @@
 		c.label = label;
 		c.setStream(media);
 		c.onerror = (e: unknown) => { error = 'Ошибка передачи видео: ' + String(e); };
+		c.onstatus = (status: string) => {
+			if (status === 'failed') error = 'Не удалось установить медиасоединение для отправки видео. Проверьте TURN и UDP-порты.';
+		};
 		// Follow Galene's reference client: explicit send-only transceivers ensure
 		// that each upstream track is negotiated in both joining orders.
 		media.getTracks().forEach(t => c.pc.addTransceiver(t, {
@@ -110,7 +114,13 @@
 				if (kind === 'change') canPresent = perms.includes('present');
 			};
 			sc.onuser = (id: string, kind: string) => {
-				userCount = Object.keys(sc.users).length || 1;
+				remoteUsers = Object.entries(sc.users)
+					.filter(([userId]) => userId !== sc.id)
+					.map(([userId, user]) => ({
+						id: userId,
+						name: (user as { username?: string }).username || 'Участник'
+					}));
+				userCount = remoteUsers.length + 1;
 				// Re-request tracks when a later participant begins presenting.
 				// Without this, the first person in the room can miss the
 				// stream that appeared after their initial track request.
@@ -125,6 +135,7 @@
 						...participants.filter(p => p.id !== down.id),
 						{
 							id: down.id,
+							source: down.source || '',
 							name: down.username || previous?.name || 'Участник',
 							stream: media || previous?.stream || null,
 							label: down.label || 'camera',
@@ -246,15 +257,18 @@
 					{#each participants as peer (peer.id)}
 						<div class="tile">
 							<video use:streamAction={peer.stream} autoplay playsinline></video>
-							{#if !peer.stream || peer.mediaStatus === 'failed'}
+							{#if !peer.stream || peer.mediaStatus === 'failed' || peer.mediaStatus === 'disconnected'}
 								<div class="peer-loading">
-									{peer.mediaStatus === 'failed' ? 'Не удалось получить видео. Проверьте соединение.' : 'Подключаем видео…'}
+									{peer.mediaStatus === 'failed' ? 'Не удалось получить видео. Проверьте соединение.' : peer.mediaStatus === 'disconnected' ? 'Видеосвязь прервана. Пробуем восстановить…' : 'Подключаем видео…'}
 								</div>
 							{/if}
 							<div class="tile-label">{peer.name}{peer.label === 'screenshare' ? ' · Экран' : ''}</div>
 						</div>
 					{/each}
-					{#if participants.length === 0}<div class="empty-tile"><Users size={36}/><strong>Ожидаем собеседника</strong><p>Другой участник войдет по своей личной ссылке</p></div>{/if}
+					{#each remoteUsers.filter(user => !participants.some(peer => peer.source === user.id)) as user (user.id)}
+						<div class="empty-tile"><Users size={36}/><strong>{user.name}</strong><p>Участник подключился, ожидаем его видео</p></div>
+					{/each}
+					{#if participants.length === 0 && remoteUsers.length === 0}<div class="empty-tile"><Users size={36}/><strong>Ожидаем собеседника</strong><p>Другой участник войдет по своей личной ссылке</p></div>{/if}
 				</div>
 				{#if chatOpen}<aside class="chat"><div class="chat-heading">Сообщения <button onclick={() => chatOpen = false} aria-label="Закрыть чат"><X size={19}/></button></div><div class="chat-messages">{#each messages as message (message.id)}<div class="message"><strong>{message.self ? 'Вы' : message.name}</strong><p>{message.text}</p></div>{/each}</div><form onsubmit={(e) => { e.preventDefault(); sendChat(); }}><input bind:value={chatText} placeholder="Написать сообщение" aria-label="Сообщение"/><button type="submit" aria-label="Отправить сообщение"><Send size={19}/></button></form></aside>{/if}
 			</div>
