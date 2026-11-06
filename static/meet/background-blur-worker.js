@@ -32,8 +32,8 @@ async function loadImageSegmenter(model) {
             baseOptions: {
                 modelAssetPath: model,
             },
-            outputCategoryMask: true,
-            outputConfidenceMasks: false,
+            outputCategoryMask: false,
+            outputConfidenceMasks: true,
             runningMode: 'VIDEO',
         });
 }
@@ -51,11 +51,26 @@ async function foregroundMask(bitmap, timestamp) {
                 result => resolve(result),
             ));
         let result = await p;
-        /** @type{Uint8Array} */
-        let mask = result.categoryMask.getAsUint8Array();
-        let id = new ImageData(width, height);
-        for(let i = 0; i < mask.length; i++)
-            id.data[4 * i + 3] = mask[i];
+        // Confidence maps retain soft boundaries (hair, shoulders, hands).
+        // The original category mask contained values 0 or 1 which, when
+        // used as alpha bytes, made the foreground effectively transparent.
+        const personMask = result.confidenceMasks?.[1];
+        const backgroundMask = result.confidenceMasks?.[0];
+        if(!personMask && !backgroundMask)
+            throw new Error('MediaPipe did not return confidence masks');
+        const person = personMask?.getAsFloat32Array();
+        const background = backgroundMask?.getAsFloat32Array();
+        const id = new ImageData(width, height);
+        for(let i = 0; i < width * height; i++) {
+            const v = person ? person[i] : 1 - background[i];
+            const t = Math.max(0, Math.min(1, (v - 0.12) / 0.8));
+            // Smoothstep gives a feathered rather than a jagged boundary.
+            const alpha = t * t * (3 - 2 * t);
+            id.data[4 * i] = 255;
+            id.data[4 * i + 1] = 255;
+            id.data[4 * i + 2] = 255;
+            id.data[4 * i + 3] = Math.round(alpha * 255);
+        }
         result.close();
 
         let ib = await createImageBitmap(id);
