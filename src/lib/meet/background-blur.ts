@@ -64,6 +64,9 @@ export async function createBackgroundBlur(input: MediaStream): Promise<BlurSess
 	canvas.height = settings.height || 480;
 	const ctx = canvas.getContext('2d');
 	if (!ctx) throw new Error('Ваш браузер не поддерживает обработку видео.');
+	const foregroundCanvas = document.createElement('canvas');
+	const fg = foregroundCanvas.getContext('2d');
+	if (!fg) throw new Error('Не удалось создать буфер для размытия.');
 
 	let worker: Worker | null = null;
 	let timer: number | undefined;
@@ -117,28 +120,34 @@ export async function createBackgroundBlur(input: MediaStream): Promise<BlurSess
 						canvas.width = video.videoWidth;
 						canvas.height = video.videoHeight;
 					}
-					// Same alpha-compositing steps as Galene's filter.js:
-					// blur only the background; retain crisp foreground edges.
+					// Blur the entire original image first, then overlay a
+					// crisp foreground clipped by MediaPipe's soft person mask.
+					// This avoids halos and does not blur the participant.
+					if (foregroundCanvas.width !== canvas.width || foregroundCanvas.height !== canvas.height) {
+						foregroundCanvas.width = canvas.width;
+						foregroundCanvas.height = canvas.height;
+					}
 					ctx.globalCompositeOperation = 'copy';
-					ctx.drawImage(mask, 0, 0);
-					ctx.globalCompositeOperation = 'source-in';
-					ctx.drawImage(bitmap, 0, 0);
 					if ('filter' in ctx) {
-						ctx.globalCompositeOperation = 'copy';
-						ctx.filter = 'blur(' + video.videoWidth / 48 + 'px)';
-						ctx.drawImage(canvas, 0, 0);
+						ctx.filter = 'blur(' + Math.max(8, Math.round(video.videoWidth / 85)) + 'px)';
+						ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
 						ctx.filter = 'none';
 					} else {
+						// Safari fallback: strong bilinear scale-down/scale-up blur.
 						const small = document.createElement('canvas');
-						small.width = Math.max(1, Math.round(video.videoWidth / 24));
-						small.height = Math.max(1, Math.round(video.videoHeight / 24));
-						small.getContext('2d')?.drawImage(canvas, 0, 0, small.width, small.height);
-						ctx.globalCompositeOperation = 'source-atop';
-						ctx.drawImage(small, 0, 0, video.videoWidth, video.videoHeight);
+						small.width = Math.max(1, Math.round(canvas.width / 16));
+						small.height = Math.max(1, Math.round(canvas.height / 16));
+						small.getContext('2d')?.drawImage(bitmap, 0, 0, small.width, small.height);
+						ctx.imageSmoothingEnabled = true;
+						ctx.drawImage(small, 0, 0, canvas.width, canvas.height);
 					}
-					ctx.globalCompositeOperation = 'destination-atop';
-					ctx.drawImage(bitmap, 0, 0);
+					fg.globalCompositeOperation = 'copy';
+					fg.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+					fg.globalCompositeOperation = 'destination-in';
+					fg.drawImage(mask, 0, 0, canvas.width, canvas.height);
+					fg.globalCompositeOperation = 'source-over';
 					ctx.globalCompositeOperation = 'source-over';
+					ctx.drawImage(foregroundCanvas, 0, 0);
 					if (!fixedRate) outputTrack.requestFrame?.();
 				} finally {
 					mask.close();
