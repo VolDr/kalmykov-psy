@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import type Hls from 'hls.js';
 	import { page } from '$app/state';
 	import { Video, Clock3, ShieldCheck, Volume2, VolumeX, RefreshCw, AlertCircle } from '@lucide/svelte';
 
@@ -20,7 +21,9 @@
 	let error = $state('');
 	let playbackError = $state('');
 	let muted = $state(true);
-	let player: HTMLVideoElement | null = null;
+	let player = $state<HTMLVideoElement | null>(null);
+	let hls: Hls | null = null;
+	let attaching = false;
 	let retryAt = 0;
 
 	const stage = $derived.by(() => {
@@ -79,12 +82,83 @@
 	}
 
 	function syncPlayback() {
-		if (!player || !webinar || stage !== 'live' || !Number.isFinite(player.duration)) return;
-		const target = Math.max(0, Math.min(webinar.durationSeconds - 0.1, elapsed));
-		if (Math.abs(player.currentTime - target) > 3) {
-			try { player.currentTime = target; } catch {}
+		if (!player || stage !== 'live') return;
+		let liveTarget = hls?.liveSyncPosition ?? null;
+		if (liveTarget === null && player.seekable.length) {
+			liveTarget = Math.max(0, player.seekable.end(player.seekable.length - 1) - 8);
+		}
+		// No seeking backwards, and no playing old buffered content.
+		if (liveTarget !== null && Number.isFinite(liveTarget) && liveTarget - player.currentTime > 18) {
+			try { player.currentTime = liveTarget; } catch {}
 		}
 	}
+
+	async function attachPlayer(video: HTMLVideoElement) {
+		if (attaching || hls || stage !== 'live') return;
+		attaching = true;
+		try {
+			const { default: HlsPlayer } = await import('hls.js');
+			if (stage !== 'live' || player !== video) return;
+			const source = '/api/webinars/' + id + '/hls/index.m3u8';
+			if (HlsPlayer.isSupported()) {
+				const instance = new HlsPlayer({
+					enableWorker: true,
+					liveSyncDurationCount: 2,
+					liveMaxLatencyDurationCount: 6,
+					maxLiveSyncPlaybackRate: 1.3,
+					maxBufferLength: 15,
+					backBufferLength: 10
+				});
+				hls = instance;
+				instance.on(HlsPlayer.Events.MEDIA_ATTACHED, () => {
+					if (hls === instance) instance.loadSource(source);
+				});
+				instance.on(HlsPlayer.Events.MANIFEST_PARSED, () => {
+					if (hls === instance) play();
+				});
+				instance.on(HlsPlayer.Events.ERROR, (_, data) => {
+					if (hls !== instance || !data.fatal) return;
+					playbackError = 'Соединение прервалось. Восстанавливаем показ…';
+					if (data.type === HlsPlayer.ErrorTypes.NETWORK_ERROR) {
+						instance.startLoad(-1);
+					} else if (data.type === HlsPlayer.ErrorTypes.MEDIA_ERROR) {
+						instance.recoverMediaError();
+					} else {
+						instance.destroy();
+						hls = null;
+						retryAt = 0;
+					}
+				});
+				instance.attachMedia(video);
+			} else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+				video.src = source;
+				play();
+			} else {
+				playbackError = 'Этот браузер не поддерживает HLS. Используйте актуальный Chrome, Safari или Firefox.';
+			}
+		} catch (e) {
+			playbackError = e instanceof Error ? e.message : 'Не удалось запустить HLS.';
+		} finally {
+			attaching = false;
+		}
+	}
+	function stopPlayer() {
+		hls?.destroy();
+		hls = null;
+		if (player) {
+			player.pause();
+			player.removeAttribute('src');
+			player.load();
+		}
+	}
+	$effect(() => {
+		const video = player;
+		if (stage !== 'live' || !video) return;
+		void attachPlayer(video);
+		return () => {
+			stopPlayer();
+		};
+	});
 	function play() {
 		if (!player) return;
 		syncPlayback();
@@ -99,7 +173,14 @@
 		if (!player || stage !== 'live') return;
 		if (Date.now() < retryAt) return;
 		retryAt = Date.now() + 6000;
-		player.load();
+		if (hls) {
+			hls.startLoad(-1);
+			syncPlayback();
+			void player.play().catch(() => {});
+		} else {
+			player.load();
+			void attachPlayer(player);
+		}
 	}
 
 	onMount(() => {
@@ -111,7 +192,7 @@
 			if (stage === 'ended' && player) player.pause();
 		}, 1000);
 		const clock = window.setInterval(() => void refreshStatus(), 20000);
-		return () => { window.clearInterval(ticker); window.clearInterval(clock); };
+		return () => { window.clearInterval(ticker); window.clearInterval(clock); stopPlayer(); };
 	});
 </script>
 
@@ -137,7 +218,6 @@
 					<div class="panel"><Clock3 size={38}/><h2>До начала осталось</h2><div class="countdown">{countdown}</div><p>Вебинар начнется {new Date(webinar.startAt).toLocaleString('ru-RU', { dateStyle: 'long', timeStyle: 'short' })}</p></div>
 				{:else if stage === 'live'}
 					<video bind:this={player} autoplay muted={muted} playsinline preload="metadata"
-						src={'/api/webinars/' + id + '/video'}
 						onloadedmetadata={syncPlayback}
 						onplaying={() => playbackError = ''}
 						onwaiting={markStalled}
