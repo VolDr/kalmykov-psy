@@ -28,7 +28,8 @@
 		"pg": "^8.16.3",
 		"socks-proxy-agent": "^10.0.0",
 		"zod": "^4.1.12",
-		"hls.js": "1.7.4"
+		"hls.js": "1.7.4",
+		"longpipe": "0.0.14"
 	},
 	"devDependencies": {
 		"@electric-sql/pglite": "^0.5.11",

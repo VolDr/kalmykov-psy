@@ -5,4 +5,4 @@
 	let { data }: { data: PageData } = $props();
 </script>
 
-<MeetingRoom inviteRoom={data.room} inviteTokenValue={data.token} />
+<MeetingRoom inviteRoom={data.room} inviteCode={data.code} />

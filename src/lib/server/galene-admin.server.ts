@@ -3,7 +3,7 @@
  * reverse proxy must continue blocking /galene-api/.
  */
 import { randomBytes } from 'node:crypto';
-import { listMeetingInvites, registerMeetingInvites, removeMeetingInvites } from './meeting-invites.server.js';
+import { getRoomLink, registerRoomLink, removeMeetingInvites } from './meeting-invites.server.js';
 
 const API_PREFIX = '/galene-api/v0/.groups';
 const ROOM_RE = /^meet-[a-f0-9]{16}$/;
@@ -11,12 +11,8 @@ const TOKEN_RE = /^[A-Za-z0-9_-]{10,128}$/;
 const INVITE_DAYS = 30;
 const INVITE_MS = INVITE_DAYS * 86400 * 1000;
 
-type IssuedToken = {
-	token: string;
-	label: string;
-	expires: string;
-};
-export type MeetingInvite = IssuedToken & { code: string };
+type IssuedToken = { token: string; label: string; expires: string };
+export type MeetingInvite = { code: string; expires: string };
 
 export type ManagedRoom = {
 	id: string;
@@ -114,36 +110,11 @@ async function listGroupTokens(group: string): Promise<string[]> {
 }
 
 async function getRoomInvites(group: string): Promise<MeetingInvite[]> {
+	const link = await getRoomLink(group);
+	if (!link) return [];
 	const tokens = await listGroupTokens(group);
-	const aliases = await listMeetingInvites(group);
-	const details = await Promise.all(tokens.map(async (token) => {
-		const response = await request(tokenPath(group, token));
-		const data = (await response.json()) as {
-			username?: string;
-			permissions?: string[];
-			expires?: string;
-		};
-		// Earlier builds embedded a fixed username into each token. Those
-		// tokens must be reissued before participants can choose their names.
-		if (data.username !== undefined) return null;
-		if (!Array.isArray(data.permissions) || typeof data.expires !== 'string') return null;
-		if (Date.parse(data.expires) <= Date.now()) return null;
-		const role = data.permissions.includes('op') ? 'Ведущий' :
-			data.permissions.includes('present') ? 'Участник' : null;
-		if (!role) return null;
-		const alias = aliases.find(invite => invite.token === token);
-		if (!alias) return null; // legacy link; must be reissued
-		return { code: alias.code, token, label: role, expires: data.expires };
-	}));
-	let index = 0;
-	return details
-		.filter((v) => v !== null)
-		.sort((a, b) => a.label === 'Ведущий' ? -1 :
-			b.label === 'Ведущий' ? 1 : a.token.localeCompare(b.token))
-		.map((invite) => ({
-			...invite,
-			label: invite.label === 'Ведущий' ? 'Ведущий' : 'Участник ' + (++index)
-		}));
+	if (!tokens.includes(link.guestToken) || !tokens.includes(link.hostToken)) return [];
+	return [{ code: link.code, expires: link.expires }];
 }
 
 export async function listManagedRooms(): Promise<ManagedRoom[]> {
@@ -178,10 +149,9 @@ function roomSlug() {
 }
 
 function inviteRoles(maxClients: number): Array<'host' | 'guest'> {
-	if (!Number.isInteger(maxClients) || maxClients < 2 || maxClients > 12) {
+	if (!Number.isInteger(maxClients) || maxClients < 2 || maxClients > 12)
 		throw new GaleneAdminError('Число участников должно быть от 2 до 12.');
-	}
-	return ['host', ...Array.from({ length: maxClients - 1 }, () => 'guest' as const)];
+	return ['host', 'guest']; // one shared room URL, group capacity is separate
 }
 
 async function createToken(group: string, role: 'host' | 'guest'): Promise<IssuedToken> {
@@ -242,9 +212,11 @@ export async function createManagedRoom(title: string, maxClients: number) {
 			'autolock': false
 		}, { 'If-None-Match': '*' });
 		created = true;
-		const tokens = await generateInvites(group, maxClients);
-		const invites = await registerMeetingInvites(group, tokens, true);
-		return { group, title, invites };
+			const tokens = await generateInvites(group, maxClients);
+		const host = tokens.find(t => t.label === 'Ведущий')!;
+		const guest = tokens.find(t => t.label === 'Участник')!;
+		const link = await registerRoomLink(group, host.token, guest.token, host.expires);
+		return { group, title, link: { code: link.code, expires: link.expires } };
 	} catch (error) {
 		if (created) {
 			try {
@@ -269,8 +241,10 @@ export async function reissueRoomInvites(group: string) {
 	const maxClients = typeof count === 'number' && count >= 2 && count <= 12 ? count : 2;
 	const oldTokens = await listGroupTokens(group);
 	const minted = await generateInvites(group, maxClients);
-	// Publish only the new short links. Existing long links remain revoked.
-	await registerMeetingInvites(group, minted, true);
+	const host = minted.find(t => t.label === 'Ведущий')!;
+	const guest = minted.find(t => t.label === 'Участник')!;
+	// Only the one URL is distributed; host credentials never leave the server for guests.
+	const link = await registerRoomLink(group, host.token, guest.token, host.expires);
 	await discardTokens(group, oldTokens);
 	for (const path of [groupPath(group) + '/.users/host', groupPath(group) + '/.wildcard-user']) {
 		try {
@@ -281,7 +255,7 @@ export async function reissueRoomInvites(group: string) {
 			}
 		}
 	}
-	return { group, invites: minted };
+	return { group, link: { code: link.code, expires: link.expires } };
 }
 
 export async function deleteManagedRoom(group: string) {

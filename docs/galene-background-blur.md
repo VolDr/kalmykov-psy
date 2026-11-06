@@ -1,41 +1,71 @@
-# Видеовстречи: размытие фона
+# Longpipe: размытие фона в видеовстречах
 
-SvelteKit /meet uses the same MediaPipe segmentation worker algorithm as Galene's upstream
-MIT-licensed static/filter.js and static/background-blur-worker.js. Processing is
-**on the participant's device**, not the Galene VPS. Browser may lower frame rate
-on older phones. The feature is optional and off by default.
+Ветка `wip-2` использует браузерную библиотеку [Longpipe](https://longpipe.dev/docs/)
+вместо прежнего MediaPipe Canvas-фильтра.
 
-## Install third-party model files once on box-758667
+## Режимы
 
-Galene itself is **already running**. Do not rebuild or reinstall its Go binary.
-These commands only add static assets used by the web client's blur worker.
+- **Без размытия** — `off`, камера передается без фильтра.
+- **Легкое** — `strength: 0.2`.
+- **Сильное** — `strength: 0.5`.
 
-    mkdir -p /opt/galene/static/third-party
-    cd /tmp
-    curl -fL https://registry.npmjs.org/@mediapipe/tasks-vision/-/tasks-vision-0.10.21.tgz -o tasks-vision.tgz
-    mkdir -p /tmp/galene-mediapipe
-    tar xzf /tmp/tasks-vision.tgz -C /tmp/galene-mediapipe
-    mkdir -p /opt/galene/static/third-party/tasks-vision
-    cp -a /tmp/galene-mediapipe/package/. /opt/galene/static/third-party/tasks-vision/
-    mkdir -p /opt/galene/static/third-party/tasks-vision/models
-    curl -fL https://storage.googleapis.com/mediapipe-models/image_segmenter/selfie_segmenter/float16/latest/selfie_segmenter.tflite -o /opt/galene/static/third-party/tasks-vision/models/selfie_segmenter.tflite
-    chown -R galene:galene /opt/galene/static/third-party/tasks-vision
+Настройки доступны **перед входом** на странице видеовстречи (под
+полем имени) и **после входа** в меню кнопки со звездочками на панели
+видеосвязи. Выбранный режим сохраняется в `localStorage`
+(`kalmykov-meet-blur-mode`) и восстанавливается при следующем визите.
+Предпросмотр камеры сразу показывает сохраненный или выбранный эффект.
 
-No service restart is required. Confirm:
+Смена интенсивности `0.2 ↔ 0.5` выполняется методом
+`EffectsPipeline.setBackground()`: без загрузки новой модели, замены
+потока и повторного подключения WebRTC. При выключении эффекта работник
+Longpipe уничтожается, а в звонок отправляется исходная камера.
 
-    curl -I http://127.0.0.1:8443/third-party/tasks-vision/vision_bundle.mjs
-    curl -I https://kalmykov-psy.ru/api/meet/blur-assets/vision_bundle.mjs
+## Установка и нагрузка
 
-Both should return HTTP 200 after deploying the site.
+`longpipe@0.0.14` указан в `package.json` как обычная браузерная
+зависимость. Для первой локальной сборки:
 
-The browser loads /meet/background-blur-worker.js from the SvelteKit static
-directory. SvelteKit proxies only allowlisted MediaPipe files from local Galene
-via /api/meet/blur-assets/[...asset], so the Web Worker does not need CORS.
+```bash
+npm install
+npm run build
+```
 
-CSP must permit same-origin Web Workers, WASM compilation, and same-origin
-network requests. If the browser shows a Content Security Policy error,
-adjust the existing policy narrowly rather than turning the policy off.
+Собранная библиотека доставляется браузеру в JavaScript сайта. Node.js и
+Galene не выполняют обработку кадров; отдельный сервис и GPU на VPS не нужны.
 
-The button with the sparkle icon appears before joining and during the call.
-The original camera and microphone tracks are not uploaded when blur is active;
-the outgoing video track is built from a canvas in the user's browser.
+Первое включение может потребовать загрузки весов модели с
+`https://cdn.longpipe.dev/models/v/0.0.5/` — только модель, **не
+изображение с камеры**. Браузер создает GPU worker (WebGPU, fallback
+WebGL2); скорость и качество зависят от устройства. Longpipe сам подбирает
+пресет (`preset: 'auto'`). В случае сбоя интерфейс переключается обратно
+на исходную камеру и показывает ошибку.
+
+Существующие файлы MediaPipe, ранее положенные в
+`/opt/galene/static/third-party/tasks-vision`, для новых видеовстреч
+больше не используются. Службу Galene переустанавливать не требуется.
+
+## Content-Security-Policy
+
+Longpipe использует **Blob Worker** и запрашивает веса с CDN.
+Если на основном домене установлен CSP, разрешите на страницах
+`/meet` и `/meet/<код>`:
+
+- `worker-src 'self' blob:`
+- `connect-src 'self' https://cdn.longpipe.dev wss://meet.kalmykov-psy.ru`
+
+Сохраняйте остальные существующие ограничения CSP. Для
+сайтов, где nginx добавляет собственный CSP, одного изменения в SvelteKit
+может быть недостаточно — проверьте заголовки основного домена.
+Если нельзя разрешать CDN, скопируйте веса на собственный статический хост
+и задайте `weightsBaseUrl` в конструкторе Longpipe.
+
+При проверке в DevTools:
+1. До входа выберите «Легкое 0.2» — лицо останется четким, фон размывается.
+2. Выберите «Сильное 0.5» — размытие усиливается без задержек после первой загрузки.
+3. Войдите в комнату, переключите режим через кнопку со звездочками.
+4. Обновите страницу и убедитесь, что выбор сохранился.
+5. Проверьте в двух браузерах, что **удаленный** участник видит тот же эффект.
+
+Документация: [API Longpipe](https://longpipe.dev/docs/api/),
+[формат настройки силы размытия](https://longpipe.dev/docs/backgrounds/),
+[автоматический выбор модели](https://longpipe.dev/docs/presets/).

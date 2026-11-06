@@ -3,16 +3,25 @@
 	import { onMount } from 'svelte';
 	import { Camera, CameraOff, Mic, MicOff, MonitorUp, PhoneOff, ShieldCheck, Copy, Check, ArrowRight, AlertCircle, MessageCircle, Send, X, Users, Video, RefreshCw, Sparkles } from '@lucide/svelte';
 	import { ServerConnection } from '#lib/galene/protocol.js';
-	import { createBackgroundBlur, type BlurSession } from '#lib/meet/background-blur.js';
+	import { createBackgroundBlur, type BlurSession, type BlurStrength } from '#lib/meet/background-blur.js';
 
-	let { inviteRoom = '', inviteTokenValue = '' }: { inviteRoom?: string; inviteTokenValue?: string } = $props();
+	let { inviteRoom = '', inviteTokenValue = '', inviteCode = '' }: { inviteRoom?: string; inviteTokenValue?: string; inviteCode?: string } = $props();
 
 	let localVideo: HTMLVideoElement;
 	let localStream: MediaStream | null = $state(null);
 	let displayStream: MediaStream | null = $state(null);
-	let blurEnabled = $state(false);
+	type BlurMode = 'off' | 'light' | 'strong';
+	const BLUR_STORAGE_KEY = 'kalmykov-meet-blur-mode';
+	const BLUR_OPTIONS: { mode: BlurMode; label: string; strength: string }[] = [
+		{ mode: 'off', label: 'Без размытия', strength: '0' },
+		{ mode: 'light', label: 'Легкое', strength: '0.2' },
+		{ mode: 'strong', label: 'Сильное', strength: '0.5' }
+	];
+	let blurMode = $state<BlurMode>('off');
+	let blurMenuOpen = $state(false);
 	let blurBusy = $state(false);
 	let blurSession: BlurSession | null = null;
+	let blurInput: MediaStream | null = null;
 	let blurVersion = 0;
 	let screenStream: MediaStream | null = $state(null);
 	let outgoing: any = null;
@@ -57,12 +66,13 @@
 		try {
 			const next = await navigator.mediaDevices.getUserMedia({ audio: micEnabled, video: cameraEnabled });
 			blurVersion++;
-			blurSession?.stop(); blurSession = null;
+			blurSession?.stop(); blurSession = null; blurInput = null;
+			blurBusy = false;
 			stop(localStream);
 			localStream = next;
 			displayStream = next;
 			if (localVideo) { localVideo.srcObject = next; await localVideo.play().catch(() => {}); }
-			if (blurEnabled && next.getVideoTracks().length) await applyBackgroundBlur();
+			if (blurMode !== 'off' && next.getVideoTracks().length) await applyBackgroundBlur();
 			else if (state === 'connected' && canPresent) publishLocalMedia(next);
 		} catch {
 			error = 'Не удалось открыть камеру или микрофон. Проверьте разрешения браузера.';
@@ -97,45 +107,77 @@
 		}));
 		return c;
 	}
+	function showLocalStream(stream: MediaStream | null) {
+		if (!localVideo || state === 'connected') return;
+		localVideo.srcObject = stream;
+		if (stream) void localVideo.play().catch(() => {});
+	}
+	function saveBlurPreference() {
+		try { window.localStorage.setItem(BLUR_STORAGE_KEY, blurMode); } catch {}
+	}
 	async function applyBackgroundBlur() {
 		const ticket = ++blurVersion;
-		if (!blurEnabled || !localStream?.getVideoTracks().length) {
+		const camera = localStream;
+		if (blurMode === 'off' || !camera?.getVideoTracks().length) {
 			blurSession?.stop();
 			blurSession = null;
-			displayStream = localStream;
-			if (localVideo && state !== 'connected') {
-				localVideo.srcObject = displayStream;
-				if (displayStream) void localVideo.play().catch(() => {});
-			}
-			if (displayStream && state === 'connected' && canPresent) publishLocalMedia(displayStream);
+			blurInput = null;
+			blurBusy = false;
+			displayStream = camera;
+			showLocalStream(camera);
+			if (camera && state === 'connected' && canPresent) publishLocalMedia(camera);
 			return;
 		}
+
 		blurBusy = true;
+		const strength: BlurStrength = blurMode === 'light' ? 0.2 : 0.5;
+		let newSession: BlurSession | null = null;
 		try {
-			const session = await createBackgroundBlur(localStream);
-			if (ticket !== blurVersion) { session.stop(); return; }
-			blurSession?.stop();
-			blurSession = session;
-			displayStream = session.stream;
-			if (localVideo && state !== 'connected') {
-				localVideo.srcObject = displayStream;
-				void localVideo.play().catch(() => {});
+			if (blurSession && blurInput === camera) {
+				// The resulting MediaStream and WebRTC sender stay unchanged.
+				await blurSession.setStrength(strength);
+				return;
 			}
-			if (state === 'connected' && canPresent) publishLocalMedia(session.stream);
-		} catch (e) {
+			newSession = await createBackgroundBlur(camera, strength, (message) => {
+				if (blurInput !== camera || blurMode === 'off') return;
+				error = 'Размытие фона отключено: ' + message;
+				blurMode = 'off';
+				saveBlurPreference();
+				void applyBackgroundBlur();
+			});
+			// Do not publish a temporary unfiltered output while downloading
+			// weights or initializing the GPU model.
+			await newSession.ready;
+			if (ticket !== blurVersion || localStream !== camera) return;
+			blurSession?.stop();
+			blurSession = newSession;
+			blurInput = camera;
+			displayStream = newSession.stream;
+			showLocalStream(displayStream);
+			if (state === 'connected' && canPresent) publishLocalMedia(displayStream);
+			newSession = null; // now owned by blurSession
+		} catch (cause) {
 			if (ticket !== blurVersion) return;
-			blurEnabled = false;
-			blurSession?.stop(); blurSession = null;
-			displayStream = localStream;
-			error = 'Размытие фона недоступно: ' + (e instanceof Error ? e.message : String(e));
-			if (displayStream && state === 'connected' && canPresent) publishLocalMedia(displayStream);
+			blurSession?.stop();
+			blurSession = null;
+			blurInput = null;
+			blurMode = 'off';
+			saveBlurPreference();
+			displayStream = camera;
+			showLocalStream(camera);
+			if (camera && state === 'connected' && canPresent) publishLocalMedia(camera);
+			error = 'Не удалось включить Longpipe: ' +
+				(cause instanceof Error ? cause.message : String(cause));
 		} finally {
+			newSession?.stop();
 			if (ticket === blurVersion) blurBusy = false;
 		}
 	}
-	function toggleBackgroundBlur() {
+	function chooseBlurMode(value: BlurMode) {
 		if (blurBusy) return;
-		blurEnabled = !blurEnabled;
+		blurMode = value;
+		blurMenuOpen = false;
+		saveBlurPreference();
 		void applyBackgroundBlur();
 	}
 	function publishLocalMedia(stream: MediaStream) {
@@ -148,10 +190,28 @@
 		}
 	}
 	async function join() {
-		if (!name.trim() || !room.trim() || !inviteToken || state !== 'preview') return;
+		if (!name.trim() || !room.trim() || (!inviteCode && !inviteToken) || state !== 'preview') return;
 		try { window.localStorage.setItem(DISPLAY_NAME_KEY, name.trim()); } catch {}
 		state = 'connecting'; error = '';
 		try {
+			// One invitation URL for everyone. Privileges come from the site's
+			// authenticated admin session and are selected only on the server.
+			let credential = inviteToken;
+			if (inviteCode) {
+				const access = await fetch('/api/meet/join', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ code: inviteCode }),
+					cache: 'no-store',
+					credentials: 'same-origin'
+				});
+				if (!access.ok) {
+					const problem = await access.json().catch(() => null);
+					throw new Error(problem?.error || 'Не удалось получить доступ к комнате.');
+				}
+				const accessData = await access.json();
+				credential = accessData.token;
+			}
 			const response = await fetch('/api/meet/status?room=' + encodeURIComponent(room), {
 				cache: 'no-store'
 			});
@@ -162,7 +222,7 @@
 			const info = await response.json();
 			const sc = new ServerConnection();
 			connection = sc;
-			sc.onconnected = () => { sc.join(info.name, name.trim(), { type: 'token', token: inviteToken }).catch((e: Error) => { error = e.message; leave(); }); };
+			sc.onconnected = () => { sc.join(info.name, name.trim(), { type: 'token', token: credential }).catch((e: Error) => { error = e.message; leave(); }); };
 			sc.onerror = (e: unknown) => { error = 'Ошибка соединения: ' + String(e); };
 			sc.onclose = () => { if (connection === sc) { connection = null; state = 'preview'; cleanRemote(); } };
 			sc.onjoined = (kind: string, group: string, perms: string[], _status: unknown, _data: unknown, code: string, message: string) => {
@@ -266,8 +326,12 @@
 		const invite = new URLSearchParams(window.location.hash.replace(/^#/, ''));
 		inviteToken = inviteTokenValue || invite.get('token') || '';
 		try { name = window.localStorage.getItem(DISPLAY_NAME_KEY) || ''; } catch { name = ''; }
+		try {
+			const savedBlur = window.localStorage.getItem(BLUR_STORAGE_KEY);
+			blurMode = savedBlur === 'light' || savedBlur === 'strong' ? savedBlur : 'off';
+		} catch { blurMode = 'off'; }
 		preview();
-		return () => { blurVersion++; blurSession?.stop(); closeConnection(); stop(localStream); };
+		return () => { blurVersion++; blurSession?.stop(); blurSession = null; blurInput = null; closeConnection(); stop(localStream); };
 	});
 </script>
 
@@ -289,7 +353,7 @@
 				<div class="eyebrow">● &nbsp; Онлайн-встреча</div>
 				<h1>Хорошо, что вы <em>здесь.</em></h1>
 				<p>Устройтесь поудобнее. Проверьте камеру и микрофон перед встречей.</p>
-				<div class="notice"><ShieldCheck size={20}/><div><strong>Доступ только по приглашению</strong><span>У каждого участника собственная ссылка для входа.</span></div></div>
+				<div class="notice"><ShieldCheck size={20}/><div><strong>Доступ только по приглашению</strong><span>Одна ссылка на комнату для всех участников.</span></div></div>
 			</section>
 			<section class="panel">
 				<div class="video">
@@ -299,16 +363,29 @@
 					<div class="video-buttons">
 						<button onclick={toggleMic} class:off={!micEnabled} title={micEnabled ? 'Выключить микрофон' : 'Включить микрофон'} aria-label="Микрофон">{#if micEnabled}<Mic size={21}/>{:else}<MicOff size={21}/>{/if}</button>
 						<button onclick={toggleCamera} class:off={!cameraEnabled} title={cameraEnabled ? 'Выключить камеру' : 'Включить камеру'} aria-label="Камера">{#if cameraEnabled}<Camera size={21}/>{:else}<CameraOff size={21}/>{/if}</button>
-						<button onclick={toggleBackgroundBlur} class:active={blurEnabled} disabled={blurBusy || !cameraEnabled} title={blurBusy ? 'Подключаем размытие…' : blurEnabled ? 'Убрать размытие фона' : 'Размыть фон'} aria-label="Размытие фона"><Sparkles size={20}/></button>
+
 						<button onclick={preview} title="Обновить устройства" aria-label="Обновить устройства"><RefreshCw size={20}/></button>
 					</div>
 				</div>
 				<div class="fields">
-					<div class="invitation-label"><ShieldCheck size={18}/><span>{inviteToken ? 'Доступ по персональной ссылке' : 'Требуется персональная ссылка-приглашение'}</span></div>
+					<div class="invitation-label"><ShieldCheck size={18}/><span>{inviteCode || inviteToken ? 'Доступ по ссылке на комнату' : 'Требуется ссылка-приглашение'}</span></div>
 					<div class="invitation-info"><span>Комната</span><strong>{room || 'Не указана'}</strong></div>
 					<label for="meet-name">Ваше имя перед входом</label><input id="meet-name" type="text" bind:value={name} placeholder="Введите имя" autocomplete="nickname" maxlength="60" required />
-					{#if !inviteToken}<p class="invite-warning">Запросите личную ссылку у организатора встречи. Вход только по приглашению.</p>{/if}
-					<button class="primary" onclick={join} disabled={!inviteToken || !name.trim() || !room.trim() || state === 'connecting'}>{state === 'connecting' ? 'Подключаемся…' : 'Присоединиться ко встрече'}<ArrowRight size={19}/></button>
+					<fieldset class="blur-prejoin" disabled={blurBusy || !cameraEnabled}>
+						<legend><Sparkles size={15}/> Размытие фона {#if blurBusy}<span>— загружаем модель…</span>{/if}</legend>
+						<div class="blur-choices">
+							{#each BLUR_OPTIONS as choice (choice.mode)}
+								<button type="button"
+									class:selected={blurMode === choice.mode}
+									aria-pressed={blurMode === choice.mode}
+									onclick={() => chooseBlurMode(choice.mode)}>
+									<span>{choice.label}</span><small>{choice.strength}</small>
+								</button>
+							{/each}
+						</div>
+					</fieldset>
+					{#if !inviteCode && !inviteToken}<p class="invite-warning">Запросите личную ссылку у организатора встречи. Вход только по приглашению.</p>{/if}
+					<button class="primary" onclick={join} disabled={(!inviteCode && !inviteToken) || !name.trim() || !room.trim() || state === 'connecting'}>{state === 'connecting' ? 'Подключаемся…' : 'Присоединиться ко встрече'}<ArrowRight size={19}/></button>
 					<p class="hint">Без регистрации и установки приложений</p>
 				</div>
 			</section>
@@ -333,7 +410,7 @@
 					{#each remoteUsers.filter(user => !participants.some(peer => peer.source === user.id)) as user (user.id)}
 						<div class="empty-tile"><Users size={36}/><strong>{user.name}</strong><p>Участник подключился, ожидаем его видео</p></div>
 					{/each}
-					{#if participants.length === 0 && remoteUsers.length === 0}<div class="empty-tile"><Users size={36}/><strong>Ожидаем собеседника</strong><p>Другой участник войдет по своей личной ссылке</p></div>{/if}
+					{#if participants.length === 0 && remoteUsers.length === 0}<div class="empty-tile"><Users size={36}/><strong>Ожидаем собеседника</strong><p>Другой участник войдет по общей ссылке на комнату</p></div>{/if}
 				</div>
 				{#if chatOpen}<aside class="chat"><div class="chat-heading">Сообщения <button onclick={() => chatOpen = false} aria-label="Закрыть чат"><X size={19}/></button></div><div class="chat-messages">{#each messages as message (message.id)}<div class="message"><strong>{message.self ? 'Вы' : message.name}</strong><p>{message.text}</p></div>{/each}</div><form onsubmit={(e) => { e.preventDefault(); sendChat(); }}><input bind:value={chatText} placeholder="Написать сообщение" aria-label="Сообщение"/><button type="submit" aria-label="Отправить сообщение"><Send size={19}/></button></form></aside>{/if}
 			</div>
@@ -341,7 +418,30 @@
 				<button onclick={toggleMic} class:off={!micEnabled} title="Микрофон" aria-label="Микрофон">{#if micEnabled}<Mic size={22}/>{:else}<MicOff size={22}/>{/if}</button>
 				<button onclick={toggleCamera} class:off={!cameraEnabled} title="Камера" aria-label="Камера">{#if cameraEnabled}<Camera size={22}/>{:else}<CameraOff size={22}/>{/if}</button>
 				<button onclick={shareScreen} class:active={!!screenStream} disabled={!canPresent} title="Показать экран" aria-label="Показать экран"><MonitorUp size={22}/></button>
-				<button onclick={toggleBackgroundBlur} class:active={blurEnabled} disabled={blurBusy || !cameraEnabled} title={blurBusy ? 'Подключаем размытие…' : blurEnabled ? 'Убрать размытие фона' : 'Размыть фон'} aria-label="Размытие фона"><Sparkles size={22}/></button>
+				<div class="blur-toolbar">
+					<button type="button" class:active={blurMode !== 'off'} disabled={!cameraEnabled}
+						onclick={() => blurMenuOpen = !blurMenuOpen}
+						aria-label="Настройки размытия фона"
+						aria-expanded={blurMenuOpen}
+						title="Размытие фона">
+						<Sparkles size={22}/>
+					</button>
+					{#if blurMenuOpen}
+						<div class="blur-popover" role="group" aria-label="Выбор размытия">
+							<strong>Размытие фона</strong>
+							{#each BLUR_OPTIONS as choice (choice.mode)}
+								<button type="button"
+									class:selected={blurMode === choice.mode}
+									aria-pressed={blurMode === choice.mode}
+									disabled={blurBusy}
+									onclick={() => chooseBlurMode(choice.mode)}>
+									<span>{choice.label}</span><small>{choice.strength}</small>
+								</button>
+							{/each}
+							{#if blurBusy}<p>Применяем эффект…</p>{/if}
+						</div>
+					{/if}
+				</div>
 				<button onclick={() => chatOpen = !chatOpen} class:active={chatOpen} title="Чат" aria-label="Чат"><MessageCircle size={22}/></button>
 				<button class="hangup" onclick={leave} title="Завершить звонок" aria-label="Завершить звонок"><PhoneOff size={23}/></button>
 			</div>
@@ -366,6 +466,9 @@
 	.fields{padding:21px 23px 0}.fields label{display:block;font-size:12px;font-weight:650;margin:11px 0 7px}.fields input,.chat input{width:100%;box-sizing:border-box;padding:12px 14px;border:1px solid #e0e3db;border-radius:9px;background:#fdfdfb;font:inherit;font-size:14px;color:#29322b;outline:none}.fields input:focus,.chat input:focus{border-color:#8a9b7e;box-shadow:0 0 0 3px #8a9b7e20}
 	.invitation-label{display:flex;align-items:center;gap:10px;margin:5px 0 17px;color:#526c51;font-size:13px;font-weight:650}
 	.invitation-info{display:flex;justify-content:space-between;gap:12px;align-items:center;border-top:1px solid #e9ece6;padding:13px 1px;font-size:13px}.invitation-info span{color:#888f85}.invitation-info strong{color:#364438;font-weight:650;overflow-wrap:anywhere;text-align:right}.invite-warning{font-size:12px;line-height:1.6;color:#a35b45;margin:14px 0}
+	.blur-prejoin{margin:18px 0 4px;border:0;padding:0;min-width:0}.blur-prejoin legend{display:flex;gap:7px;align-items:center;font-size:12px;font-weight:650;color:#526c51;padding:0 0 9px}.blur-prejoin legend span{color:#9b9e96;font-weight:400}
+	.blur-choices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.blur-choices button{background:#f8faf6;border:1px solid #e0e6dc;border-radius:8px;min-height:52px;padding:8px 5px;display:flex;flex-direction:column;gap:4px;align-items:center;justify-content:center;color:#526151;cursor:pointer}.blur-choices button span{font-size:12px}.blur-choices button small{font-size:10px;color:#8b9988}.blur-choices button.selected{background:#e9f1e5;border-color:#759771;color:#2f5131}.blur-choices button:disabled{opacity:.55;cursor:not-allowed}
+	.blur-toolbar{position:relative;display:flex;align-items:center}.blur-popover{position:absolute;z-index:15;bottom:64px;left:50%;transform:translateX(-50%);width:205px;border-radius:13px;border:1px solid #e0e6dc;background:#fff;box-shadow:0 12px 32px #0003;padding:11px;display:flex;flex-direction:column;gap:4px;color:#29322b}.blur-popover>strong{padding:5px 7px 8px;font-size:12px}.toolbar .blur-popover button{width:100%;height:auto;min-height:38px;border-radius:7px;background:#fff;color:#405743;padding:8px 9px;display:flex;flex-direction:row;align-items:center;justify-content:space-between;gap:8px;text-align:left;font-size:12px}.toolbar .blur-popover button.selected{background:#e9f1e5;color:#2f5131}.blur-popover small{color:#879083;font-size:11px}.blur-popover p{margin:4px;font-size:11px;color:#71836e}
 	.primary{margin-top:17px;width:100%;border:0;border-radius:10px;min-height:49px;display:flex;align-items:center;justify-content:center;gap:12px;background:#526c51;color:white;font:inherit;font-size:14px;font-weight:650;cursor:pointer}.primary:disabled{background:#a4b2a0;cursor:not-allowed}.hint{text-align:center;color:#9ba198;font-size:11px;margin:12px 0 0}
 	.call{flex:1;min-height:0;display:flex;flex-direction:column;padding:0 clamp(12px,3vw,50px) 18px;gap:17px}.call-top{display:flex;justify-content:space-between;align-items:center;padding:5px 10px}.call-top strong{font-size:16px;display:block}.call-top span{color:#859083;font-size:12px}.call-meta{display:flex;align-items:center;gap:9px;color:#707d71}.call-meta button,.chat button{border:0;background:transparent;color:inherit;cursor:pointer}
 	.call-main{display:flex;gap:16px;flex:1;min-height:350px}.tiles{flex:1;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:14px;align-content:center}.tile{position:relative;min-height:240px;aspect-ratio:16/10;background:#29312c;overflow:hidden;border-radius:17px}.tile video.dim{visibility:hidden}.empty-tile{border:1px dashed #cad1c8;border-radius:17px;min-height:240px;display:flex;align-items:center;justify-content:center;flex-direction:column;color:#879485;gap:12px}.empty-tile strong{color:#556151}.empty-tile p{font-size:13px;margin:0}.empty-tile button{background:#fff;border:1px solid #dce2d8;border-radius:9px;padding:10px 15px;display:flex;gap:8px;cursor:pointer;color:#4c6048}

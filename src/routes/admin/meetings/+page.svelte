@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Plus, Trash2, RefreshCw, Video, ShieldCheck, Copy, ExternalLink, Link2, Clock3 } from '@lucide/svelte';
 	import type { ActionData, PageData } from './$types';
-	type MeetingInvite = { code: string; token: string; label: string; expires: string };
+	type MeetingInvite = { code: string; expires: string };
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
 	let deleting = $state<string | null>(null);
@@ -25,9 +25,9 @@
 	async function copyLink(group: string, invite: MeetingInvite) {
 		try {
 			await navigator.clipboard.writeText(new URL(inviteUrl(group, invite), window.location.origin).href);
-			copied = invite.token;
+			copied = invite.code;
 			window.setTimeout(() => {
-				if (copied === invite.token) copied = '';
+				if (copied === invite.code) copied = '';
 			}, 1800);
 		} catch {
 			copied = '';
@@ -44,7 +44,7 @@
 		<div>
 			<h1 class="flex items-center gap-2 text-2xl font-semibold"><Video size={24}/> Видеовстречи</h1>
 			<p class="mt-2 text-sm text-stone-500">
-				Создавайте приватные комнаты и отправляйте участникам личные ссылки. Без паролей и регистрации.
+				Создавайте приватные комнаты с одной ссылкой для ведущего и гостей. Права администратора — по входу на сайт.
 			</p>
 		</div>
 		<div class="flex items-center gap-2 rounded-full border border-stone-200 bg-white px-3 py-2 text-xs text-stone-600">
@@ -65,23 +65,23 @@
 	{#if created}
 		<div class="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-950" role="status">
 			<strong>Комната «{created.title}» создана.</strong>
-			Персональные ссылки появились в списке ниже — скопируйте каждую для нужного участника.
+			Единая ссылка появилась в списке ниже — отправьте ее всем участникам.
 		</div>
 	{/if}
 
 	{#if reissued}
 		<div class="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-950" role="status">
-			<strong>Ссылки комнаты {reissued.group} обновлены.</strong>
+			<strong>Ссылка комнаты {reissued.group} обновлена.</strong>
 			Прежние приглашения и пароли больше не работают для нового входа.
-			Новые ссылки доступны ниже.
+			Новая ссылка доступна ниже.
 		</div>
 	{/if}
 
 	<section class="rounded-xl border bg-white p-5 shadow-sm">
 		<h2 class="mb-1 flex items-center gap-2 text-lg font-semibold"><Plus size={19}/> Новая комната</h2>
 		<p class="mb-5 text-sm text-stone-500">
-			На каждого участника создается отдельная ссылка: одна для ведущего, остальные для клиентов.
-			Приглашения действуют 30 дней, запись отключена.
+			Одна ссылка на комнату для всех. Права ведущего — по входу в админку сайта.
+			Ссылка действует 30 дней, запись отключена.
 		</p>
 		<form action="?/create" method="POST" class="grid items-end gap-4 sm:grid-cols-[minmax(0,1fr)_125px_auto]">
 			<label class="block text-sm font-medium text-stone-700">
@@ -104,7 +104,7 @@
 	<section class="overflow-hidden rounded-xl border bg-white shadow-sm">
 		<div class="flex items-center justify-between border-b p-5">
 			<h2 class="text-lg font-semibold">Мои комнаты ({data.rooms.length})</h2>
-			<span class="text-xs text-stone-400">Ссылки действуют только для своих комнат</span>
+			<span class="text-xs text-stone-400">Одна ссылка на комнату</span>
 		</div>
 		{#if data.rooms.length === 0}
 			<div class="p-10 text-center text-sm text-stone-500">
@@ -141,32 +141,32 @@
 							</p>
 						{:else if room.invites.length === 0}
 							<div class="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">
-								<p class="mb-3">У комнаты пока старый способ входа — через пароль, или истек срок действия ссылок.</p>
+								<p class="mb-3">У комнаты пока старые приглашения или истек срок действия общей ссылки.</p>
 								<form method="POST" action="?/reissue">
 									<input type="hidden" name="group" value={room.id}/>
 									<button class="inline-flex items-center gap-2 rounded-lg bg-stone-800 px-4 py-2 text-xs font-medium text-white" type="submit">
-										<Link2 size={14}/> Создать индивидуальные ссылки и отключить пароли
+										<Link2 size={14}/> Создать одну ссылку и отключить старые пароли
 									</button>
 								</form>
 							</div>
 						{:else}
 							<div class="grid gap-3 sm:grid-cols-2">
-								{#each room.invites as invite (invite.token)}
+								{#each room.invites as invite (invite.code)}
 									<div class="rounded-xl border border-stone-200 bg-stone-50/60 p-4">
 										<div class="flex items-center justify-between gap-2">
 											<span class="text-sm font-semibold text-stone-800">
-												{invite.label}
+												Общая ссылка на комнату
 											</span>
 											<span class="flex items-center gap-1 text-xs text-stone-400">
 												<Clock3 size={12}/> до {expiry(invite.expires)}
 											</span>
 										</div>
 										<p class="mt-2 break-all text-xs text-stone-400">
-											Короткая личная ссылка: /meet/{invite.code}
+											Одна ссылка для ведущего и всех гостей: /meet/{invite.code}
 										</p>
 										<div class="mt-3 flex flex-wrap gap-2">
 											<button type="button" class="inline-flex items-center gap-1.5 rounded-lg bg-stone-800 px-3 py-2 text-xs font-medium text-white hover:bg-stone-700" onclick={() => copyLink(room.id, invite)}>
-												<Copy size={14}/> {copied === invite.token ? 'Скопировано' : 'Копировать ссылку'}
+												<Copy size={14}/> {copied === invite.code ? 'Скопировано' : 'Копировать ссылку'}
 											</button>
 											<a href={inviteUrl(room.id, invite)} target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 rounded-lg border border-stone-200 bg-white px-3 py-2 text-xs text-stone-700 hover:bg-stone-100">
 												<ExternalLink size={14}/> Открыть
@@ -178,7 +178,7 @@
 							<form method="POST" action="?/reissue">
 								<input type="hidden" name="group" value={room.id}/>
 								<button type="submit" class="inline-flex items-center gap-1.5 rounded-lg border border-stone-200 px-3 py-2 text-xs text-stone-600 hover:bg-stone-50" title="Все прежние приглашения перестанут работать">
-									<RefreshCw size={14}/> Перевыпустить все ссылки
+									<RefreshCw size={14}/> Перевыпустить ссылку
 								</button>
 							</form>
 						{/if}
@@ -189,7 +189,7 @@
 	</section>
 
 	<p class="text-xs leading-relaxed text-stone-500">
-		Ссылка дает доступ без дополнительного подтверждения личности: отправляйте ее только нужному человеку.
-		Если ссылка утекла, перевыпустите приглашения. Короткий код в адресе является секретом приглашения; при утечке перевыпустите ссылки.
+		Ссылка дает доступ в комнату без пароля: отправляйте ее только приглашенным.
+		Права ведущего получает только авторизованный администратор сайта. Если ссылка утекла — перевыпустите ее.
 	</p>
 </div>
