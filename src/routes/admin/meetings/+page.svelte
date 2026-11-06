@@ -103,34 +103,34 @@
 			<div class="p-10 text-center text-sm text-stone-500">Пока нет комнат. Создайте первую выше.</div>
 		{:else}
 			<div class="divide-y">
-				{#each data.rooms as group (group)}
+				{#each data.rooms as room (room.id)}
 					<div class="space-y-3 p-5">
 						<div class="flex flex-wrap items-start justify-between gap-3">
 							<div class="space-y-1">
-								<div class="font-semibold">{group}</div>
+								<div class="font-semibold">{room.title}</div><div class="font-mono text-xs text-stone-400">{room.id}{room.maxClients ? ` · до ${room.maxClients} участников` : ""}</div>
 								<div class="flex flex-wrap items-center gap-3 text-xs">
-									<a class="inline-flex items-center gap-1 text-blue-700 underline" href={link(group, 'host')} target="_blank" rel="noopener noreferrer">Войти как ведущий <ExternalLink size={13}/></a>
-									<button type="button" class="inline-flex items-center gap-1 text-stone-600 underline" onclick={() => copy(link(group, 'guest'), 'link-' + group, true)}><Copy size={13}/> {copied === 'link-' + group ? 'Ссылка скопирована' : 'Приглашение клиенту'}</button>
+									<a class="inline-flex items-center gap-1 text-blue-700 underline" href={link(room.id, 'host')} target="_blank" rel="noopener noreferrer">Войти как ведущий <ExternalLink size={13}/></a>
+									<button type="button" class="inline-flex items-center gap-1 text-stone-600 underline" onclick={() => copy(link(room.id, 'guest'), 'link-' + room.id, true)}><Copy size={13}/> {copied === 'link-' + room.id ? 'Ссылка скопирована' : 'Приглашение клиенту'}</button>
 								</div>
 							</div>
-							{#if deleting === group}
+							{#if deleting === room.id}
 								<form method="POST" action="?/delete" class="flex flex-wrap items-center gap-2">
-									<input type="hidden" name="group" value={group} /><input type="hidden" name="confirm" value={group}/>
+									<input type="hidden" name="group" value={room.id} /><input type="hidden" name="confirm" value={room.id}/>
 									<span class="text-xs text-red-700">Удалить без возможности восстановления?</span>
 									<button class="rounded-lg bg-red-700 px-3 py-2 text-xs text-white" type="submit">Удалить</button>
 									<button type="button" class="rounded-lg border px-3 py-2 text-xs" onclick={() => deleting = null}>Отмена</button>
 								</form>
 							{:else}
-								<button type="button" class="inline-flex items-center gap-1 text-xs text-red-700 hover:underline" onclick={() => deleting = group}><Trash2 size={14}/> Удалить</button>
+								<button type="button" class="inline-flex items-center gap-1 text-xs text-red-700 hover:underline" onclick={() => deleting = room.id}><Trash2 size={14}/> Удалить</button>
 							{/if}
 						</div>
 						<div class="flex flex-wrap gap-3">
 							<form method="POST" action="?/rotate">
-								<input type="hidden" name="group" value={group}/><input type="hidden" name="who" value="guest"/>
+								<input type="hidden" name="group" value={room.id}/><input type="hidden" name="who" value="guest"/>
 								<button type="submit" class="inline-flex items-center gap-1 rounded-lg border border-stone-200 px-3 py-2 text-xs text-stone-700 hover:bg-stone-50"><RefreshCw size={14}/> Новый пароль клиента</button>
 							</form>
 							<form method="POST" action="?/rotate">
-								<input type="hidden" name="group" value={group}/><input type="hidden" name="who" value="host"/>
+								<input type="hidden" name="group" value={room.id}/><input type="hidden" name="who" value="host"/>
 								<button type="submit" class="inline-flex items-center gap-1 rounded-lg border border-stone-200 px-3 py-2 text-xs text-stone-700 hover:bg-stone-50"><KeyRound size={14}/> Новый пароль ведущего</button>
 							</form>
 						</div>
