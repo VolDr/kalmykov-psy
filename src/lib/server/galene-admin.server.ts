@@ -132,7 +132,7 @@ async function getRoomInvites(group: string): Promise<MeetingInvite[]> {
 	}));
 	let index = 0;
 	return details
-		.filter((v): v is MeetingInvite => v !== null)
+		.filter((v) => v !== null)
 		.sort((a, b) => a.label === 'Ведущий' ? -1 :
 			b.label === 'Ведущий' ? 1 : a.token.localeCompare(b.token))
 		.map((invite) => ({
