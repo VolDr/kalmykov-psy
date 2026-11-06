@@ -172,7 +172,7 @@
 				<div class="eyebrow">● &nbsp; Онлайн-встреча</div>
 				<h1>Хорошо, что вы <em>здесь.</em></h1>
 				<p>Устройтесь поудобнее. Проверьте камеру и микрофон перед встречей.</p>
-				<div class="notice"><ShieldCheck size={20}/><div><strong>Только вы и ваш собеседник</strong><span>Доступ в комнату регулируется настройками Galene.</span></div></div>
+				<div class="notice"><ShieldCheck size={20}/><div><strong>Доступ только по приглашению</strong><span>У каждого участника собственная ссылка для входа.</span></div></div>
 			</section>
 			<section class="panel">
 				<div class="video">
