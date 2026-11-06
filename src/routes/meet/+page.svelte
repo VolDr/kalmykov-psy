@@ -1,11 +1,9 @@
 <script lang="ts">
 	// @ts-nocheck
 	import { onMount } from 'svelte';
-	import { env } from '$env/dynamic/public';
 	import { Camera, CameraOff, Mic, MicOff, MonitorUp, PhoneOff, ShieldCheck, Copy, Check, ArrowRight, AlertCircle, MessageCircle, Send, X, Users, Video, RefreshCw } from '@lucide/svelte';
 	import { ServerConnection } from '#lib/galene/protocol.js';
 
-	const backend = (env.PUBLIC_GALENE_ORIGIN || 'https://meet.kalmykov-psy.ru').replace(/\/$/, '');
 	let localVideo: HTMLVideoElement;
 	let localStream: MediaStream | null = $state(null);
 	let screenStream: MediaStream | null = $state(null);
@@ -80,9 +78,13 @@
 		if (!name.trim() || !room.trim() || state !== 'preview') return;
 		state = 'connecting'; error = '';
 		try {
-			const statusUrl = backend + '/group/' + encodeURIComponent(room) + '/.status';
-			const response = await fetch(statusUrl);
-			if (!response.ok) throw new Error('Комната не найдена или сервер недоступен (' + response.status + ').');
+			const response = await fetch('/api/meet/status?room=' + encodeURIComponent(room), {
+				cache: 'no-store'
+			});
+			if (!response.ok) {
+				const details = await response.json().catch(() => null);
+				throw new Error(details?.error || 'Комната не найдена или сервер недоступен (' + response.status + ').');
+			}
 			const info = await response.json();
 			const sc = new ServerConnection();
 			connection = sc;
