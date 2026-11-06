@@ -10,12 +10,13 @@
 	let localVideo: HTMLVideoElement;
 	let localStream: MediaStream | null = $state(null);
 	let displayStream: MediaStream | null = $state(null);
-	type BlurMode = 'off' | 'light' | 'strong';
+	type BlurMode = 'off' | 'light' | 'strong' | 'max';
 	const BLUR_STORAGE_KEY = 'kalmykov-meet-blur-mode';
-	const BLUR_OPTIONS: { mode: BlurMode; label: string; strength: string }[] = [
-		{ mode: 'off', label: 'Без размытия', strength: '0' },
-		{ mode: 'light', label: 'Легкое', strength: '0.2' },
-		{ mode: 'strong', label: 'Сильное', strength: '0.5' }
+	const BLUR_OPTIONS: { mode: BlurMode; label: string }[] = [
+		{ mode: 'off', label: 'Без размытия' },
+		{ mode: 'light', label: 'Легкое' },
+		{ mode: 'strong', label: 'Сильное' },
+		{ mode: 'max', label: 'Максимальное' }
 	];
 	let blurMode = $state<BlurMode>('off');
 	let blurMenuOpen = $state(false);
@@ -210,7 +211,7 @@
 		}
 
 		blurBusy = true;
-		const strength: BlurStrength = blurMode === 'light' ? 0.2 : 0.5;
+		const strength: BlurStrength = blurMode === 'light' ? 0.2 : blurMode === 'max' ? 0.7 : 0.5;
 		let newSession: BlurSession | null = null;
 		try {
 			if (blurSession && blurInput === camera) {
@@ -520,7 +521,7 @@
 		try { name = window.localStorage.getItem(DISPLAY_NAME_KEY) || ''; } catch { name = ''; }
 		try {
 			const savedBlur = window.localStorage.getItem(BLUR_STORAGE_KEY);
-			blurMode = savedBlur === 'light' || savedBlur === 'strong' ? savedBlur : 'off';
+			blurMode = savedBlur === 'light' || savedBlur === 'strong' || savedBlur === 'max' ? savedBlur : 'off';
 		} catch { blurMode = 'off'; }
 		try { if (window.localStorage.getItem(kickStorageKey()) === '1') state = 'kicked'; } catch {}
 		if (state !== 'kicked') preview();
@@ -582,7 +583,7 @@
 									class:selected={blurMode === choice.mode}
 									aria-pressed={blurMode === choice.mode}
 									onclick={() => chooseBlurMode(choice.mode)}>
-									<span>{choice.label}</span><small>{choice.strength}</small>
+									<span>{choice.label}</span>
 								</button>
 							{/each}
 						</div>
@@ -696,7 +697,7 @@
 									aria-pressed={blurMode === choice.mode}
 									disabled={blurBusy}
 									onclick={() => chooseBlurMode(choice.mode)}>
-									<span>{choice.label}</span><small>{choice.strength}</small>
+									<span>{choice.label}</span>
 								</button>
 							{/each}
 							{#if blurBusy}<p>Применяем эффект…</p>{/if}
@@ -728,8 +729,8 @@
 	.invitation-label{display:flex;align-items:center;gap:10px;margin:5px 0 17px;color:#526c51;font-size:13px;font-weight:650}
 	.invitation-info{display:flex;justify-content:space-between;gap:12px;align-items:center;border-top:1px solid #e9ece6;padding:13px 1px;font-size:13px}.invitation-info span{color:#888f85}.invitation-info strong{color:#364438;font-weight:650;overflow-wrap:anywhere;text-align:right}.invite-warning{font-size:12px;line-height:1.6;color:#a35b45;margin:14px 0}
 	.blur-prejoin{margin:18px 0 4px;border:0;padding:0;min-width:0}.blur-prejoin legend{display:flex;gap:7px;align-items:center;font-size:12px;font-weight:650;color:#526c51;padding:0 0 9px}.blur-prejoin legend span{color:#9b9e96;font-weight:400}
-	.blur-choices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.blur-choices button{background:#f8faf6;border:1px solid #e0e6dc;border-radius:8px;min-height:52px;padding:8px 5px;display:flex;flex-direction:column;gap:4px;align-items:center;justify-content:center;color:#526151;cursor:pointer}.blur-choices button span{font-size:12px}.blur-choices button small{font-size:10px;color:#8b9988}.blur-choices button.selected{background:#e9f1e5;border-color:#759771;color:#2f5131}.blur-choices button:disabled{opacity:.55;cursor:not-allowed}
-	.blur-toolbar{position:relative;display:flex;align-items:center}.blur-popover{position:absolute;z-index:15;bottom:64px;left:50%;transform:translateX(-50%);width:205px;border-radius:13px;border:1px solid #e0e6dc;background:#fff;box-shadow:0 12px 32px #0003;padding:11px;display:flex;flex-direction:column;gap:4px;color:#29322b}.blur-popover>strong{padding:5px 7px 8px;font-size:12px}.toolbar .blur-popover button{width:100%;height:auto;min-height:38px;border-radius:7px;background:#fff;color:#405743;padding:8px 9px;display:flex;flex-direction:row;align-items:center;justify-content:space-between;gap:8px;text-align:left;font-size:12px}.toolbar .blur-popover button.selected{background:#e9f1e5;color:#2f5131}.blur-popover small{color:#879083;font-size:11px}.blur-popover p{margin:4px;font-size:11px;color:#71836e}
+	.blur-choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}.blur-choices button{background:#f8faf6;border:1px solid #e0e6dc;border-radius:8px;min-height:52px;padding:8px 5px;display:flex;flex-direction:column;gap:4px;align-items:center;justify-content:center;color:#526151;cursor:pointer}.blur-choices button span{font-size:12px}.blur-choices button.selected{background:#e9f1e5;border-color:#759771;color:#2f5131}.blur-choices button:disabled{opacity:.55;cursor:not-allowed}
+	.blur-toolbar{position:relative;display:flex;align-items:center}.blur-popover{position:absolute;z-index:15;bottom:64px;left:50%;transform:translateX(-50%);width:205px;border-radius:13px;border:1px solid #e0e6dc;background:#fff;box-shadow:0 12px 32px #0003;padding:11px;display:flex;flex-direction:column;gap:4px;color:#29322b}.blur-popover>strong{padding:5px 7px 8px;font-size:12px}.toolbar .blur-popover button{width:100%;height:auto;min-height:38px;border-radius:7px;background:#fff;color:#405743;padding:8px 9px;display:flex;flex-direction:row;align-items:center;justify-content:space-between;gap:8px;text-align:left;font-size:12px}.toolbar .blur-popover button.selected{background:#e9f1e5;color:#2f5131}.blur-popover p{margin:4px;font-size:11px;color:#71836e}
 	.primary{margin-top:17px;width:100%;border:0;border-radius:10px;min-height:49px;display:flex;align-items:center;justify-content:center;gap:12px;background:#526c51;color:white;font:inherit;font-size:14px;font-weight:650;cursor:pointer}.primary:disabled{background:#a4b2a0;cursor:not-allowed}.hint{text-align:center;color:#9ba198;font-size:11px;margin:12px 0 0}
 	.call{flex:1;min-height:0;display:flex;flex-direction:column;padding:0 clamp(12px,3vw,50px) 18px;gap:17px}.call-top{display:flex;justify-content:space-between;align-items:center;padding:5px 10px}.call-top strong{font-size:16px;display:block}.call-top span{color:#859083;font-size:12px}.call-meta{display:flex;align-items:center;gap:9px;color:#707d71}.call-meta button,.chat button{border:0;background:transparent;color:inherit;cursor:pointer}.role-indicator{display:inline-flex;align-items:center;gap:5px;border:1px solid #d7ddd2;border-radius:30px;color:#667266;background:#f3f5f0;padding:6px 9px;font-size:11px}.role-indicator.moderator{border-color:#b5c6aa;background:#e4eddf;color:#345a37;font-weight:650}
 	.call-main{display:flex;gap:16px;flex:1;min-height:350px}.tiles{flex:1;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:14px;align-content:center}.tile{position:relative;min-height:240px;aspect-ratio:16/10;background:#29312c;overflow:hidden;border-radius:17px}.tile video.dim{visibility:hidden}.empty-tile{border:1px dashed #cad1c8;border-radius:17px;min-height:240px;display:flex;align-items:center;justify-content:center;flex-direction:column;color:#879485;gap:12px}.empty-tile strong{color:#556151}.empty-tile p{font-size:13px;margin:0}.empty-tile button{background:#fff;border:1px solid #dce2d8;border-radius:9px;padding:10px 15px;display:flex;gap:8px;cursor:pointer;color:#4c6048}
