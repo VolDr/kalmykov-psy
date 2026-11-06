@@ -15,7 +15,8 @@ These commands only add static assets used by the web client's blur worker.
     curl -fL https://registry.npmjs.org/@mediapipe/tasks-vision/-/tasks-vision-0.10.21.tgz -o tasks-vision.tgz
     mkdir -p /tmp/galene-mediapipe
     tar xzf /tmp/tasks-vision.tgz -C /tmp/galene-mediapipe
-    cp -a /tmp/galene-mediapipe/package /opt/galene/static/third-party/tasks-vision
+    mkdir -p /opt/galene/static/third-party/tasks-vision
+    cp -a /tmp/galene-mediapipe/package/. /opt/galene/static/third-party/tasks-vision/
     mkdir -p /opt/galene/static/third-party/tasks-vision/models
     curl -fL https://storage.googleapis.com/mediapipe-models/image_segmenter/selfie_segmenter/float16/latest/selfie_segmenter.tflite -o /opt/galene/static/third-party/tasks-vision/models/selfie_segmenter.tflite
     chown -R galene:galene /opt/galene/static/third-party/tasks-vision
