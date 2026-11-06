@@ -59,7 +59,7 @@
 	afterNavigate(({ shallow, type }) => {
 		if (shallow && type === 'goto') return;
 
-		if (typeof window.ym === 'function') {
+		if (!window.location.pathname.startsWith('/meet') && typeof window.ym === 'function') {
 			window.ym(105424317, 'hit', window.location.href);
 		}
 	});
