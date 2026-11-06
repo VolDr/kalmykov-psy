@@ -4,7 +4,7 @@
  * Keep the output MediaStream stable when switching between light/strong
  * modes, so Galene does not need to renegotiate its WebRTC connection.
  */
-export type BlurStrength = 0.2 | 0.5 | 0.7;
+export type BlurStrength = 0.2 | 0.4 | 0.7;
 
 export type BlurSession = {
 	stream: MediaStream;
