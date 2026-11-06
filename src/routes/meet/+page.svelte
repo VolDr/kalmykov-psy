@@ -1,11 +1,17 @@
 <script lang="ts">
 	// @ts-nocheck
 	import { onMount } from 'svelte';
-	import { Camera, CameraOff, Mic, MicOff, MonitorUp, PhoneOff, ShieldCheck, Copy, Check, ArrowRight, AlertCircle, MessageCircle, Send, X, Users, Video, RefreshCw } from '@lucide/svelte';
+	import { Camera, CameraOff, Mic, MicOff, MonitorUp, PhoneOff, ShieldCheck, Copy, Check, ArrowRight, AlertCircle, MessageCircle, Send, X, Users, Video, RefreshCw, Sparkles } from '@lucide/svelte';
 	import { ServerConnection } from '#lib/galene/protocol.js';
+	import { createBackgroundBlur, type BlurSession } from '#lib/meet/background-blur.js';
 
 	let localVideo: HTMLVideoElement;
 	let localStream: MediaStream | null = $state(null);
+	let displayStream: MediaStream | null = $state(null);
+	let blurEnabled = $state(false);
+	let blurBusy = $state(false);
+	let blurSession: BlurSession | null = null;
+	let blurVersion = 0;
 	let screenStream: MediaStream | null = $state(null);
 	let outgoing: any = null;
 	let screenOutgoing: any = null;
@@ -48,11 +54,14 @@
 		error = '';
 		try {
 			const next = await navigator.mediaDevices.getUserMedia({ audio: micEnabled, video: cameraEnabled });
+			blurVersion++;
+			blurSession?.stop(); blurSession = null;
 			stop(localStream);
 			localStream = next;
-			// If camera permissions complete after joining, publish the stream now.
-			if (state === 'connected' && canPresent) publishLocalMedia(next);
+			displayStream = next;
 			if (localVideo) { localVideo.srcObject = next; await localVideo.play().catch(() => {}); }
+			if (blurEnabled && next.getVideoTracks().length) await applyBackgroundBlur();
+			else if (state === 'connected' && canPresent) publishLocalMedia(next);
 		} catch {
 			error = 'Не удалось открыть камеру или микрофон. Проверьте разрешения браузера.';
 		} finally { loading = false; }
@@ -85,6 +94,47 @@
 			streams: [media]
 		}));
 		return c;
+	}
+	async function applyBackgroundBlur() {
+		const ticket = ++blurVersion;
+		if (!blurEnabled || !localStream?.getVideoTracks().length) {
+			blurSession?.stop();
+			blurSession = null;
+			displayStream = localStream;
+			if (localVideo && state !== 'connected') {
+				localVideo.srcObject = displayStream;
+				if (displayStream) void localVideo.play().catch(() => {});
+			}
+			if (displayStream && state === 'connected' && canPresent) publishLocalMedia(displayStream);
+			return;
+		}
+		blurBusy = true;
+		try {
+			const session = await createBackgroundBlur(localStream);
+			if (ticket !== blurVersion) { session.stop(); return; }
+			blurSession?.stop();
+			blurSession = session;
+			displayStream = session.stream;
+			if (localVideo && state !== 'connected') {
+				localVideo.srcObject = displayStream;
+				void localVideo.play().catch(() => {});
+			}
+			if (state === 'connected' && canPresent) publishLocalMedia(session.stream);
+		} catch (e) {
+			if (ticket !== blurVersion) return;
+			blurEnabled = false;
+			blurSession?.stop(); blurSession = null;
+			displayStream = localStream;
+			error = 'Размытие фона недоступно: ' + (e instanceof Error ? e.message : String(e));
+			if (displayStream && state === 'connected' && canPresent) publishLocalMedia(displayStream);
+		} finally {
+			if (ticket === blurVersion) blurBusy = false;
+		}
+	}
+	function toggleBackgroundBlur() {
+		if (blurBusy) return;
+		blurEnabled = !blurEnabled;
+		void applyBackgroundBlur();
 	}
 	function publishLocalMedia(stream: MediaStream) {
 		if (!connection || !canPresent) return;
@@ -119,7 +169,7 @@
 					state = 'connected';
 					canPresent = perms.includes('present');
 					sc.request({ '': ['audio', 'video'] });
-					if (localStream && canPresent) publishLocalMedia(localStream);
+					if (displayStream && canPresent) publishLocalMedia(displayStream);
 					if (!canPresent) error = 'У аккаунта нет права трансляции (present).';
 				}
 				if (kind === 'change') canPresent = perms.includes('present');
@@ -214,7 +264,7 @@
 		inviteToken = invite.get('token') || '';
 		try { name = window.localStorage.getItem(DISPLAY_NAME_KEY) || ''; } catch { name = ''; }
 		preview();
-		return () => { closeConnection(); stop(localStream); };
+		return () => { blurVersion++; blurSession?.stop(); closeConnection(); stop(localStream); };
 	});
 </script>
 
@@ -246,6 +296,7 @@
 					<div class="video-buttons">
 						<button onclick={toggleMic} class:off={!micEnabled} title={micEnabled ? 'Выключить микрофон' : 'Включить микрофон'} aria-label="Микрофон">{#if micEnabled}<Mic size={21}/>{:else}<MicOff size={21}/>{/if}</button>
 						<button onclick={toggleCamera} class:off={!cameraEnabled} title={cameraEnabled ? 'Выключить камеру' : 'Включить камеру'} aria-label="Камера">{#if cameraEnabled}<Camera size={21}/>{:else}<CameraOff size={21}/>{/if}</button>
+						<button onclick={toggleBackgroundBlur} class:active={blurEnabled} disabled={blurBusy || !cameraEnabled} title={blurBusy ? 'Подключаем размытие…' : blurEnabled ? 'Убрать размытие фона' : 'Размыть фон'} aria-label="Размытие фона"><Sparkles size={20}/></button>
 						<button onclick={preview} title="Обновить устройства" aria-label="Обновить устройства"><RefreshCw size={20}/></button>
 					</div>
 				</div>
@@ -264,7 +315,7 @@
 			<div class="call-top"><div><strong>Встреча</strong><span>{room}</span></div><div class="call-meta"><Users size={17}/>{userCount} <button onclick={copyLink} title="Скопировать свою ссылку">{#if copied}<Check size={17}/>{:else}<Copy size={17}/>{/if}</button></div></div>
 			<div class="call-main">
 				<div class="tiles">
-					<div class="tile"><video use:streamAction={localStream} autoplay muted playsinline class:dim={!cameraEnabled}></video><div class="tile-label">Вы {#if !micEnabled}<MicOff size={14}/>{/if}</div></div>
+					<div class="tile"><video use:streamAction={displayStream || localStream} autoplay muted playsinline class:dim={!cameraEnabled}></video><div class="tile-label">Вы {#if !micEnabled}<MicOff size={14}/>{/if}</div></div>
 					{#each participants as peer (peer.id)}
 						<div class="tile">
 							<video use:streamAction={peer.stream} autoplay playsinline></video>
@@ -287,6 +338,7 @@
 				<button onclick={toggleMic} class:off={!micEnabled} title="Микрофон" aria-label="Микрофон">{#if micEnabled}<Mic size={22}/>{:else}<MicOff size={22}/>{/if}</button>
 				<button onclick={toggleCamera} class:off={!cameraEnabled} title="Камера" aria-label="Камера">{#if cameraEnabled}<Camera size={22}/>{:else}<CameraOff size={22}/>{/if}</button>
 				<button onclick={shareScreen} class:active={!!screenStream} disabled={!canPresent} title="Показать экран" aria-label="Показать экран"><MonitorUp size={22}/></button>
+				<button onclick={toggleBackgroundBlur} class:active={blurEnabled} disabled={blurBusy || !cameraEnabled} title={blurBusy ? 'Подключаем размытие…' : blurEnabled ? 'Убрать размытие фона' : 'Размыть фон'} aria-label="Размытие фона"><Sparkles size={22}/></button>
 				<button onclick={() => chatOpen = !chatOpen} class:active={chatOpen} title="Чат" aria-label="Чат"><MessageCircle size={22}/></button>
 				<button class="hangup" onclick={leave} title="Завершить звонок" aria-label="Завершить звонок"><PhoneOff size={23}/></button>
 			</div>
@@ -307,7 +359,7 @@
 	.panel{background:#fff;border:1px solid #e6e8e1;box-shadow:0 18px 60px #39423420;border-radius:21px;padding:12px 12px 25px;width:100%;max-width:580px}
 	.video{height:auto;aspect-ratio:1.42;background:#29312c;border-radius:14px;overflow:hidden;position:relative}
 	.video video,.tile video{width:100%;height:100%;object-fit:cover}.video>video{transform:scaleX(-1)}.hidden{visibility:hidden}.placeholder{position:absolute;inset:0;color:#c5cec2;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;font-size:13px}.avatar{background:#465148;border-radius:50%;width:77px;height:77px;display:grid;place-items:center}.userlabel,.tile-label{position:absolute;bottom:18px;left:19px;background:#1e2621bc;color:white;border-radius:8px;padding:8px 12px;font-size:12px;display:flex;gap:9px;align-items:center}
-	.video-buttons{position:absolute;bottom:15px;right:17px;display:flex;gap:9px}.video-buttons button,.toolbar button{border:0;color:#fff;background:#4c5c4f;display:grid;place-items:center;cursor:pointer;width:44px;height:44px;border-radius:50%}.video-buttons button.off,.toolbar button.off{background:#ba7163}.video-buttons button:hover,.toolbar button:hover{filter:brightness(1.13)}
+	.video-buttons{position:absolute;bottom:15px;right:17px;display:flex;gap:9px}.video-buttons button,.toolbar button{border:0;color:#fff;background:#4c5c4f;display:grid;place-items:center;cursor:pointer;width:44px;height:44px;border-radius:50%}.video-buttons button.off,.toolbar button.off{background:#ba7163}.video-buttons button.active{background:#b8c9b3;color:#29322b}.video-buttons button:hover,.toolbar button:hover{filter:brightness(1.13)}
 	.fields{padding:21px 23px 0}.fields label{display:block;font-size:12px;font-weight:650;margin:11px 0 7px}.fields input,.chat input{width:100%;box-sizing:border-box;padding:12px 14px;border:1px solid #e0e3db;border-radius:9px;background:#fdfdfb;font:inherit;font-size:14px;color:#29322b;outline:none}.fields input:focus,.chat input:focus{border-color:#8a9b7e;box-shadow:0 0 0 3px #8a9b7e20}
 	.invitation-label{display:flex;align-items:center;gap:10px;margin:5px 0 17px;color:#526c51;font-size:13px;font-weight:650}
 	.invitation-info{display:flex;justify-content:space-between;gap:12px;align-items:center;border-top:1px solid #e9ece6;padding:13px 1px;font-size:13px}.invitation-info span{color:#888f85}.invitation-info strong{color:#364438;font-weight:650;overflow-wrap:anywhere;text-align:right}.invite-warning{font-size:12px;line-height:1.6;color:#a35b45;margin:14px 0}
