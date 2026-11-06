@@ -74,7 +74,9 @@ function groupPath(group: string) {
 
 export async function listManagedRooms(): Promise<{ id: string; title: string; maxClients: number | null }[]> {
 	const response = await request(API_PREFIX + '/');
-	const groups: unknown = await response.json();
+	// Galene serializes a nil group list as JSON null until the first room exists.
+	const payload: unknown = await response.json();
+	const groups: unknown = payload === null ? [] : payload;
 	if (!Array.isArray(groups)) throw new GaleneAdminError('Неожиданный ответ от Galene.');
 	const managed = groups.filter((name): name is string => typeof name === 'string' && ROOM_RE.test(name));
 	const details = await Promise.all(
