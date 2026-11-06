@@ -29,42 +29,20 @@
 		hidden.value = new Date(startLocal).toISOString();
 	}
 
-	async function getVideoDuration(file: File): Promise<number> {
-		return new Promise((resolve, reject) => {
-			const video = document.createElement('video');
-			const objectUrl = URL.createObjectURL(file);
-			const timer = window.setTimeout(() => finish(null), 20000);
-			function finish(duration: number | null) {
-				window.clearTimeout(timer);
-				video.removeAttribute('src');
-				video.load();
-				URL.revokeObjectURL(objectUrl);
-				if (!duration || !Number.isFinite(duration)) reject(new Error('Не удалось определить длительность MP4.'));
-				else resolve(duration);
-			}
-			video.preload = 'metadata';
-			video.onloadedmetadata = () => finish(video.duration);
-			video.onerror = () => finish(null);
-			video.src = objectUrl;
-		});
-	}
-
 	async function uploadVideo(id: string, file: File) {
 		if (uploading) return;
-		if (!file.name.toLowerCase().endsWith('.mp4') || file.size > 1024 * 1024 * 1024) {
-			uploadError = 'Нужен MP4 размером до 1 ГБ.';
+		if (!file.name.toLowerCase().endsWith('.zip') || file.size > 1024 * 1024 * 1024) {
+			uploadError = 'Нужен ZIP с готовым HLS (index.m3u8 и .ts), до 1 ГБ.';
 			return;
 		}
 		uploading = id;
 		progress = 0;
 		uploadError = '';
 		try {
-			const duration = await getVideoDuration(file);
 			await new Promise<void>((resolve, reject) => {
 				const xhr = new XMLHttpRequest();
 				xhr.open('PUT', '/admin/webinars/' + id + '/upload');
-				xhr.setRequestHeader('Content-Type', 'video/mp4');
-				xhr.setRequestHeader('X-Video-Duration', String(duration));
+				xhr.setRequestHeader('Content-Type', 'application/zip');
 				xhr.upload.onprogress = (event) => {
 					if (event.lengthComputable) progress = Math.floor(event.loaded / event.total * 100);
 				};
@@ -101,7 +79,7 @@
 <div class="mx-auto max-w-5xl space-y-7 p-6">
 	<div>
 		<h1 class="flex items-center gap-2 text-2xl font-semibold"><Video size={23}/> Автовебинары</h1>
-		<p class="mt-2 text-sm text-stone-500">Загрузите MP4 и назначьте время. Участники увидят видео одновременно, начиная с текущего момента эфира.</p>
+		<p class="mt-2 text-sm text-stone-500">Загрузите готовый HLS ZIP и назначьте время. Участники увидят видео одновременно, начиная с текущего момента эфира.</p>
 	</div>
 	{#if form && 'error' in form && form.error}
 		<p class="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800" role="alert">{form.error}</p>
@@ -123,7 +101,7 @@
 			<input type="hidden" name="startAt"/>
 			<button type="submit" class="flex items-center justify-center gap-2 rounded-lg bg-stone-800 px-5 py-3 text-sm font-medium text-white hover:bg-stone-700"><Plus size={16}/> Создать</button>
 		</form>
-		<p class="mt-3 text-xs text-stone-500">Затем загрузите видео в карточке вебинара. Время хранится в UTC; зрителям показывается в их часовом поясе.</p>
+		<p class="mt-3 text-xs text-stone-500">Затем загрузите ZIP с index.m3u8 и .ts-сегментами (один VOD-поток). Время хранится в UTC; зрителям показывается в их часовом поясе.</p>
 	</section>
 	<section class="space-y-4">
 		<h2 class="font-semibold">Созданные вебинары ({data.webinars.length})</h2>
@@ -149,8 +127,8 @@
 				{#if !webinar.ready}
 					<label class="flex cursor-pointer items-center gap-3 rounded-lg border border-dashed border-stone-300 p-4 text-sm text-stone-600">
 						<UploadCloud size={20}/>
-						{uploading === webinar.id ? 'Загрузка видео: ' + progress + '%' : 'Выбрать и загрузить MP4 до 1 ГБ'}
-						<input type="file" accept=".mp4,video/mp4" class="sr-only" disabled={!!uploading}
+						{uploading === webinar.id ? 'Загрузка видео: ' + progress + '%' : 'Выбрать и загрузить HLS ZIP до 1 ГБ'}
+						<input type="file" accept=".zip,application/zip" class="sr-only" disabled={!!uploading}
 							onchange={(event) => { const file = event.currentTarget.files?.[0]; if (file) void uploadVideo(webinar.id, file); }}/>
 					</label>
 					{#if uploading === webinar.id}<progress value={progress} max="100" class="w-full"></progress>{/if}
@@ -171,8 +149,8 @@
 		{/each}
 	</section>
 	<p class="text-xs leading-relaxed text-stone-500">
-		Видеофайл хранится на диске сервера, доступен только по ссылке-приглашению и только во время показа.
+		Готовые HLS-сегменты хранятся на диске сервера, доступен только по ссылке-приглашению и только во время показа.
 		Синхронизация просмотра — по часам сервера. Это не DRM: технически подготовленный зритель может сохранить видео,
-		поскольку браузер получает MP4.
+		поскольку браузер получает видеофрагменты.
 	</p>
 </div>
