@@ -72,15 +72,27 @@ function groupPath(group: string) {
 	return API_PREFIX + '/' + group;
 }
 
-export async function listManagedRooms() {
+export async function listManagedRooms(): Promise<{ id: string; title: string; maxClients: number | null }[]> {
 	const response = await request(API_PREFIX + '/');
 	const groups: unknown = await response.json();
 	if (!Array.isArray(groups)) throw new GaleneAdminError('Неожиданный ответ от Galene.');
-	// Only operate on meetings created by this admin interface.
-	return groups
-		.filter((name): name is string => typeof name === 'string' && ROOM_RE.test(name))
-		.sort()
-		.reverse();
+	const managed = groups.filter((name): name is string => typeof name === 'string' && ROOM_RE.test(name));
+	const details = await Promise.all(
+		managed.map(async (id) => {
+			try {
+				const r = await request(groupPath(id));
+				const data = (await r.json()) as Record<string, unknown>;
+				return {
+					id,
+					title: typeof data.displayName === 'string' ? data.displayName : id,
+					maxClients: typeof data['max-clients'] === 'number' ? data['max-clients'] : null
+				};
+			} catch {
+				return { id, title: id, maxClients: null };
+			}
+		})
+	);
+	return details.sort((a, b) => b.id.localeCompare(a.id));
 }
 
 export function roomSlug() {
