@@ -87,6 +87,8 @@
 	function closeConnection() {
 		const old = connection;
 		connection = null;
+		// Stop any RTC receiver still referenced by Galene, including streams not yet rendered.
+		try { Object.values(old?.down ?? {}).forEach((down: any) => stop(down?.stream ?? null)); } catch {}
 		try { old?.close(); } catch {}
 		outgoing = null; screenOutgoing = null;
 		stop(screenStream); screenStream = null;
@@ -334,6 +336,7 @@
 				}
 			};
 			sc.onuser = (id: string, kind: string) => {
+				if (connection !== sc || state === 'kicked') return;
 				const oldRaised = remoteUsers.find(u => u.id === id)?.raised === true;
 				remoteUsers = Object.entries(sc.users)
 					.filter(([userId]) => userId !== sc.id)
@@ -360,7 +363,9 @@
 				}
 			};
 			sc.ondownstream = (down: any) => {
+				if (connection !== sc || state === 'kicked') { stop(down.stream ?? null); return; }
 				const update = (media: MediaStream | null, mediaStatus: string) => {
+					if (connection !== sc || state === 'kicked') { stop(media); return; }
 					const previous = participants.find(p => p.id === down.id);
 					participants = [
 						...participants.filter(p => p.id !== down.id),
@@ -399,7 +404,7 @@
 				messages = [...messages.slice(-99), { id: id || crypto.randomUUID(), source: source || '', name: username || 'Участник', text: value, self: source === sc.id }];
 			};
 			sc.onusermessage = (_id: string, _dest: string, _username: string, _time: Date, privileged: boolean, kind: string, operationError: string, value: unknown) => {
-				if (operationError) { roomLockPending = false; error = 'Galene: ' + operationError; return; }
+				if (operationError) { roomLockPending = false; handPending = false; error = 'Galene: ' + operationError; return; }
 				if (kind === 'kicked' && privileged) { disconnectKicked('Ведущий исключил вас из встречи.'); return; }
 				if (kind === 'mute' && privileged) {
 					micEnabled = false;
@@ -410,7 +415,7 @@
 					return;
 				}
 				if (kind === 'error' && privileged) {
-					roomLockPending = false;
+					roomLockPending = false; handPending = false;
 					error = 'Galene: ' + String(value || 'Команда не выполнена.');
 					return;
 				}
