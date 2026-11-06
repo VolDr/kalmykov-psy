@@ -138,7 +138,7 @@
 		else {
 			if (kind === 'camera') selectedCameraId = previous;
 			else selectedMicId = previous;
-			await preview(); // Restore the previous working input if the device vanished.
+			// A failed getUserMedia request does not replace the active stream.
 			error = 'Не удалось переключить устройство. Проверьте, подключено ли оно.';
 		}
 		deviceSwitching = false;
@@ -260,7 +260,21 @@
 			const video: MediaTrackConstraints | boolean = cameraEnabled
 				? (selectedCameraId ? { deviceId: { exact: selectedCameraId } } : true) : false;
 			// getUserMedia({ audio:false, video:false }) throws, so don't request it.
-			if (audio || video) next = await navigator.mediaDevices.getUserMedia({ audio, video });
+			if (audio || video) {
+				try {
+					next = await navigator.mediaDevices.getUserMedia({ audio, video });
+				} catch (cause) {
+					// A previously selected device may have been unplugged since last visit.
+					// Fall back to system defaults only for device-not-found errors.
+					const missingDevice = ['OverconstrainedError', 'NotFoundError'].includes((cause as Error)?.name);
+					if (!missingDevice || !(selectedCameraId || selectedMicId)) throw cause;
+					next = await navigator.mediaDevices.getUserMedia({ audio: Boolean(audio), video: Boolean(video) });
+					if (ticket === mediaRequestVersion) {
+						if (video && selectedCameraId) { selectedCameraId = ''; saveDeviceChoice('camera', ''); }
+						if (audio && selectedMicId) { selectedMicId = ''; saveDeviceChoice('mic', ''); }
+					}
+				}
+			}
 			if (ticket !== mediaRequestVersion || state === 'kicked') { stop(next); return false; }
 			const previous = localStream;
 			blurVersion++;
@@ -693,12 +707,12 @@
 				<option value="">Системный вывод</option>
 				{#each speakers as device, i (device.deviceId)}<option value={device.deviceId}>{device.label || 'Устройство вывода ' + (i + 1)}</option>{/each}
 			</select>
-			{#if speakerPermissionSupported}<button type="button" class="device-request" onclick={requestSpeakerAccess}><Volume2 size={15} inline={true}/> Выбрать другие динамики…</button>{/if}
+			{#if speakerPermissionSupported}<button type="button" class="device-request" onclick={requestSpeakerAccess}><Volume2 size={15}/> Выбрать другие динамики…</button>{/if}
 			<small class="device-help">Звук собеседников воспроизводится на выбранном устройстве. Системный вывод используется по умолчанию.</small>
 		{:else}
 			<small class="device-help">Этот браузер не поддерживает выбор динамиков на сайте. Настройте вывод звука в системе или браузере.</small>
 		{/if}
-		<button type="button" class="device-refresh" onclick={refreshDevices}><RefreshCw size={14} inline={true}/> Обновить список устройств</button>
+		<button type="button" class="device-refresh" onclick={refreshDevices}><RefreshCw size={14}/> Обновить список устройств</button>
 	</div>
 {/snippet}
 
