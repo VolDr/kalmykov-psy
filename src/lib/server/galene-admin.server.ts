@@ -3,6 +3,7 @@
  * reverse proxy must continue blocking /galene-api/.
  */
 import { randomBytes } from 'node:crypto';
+import { listMeetingInvites, registerMeetingInvites, removeMeetingInvites } from './meeting-invites.server.js';
 
 const API_PREFIX = '/galene-api/v0/.groups';
 const ROOM_RE = /^meet-[a-f0-9]{16}$/;
@@ -11,6 +12,7 @@ const INVITE_DAYS = 30;
 const INVITE_MS = INVITE_DAYS * 86400 * 1000;
 
 export type MeetingInvite = {
+	code: string;
 	token: string;
 	label: string;
 	expires: string;
@@ -113,6 +115,7 @@ async function listGroupTokens(group: string): Promise<string[]> {
 
 async function getRoomInvites(group: string): Promise<MeetingInvite[]> {
 	const tokens = await listGroupTokens(group);
+	const aliases = await listMeetingInvites(group);
 	const details = await Promise.all(tokens.map(async (token) => {
 		const response = await request(tokenPath(group, token));
 		const data = (await response.json()) as {
@@ -128,7 +131,9 @@ async function getRoomInvites(group: string): Promise<MeetingInvite[]> {
 		const role = data.permissions.includes('op') ? 'Ведущий' :
 			data.permissions.includes('present') ? 'Участник' : null;
 		if (!role) return null;
-		return { token, label: role, expires: data.expires };
+		const alias = aliases.find(invite => invite.token === token);
+		if (!alias) return null; // legacy link; must be reissued
+		return { code: alias.code, token, label: role, expires: data.expires };
 	}));
 	let index = 0;
 	return details
@@ -237,13 +242,15 @@ export async function createManagedRoom(title: string, maxClients: number) {
 			'autolock': false
 		}, { 'If-None-Match': '*' });
 		created = true;
-		const invites = await generateInvites(group, maxClients);
+		const tokens = await generateInvites(group, maxClients);
+		const invites = await registerMeetingInvites(group, tokens, true);
 		return { group, title, invites };
 	} catch (error) {
 		if (created) {
 			try {
 				await discardTokens(group, await listGroupTokens(group));
 				await request(path, 'DELETE');
+				await removeMeetingInvites(group);
 			} catch {
 				throw new GaleneAdminError('Не удалось отменить создание комнаты. Проверьте Galene вручную.');
 			}
@@ -262,7 +269,8 @@ export async function reissueRoomInvites(group: string) {
 	const maxClients = typeof count === 'number' && count >= 2 && count <= 12 ? count : 2;
 	const oldTokens = await listGroupTokens(group);
 	const minted = await generateInvites(group, maxClients);
-	// Only new links must remain valid.
+	// Publish only the new short links. Existing long links remain revoked.
+	await registerMeetingInvites(group, minted, true);
 	await discardTokens(group, oldTokens);
 	for (const path of [groupPath(group) + '/.users/host', groupPath(group) + '/.wildcard-user']) {
 		try {
@@ -280,4 +288,5 @@ export async function deleteManagedRoom(group: string) {
 	// Galene stores stateful invitation tokens separately from group JSON files.
 	await discardTokens(group, await listGroupTokens(group));
 	await request(groupPath(group), 'DELETE');
+	await removeMeetingInvites(group);
 }
