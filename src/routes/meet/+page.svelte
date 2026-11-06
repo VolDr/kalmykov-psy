@@ -36,36 +36,108 @@
 	let inviteToken = $state('');
 	let room = $state('');
 	let copied = $state(false);
-	let state = $state<'preview'|'connecting'|'connected'>('preview');
+	let state = $state<'preview'|'connecting'|'connected'|'kicked'>('preview');
+	let kickedReason = $state('Ведущий исключил вас из встречи.');
 	let participants: { id: string; source: string; name: string; stream: MediaStream | null; label: string; mediaStatus: string }[] = $state([]);
-	let remoteUsers: { id: string; name: string; raised: boolean }[] = $state([]);
+	let remoteUsers: { id: string; name: string; raised: boolean; raisedAt: number | null }[] = $state([]);
 	let userCount = $state(1);
 	let canPresent = $state(false);
 	let isModerator = $state(false);
 	let roomLocked = $state(false);
 	let roomLockPending = $state(false);
 	let myHandRaised = $state(false);
+	let myHandRaisedAt = $state<number | null>(null);
+	let handPending = $state(false);
+	let handSoundContext: AudioContext | null = null;
 	let membersOpen = $state(false);
 	let chatOpen = $state(false);
 	let chatText = $state('');
+
 	let messages: { id: string; source: string; name: string; text: string; self: boolean }[] = $state([]);
+	// Galene user data carries a UTC timestamp when the hand is raised, so all clients
+	// (including late joiners) reconstruct the same queue instead of relying on
+	// local arrival order of asynchronous WebSocket events.
+	const handQueue = $derived.by(() => {
+		const entries = [
+			...(myHandRaised ? [{ id: '__self__', name: 'Вы', at: myHandRaisedAt ?? Number.MAX_SAFE_INTEGER }] : []),
+			...remoteUsers.filter(u => u.raised).map(u => ({ id: u.id, name: u.name, at: u.raisedAt ?? Number.MAX_SAFE_INTEGER }))
+		];
+		return entries.sort((a, b) => a.at - b.at || a.id.localeCompare(b.id));
+	});
+	const handPosition = (id: string) => handQueue.findIndex(u => u.id === id) + 1;
+	const tileOrder = (id: string, label = '') => {
+		const inQueue = handPosition(id);
+		const streamOffset = label === 'screenshare' ? 1 : 0;
+		if (inQueue) return inQueue * 10 + streamOffset;
+		if (id === '__self__') return 10000;
+		const index = remoteUsers.findIndex(u => u.id === id);
+		return 10010 + (index === -1 ? remoteUsers.length : index) * 10 + streamOffset;
+	};
+	const orderedRemoteUsers = $derived([...remoteUsers].sort((a, b) => tileOrder(a.id) - tileOrder(b.id)));
 	const streamAction = (node: HTMLVideoElement, value: MediaStream | null) => {
 		node.srcObject = value;
 		node.play().catch(() => {});
 		return { update(next: MediaStream | null) { node.srcObject = next; if (next) node.play().catch(() => {}); }, destroy() { node.srcObject = null; } };
 	};
 	const stop = (media: MediaStream | null) => media?.getTracks().forEach(t => t.stop());
-	const cleanRemote = () => { participants = []; remoteUsers = []; userCount = 1; myHandRaised = false; membersOpen = false; messages = []; };
+	const cleanRemote = () => {
+		participants = []; remoteUsers = []; userCount = 1; myHandRaised = false; myHandRaisedAt = null;
+		handPending = false; membersOpen = false; messages = [];
+	};
 	function closeConnection() {
 		const old = connection;
 		connection = null;
+		// Stop any RTC receiver still referenced by Galene, including streams not yet rendered.
+		try { Object.values(old?.down ?? {}).forEach((down: any) => stop(down?.stream ?? null)); } catch {}
 		try { old?.close(); } catch {}
 		outgoing = null; screenOutgoing = null;
 		stop(screenStream); screenStream = null;
+		// Stop inbound tracks immediately, even if the WebSocket close event is delayed.
+		participants.forEach(p => stop(p.stream));
 		cleanRemote();
 		isModerator = false;
 		roomLocked = false;
 		roomLockPending = false;
+	}
+
+	function kickStorageKey() { return 'kalmykov-meet-kicked:' + (inviteCode || room); }
+	function disconnectKicked(reason?: string) {
+		if (state === 'kicked') return;
+		kickedReason = reason?.trim() || 'Ведущий исключил вас из встречи.';
+		try { window.localStorage.setItem(kickStorageKey(), '1'); } catch {}
+		blurVersion++;
+		blurSession?.stop(); blurSession = null; blurInput = null;
+		closeConnection();
+		if (displayStream !== localStream) stop(displayStream);
+		stop(localStream);
+		localStream = null; displayStream = null;
+		canPresent = false; chatOpen = false; blurMenuOpen = false;
+		state = 'kicked';
+	}
+	function enableHandSound() {
+		try {
+			if (!handSoundContext) handSoundContext = new window.AudioContext();
+			void handSoundContext.resume().catch(() => {});
+		} catch { /* Sound is optional when the browser blocks audio. */ }
+	}
+	function playHandSound() {
+		const audio = handSoundContext;
+		if (!audio || audio.state !== 'running') return;
+		try {
+			const start = audio.currentTime;
+			const oscillator = audio.createOscillator();
+			const gain = audio.createGain();
+			oscillator.type = 'sine';
+			oscillator.frequency.setValueAtTime(660, start);
+			oscillator.frequency.setValueAtTime(880, start + 0.11);
+			gain.gain.setValueAtTime(0.0001, start);
+			gain.gain.exponentialRampToValueAtTime(0.09, start + 0.02);
+			gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.29);
+			oscillator.connect(gain);
+			gain.connect(audio.destination);
+			oscillator.start(start);
+			oscillator.stop(start + 0.30);
+		} catch { /* Browser audio may be unavailable. */ }
 	}
 	async function preview() {
 		if (!navigator.mediaDevices?.getUserMedia) { error = 'Для доступа к камере нужен HTTPS.'; return; }
@@ -199,6 +271,8 @@
 	}
 	async function join() {
 		if (!name.trim() || !room.trim() || (!inviteCode && !inviteToken) || state !== 'preview') return;
+		// Unlock Web Audio in the click gesture, before awaiting credentials or WebSocket.
+		enableHandSound();
 		try { window.localStorage.setItem(DISPLAY_NAME_KEY, name.trim()); } catch {}
 		state = 'connecting'; error = '';
 		try {
@@ -232,7 +306,12 @@
 			connection = sc;
 			sc.onconnected = () => { sc.join(info.name, name.trim(), { type: 'token', token: credential }).catch((e: Error) => { error = e.message; leave(); }); };
 			sc.onerror = (e: unknown) => { error = 'Ошибка соединения: ' + String(e); };
-			sc.onclose = () => { if (connection === sc) { connection = null; state = 'preview'; cleanRemote(); isModerator = false; roomLocked = false; roomLockPending = false; } };
+			sc.onclose = (_code: number, reason: string) => {
+				if (connection !== sc) return;
+				if (/kicked|исключ/i.test(reason || '')) { disconnectKicked('Ведущий исключил вас из встречи.'); return; }
+				closeConnection();
+				state = 'preview';
+			};
 			sc.onjoined = (kind: string, group: string, perms: string[], status: unknown, _data: unknown, code: string, message: string) => {
 				if (kind === 'join' || kind === 'change') {
 					// Galene broadcasts authoritative group status after a lock/unlock.
@@ -257,14 +336,24 @@
 				}
 			};
 			sc.onuser = (id: string, kind: string) => {
+				if (connection !== sc || state === 'kicked') return;
+				const oldRaised = remoteUsers.find(u => u.id === id)?.raised === true;
 				remoteUsers = Object.entries(sc.users)
 					.filter(([userId]) => userId !== sc.id)
 					.map(([userId, user]) => ({
 						id: userId,
 						name: (user as { username?: string }).username || 'Участник',
-						raised: (user as { data?: { raisehand?: boolean } }).data?.raisehand === true
+						raised: (user as { data?: { raisehand?: boolean } }).data?.raisehand === true,
+						raisedAt: Number.isFinite((user as { data?: { raisedAt?: number } }).data?.raisedAt) &&
+							(user as { data?: { raisedAt?: number } }).data!.raisedAt! > 0
+							? (user as { data: { raisedAt: number } }).data.raisedAt : null
 					}));
+				if (kind === 'change' && id !== sc.id && state === 'connected' &&
+					!oldRaised && remoteUsers.find(u => u.id === id)?.raised) playHandSound();
 				myHandRaised = sc.users[sc.id]?.data?.raisehand === true;
+				myHandRaisedAt = myHandRaised && Number.isFinite(sc.users[sc.id]?.data?.raisedAt)
+					? sc.users[sc.id].data.raisedAt : null;
+				if (id === sc.id) handPending = false;
 				userCount = remoteUsers.length + 1;
 				// Re-request tracks when a later participant begins presenting.
 				// Without this, the first person in the room can miss the
@@ -274,7 +363,9 @@
 				}
 			};
 			sc.ondownstream = (down: any) => {
+				if (connection !== sc || state === 'kicked') { stop(down.stream ?? null); return; }
 				const update = (media: MediaStream | null, mediaStatus: string) => {
+					if (connection !== sc || state === 'kicked') { stop(media); return; }
 					const previous = participants.find(p => p.id === down.id);
 					participants = [
 						...participants.filter(p => p.id !== down.id),
@@ -313,7 +404,8 @@
 				messages = [...messages.slice(-99), { id: id || crypto.randomUUID(), source: source || '', name: username || 'Участник', text: value, self: source === sc.id }];
 			};
 			sc.onusermessage = (_id: string, _dest: string, _username: string, _time: Date, privileged: boolean, kind: string, operationError: string, value: unknown) => {
-				if (operationError) { roomLockPending = false; error = 'Galene: ' + operationError; return; }
+				if (operationError) { roomLockPending = false; handPending = false; error = 'Galene: ' + operationError; return; }
+				if (kind === 'kicked' && privileged) { disconnectKicked('Ведущий исключил вас из встречи.'); return; }
 				if (kind === 'mute' && privileged) {
 					micEnabled = false;
 					// The sender's audio track must be disabled, not just the UI icon.
@@ -323,7 +415,7 @@
 					return;
 				}
 				if (kind === 'error' && privileged) {
-					roomLockPending = false;
+					roomLockPending = false; handPending = false;
 					error = 'Galene: ' + String(value || 'Команда не выполнена.');
 					return;
 				}
@@ -353,10 +445,18 @@
 		} catch (e) { if ((e as Error)?.name !== 'NotAllowedError') error = 'Не удалось показать экран.'; }
 	}
 	function toggleHand() {
-		if (!connection || state !== 'connected') return;
+		if (!connection || state !== 'connected' || handPending) return;
+		enableHandSound();
+		handPending = true;
+		const isRaising = !myHandRaised;
 		try {
-			connection.userAction('setdata', connection.id, { raisehand: myHandRaised ? null : true });
+			connection.userAction('setdata', connection.id, {
+				raisehand: isRaising ? true : null,
+				raisedAt: isRaising ? Date.now() : null
+			});
+			if (isRaising) playHandSound();
 		} catch {
+			handPending = false;
 			error = 'Не удалось изменить статус поднятой руки.';
 		}
 	}
@@ -422,8 +522,9 @@
 			const savedBlur = window.localStorage.getItem(BLUR_STORAGE_KEY);
 			blurMode = savedBlur === 'light' || savedBlur === 'strong' ? savedBlur : 'off';
 		} catch { blurMode = 'off'; }
-		preview();
-		return () => { blurVersion++; blurSession?.stop(); blurSession = null; blurInput = null; closeConnection(); stop(localStream); };
+		try { if (window.localStorage.getItem(kickStorageKey()) === '1') state = 'kicked'; } catch {}
+		if (state !== 'kicked') preview();
+		return () => { void handSoundContext?.close().catch(() => {}); handSoundContext = null; blurVersion++; blurSession?.stop(); blurSession = null; blurInput = null; closeConnection(); stop(localStream); };
 	});
 </script>
 
@@ -439,7 +540,17 @@
 		<a class="brand" href="/"><span class="logo">к<span>.</span></span><span>Андрей Калмыков<small>Видеовстречи</small></span></a>
 		<div class="private"><ShieldCheck size={17}/> Приватное пространство</div>
 	</header>
-	{#if state !== 'connected'}
+	{#if state === 'kicked'}
+		<main class="kicked-view" role="status">
+			<div class="kicked-panel">
+				<UserX size={45}/>
+				<h1>Вы исключены из встречи</h1>
+				<p>{kickedReason}</p>
+				<p>Связь и видеопотоки отключены. Для повторного доступа обратитесь к организатору.</p>
+				<a href="/">Вернуться на сайт</a>
+			</div>
+		</main>
+	{:else if state !== 'connected'}
 		<main class="prejoin">
 			<section class="intro">
 				<div class="eyebrow">● &nbsp; Онлайн-встреча</div>
@@ -498,12 +609,12 @@
 					{:else if roomLocked}
 						<span class="room-locked-label" title="Ведущий ограничил новые подключения"><Lock size={15}/>Вход закрыт</span>
 					{/if}
-					<button type="button" class="members-trigger" onclick={() => { membersOpen = !membersOpen; if (membersOpen) chatOpen = false; }} aria-label="Список участников" aria-expanded={membersOpen}><Users size={17}/>{userCount}{#if remoteUsers.some(u => u.raised)}<Hand size={15}/>{/if}</button> <button onclick={copyLink} title="Скопировать свою ссылку">{#if copied}<Check size={17}/>{:else}<Copy size={17}/>{/if}</button></div></div>
+					<button type="button" class="members-trigger" onclick={() => { membersOpen = !membersOpen; if (membersOpen) chatOpen = false; }} aria-label="Список участников" aria-expanded={membersOpen}><Users size={17}/>{userCount}{#if handQueue.length}<Hand size={15}/>{/if}</button> <button onclick={copyLink} title="Скопировать свою ссылку">{#if copied}<Check size={17}/>{:else}<Copy size={17}/>{/if}</button></div></div>
 			<div class="call-main">
 				<div class="tiles">
-					<div class="tile"><video use:streamAction={displayStream || localStream} autoplay muted playsinline class:dim={!cameraEnabled}></video>{#if myHandRaised}<div class="hand-indicator"><Hand size={16}/> Рука поднята</div>{/if}<div class="tile-label">Вы {#if isModerator} · Ведущий{/if} {#if !micEnabled}<MicOff size={14}/>{/if}</div></div>
+					<div class="tile" style:order={tileOrder('__self__')}><video use:streamAction={displayStream || localStream} autoplay muted playsinline class="self-video" class:dim={!cameraEnabled}></video>{#if myHandRaised}<div class="hand-indicator"><Hand size={16}/> Рука поднята</div>{/if}<div class="tile-label">Вы {#if isModerator} · Ведущий{/if} {#if !micEnabled}<MicOff size={14}/>{/if}</div></div>
 					{#each participants as peer (peer.id)}
-						<div class="tile">
+						<div class="tile" style:order={tileOrder(peer.source, peer.label)}>
 							<video use:streamAction={peer.stream} autoplay playsinline></video>
 							{#if remoteUsers.some(user => user.id === peer.source && user.raised)}<div class="hand-indicator"><Hand size={16}/> Рука поднята</div>{/if}
 							{#if !peer.stream || peer.mediaStatus === 'failed' || peer.mediaStatus === 'disconnected'}
@@ -514,8 +625,8 @@
 							<div class="tile-label">{peer.name}{peer.label === 'screenshare' ? ' · Экран' : ''}</div>
 						</div>
 					{/each}
-					{#each remoteUsers.filter(user => !participants.some(peer => peer.source === user.id)) as user (user.id)}
-						<div class="empty-tile">{#if user.raised}<Hand size={30}/>{:else}<Users size={36}/>{/if}<strong>{user.name}</strong><p>{user.raised ? 'Поднял руку' : 'Участник подключился, ожидаем его видео'}</p></div>
+					{#each orderedRemoteUsers.filter(user => !participants.some(peer => peer.source === user.id)) as user (user.id)}
+						<div class="empty-tile" style:order={tileOrder(user.id)}>{#if user.raised}<Hand size={30}/>{:else}<Users size={36}/>{/if}<strong>{user.name}</strong><p>{user.raised ? 'Поднял руку' : 'Участник подключился, ожидаем его видео'}</p></div>
 					{/each}
 					{#if participants.length === 0 && remoteUsers.length === 0}<div class="empty-tile"><Users size={36}/><strong>Ожидаем собеседника</strong><p>Другой участник войдет по общей ссылке на комнату</p></div>{/if}
 				</div>
@@ -523,10 +634,12 @@
 					<aside class="chat members-panel">
 						<div class="chat-heading">Участники ({userCount}) <button onclick={() => membersOpen = false} aria-label="Закрыть список"><X size={19}/></button></div>
 						<div class="members-list">
-							<div class="member-row"><span>Вы {#if myHandRaised}<Hand size={17}/>{/if}</span>{#if isModerator}<small>Ведущий</small>{/if}</div>
-							{#each remoteUsers as user (user.id)}
-								<div class="member-row">
-									<span>{user.name} {#if user.raised}<Hand size={17}/>{/if}</span>
+							<div class="member-row" style:order={tileOrder('__self__')}>
+								<span>Вы {#if myHandRaised}<Hand size={17} aria-label="Рука поднята"/>{/if}</span>{#if isModerator}<small>Ведущий</small>{/if}
+							</div>
+							{#each orderedRemoteUsers as user (user.id)}
+								<div class="member-row" style:order={tileOrder(user.id)}>
+									<span>{user.name} {#if user.raised}<Hand size={17} aria-label="Рука поднята"/>{/if}</span>
 									{#if isModerator}
 										<div class="member-tools">
 											<button type="button" class="mute-action" onclick={() => muteUser(user.id, user.name)} title="Выключить микрофон участника" aria-label={'Выключить микрофон у ' + user.name}><MicOff size={16}/></button>
@@ -565,7 +678,7 @@
 				<button onclick={toggleMic} class:off={!micEnabled} title="Микрофон" aria-label="Микрофон">{#if micEnabled}<Mic size={22}/>{:else}<MicOff size={22}/>{/if}</button>
 				<button onclick={toggleCamera} class:off={!cameraEnabled} title="Камера" aria-label="Камера">{#if cameraEnabled}<Camera size={22}/>{:else}<CameraOff size={22}/>{/if}</button>
 				<button onclick={shareScreen} class:active={!!screenStream} disabled={!canPresent} title="Показать экран" aria-label="Показать экран"><MonitorUp size={22}/></button>
-				<button type="button" onclick={toggleHand} class:active={myHandRaised} aria-pressed={myHandRaised} title={myHandRaised ? 'Опустить руку' : 'Поднять руку'} aria-label={myHandRaised ? 'Опустить руку' : 'Поднять руку'}><Hand size={22}/></button>
+				<button type="button" onclick={toggleHand} class:active={myHandRaised} disabled={handPending} aria-pressed={myHandRaised} title={myHandRaised ? 'Опустить руку' : 'Поднять руку'} aria-label={myHandRaised ? 'Опустить руку' : 'Поднять руку'}><Hand size={22}/></button>
 				<div class="blur-toolbar">
 					<button type="button" class:active={blurMode !== 'off'} disabled={!cameraEnabled}
 						onclick={() => blurMenuOpen = !blurMenuOpen}
@@ -609,7 +722,7 @@
 	.intro h1{font:normal clamp(44px,5vw,76px)/1.1 Georgia,serif;letter-spacing:-.055em;margin:0 0 28px}.intro h1 em{color:#8a9b7e}.intro>p{font-size:17px;line-height:1.75;max-width:420px;color:#7c8378}.notice{border-top:1px solid #dedfd7;margin-top:58px;padding-top:25px;display:flex;gap:13px;color:#85977e}.notice strong{color:#4f5e4e;display:block;font-size:13px}.notice span{color:#8a9187;display:block;font-size:12px;margin-top:6px;line-height:1.5}
 	.panel{background:#fff;border:1px solid #e6e8e1;box-shadow:0 18px 60px #39423420;border-radius:21px;padding:12px 12px 25px;width:100%;max-width:580px}
 	.video{height:auto;aspect-ratio:1.42;background:#29312c;border-radius:14px;overflow:hidden;position:relative}
-	.video video,.tile video{width:100%;height:100%;object-fit:cover}.video>video{transform:scaleX(-1)}.hidden{visibility:hidden}.placeholder{position:absolute;inset:0;color:#c5cec2;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;font-size:13px}.avatar{background:#465148;border-radius:50%;width:77px;height:77px;display:grid;place-items:center}.userlabel,.tile-label{position:absolute;bottom:18px;left:19px;background:#1e2621bc;color:white;border-radius:8px;padding:8px 12px;font-size:12px;display:flex;gap:9px;align-items:center}
+	.video video,.tile video{width:100%;height:100%;object-fit:cover}.video>video,.tile video.self-video{transform:scaleX(-1)}.hidden{visibility:hidden}.placeholder{position:absolute;inset:0;color:#c5cec2;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;font-size:13px}.avatar{background:#465148;border-radius:50%;width:77px;height:77px;display:grid;place-items:center}.userlabel,.tile-label{position:absolute;bottom:18px;left:19px;background:#1e2621bc;color:white;border-radius:8px;padding:8px 12px;font-size:12px;display:flex;gap:9px;align-items:center}
 	.video-buttons{position:absolute;bottom:15px;right:17px;display:flex;gap:9px}.video-buttons button,.toolbar button{border:0;color:#fff;background:#4c5c4f;display:grid;place-items:center;cursor:pointer;width:44px;height:44px;border-radius:50%}.video-buttons button.off,.toolbar button.off{background:#ba7163}.video-buttons button.active{background:#b8c9b3;color:#29322b}.video-buttons button:hover,.toolbar button:hover{filter:brightness(1.13)}
 	.fields{padding:21px 23px 0}.fields label{display:block;font-size:12px;font-weight:650;margin:11px 0 7px}.fields input,.chat input{width:100%;box-sizing:border-box;padding:12px 14px;border:1px solid #e0e3db;border-radius:9px;background:#fdfdfb;font:inherit;font-size:14px;color:#29322b;outline:none}.fields input:focus,.chat input:focus{border-color:#8a9b7e;box-shadow:0 0 0 3px #8a9b7e20}
 	.invitation-label{display:flex;align-items:center;gap:10px;margin:5px 0 17px;color:#526c51;font-size:13px;font-weight:650}
@@ -623,6 +736,8 @@
 	.peer-loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:24px;text-align:center;color:#cdd6ca;font-size:13px;pointer-events:none}
 	.toolbar{display:flex;align-items:center;justify-content:center;gap:12px;padding:12px}.toolbar button{width:52px;height:52px;background:#e4e9e0;color:#425440}.toolbar button.active{background:#b8c9b3}.toolbar button.hangup{background:#bb625b;color:white;border-radius:18px;width:73px}.toolbar button:disabled{opacity:.4;cursor:not-allowed}
 	.hand-indicator{position:absolute;top:14px;left:14px;display:flex;gap:7px;align-items:center;padding:7px 11px;background:#f3e6bd;color:#56421d;border-radius:9px;font-weight:700;font-size:12px}
+	.member-row[style*="order"]{transition:background .16s}
+	.kicked-view{flex:1;display:grid;place-items:center;padding:48px 18px}.kicked-panel{width:min(100%,500px);text-align:center;background:#fff;border:1px solid #e6e8e1;border-radius:20px;padding:48px 30px;box-shadow:0 18px 60px #39423415}.kicked-panel>svg{color:#b76257}.kicked-panel h1{font:normal 36px/1.2 Georgia,serif;color:#38483c;margin:20px 0}.kicked-panel p{color:#728072;font-size:14px;line-height:1.65}.kicked-panel a{display:inline-flex;margin-top:18px;background:#455f48;color:#fff;text-decoration:none;border-radius:10px;padding:12px 18px;font-size:14px}
 	.call-meta .members-trigger{display:inline-flex;gap:6px;align-items:center;font-size:12px;padding:6px;border-radius:8px}.call-meta .members-trigger:hover{background:#e3eade}
 	.members-list{display:flex;flex-direction:column;padding:8px 14px;gap:2px;overflow-y:auto}.member-row{display:flex;align-items:center;justify-content:space-between;padding:11px 7px;border-bottom:1px solid #edf0e9;gap:8px;min-width:0}.member-row>span{display:flex;align-items:center;gap:7px;font-size:13px;overflow-wrap:anywhere}.member-row>span svg{color:#ad8b32;flex-shrink:0}.member-row small{font-size:11px;color:#527552}.member-tools{display:flex;align-items:center;gap:5px;flex-shrink:0}.mute-action{background:none;border:0;color:#536f81;cursor:pointer;padding:4px}.mute-action:hover{color:#184f73}.room-lock-button,.room-locked-label{display:inline-flex;align-items:center;gap:5px;padding:7px 9px;border:1px solid #d4ded4;border-radius:9px;background:#e9eee8;color:#415d43;font-size:12px}.room-lock-button{cursor:pointer}.room-lock-button.locked,.room-locked-label{background:#f8e9de;color:#8a5739;border-color:#e5c3ac}.room-lock-button:disabled{opacity:.6;cursor:wait}.kick-action,.delete-message{background:none;border:0;color:#a76559;cursor:pointer;padding:4px}.kick-action:hover,.delete-message:hover{color:#bb3c30}.message-head{display:flex;align-items:center;justify-content:space-between;gap:10px}.chat-heading-actions{display:flex;gap:8px;align-items:center}
 	.chat{width:300px;background:#fff;border:1px solid #e3e7df;border-radius:16px;display:flex;flex-direction:column;overflow:hidden}.chat-heading{padding:20px;font-weight:700;display:flex;justify-content:space-between}.chat-messages{flex:1;overflow:auto;padding:12px 20px}.message{padding:8px 0}.message strong{font-size:12px;color:#556c52}.message p{font-size:13px;margin:5px 0;overflow-wrap:anywhere}.chat form{border-top:1px solid #edf0e9;padding:10px;display:flex;align-items:center;gap:5px}.chat input{border:0}
