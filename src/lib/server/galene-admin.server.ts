@@ -12,7 +12,6 @@ const INVITE_MS = INVITE_DAYS * 86400 * 1000;
 
 export type MeetingInvite = {
 	token: string;
-	username: string;
 	label: string;
 	expires: string;
 };
@@ -97,12 +96,6 @@ function tokenPath(group: string, token?: string): string {
 	return groupPath(group) + '/.tokens/' + (token || '');
 }
 
-function roleLabel(username: string): string | null {
-	if (username === 'Ведущий') return 'Ведущий';
-	const m = /^Клиент ([1-9]|1[0-1])$/.exec(username);
-	return m ? 'Клиент ' + m[1] : null;
-}
-
 async function getGroup(group: string): Promise<Record<string, unknown>> {
 	const response = await request(groupPath(group));
 	return (await response.json()) as Record<string, unknown>;
@@ -127,14 +120,25 @@ async function getRoomInvites(group: string): Promise<MeetingInvite[]> {
 			permissions?: string[];
 			expires?: string;
 		};
-		const label = typeof data.username === 'string' ? roleLabel(data.username) : null;
-		if (!label || typeof data.expires !== 'string') return null;
+		// Earlier builds embedded a fixed username into each token. Those
+		// tokens must be reissued before participants can choose their names.
+		if (data.username !== undefined) return null;
+		if (!Array.isArray(data.permissions) || typeof data.expires !== 'string') return null;
 		if (Date.parse(data.expires) <= Date.now()) return null;
-		return { token, username: data.username!, label, expires: data.expires };
+		const role = data.permissions.includes('op') ? 'Ведущий' :
+			data.permissions.includes('present') ? 'Участник' : null;
+		if (!role) return null;
+		return { token, label: role, expires: data.expires };
 	}));
-	const invites = details.filter((v): v is MeetingInvite => v !== null);
-	return invites.sort((a, b) => a.username === 'Ведущий' ? -1 :
-		b.username === 'Ведущий' ? 1 : a.username.localeCompare(b.username, 'ru'));
+	let index = 0;
+	return details
+		.filter((v): v is MeetingInvite => v !== null)
+		.sort((a, b) => a.label === 'Ведущий' ? -1 :
+			b.label === 'Ведущий' ? 1 : a.token.localeCompare(b.token))
+		.map((invite) => ({
+			...invite,
+			label: invite.label === 'Ведущий' ? 'Ведущий' : 'Участник ' + (++index)
+		}));
 }
 
 export async function listManagedRooms(): Promise<ManagedRoom[]> {
@@ -168,27 +172,25 @@ function roomSlug() {
 	return 'meet-' + randomBytes(8).toString('hex');
 }
 
-function invitationUsers(maxClients: number): string[] {
+function inviteRoles(maxClients: number): Array<'host' | 'guest'> {
 	if (!Number.isInteger(maxClients) || maxClients < 2 || maxClients > 12) {
 		throw new GaleneAdminError('Число участников должно быть от 2 до 12.');
 	}
-	return ['Ведущий', ...Array.from({ length: maxClients - 1 }, (_, i) => 'Клиент ' + (i + 1))];
+	return ['host', ...Array.from({ length: maxClients - 1 }, () => 'guest' as const)];
 }
 
-async function createToken(group: string, username: string): Promise<MeetingInvite> {
-	const label = roleLabel(username);
-	if (!label) throw new GaleneAdminError('Неизвестная роль приглашения.');
+async function createToken(group: string, role: 'host' | 'guest'): Promise<MeetingInvite> {
 	const expires = new Date(Date.now() + INVITE_MS).toISOString();
+	// No username in the token: the user types their preferred name in /meet.
 	const response = await request(tokenPath(group), 'POST', {
-		username,
-		permissions: username === 'Ведущий'
+		permissions: role === 'host'
 			? ['op', 'present', 'message', 'caption']
 			: ['present', 'message'],
 		expires
 	});
 	const token = response.headers.get('Location');
 	if (!token || !TOKEN_RE.test(token)) throw new GaleneAdminError('Galene не вернул токен приглашения.');
-	return { token, username, label, expires };
+	return { token, label: role === 'host' ? 'Ведущий' : 'Участник', expires };
 }
 
 async function discardTokens(group: string, tokens: string[]) {
@@ -208,7 +210,7 @@ async function discardTokens(group: string, tokens: string[]) {
 async function generateInvites(group: string, maxClients: number): Promise<MeetingInvite[]> {
 	const minted: MeetingInvite[] = [];
 	try {
-		for (const username of invitationUsers(maxClients)) minted.push(await createToken(group, username));
+		for (const role of inviteRoles(maxClients)) minted.push(await createToken(group, role));
 		return minted;
 	} catch (error) {
 		// If partial creation fails, do not leave active unreported invitations.
