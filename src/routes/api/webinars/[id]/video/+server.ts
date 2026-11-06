@@ -19,7 +19,7 @@ const handler: RequestHandler = async ({ params, request, cookies }) => {
 	if (!size) return new Response('Empty video', { status: 404 });
 	const range = request.headers.get('range');
 	let start = 0;
-	let end = Math.min(size - 1, MAX_CHUNK - 1);
+	let end = size - 1;
 	if (range) {
 		const match = /^bytes=(\d*)-(\d*)$/.exec(range);
 		if (!match || (!match[1] && !match[2])) {
@@ -42,12 +42,13 @@ const handler: RequestHandler = async ({ params, request, cookies }) => {
 	// Node.js. The browser requests further ranges as playback progresses.
 	const resultHeaders = {
 		...headers,
-		'Content-Range': 'bytes ' + start + '-' + end + '/' + size,
+		...(range ? { 'Content-Range': 'bytes ' + start + '-' + end + '/' + size } : {}),
 		'Content-Length': String(end - start + 1)
 	};
-	if (request.method === 'HEAD') return new Response(null, { status: 206, headers: resultHeaders });
+	const status = range ? 206 : 200;
+	if (request.method === 'HEAD') return new Response(null, { status, headers: resultHeaders });
 	const stream = Readable.toWeb(file.stream(start, end)) as unknown as ReadableStream<Uint8Array>;
-	return new Response(stream, { status: 206, headers: resultHeaders });
+	return new Response(stream, { status, headers: resultHeaders });
 };
 
 export const GET = handler;
