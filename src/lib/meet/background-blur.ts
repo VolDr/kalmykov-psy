@@ -98,7 +98,7 @@ export async function createBackgroundBlur(input: MediaStream): Promise<BlurSess
 		const output = new MediaStream([outputTrack, ...input.getAudioTracks()]);
 		await video.play();
 
-		worker = new Worker('/meet/background-blur-worker.js');
+		worker = new Worker('/meet/background-blur-worker.js?v=2');
 		await workerSendReceive<void>(worker, {
 			model: '/api/meet/blur-assets/models/selfie_segmenter.tflite'
 		});
