@@ -24,6 +24,7 @@
 	// Закрытая страница перевода опросника: без шапки, подвала, баннеров и Метрики
 	let isTranslateRoute = $derived(data.pathname?.startsWith('/translate/'));
 	let isMeetRoute = $derived(data.pathname?.startsWith('/meet'));
+	let isWebinarRoute = $derived(data.pathname?.startsWith('/webinar/'));
 	let isAdRoute = $derived(data.pathname?.startsWith('/ads') || data.pathname?.startsWith('/play'));
 	let isLegalRoute = $derived(data.pathname === '/oferta' || data.pathname === '/privacy');
 	let burnoutQuestionnaireRoute = $derived(data.pathname === '/useful/burnout-questionnaire');
@@ -59,7 +60,7 @@
 	afterNavigate(({ shallow, type }) => {
 		if (shallow && type === 'goto') return;
 
-		if (!window.location.pathname.startsWith('/meet') && typeof window.ym === 'function') {
+		if (!/^\/(meet|webinar)(\/|$)/.test(window.location.pathname) && typeof window.ym === 'function') {
 			window.ym(105424317, 'hit', window.location.href);
 		}
 	});
@@ -112,7 +113,7 @@
 			/^10\./.test(mtHost) ||
 			/^172\.(1[6-9]|2\d|3[01])\./.test(mtHost);
 
-		if (!mtIsLocal && !/^\/(admin|play|translate|meet)(\/|$)/.test(window.location.pathname)) {
+		if (!mtIsLocal && !/^\/(admin|play|translate|meet|webinar)(\/|$)/.test(window.location.pathname)) {
 			(function (m, e, t, r, i, k, a) {
 				m[i] =
 					m[i] ||
@@ -153,7 +154,7 @@
 	>
 </svelte:head>
 
-{#if !isAdminRoute && !isCodeRoute && !isLoginRoute && !burnoutQuestionnaireRoute && !isUsefulRoute && !isAdRoute && !isPaymentResult && !isTranslateRoute && !isMeetRoute}
+{#if !isAdminRoute && !isCodeRoute && !isLoginRoute && !burnoutQuestionnaireRoute && !isUsefulRoute && !isAdRoute && !isPaymentResult && !isTranslateRoute && !isMeetRoute && !isWebinarRoute}
 	{#if page.url.pathname !== '/test-landing'}
 		<Header initialMenuColor="white" />
 	{/if}
@@ -164,7 +165,7 @@
 	<ProgressBar progress={$progress} />
 {/if}
 <Toaster position="top-right" />
-{#if !isUsefulRoute && !isPlayRoute && !isTranslateRoute && !isMeetRoute}
+{#if !isUsefulRoute && !isPlayRoute && !isTranslateRoute && !isMeetRoute && !isWebinarRoute}
 	<CookieBanner />
 {/if}
 
@@ -172,10 +173,10 @@
 	{@render children()}
 </main>
 
-{#if !isAdminRoute && !isCodeRoute && !isLoginRoute && !burnoutQuestionnaireRoute && !isPaymentResult && !isUsefulRoute && !isAdRoute && !isTranslateRoute && !isMeetRoute}
+{#if !isAdminRoute && !isCodeRoute && !isLoginRoute && !burnoutQuestionnaireRoute && !isPaymentResult && !isUsefulRoute && !isAdRoute && !isTranslateRoute && !isMeetRoute && !isWebinarRoute}
 	<TelegramBanner link={telegramChannel.link} text={telegramChannel.text} />
 {/if}
-{#if !isAdminRoute && !isCodeRoute && !isLoginRoute && !isPaymentResult && !isAdRoute && !isLegalRoute && !isTranslateRoute && !isMeetRoute}
+{#if !isAdminRoute && !isCodeRoute && !isLoginRoute && !isPaymentResult && !isAdRoute && !isLegalRoute && !isTranslateRoute && !isMeetRoute && !isWebinarRoute}
 	<Footer />
 {/if}
 {#if isAdRoute || isLegalRoute}
