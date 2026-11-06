@@ -134,7 +134,11 @@
 		}
 		deviceSwitching = true;
 		const ok = await preview();
-		if (ok) saveDeviceChoice(kind, id);
+		if (ok) {
+			const actual = kind === 'camera' ? selectedCameraId : selectedMicId;
+			saveDeviceChoice(kind, actual);
+			if (actual !== id) error = 'Выбранное устройство недоступно. Используется устройство по умолчанию.';
+		}
 		else {
 			if (kind === 'camera') selectedCameraId = previous;
 			else selectedMicId = previous;
