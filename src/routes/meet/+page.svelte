@@ -1,7 +1,7 @@
 <script lang="ts">
 	// @ts-nocheck
 	import { onMount } from 'svelte';
-	import { Camera, CameraOff, Mic, MicOff, MonitorUp, PhoneOff, ShieldCheck, Copy, Check, ArrowRight, AlertCircle, MessageCircle, Send, X, Users, Video, RefreshCw, Sparkles, Hand, UserX, Trash2 } from '@lucide/svelte';
+	import { Camera, CameraOff, Mic, MicOff, MonitorUp, PhoneOff, ShieldCheck, Copy, Check, ArrowRight, AlertCircle, MessageCircle, Send, X, Users, Video, RefreshCw, Sparkles, Hand, UserX, Trash2, Lock, LockOpen } from '@lucide/svelte';
 	import { ServerConnection } from '#lib/galene/protocol.js';
 	import { createBackgroundBlur, type BlurSession, type BlurStrength } from '#lib/meet/background-blur.js';
 
@@ -42,6 +42,8 @@
 	let userCount = $state(1);
 	let canPresent = $state(false);
 	let isModerator = $state(false);
+	let roomLocked = $state(false);
+	let roomLockPending = $state(false);
 	let myHandRaised = $state(false);
 	let membersOpen = $state(false);
 	let chatOpen = $state(false);
@@ -62,6 +64,8 @@
 		stop(screenStream); screenStream = null;
 		cleanRemote();
 		isModerator = false;
+		roomLocked = false;
+		roomLockPending = false;
 	}
 	async function preview() {
 		if (!navigator.mediaDevices?.getUserMedia) { error = 'Для доступа к камере нужен HTTPS.'; return; }
@@ -228,8 +232,15 @@
 			connection = sc;
 			sc.onconnected = () => { sc.join(info.name, name.trim(), { type: 'token', token: credential }).catch((e: Error) => { error = e.message; leave(); }); };
 			sc.onerror = (e: unknown) => { error = 'Ошибка соединения: ' + String(e); };
-			sc.onclose = () => { if (connection === sc) { connection = null; state = 'preview'; cleanRemote(); isModerator = false; } };
-			sc.onjoined = (kind: string, group: string, perms: string[], _status: unknown, _data: unknown, code: string, message: string) => {
+			sc.onclose = () => { if (connection === sc) { connection = null; state = 'preview'; cleanRemote(); isModerator = false; roomLocked = false; roomLockPending = false; } };
+			sc.onjoined = (kind: string, group: string, perms: string[], status: unknown, _data: unknown, code: string, message: string) => {
+				if (kind === 'join' || kind === 'change') {
+					// Galene broadcasts authoritative group status after a lock/unlock.
+					if (status && typeof status === 'object') {
+						roomLocked = (status as { locked?: boolean }).locked === true;
+						roomLockPending = false;
+					}
+				}
 				if (kind === 'fail') { error = message || code || 'Не удалось войти в комнату.'; leave(); return; }
 				if (kind === 'join') {
 					try { window.localStorage.setItem(DISPLAY_NAME_KEY, name.trim()); } catch {}
@@ -302,7 +313,20 @@
 				messages = [...messages.slice(-99), { id: id || crypto.randomUUID(), source: source || '', name: username || 'Участник', text: value, self: source === sc.id }];
 			};
 			sc.onusermessage = (_id: string, _dest: string, _username: string, _time: Date, privileged: boolean, kind: string, operationError: string, value: unknown) => {
-				if (operationError) { error = 'Galene: ' + operationError; return; }
+				if (operationError) { roomLockPending = false; error = 'Galene: ' + operationError; return; }
+				if (kind === 'mute' && privileged) {
+					micEnabled = false;
+					// The sender's audio track must be disabled, not just the UI icon.
+					localStream?.getAudioTracks().forEach(track => { track.enabled = false; });
+					displayStream?.getAudioTracks().forEach(track => { track.enabled = false; });
+					error = 'Ведущий выключил ваш микрофон. Включить его обратно можете только вы.';
+					return;
+				}
+				if (kind === 'error' && privileged) {
+					roomLockPending = false;
+					error = 'Galene: ' + String(value || 'Команда не выполнена.');
+					return;
+				}
 				if (kind === 'clearchat' && privileged) {
 					const filter = value && typeof value === 'object' ? value as { id?: string; userId?: string } : null;
 					if (!filter) messages = [];
@@ -341,6 +365,30 @@
 		if (!window.confirm('Исключить участника «' + username + '» из встречи?')) return;
 		try { connection.userAction('kick', id); }
 		catch { error = 'Не удалось исключить участника.'; }
+	}
+	function muteUser(id: string, username: string) {
+		if (!isModerator || !connection || state !== 'connected' ||
+			id === connection.id || !remoteUsers.some(user => user.id === id)) return;
+		try {
+			connection.userMessage('mute', id);
+		} catch {
+			error = 'Не удалось выключить микрофон участника «' + username + '».';
+		}
+	}
+	function toggleRoomLock() {
+		if (!isModerator || !connection || state !== 'connected' || roomLockPending) return;
+		const next = !roomLocked;
+		if (next && !window.confirm('Закрыть комнату для новых участников? Уже подключенные останутся в звонке.')) return;
+		roomLockPending = true;
+		try {
+			connection.groupAction(next ? 'lock' : 'unlock', next ? 'Ведущий закрыл вход в комнату.' : '');
+			// State is updated only after Galene sends joined(change) with status.
+			// Recover the button if the server does not confirm the command.
+			window.setTimeout(() => { roomLockPending = false; }, 5000);
+		} catch {
+			roomLockPending = false;
+			error = 'Не удалось изменить доступ в комнату.';
+		}
 	}
 	function clearChat(message?: { id: string; source: string; name: string }) {
 		if (!isModerator || !connection) return;
@@ -436,7 +484,21 @@
 		</main>
 	{:else}
 		<main class="call">
-			<div class="call-top"><div><strong>Встреча</strong><span>{room}</span></div><div class="call-meta">{#if isModerator}<span class="role-indicator moderator" title="Права ведущего подтверждены сервером Galene"><ShieldCheck size={15}/>Ведущий</span>{/if}<button type="button" class="members-trigger" onclick={() => { membersOpen = !membersOpen; if (membersOpen) chatOpen = false; }} aria-label="Список участников" aria-expanded={membersOpen}><Users size={17}/>{userCount}{#if remoteUsers.some(u => u.raised)}<Hand size={15}/>{/if}</button> <button onclick={copyLink} title="Скопировать свою ссылку">{#if copied}<Check size={17}/>{:else}<Copy size={17}/>{/if}</button></div></div>
+			<div class="call-top"><div><strong>Встреча</strong><span>{room}</span></div><div class="call-meta">
+					{#if isModerator}
+						<span class="role-indicator moderator" title="Права ведущего подтверждены сервером Galene"><ShieldCheck size={15}/>Ведущий</span>
+						<button type="button" class="room-lock-button" class:locked={roomLocked}
+							disabled={roomLockPending}
+							onclick={toggleRoomLock}
+							title={roomLocked ? 'Открыть комнату для новых участников' : 'Закрыть комнату для новых участников'}
+								aria-label={roomLocked ? 'Разблокировать комнату' : 'Заблокировать комнату'}
+								aria-pressed={roomLocked}>
+							{#if roomLocked}<Lock size={15}/>Закрыта{:else}<LockOpen size={15}/>Открыта{/if}
+						</button>
+					{:else if roomLocked}
+						<span class="room-locked-label" title="Ведущий ограничил новые подключения"><Lock size={15}/>Вход закрыт</span>
+					{/if}
+					<button type="button" class="members-trigger" onclick={() => { membersOpen = !membersOpen; if (membersOpen) chatOpen = false; }} aria-label="Список участников" aria-expanded={membersOpen}><Users size={17}/>{userCount}{#if remoteUsers.some(u => u.raised)}<Hand size={15}/>{/if}</button> <button onclick={copyLink} title="Скопировать свою ссылку">{#if copied}<Check size={17}/>{:else}<Copy size={17}/>{/if}</button></div></div>
 			<div class="call-main">
 				<div class="tiles">
 					<div class="tile"><video use:streamAction={displayStream || localStream} autoplay muted playsinline class:dim={!cameraEnabled}></video>{#if myHandRaised}<div class="hand-indicator"><Hand size={16}/> Рука поднята</div>{/if}<div class="tile-label">Вы {#if isModerator} · Ведущий{/if} {#if !micEnabled}<MicOff size={14}/>{/if}</div></div>
@@ -465,7 +527,12 @@
 							{#each remoteUsers as user (user.id)}
 								<div class="member-row">
 									<span>{user.name} {#if user.raised}<Hand size={17}/>{/if}</span>
-									{#if isModerator}<button type="button" class="kick-action" onclick={() => kickUser(user.id, user.name)} title="Исключить участника" aria-label={'Исключить ' + user.name}><UserX size={16}/></button>{/if}
+									{#if isModerator}
+										<div class="member-tools">
+											<button type="button" class="mute-action" onclick={() => muteUser(user.id, user.name)} title="Выключить микрофон участника" aria-label={'Выключить микрофон у ' + user.name}><MicOff size={16}/></button>
+											<button type="button" class="kick-action" onclick={() => kickUser(user.id, user.name)} title="Исключить участника" aria-label={'Исключить ' + user.name}><UserX size={16}/></button>
+										</div>
+									{/if}
 								</div>
 							{/each}
 						</div>
@@ -557,7 +624,7 @@
 	.toolbar{display:flex;align-items:center;justify-content:center;gap:12px;padding:12px}.toolbar button{width:52px;height:52px;background:#e4e9e0;color:#425440}.toolbar button.active{background:#b8c9b3}.toolbar button.hangup{background:#bb625b;color:white;border-radius:18px;width:73px}.toolbar button:disabled{opacity:.4;cursor:not-allowed}
 	.hand-indicator{position:absolute;top:14px;left:14px;display:flex;gap:7px;align-items:center;padding:7px 11px;background:#f3e6bd;color:#56421d;border-radius:9px;font-weight:700;font-size:12px}
 	.call-meta .members-trigger{display:inline-flex;gap:6px;align-items:center;font-size:12px;padding:6px;border-radius:8px}.call-meta .members-trigger:hover{background:#e3eade}
-	.members-list{display:flex;flex-direction:column;padding:8px 14px;gap:2px;overflow-y:auto}.member-row{display:flex;align-items:center;justify-content:space-between;padding:11px 7px;border-bottom:1px solid #edf0e9;gap:8px;min-width:0}.member-row>span{display:flex;align-items:center;gap:7px;font-size:13px;overflow-wrap:anywhere}.member-row>span svg{color:#ad8b32;flex-shrink:0}.member-row small{font-size:11px;color:#527552}.kick-action,.delete-message{background:none;border:0;color:#a76559;cursor:pointer;padding:4px}.kick-action:hover,.delete-message:hover{color:#bb3c30}.message-head{display:flex;align-items:center;justify-content:space-between;gap:10px}.chat-heading-actions{display:flex;gap:8px;align-items:center}
+	.members-list{display:flex;flex-direction:column;padding:8px 14px;gap:2px;overflow-y:auto}.member-row{display:flex;align-items:center;justify-content:space-between;padding:11px 7px;border-bottom:1px solid #edf0e9;gap:8px;min-width:0}.member-row>span{display:flex;align-items:center;gap:7px;font-size:13px;overflow-wrap:anywhere}.member-row>span svg{color:#ad8b32;flex-shrink:0}.member-row small{font-size:11px;color:#527552}.member-tools{display:flex;align-items:center;gap:5px;flex-shrink:0}.mute-action{background:none;border:0;color:#536f81;cursor:pointer;padding:4px}.mute-action:hover{color:#184f73}.room-lock-button,.room-locked-label{display:inline-flex;align-items:center;gap:5px;padding:7px 9px;border:1px solid #d4ded4;border-radius:9px;background:#e9eee8;color:#415d43;font-size:12px}.room-lock-button{cursor:pointer}.room-lock-button.locked,.room-locked-label{background:#f8e9de;color:#8a5739;border-color:#e5c3ac}.room-lock-button:disabled{opacity:.6;cursor:wait}.kick-action,.delete-message{background:none;border:0;color:#a76559;cursor:pointer;padding:4px}.kick-action:hover,.delete-message:hover{color:#bb3c30}.message-head{display:flex;align-items:center;justify-content:space-between;gap:10px}.chat-heading-actions{display:flex;gap:8px;align-items:center}
 	.chat{width:300px;background:#fff;border:1px solid #e3e7df;border-radius:16px;display:flex;flex-direction:column;overflow:hidden}.chat-heading{padding:20px;font-weight:700;display:flex;justify-content:space-between}.chat-messages{flex:1;overflow:auto;padding:12px 20px}.message{padding:8px 0}.message strong{font-size:12px;color:#556c52}.message p{font-size:13px;margin:5px 0;overflow-wrap:anywhere}.chat form{border-top:1px solid #edf0e9;padding:10px;display:flex;align-items:center;gap:5px}.chat input{border:0}
 	.error{position:fixed;z-index:20;bottom:85px;left:50%;transform:translateX(-50%);max-width:min(600px,90vw);background:#fff1eb;color:#934536;display:flex;align-items:center;gap:12px;padding:13px 17px;border:1px solid #e8c5b8;border-radius:10px;box-shadow:0 12px 25px #0002;font-size:13px}.error button{background:none;border:0;color:inherit;cursor:pointer}
 	.footer{display:flex;justify-content:space-between;gap:15px;padding:21px clamp(20px,5vw,85px);border-top:1px solid #e4e7de;color:#989e95;font-size:11px}
