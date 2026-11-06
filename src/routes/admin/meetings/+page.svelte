@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Plus, Trash2, RefreshCw, Video, ShieldCheck, Copy, ExternalLink, Link2, Clock3 } from '@lucide/svelte';
 	import type { ActionData, PageData } from './$types';
-	import type { MeetingInvite } from '#lib/server/galene-admin.server.js';
+	type MeetingInvite = { token: string; username: string; label: string; expires: string };
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
 	let deleting = $state<string | null>(null);
