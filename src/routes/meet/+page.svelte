@@ -14,21 +14,22 @@
 	let micEnabled = $state(true);
 	let loading = $state(false);
 	let error = $state('');
+	const DISPLAY_NAME_KEY = 'kalmykov-meet-display-name';
 	let name = $state('');
 	let inviteToken = $state('');
 	let room = $state('');
 	let copied = $state(false);
 	let state = $state<'preview'|'connecting'|'connected'>('preview');
-	let participants: { id: string; name: string; stream: MediaStream; label: string }[] = $state([]);
+	let participants: { id: string; name: string; stream: MediaStream | null; label: string; mediaStatus: string }[] = $state([]);
 	let userCount = $state(1);
 	let canPresent = $state(false);
 	let chatOpen = $state(false);
 	let chatText = $state('');
 	let messages: { id: string; name: string; text: string; self: boolean }[] = $state([]);
-	const streamAction = (node: HTMLVideoElement, value: MediaStream) => {
+	const streamAction = (node: HTMLVideoElement, value: MediaStream | null) => {
 		node.srcObject = value;
 		node.play().catch(() => {});
-		return { update(next: MediaStream) { node.srcObject = next; node.play().catch(() => {}); }, destroy() { node.srcObject = null; } };
+		return { update(next: MediaStream | null) { node.srcObject = next; if (next) node.play().catch(() => {}); }, destroy() { node.srcObject = null; } };
 	};
 	const stop = (media: MediaStream | null) => media?.getTracks().forEach(t => t.stop());
 	const cleanRemote = () => { participants = []; userCount = 1; };
@@ -71,11 +72,16 @@
 		c.label = label;
 		c.setStream(media);
 		c.onerror = (e: unknown) => { error = 'Ошибка передачи видео: ' + String(e); };
-		media.getTracks().forEach(t => c.pc.addTrack(t, media));
+		// Follow Galene's reference client: explicit send-only transceivers ensure
+		// that each upstream track is negotiated in both joining orders.
+		media.getTracks().forEach(t => c.pc.addTransceiver(t, {
+			direction: 'sendonly',
+			streams: [media]
+		}));
 		return c;
 	}
 	async function join() {
-		if (!room.trim() || !inviteToken || state !== 'preview') return;
+		if (!name.trim() || !room.trim() || !inviteToken || state !== 'preview') return;
 		state = 'connecting'; error = '';
 		try {
 			const response = await fetch('/api/meet/status?room=' + encodeURIComponent(room), {
@@ -94,6 +100,7 @@
 			sc.onjoined = (kind: string, group: string, perms: string[], _status: unknown, _data: unknown, code: string, message: string) => {
 				if (kind === 'fail') { error = message || code || 'Не удалось войти в комнату.'; leave(); return; }
 				if (kind === 'join') {
+					try { window.localStorage.setItem(DISPLAY_NAME_KEY, name.trim()); } catch {}
 					state = 'connected';
 					canPresent = perms.includes('present');
 					sc.request({ '': ['audio', 'video'] });
@@ -102,13 +109,48 @@
 				}
 				if (kind === 'change') canPresent = perms.includes('present');
 			};
-			sc.onuser = () => { userCount = Object.keys(sc.users).length || 1; };
+			sc.onuser = (id: string, kind: string) => {
+				userCount = Object.keys(sc.users).length || 1;
+				// Re-request tracks when a later participant begins presenting.
+				// Without this, the first person in the room can miss the
+				// stream that appeared after their initial track request.
+				if (id !== sc.id && sc.group && (kind === 'add' || kind === 'change')) {
+					sc.request({ '': ['audio', 'video'] });
+				}
+			};
 			sc.ondownstream = (down: any) => {
+				const update = (media: MediaStream | null, mediaStatus: string) => {
+					const previous = participants.find(p => p.id === down.id);
+					participants = [
+						...participants.filter(p => p.id !== down.id),
+						{
+							id: down.id,
+							name: down.username || previous?.name || 'Участник',
+							stream: media || previous?.stream || null,
+							label: down.label || 'camera',
+							mediaStatus
+						}
+					];
+				};
+				// Show the participant immediately, even before the first
+				// WebRTC track arrives, and surface a media connection failure.
+				update(down.stream || null, 'connecting');
 				down.ondowntrack = (_track: MediaStreamTrack, _transceiver: unknown, media: MediaStream) => {
-					participants = [...participants.filter(p => p.id !== down.id), { id: down.id, name: down.username || 'Участник', stream: media, label: down.label || 'camera' }];
+					update(media, 'connected');
+				};
+				down.onnegotiationcompleted = () => {
+					update(down.stream || null, down.stream ? 'connected' : 'connecting');
+				};
+				down.onstatus = (status: string) => {
+					if (status === 'failed' || status === 'disconnected') {
+						update(down.stream || null, status);
+					}
 				};
 				down.onclose = () => { participants = participants.filter(p => p.id !== down.id); };
-				down.onerror = (e: unknown) => { console.warn('Galene stream', e); };
+				down.onerror = (e: unknown) => {
+					console.warn('Galene receive stream', e);
+					update(down.stream || null, 'failed');
+				};
 			};
 			sc.onchat = (_id: string, _source: string, _dest: string, username: string, _time: Date, _privileged: boolean, _history: boolean, _kind: string, value: string) => {
 				messages = [...messages.slice(-99), { id: crypto.randomUUID(), name: username || 'Участник', text: value, self: username === name.trim() }];
@@ -148,7 +190,7 @@
 		room = params.get('room') || '';
 		const invite = new URLSearchParams(window.location.hash.replace(/^#/, ''));
 		inviteToken = invite.get('token') || '';
-		name = invite.get('name') || 'Участник';
+		try { name = window.localStorage.getItem(DISPLAY_NAME_KEY) || ''; } catch { name = ''; }
 		preview();
 		return () => { closeConnection(); stop(localStream); };
 	});
@@ -188,9 +230,9 @@
 				<div class="fields">
 					<div class="invitation-label"><ShieldCheck size={18}/><span>{inviteToken ? 'Доступ по персональной ссылке' : 'Требуется персональная ссылка-приглашение'}</span></div>
 					<div class="invitation-info"><span>Комната</span><strong>{room || 'Не указана'}</strong></div>
-					<div class="invitation-info"><span>Вы входите как</span><strong>{name || 'Участник'}</strong></div>
+					<label for="meet-name">Как к вам обращаться?</label><input id="meet-name" bind:value={name} placeholder="Ваше имя" autocomplete="name" maxlength="60" required />
 					{#if !inviteToken}<p class="invite-warning">Запросите личную ссылку у организатора встречи. Вход только по приглашению.</p>{/if}
-					<button class="primary" onclick={join} disabled={!inviteToken || !room.trim() || state === 'connecting'}>{state === 'connecting' ? 'Подключаемся…' : 'Присоединиться ко встрече'}<ArrowRight size={19}/></button>
+					<button class="primary" onclick={join} disabled={!inviteToken || !name.trim() || !room.trim() || state === 'connecting'}>{state === 'connecting' ? 'Подключаемся…' : 'Присоединиться ко встрече'}<ArrowRight size={19}/></button>
 					<p class="hint">Без регистрации и установки приложений</p>
 				</div>
 			</section>
@@ -202,7 +244,15 @@
 				<div class="tiles">
 					<div class="tile"><video use:streamAction={localStream} autoplay muted playsinline class:dim={!cameraEnabled}></video><div class="tile-label">Вы {#if !micEnabled}<MicOff size={14}/>{/if}</div></div>
 					{#each participants as peer (peer.id)}
-						<div class="tile"><video use:streamAction={peer.stream} autoplay playsinline></video><div class="tile-label">{peer.name}{peer.label === 'screenshare' ? ' · Экран' : ''}</div></div>
+						<div class="tile">
+							<video use:streamAction={peer.stream} autoplay playsinline></video>
+							{#if !peer.stream || peer.mediaStatus === 'failed'}
+								<div class="peer-loading">
+									{peer.mediaStatus === 'failed' ? 'Не удалось получить видео. Проверьте соединение.' : 'Подключаем видео…'}
+								</div>
+							{/if}
+							<div class="tile-label">{peer.name}{peer.label === 'screenshare' ? ' · Экран' : ''}</div>
+						</div>
 					{/each}
 					{#if participants.length === 0}<div class="empty-tile"><Users size={36}/><strong>Ожидаем собеседника</strong><p>Другой участник войдет по своей личной ссылке</p></div>{/if}
 				</div>
@@ -239,6 +289,7 @@
 	.primary{margin-top:17px;width:100%;border:0;border-radius:10px;min-height:49px;display:flex;align-items:center;justify-content:center;gap:12px;background:#526c51;color:white;font:inherit;font-size:14px;font-weight:650;cursor:pointer}.primary:disabled{background:#a4b2a0;cursor:not-allowed}.hint{text-align:center;color:#9ba198;font-size:11px;margin:12px 0 0}
 	.call{flex:1;min-height:0;display:flex;flex-direction:column;padding:0 clamp(12px,3vw,50px) 18px;gap:17px}.call-top{display:flex;justify-content:space-between;align-items:center;padding:5px 10px}.call-top strong{font-size:16px;display:block}.call-top span{color:#859083;font-size:12px}.call-meta{display:flex;align-items:center;gap:9px;color:#707d71}.call-meta button,.chat button{border:0;background:transparent;color:inherit;cursor:pointer}
 	.call-main{display:flex;gap:16px;flex:1;min-height:350px}.tiles{flex:1;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:14px;align-content:center}.tile{position:relative;min-height:240px;aspect-ratio:16/10;background:#29312c;overflow:hidden;border-radius:17px}.tile video.dim{visibility:hidden}.empty-tile{border:1px dashed #cad1c8;border-radius:17px;min-height:240px;display:flex;align-items:center;justify-content:center;flex-direction:column;color:#879485;gap:12px}.empty-tile strong{color:#556151}.empty-tile p{font-size:13px;margin:0}.empty-tile button{background:#fff;border:1px solid #dce2d8;border-radius:9px;padding:10px 15px;display:flex;gap:8px;cursor:pointer;color:#4c6048}
+	.peer-loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:24px;text-align:center;color:#cdd6ca;font-size:13px;pointer-events:none}
 	.toolbar{display:flex;align-items:center;justify-content:center;gap:12px;padding:12px}.toolbar button{width:52px;height:52px;background:#e4e9e0;color:#425440}.toolbar button.active{background:#b8c9b3}.toolbar button.hangup{background:#bb625b;color:white;border-radius:18px;width:73px}.toolbar button:disabled{opacity:.4;cursor:not-allowed}
 	.chat{width:300px;background:#fff;border:1px solid #e3e7df;border-radius:16px;display:flex;flex-direction:column;overflow:hidden}.chat-heading{padding:20px;font-weight:700;display:flex;justify-content:space-between}.chat-messages{flex:1;overflow:auto;padding:12px 20px}.message{padding:8px 0}.message strong{font-size:12px;color:#556c52}.message p{font-size:13px;margin:5px 0;overflow-wrap:anywhere}.chat form{border-top:1px solid #edf0e9;padding:10px;display:flex;align-items:center;gap:5px}.chat input{border:0}
 	.error{position:fixed;z-index:20;bottom:85px;left:50%;transform:translateX(-50%);max-width:min(600px,90vw);background:#fff1eb;color:#934536;display:flex;align-items:center;gap:12px;padding:13px 17px;border:1px solid #e8c5b8;border-radius:10px;box-shadow:0 12px 25px #0002;font-size:13px}.error button{background:none;border:0;color:inherit;cursor:pointer}
