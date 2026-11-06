@@ -6,7 +6,8 @@ import {
 	deleteManagedRoom,
 	galeneAdminConfigured,
 	listManagedRooms,
-	rotateManagedPassword
+	reissueRoomInvites,
+	type ManagedRoom
 } from '#lib/server/galene-admin.server.js';
 
 const safeMessage = (error: unknown) =>
@@ -19,14 +20,14 @@ export const load: PageServerLoad = async (event) => {
 	if (!galeneAdminConfigured()) {
 		return {
 			configured: false,
-			rooms: [] as Awaited<ReturnType<typeof listManagedRooms>>,
+			rooms: [] as ManagedRoom[],
 			backendError: 'Укажите GALENE_ADMIN_USER и GALENE_ADMIN_PASSWORD в окружении сайта.'
 		};
 	}
 	try {
 		return { configured: true, rooms: await listManagedRooms(), backendError: null };
 	} catch (error) {
-		return { configured: true, rooms: [] as Awaited<ReturnType<typeof listManagedRooms>>, backendError: safeMessage(error) };
+		return { configured: true, rooms: [] as ManagedRoom[], backendError: safeMessage(error) };
 	}
 };
 
@@ -48,15 +49,12 @@ export const actions = {
 			return fail(503, { error: safeMessage(error) });
 		}
 	},
-	rotate: async (event) => {
+	reissue: async (event) => {
 		requireAuth(event);
 		const form = await event.request.formData();
 		const group = String(form.get('group') || '');
-		const who = String(form.get('who') || '');
-		if (who !== 'host' && who !== 'guest') return fail(400, { error: 'Неизвестная роль.' });
 		try {
-			const secret = await rotateManagedPassword(group, who);
-			return { rotated: { group, who, secret } };
+			return { reissued: await reissueRoomInvites(group) };
 		} catch (error) {
 			return fail(503, { error: safeMessage(error) });
 		}
