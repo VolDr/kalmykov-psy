@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Plus, Trash2, RefreshCw, Video, ShieldCheck, Copy, ExternalLink, Link2, Clock3 } from '@lucide/svelte';
 	import type { ActionData, PageData } from './$types';
-	type MeetingInvite = { token: string; username: string; label: string; expires: string };
+	type MeetingInvite = { token: string; label: string; expires: string };
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
 	let deleting = $state<string | null>(null);
@@ -16,7 +16,7 @@
 		// Keep the token in the URL fragment: it is not sent to nginx in HTTP
 		// requests and is omitted from the Referer header.
 		return '/meet?room=' + encodeURIComponent(group) + '#token=' +
-			encodeURIComponent(invite.token) + '&name=' + encodeURIComponent(invite.username);
+			encodeURIComponent(invite.token);
 	}
 
 	function expiry(iso: string) {
