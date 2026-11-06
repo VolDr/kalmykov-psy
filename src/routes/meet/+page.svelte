@@ -5,6 +5,8 @@
 	import { ServerConnection } from '#lib/galene/protocol.js';
 	import { createBackgroundBlur, type BlurSession } from '#lib/meet/background-blur.js';
 
+	let { inviteRoom = '', inviteTokenValue = '' }: { inviteRoom?: string; inviteTokenValue?: string } = $props();
+
 	let localVideo: HTMLVideoElement;
 	let localStream: MediaStream | null = $state(null);
 	let displayStream: MediaStream | null = $state(null);
@@ -259,9 +261,9 @@
 	}
 	onMount(() => {
 		const params = new URLSearchParams(window.location.search);
-		room = params.get('room') || '';
+		room = inviteRoom || params.get('room') || '';
 		const invite = new URLSearchParams(window.location.hash.replace(/^#/, ''));
-		inviteToken = invite.get('token') || '';
+		inviteToken = inviteTokenValue || invite.get('token') || '';
 		try { name = window.localStorage.getItem(DISPLAY_NAME_KEY) || ''; } catch { name = ''; }
 		preview();
 		return () => { blurVersion++; blurSession?.stop(); closeConnection(); stop(localStream); };
@@ -303,7 +305,7 @@
 				<div class="fields">
 					<div class="invitation-label"><ShieldCheck size={18}/><span>{inviteToken ? 'Доступ по персональной ссылке' : 'Требуется персональная ссылка-приглашение'}</span></div>
 					<div class="invitation-info"><span>Комната</span><strong>{room || 'Не указана'}</strong></div>
-					<label for="meet-name">Как к вам обращаться?</label><input id="meet-name" bind:value={name} placeholder="Ваше имя" autocomplete="name" maxlength="60" required />
+					<label for="meet-name">Ваше имя перед входом</label><input id="meet-name" type="text" bind:value={name} placeholder="Введите имя" autocomplete="nickname" maxlength="60" required />
 					{#if !inviteToken}<p class="invite-warning">Запросите личную ссылку у организатора встречи. Вход только по приглашению.</p>{/if}
 					<button class="primary" onclick={join} disabled={!inviteToken || !name.trim() || !room.trim() || state === 'connecting'}>{state === 'connecting' ? 'Подключаемся…' : 'Присоединиться ко встрече'}<ArrowRight size={19}/></button>
 					<p class="hint">Без регистрации и установки приложений</p>
