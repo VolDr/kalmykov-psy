@@ -142,7 +142,9 @@
 		} catch { error = 'Не удалось скопировать ссылку.'; }
 	}
 	onMount(() => {
-		room = new URLSearchParams(window.location.search).get('room') || '';
+		const params = new URLSearchParams(window.location.search);
+		room = params.get('room') || '';
+		if (params.get('name') === 'host') name = 'host';
 		preview();
 		return () => { closeConnection(); stop(localStream); };
 	});
