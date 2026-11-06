@@ -131,6 +131,18 @@ location / {
 Затем `nginx -t` и только при успешной проверке `systemctl reload nginx`.
 Разрешите в файрволе и на стороне провайдера TCP 443, TCP/UDP 1194 (TURN) и UDP 50000 (медиа). Реальные маршруты/порты нужно проверить при двухстороннем звонке.
 
+## Клиент Galene: получение статуса комнаты и CORS
+
+У Galene `/group/<room>/.status` нет `Access-Control-Allow-Origin` при запросе с другого сайта: настройка `allowOrigin` используется для WebSocket, но не добавляет CORS к этому HTTP-ответу. Поэтому клиент `/meet` запрашивает только свой origin:
+
+```text
+GET https://kalmykov-psy.ru/api/meet/status?room=meet-...
+```
+
+SvelteKit на том же VPS запрашивает `http://127.0.0.1:8443/group/<room>/.status` по localhost и возвращает статус браузеру. Секреты управления Galene не используются для этого запроса и не покидают сервер. Возвращенный Galene `wss://meet.kalmykov-psy.ru/ws` используется браузером для WebSocket (для этого нужен корректный `allowOrigin`).
+
+После деплоя проверьте в DevTools, что статус идет в `/api/meet/status`, а не непосредственно на поддомен Galene.
+
 ## 5. Управление комнатами
 
 Откройте `/admin/meetings`. Действия из существующей авторизованной админки:
