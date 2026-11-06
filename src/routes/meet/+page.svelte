@@ -609,14 +609,14 @@
 					{:else if roomLocked}
 						<span class="room-locked-label" title="Ведущий ограничил новые подключения"><Lock size={15}/>Вход закрыт</span>
 					{/if}
-					{#if handQueue.length}<span class="hand-queue-count" title={'Поднятые руки: ' + handQueue.map((u, i) => (i + 1) + '. ' + u.name).join(', ')}><Hand size={16}/> {handQueue.length} в очереди</span>{/if}<button type="button" class="members-trigger" onclick={() => { membersOpen = !membersOpen; if (membersOpen) chatOpen = false; }} aria-label="Список участников" aria-expanded={membersOpen}><Users size={17}/>{userCount}{#if handQueue.length}<Hand size={15}/>{/if}</button> <button onclick={copyLink} title="Скопировать свою ссылку">{#if copied}<Check size={17}/>{:else}<Copy size={17}/>{/if}</button></div></div>
+					<button type="button" class="members-trigger" onclick={() => { membersOpen = !membersOpen; if (membersOpen) chatOpen = false; }} aria-label="Список участников" aria-expanded={membersOpen}><Users size={17}/>{userCount}{#if handQueue.length}<Hand size={15}/>{/if}</button> <button onclick={copyLink} title="Скопировать свою ссылку">{#if copied}<Check size={17}/>{:else}<Copy size={17}/>{/if}</button></div></div>
 			<div class="call-main">
 				<div class="tiles">
-					<div class="tile" style:order={tileOrder('__self__')}><video use:streamAction={displayStream || localStream} autoplay muted playsinline class="self-video" class:dim={!cameraEnabled}></video>{#if myHandRaised}<div class="hand-indicator"><Hand size={16}/> №{handPosition('__self__')} · Рука поднята</div>{/if}<div class="tile-label">Вы {#if isModerator} · Ведущий{/if} {#if !micEnabled}<MicOff size={14}/>{/if}</div></div>
+					<div class="tile" style:order={tileOrder('__self__')}><video use:streamAction={displayStream || localStream} autoplay muted playsinline class="self-video" class:dim={!cameraEnabled}></video>{#if myHandRaised}<div class="hand-indicator"><Hand size={16}/> Рука поднята</div>{/if}<div class="tile-label">Вы {#if isModerator} · Ведущий{/if} {#if !micEnabled}<MicOff size={14}/>{/if}</div></div>
 					{#each participants as peer (peer.id)}
 						<div class="tile" style:order={tileOrder(peer.source, peer.label)}>
 							<video use:streamAction={peer.stream} autoplay playsinline></video>
-							{#if remoteUsers.some(user => user.id === peer.source && user.raised)}<div class="hand-indicator"><Hand size={16}/> №{handPosition(peer.source)} · Рука поднята</div>{/if}
+							{#if remoteUsers.some(user => user.id === peer.source && user.raised)}<div class="hand-indicator"><Hand size={16}/> Рука поднята</div>{/if}
 							{#if !peer.stream || peer.mediaStatus === 'failed' || peer.mediaStatus === 'disconnected'}
 								<div class="peer-loading">
 									{peer.mediaStatus === 'failed' ? 'Не удалось получить видео. Проверьте соединение.' : peer.mediaStatus === 'disconnected' ? 'Видеосвязь прервана. Пробуем восстановить…' : 'Подключаем видео…'}
@@ -626,7 +626,7 @@
 						</div>
 					{/each}
 					{#each orderedRemoteUsers.filter(user => !participants.some(peer => peer.source === user.id)) as user (user.id)}
-						<div class="empty-tile" style:order={tileOrder(user.id)}>{#if user.raised}<Hand size={30}/>{:else}<Users size={36}/>{/if}<strong>{user.name}</strong><p>{user.raised ? '№' + handPosition(user.id) + ' в очереди рук' : 'Участник подключился, ожидаем его видео'}</p></div>
+						<div class="empty-tile" style:order={tileOrder(user.id)}>{#if user.raised}<Hand size={30}/>{:else}<Users size={36}/>{/if}<strong>{user.name}</strong><p>{user.raised ? 'Поднял руку' : 'Участник подключился, ожидаем его видео'}</p></div>
 					{/each}
 					{#if participants.length === 0 && remoteUsers.length === 0}<div class="empty-tile"><Users size={36}/><strong>Ожидаем собеседника</strong><p>Другой участник войдет по общей ссылке на комнату</p></div>{/if}
 				</div>
@@ -634,15 +634,12 @@
 					<aside class="chat members-panel">
 						<div class="chat-heading">Участники ({userCount}) <button onclick={() => membersOpen = false} aria-label="Закрыть список"><X size={19}/></button></div>
 						<div class="members-list">
-							{#if handQueue.length}
-								<div class="hand-queue-heading"><Hand size={15}/> Очередь поднятых рук ({handQueue.length})</div>
-							{/if}
 							<div class="member-row" style:order={tileOrder('__self__')}>
-								<span>Вы {#if myHandRaised}<span class="hand-rank"><Hand size={16}/> №{handPosition('__self__')}</span>{/if}</span>{#if isModerator}<small>Ведущий</small>{/if}
+								<span>Вы {#if myHandRaised}<Hand size={17} aria-label="Рука поднята"/>{/if}</span>{#if isModerator}<small>Ведущий</small>{/if}
 							</div>
 							{#each orderedRemoteUsers as user (user.id)}
 								<div class="member-row" style:order={tileOrder(user.id)}>
-									<span>{user.name} {#if user.raised}<span class="hand-rank"><Hand size={16}/> №{handPosition(user.id)}</span>{/if}</span>
+									<span>{user.name} {#if user.raised}<Hand size={17} aria-label="Рука поднята"/>{/if}</span>
 									{#if isModerator}
 										<div class="member-tools">
 											<button type="button" class="mute-action" onclick={() => muteUser(user.id, user.name)} title="Выключить микрофон участника" aria-label={'Выключить микрофон у ' + user.name}><MicOff size={16}/></button>
@@ -739,9 +736,6 @@
 	.peer-loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:24px;text-align:center;color:#cdd6ca;font-size:13px;pointer-events:none}
 	.toolbar{display:flex;align-items:center;justify-content:center;gap:12px;padding:12px}.toolbar button{width:52px;height:52px;background:#e4e9e0;color:#425440}.toolbar button.active{background:#b8c9b3}.toolbar button.hangup{background:#bb625b;color:white;border-radius:18px;width:73px}.toolbar button:disabled{opacity:.4;cursor:not-allowed}
 	.hand-indicator{position:absolute;top:14px;left:14px;display:flex;gap:7px;align-items:center;padding:7px 11px;background:#f3e6bd;color:#56421d;border-radius:9px;font-weight:700;font-size:12px}
-	.hand-queue-count{display:inline-flex;align-items:center;gap:6px;padding:7px 9px;border-radius:9px;background:#f3e6bd;color:#69531f;font-size:12px;font-weight:650}
-	.hand-queue-heading{font-weight:700;font-size:12px;color:#725722;padding:12px 8px 8px;background:#fff8e6;border-radius:8px;margin:5px 0 8px;display:flex;align-items:center;gap:7px;order:-1}
-	.hand-rank{display:inline-flex;align-items:center;gap:4px;border-radius:7px;padding:3px 6px;background:#f3e6bd;color:#705721;font-weight:700;white-space:nowrap}
 	.member-row[style*="order"]{transition:background .16s}
 	.kicked-view{flex:1;display:grid;place-items:center;padding:48px 18px}.kicked-panel{width:min(100%,500px);text-align:center;background:#fff;border:1px solid #e6e8e1;border-radius:20px;padding:48px 30px;box-shadow:0 18px 60px #39423415}.kicked-panel>svg{color:#b76257}.kicked-panel h1{font:normal 36px/1.2 Georgia,serif;color:#38483c;margin:20px 0}.kicked-panel p{color:#728072;font-size:14px;line-height:1.65}.kicked-panel a{display:inline-flex;margin-top:18px;background:#455f48;color:#fff;text-decoration:none;border-radius:10px;padding:12px 18px;font-size:14px}
 	.call-meta .members-trigger{display:inline-flex;gap:6px;align-items:center;font-size:12px;padding:6px;border-radius:8px}.call-meta .members-trigger:hover{background:#e3eade}
