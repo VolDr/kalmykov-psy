@@ -1,13 +1,13 @@
 <script lang="ts">
 	// @ts-nocheck
 	import { onMount } from 'svelte';
-	import { Camera, CameraOff, Mic, MicOff, MonitorUp, PhoneOff, ShieldCheck, Copy, Check, ArrowRight, AlertCircle, MessageCircle, Send, X, Users, Video, RefreshCw, Sparkles, Hand, UserX, Trash2, Lock, LockOpen } from '@lucide/svelte';
+	import { Camera, CameraOff, Mic, MicOff, MonitorUp, PhoneOff, ShieldCheck, Copy, Check, ArrowRight, AlertCircle, MessageCircle, Send, X, Users, Video, RefreshCw, Sparkles, Settings2, Volume2, Hand, UserX, Trash2, Lock, LockOpen } from '@lucide/svelte';
 	import { ServerConnection } from '#lib/galene/protocol.js';
 	import { createBackgroundBlur, type BlurSession, type BlurStrength } from '#lib/meet/background-blur.js';
 
 	let { inviteRoom = '', inviteTokenValue = '', inviteCode = '' }: { inviteRoom?: string; inviteTokenValue?: string; inviteCode?: string } = $props();
 
-	let localVideo: HTMLVideoElement;
+	let localVideo: HTMLVideoElement | null = $state(null);
 	let localStream: MediaStream | null = $state(null);
 	let displayStream: MediaStream | null = $state(null);
 	type BlurMode = 'off' | 'light' | 'strong' | 'max';
@@ -31,7 +31,21 @@
 	let cameraEnabled = $state(true);
 	let micEnabled = $state(true);
 	let loading = $state(false);
+
 	let error = $state('');
+	const DEVICE_STORAGE_PREFIX = 'kalmykov-meet-device-';
+	let cameras: MediaDeviceInfo[] = $state([]);
+	let microphones: MediaDeviceInfo[] = $state([]);
+	let speakers: MediaDeviceInfo[] = $state([]);
+	let selectedCameraId = $state('');
+	let selectedMicId = $state('');
+	let selectedSpeakerId = $state('');
+	let speakerOutputSupported = $state(false);
+	let speakerPermissionSupported = $state(false);
+	let devicesOpen = $state(false);
+	let deviceSwitching = $state(false);
+	let mediaRequestVersion = 0;
+
 	const DISPLAY_NAME_KEY = 'kalmykov-meet-display-name';
 	let name = $state('');
 	let inviteToken = $state('');
@@ -80,6 +94,93 @@
 		node.play().catch(() => {});
 		return { update(next: MediaStream | null) { node.srcObject = next; if (next) node.play().catch(() => {}); }, destroy() { node.srcObject = null; } };
 	};
+
+	// Output selection applies only to incoming media, never to the self-preview.
+	const sinkAction = (node: HTMLVideoElement, sinkId: string) => {
+		const apply = (id: string) => {
+			if (typeof node.setSinkId !== 'function') return;
+			void node.setSinkId(id).catch(() => {
+				if (id) error = 'Не удалось выбрать динамики. Проверьте разрешение браузера.';
+			});
+		};
+		apply(sinkId);
+		return { update: apply };
+	};
+	async function refreshDevices() {
+		if (!navigator.mediaDevices?.enumerateDevices) return;
+		try {
+			const devices = await navigator.mediaDevices.enumerateDevices();
+			cameras = devices.filter(d => d.kind === 'videoinput' && d.deviceId && d.deviceId !== 'default');
+			microphones = devices.filter(d => d.kind === 'audioinput' && d.deviceId && d.deviceId !== 'default');
+			speakers = devices.filter(d => d.kind === 'audiooutput' && d.deviceId && d.deviceId !== 'default');
+		} catch { /* Browsers may restrict device enumeration before permission. */ }
+	}
+	function saveDeviceChoice(kind: 'camera' | 'mic' | 'speaker', id: string) {
+		try {
+			if (id) localStorage.setItem(DEVICE_STORAGE_PREFIX + kind, id);
+			else localStorage.removeItem(DEVICE_STORAGE_PREFIX + kind);
+		} catch {}
+	}
+	async function switchInputDevice(kind: 'camera' | 'mic', id: string) {
+		if (deviceSwitching) return;
+		const previous = kind === 'camera' ? selectedCameraId : selectedMicId;
+		if (id === previous) return;
+		if (kind === 'camera') selectedCameraId = id;
+		else selectedMicId = id;
+		// A disabled input remains disabled; store its selection for when it is enabled.
+		if ((kind === 'camera' && !cameraEnabled) || (kind === 'mic' && !micEnabled)) {
+			saveDeviceChoice(kind, id);
+			return;
+		}
+		deviceSwitching = true;
+		const ok = await preview();
+		if (ok) saveDeviceChoice(kind, id);
+		else {
+			if (kind === 'camera') selectedCameraId = previous;
+			else selectedMicId = previous;
+			await preview(); // Restore the previous working input if the device vanished.
+			error = 'Не удалось переключить устройство. Проверьте, подключено ли оно.';
+		}
+		deviceSwitching = false;
+	}
+	async function switchSpeakerDevice(id: string) {
+		if (id === selectedSpeakerId) return;
+		if (id && !speakerOutputSupported) {
+			error = 'Ваш браузер не поддерживает выбор устройства вывода звука.';
+			return;
+		}
+		const previous = selectedSpeakerId;
+		const nodes = Array.from(document.querySelectorAll<HTMLVideoElement>('.call .tile video:not(.self-video)'));
+		try {
+			await Promise.all(nodes.map(node => node.setSinkId(id)));
+			selectedSpeakerId = id;
+			saveDeviceChoice('speaker', id);
+			if (handSoundContext && typeof (handSoundContext as any).setSinkId === 'function') {
+				void (handSoundContext as any).setSinkId(id).catch(() => {});
+			}
+		} catch {
+			await Promise.allSettled(nodes.map(node => node.setSinkId(previous)));
+			error = 'Не удалось переключить динамики. Выберите устройство в настройках браузера или разрешите доступ к нему.';
+		}
+	}
+	async function requestSpeakerAccess() {
+		if (!navigator.mediaDevices?.selectAudioOutput) return;
+		try {
+			// Must be called directly from a click for browsers that require activation.
+			const chosen = await navigator.mediaDevices.selectAudioOutput();
+			await refreshDevices();
+			await switchSpeakerDevice(chosen.deviceId);
+		} catch (e) {
+			if ((e as DOMException)?.name !== 'NotAllowedError') error = 'Не удалось получить доступ к динамикам.';
+		}
+	}
+	function toggleDeviceSettings() {
+		devicesOpen = !devicesOpen;
+		if (devicesOpen) {
+			blurMenuOpen = false;
+			void refreshDevices();
+		}
+	}
 	const stop = (media: MediaStream | null) => media?.getTracks().forEach(t => t.stop());
 	const cleanRemote = () => {
 		participants = []; remoteUsers = []; userCount = 1; myHandRaised = false; myHandRaisedAt = null;
@@ -106,18 +207,24 @@
 		if (state === 'kicked') return;
 		kickedReason = reason?.trim() || 'Ведущий исключил вас из встречи.';
 		try { window.localStorage.setItem(kickStorageKey(), '1'); } catch {}
+		mediaRequestVersion++;
 		blurVersion++;
 		blurSession?.stop(); blurSession = null; blurInput = null;
 		closeConnection();
 		if (displayStream !== localStream) stop(displayStream);
 		stop(localStream);
 		localStream = null; displayStream = null;
-		canPresent = false; chatOpen = false; blurMenuOpen = false;
+		canPresent = false; chatOpen = false; blurMenuOpen = false; devicesOpen = false;
 		state = 'kicked';
 	}
 	function enableHandSound() {
 		try {
-			if (!handSoundContext) handSoundContext = new window.AudioContext();
+			if (!handSoundContext) {
+				handSoundContext = new window.AudioContext();
+				if (selectedSpeakerId && typeof (handSoundContext as any).setSinkId === 'function') {
+					void (handSoundContext as any).setSinkId(selectedSpeakerId).catch(() => {});
+				}
+			}
 			void handSoundContext.resume().catch(() => {});
 		} catch { /* Sound is optional when the browser blocks audio. */ }
 	}
@@ -140,24 +247,43 @@
 			oscillator.stop(start + 0.30);
 		} catch { /* Browser audio may be unavailable. */ }
 	}
-	async function preview() {
-		if (!navigator.mediaDevices?.getUserMedia) { error = 'Для доступа к камере нужен HTTPS.'; return; }
+
+	async function preview(): Promise<boolean> {
+		if (!navigator.mediaDevices?.getUserMedia) { error = 'Для доступа к камере нужен HTTPS.'; return false; }
+		const ticket = ++mediaRequestVersion;
 		loading = true;
 		error = '';
+		let next: MediaStream | null = null;
 		try {
-			const next = await navigator.mediaDevices.getUserMedia({ audio: micEnabled, video: cameraEnabled });
+			const audio: MediaTrackConstraints | boolean = micEnabled
+				? (selectedMicId ? { deviceId: { exact: selectedMicId } } : true) : false;
+			const video: MediaTrackConstraints | boolean = cameraEnabled
+				? (selectedCameraId ? { deviceId: { exact: selectedCameraId } } : true) : false;
+			// getUserMedia({ audio:false, video:false }) throws, so don't request it.
+			if (audio || video) next = await navigator.mediaDevices.getUserMedia({ audio, video });
+			if (ticket !== mediaRequestVersion || state === 'kicked') { stop(next); return false; }
+			const previous = localStream;
 			blurVersion++;
 			blurSession?.stop(); blurSession = null; blurInput = null;
 			blurBusy = false;
-			stop(localStream);
 			localStream = next;
 			displayStream = next;
-			if (localVideo) { localVideo.srcObject = next; await localVideo.play().catch(() => {}); }
-			if (blurMode !== 'off' && next.getVideoTracks().length) await applyBackgroundBlur();
-			else if (state === 'connected' && canPresent) publishLocalMedia(next);
+			showLocalStream(next);
+			stop(previous);
+			if (blurMode !== 'off' && next?.getVideoTracks().length) await applyBackgroundBlur();
+			else if (state === 'connected' && canPresent) {
+				if (next) publishLocalMedia(next);
+				else { outgoing?.close(); outgoing = null; }
+			}
+			void refreshDevices();
+			return true;
 		} catch {
-			error = 'Не удалось открыть камеру или микрофон. Проверьте разрешения браузера.';
-		} finally { loading = false; }
+			stop(next);
+			if (ticket === mediaRequestVersion) error = 'Не удалось открыть выбранную камеру или микрофон. Проверьте подключение и разрешения браузера.';
+			return false;
+		} finally {
+			if (ticket === mediaRequestVersion) loading = false;
+		}
 	}
 	async function toggleCamera() {
 		cameraEnabled = !cameraEnabled;
@@ -515,6 +641,16 @@
 		} catch { error = 'Не удалось скопировать ссылку.'; }
 	}
 	onMount(() => {
+		speakerOutputSupported = typeof HTMLMediaElement !== 'undefined' && typeof HTMLMediaElement.prototype.setSinkId === 'function';
+		speakerPermissionSupported = typeof navigator.mediaDevices?.selectAudioOutput === 'function';
+		try {
+			selectedCameraId = localStorage.getItem(DEVICE_STORAGE_PREFIX + 'camera') || '';
+			selectedMicId = localStorage.getItem(DEVICE_STORAGE_PREFIX + 'mic') || '';
+			selectedSpeakerId = localStorage.getItem(DEVICE_STORAGE_PREFIX + 'speaker') || '';
+		} catch {}
+		const handleDeviceChange = () => { void refreshDevices(); };
+		navigator.mediaDevices?.addEventListener?.('devicechange', handleDeviceChange);
+		void refreshDevices();
 		const params = new URLSearchParams(window.location.search);
 		room = inviteRoom || params.get('room') || '';
 		const invite = new URLSearchParams(window.location.hash.replace(/^#/, ''));
@@ -526,7 +662,7 @@
 		} catch { blurMode = 'off'; }
 		try { if (window.localStorage.getItem(kickStorageKey()) === '1') state = 'kicked'; } catch {}
 		if (state !== 'kicked') preview();
-		return () => { void handSoundContext?.close().catch(() => {}); handSoundContext = null; blurVersion++; blurSession?.stop(); blurSession = null; blurInput = null; closeConnection(); stop(localStream); };
+		return () => { navigator.mediaDevices?.removeEventListener?.('devicechange', handleDeviceChange); mediaRequestVersion++; void handSoundContext?.close().catch(() => {}); handSoundContext = null; blurVersion++; blurSession?.stop(); blurSession = null; blurInput = null; closeConnection(); stop(localStream); };
 	});
 </script>
 
@@ -536,6 +672,35 @@
 	<meta name="referrer" content="no-referrer" />
 	<meta name="description" content="Защищенное пространство для онлайн-встреч." />
 </svelte:head>
+
+
+{#snippet deviceSettings()}
+	<div class="device-popover" role="group" aria-label="Настройки устройств">
+		<div class="device-heading"><strong>Устройства</strong><button type="button" onclick={() => devicesOpen = false} aria-label="Закрыть настройки"><X size={18}/></button></div>
+		<label for="meet-camera-device">Камера</label>
+		<select id="meet-camera-device" value={selectedCameraId} disabled={deviceSwitching} onchange={(e) => void switchInputDevice('camera', e.currentTarget.value)}>
+			<option value="">По умолчанию</option>
+			{#each cameras as device, i (device.deviceId)}<option value={device.deviceId}>{device.label || 'Камера ' + (i + 1)}</option>{/each}
+		</select>
+		<label for="meet-mic-device">Микрофон</label>
+		<select id="meet-mic-device" value={selectedMicId} disabled={deviceSwitching} onchange={(e) => void switchInputDevice('mic', e.currentTarget.value)}>
+			<option value="">По умолчанию</option>
+			{#each microphones as device, i (device.deviceId)}<option value={device.deviceId}>{device.label || 'Микрофон ' + (i + 1)}</option>{/each}
+		</select>
+		<label for="meet-speaker-device">Динамики / наушники</label>
+		{#if speakerOutputSupported}
+			<select id="meet-speaker-device" value={selectedSpeakerId} onchange={(e) => void switchSpeakerDevice(e.currentTarget.value)}>
+				<option value="">Системный вывод</option>
+				{#each speakers as device, i (device.deviceId)}<option value={device.deviceId}>{device.label || 'Устройство вывода ' + (i + 1)}</option>{/each}
+			</select>
+			{#if speakerPermissionSupported}<button type="button" class="device-request" onclick={requestSpeakerAccess}><Volume2 size={15} inline={true}/> Выбрать другие динамики…</button>{/if}
+			<small class="device-help">Звук собеседников воспроизводится на выбранном устройстве. Системный вывод используется по умолчанию.</small>
+		{:else}
+			<small class="device-help">Этот браузер не поддерживает выбор динамиков на сайте. Настройте вывод звука в системе или браузере.</small>
+		{/if}
+		<button type="button" class="device-refresh" onclick={refreshDevices}><RefreshCw size={14} inline={true}/> Обновить список устройств</button>
+	</div>
+{/snippet}
 
 <div class="meet">
 	<header class="header">
@@ -569,9 +734,11 @@
 						<button onclick={toggleMic} class:off={!micEnabled} title={micEnabled ? 'Выключить микрофон' : 'Включить микрофон'} aria-label="Микрофон">{#if micEnabled}<Mic size={21}/>{:else}<MicOff size={21}/>{/if}</button>
 						<button onclick={toggleCamera} class:off={!cameraEnabled} title={cameraEnabled ? 'Выключить камеру' : 'Включить камеру'} aria-label="Камера">{#if cameraEnabled}<Camera size={21}/>{:else}<CameraOff size={21}/>{/if}</button>
 
-						<button onclick={preview} title="Обновить устройства" aria-label="Обновить устройства"><RefreshCw size={20}/></button>
+						<button onclick={() => void preview()} title="Обновить устройства" aria-label="Обновить устройства"><RefreshCw size={20}/></button>
+						<button type="button" onclick={toggleDeviceSettings} aria-expanded={devicesOpen} title="Выбор устройств" aria-label="Выбор устройств"><Settings2 size={20}/></button>
 					</div>
 				</div>
+				{#if devicesOpen}{@render deviceSettings()}{/if}
 				<div class="fields">
 					<div class="invitation-label"><ShieldCheck size={18}/><span>{inviteCode || inviteToken ? 'Доступ по ссылке на комнату' : 'Требуется ссылка-приглашение'}</span></div>
 					<div class="invitation-info"><span>Комната</span><strong>{room || 'Не указана'}</strong></div>
@@ -617,7 +784,7 @@
 					<div class="tile" style:order={tileOrder('__self__')}><video use:streamAction={displayStream || localStream} autoplay muted playsinline class="self-video" class:dim={!cameraEnabled}></video>{#if myHandRaised}<div class="hand-indicator"><Hand size={16}/> Рука поднята</div>{/if}<div class="tile-label">Вы {#if isModerator} · Ведущий{/if} {#if !micEnabled}<MicOff size={14}/>{/if}</div></div>
 					{#each participants as peer (peer.id)}
 						<div class="tile" style:order={tileOrder(peer.source, peer.label)}>
-							<video use:streamAction={peer.stream} autoplay playsinline></video>
+							<video use:streamAction={peer.stream} use:sinkAction={selectedSpeakerId} autoplay playsinline></video>
 							{#if remoteUsers.some(user => user.id === peer.source && user.raised)}<div class="hand-indicator"><Hand size={16}/> Рука поднята</div>{/if}
 							{#if !peer.stream || peer.mediaStatus === 'failed' || peer.mediaStatus === 'disconnected'}
 								<div class="peer-loading">
@@ -677,6 +844,8 @@
 				{/if}
 			</div>
 			<div class="toolbar">
+				<button onclick={toggleDeviceSettings} aria-expanded={devicesOpen} type="button" title="Выбор устройств" aria-label="Выбор устройств"><Settings2 size={22}/></button>
+				{#if devicesOpen}{@render deviceSettings()}{/if}
 				<button onclick={toggleMic} class:off={!micEnabled} title="Микрофон" aria-label="Микрофон">{#if micEnabled}<Mic size={22}/>{:else}<MicOff size={22}/>{/if}</button>
 				<button onclick={toggleCamera} class:off={!cameraEnabled} title="Камера" aria-label="Камера">{#if cameraEnabled}<Camera size={22}/>{:else}<CameraOff size={22}/>{/if}</button>
 				<button onclick={shareScreen} class:active={!!screenStream} disabled={!canPresent} title="Показать экран" aria-label="Показать экран"><MonitorUp size={22}/></button>
@@ -722,7 +891,7 @@
 	.prejoin{flex:1;max-width:1200px;width:calc(100% - 48px);margin:auto;display:grid;grid-template-columns:1fr 1.02fr;align-items:center;gap:clamp(40px,8vw,130px);padding:45px 0 80px}
 	.eyebrow{font-size:11px;letter-spacing:.17em;text-transform:uppercase;color:#85997e;font-weight:700;margin-bottom:27px}
 	.intro h1{font:normal clamp(44px,5vw,76px)/1.1 Georgia,serif;letter-spacing:-.055em;margin:0 0 28px}.intro h1 em{color:#8a9b7e}.intro>p{font-size:17px;line-height:1.75;max-width:420px;color:#7c8378}.notice{border-top:1px solid #dedfd7;margin-top:58px;padding-top:25px;display:flex;gap:13px;color:#85977e}.notice strong{color:#4f5e4e;display:block;font-size:13px}.notice span{color:#8a9187;display:block;font-size:12px;margin-top:6px;line-height:1.5}
-	.panel{background:#fff;border:1px solid #e6e8e1;box-shadow:0 18px 60px #39423420;border-radius:21px;padding:12px 12px 25px;width:100%;max-width:580px}
+	.panel{position:relative;background:#fff;border:1px solid #e6e8e1;box-shadow:0 18px 60px #39423420;border-radius:21px;padding:12px 12px 25px;width:100%;max-width:580px}
 	.video{height:auto;aspect-ratio:1.42;background:#29312c;border-radius:14px;overflow:hidden;position:relative}
 	.video video,.tile video{width:100%;height:100%;object-fit:cover}.video>video,.tile video.self-video{transform:scaleX(-1)}.hidden{visibility:hidden}.placeholder{position:absolute;inset:0;color:#c5cec2;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;font-size:13px}.avatar{background:#465148;border-radius:50%;width:77px;height:77px;display:grid;place-items:center}.userlabel,.tile-label{position:absolute;bottom:18px;left:19px;background:#1e2621bc;color:white;border-radius:8px;padding:8px 12px;font-size:12px;display:flex;gap:9px;align-items:center}
 	.video-buttons{position:absolute;bottom:15px;right:17px;display:flex;gap:9px}.video-buttons button,.toolbar button{border:0;color:#fff;background:#4c5c4f;display:grid;place-items:center;cursor:pointer;width:44px;height:44px;border-radius:50%}.video-buttons button.off,.toolbar button.off{background:#ba7163}.video-buttons button.active{background:#b8c9b3;color:#29322b}.video-buttons button:hover,.toolbar button:hover{filter:brightness(1.13)}
@@ -743,6 +912,11 @@
 	.call-meta .members-trigger{display:inline-flex;gap:6px;align-items:center;font-size:12px;padding:6px;border-radius:8px}.call-meta .members-trigger:hover{background:#e3eade}
 	.members-list{display:flex;flex-direction:column;padding:8px 14px;gap:2px;overflow-y:auto}.member-row{display:flex;align-items:center;justify-content:space-between;padding:11px 7px;border-bottom:1px solid #edf0e9;gap:8px;min-width:0}.member-row>span{display:flex;align-items:center;gap:7px;font-size:13px;overflow-wrap:anywhere}.member-row>span svg{color:#ad8b32;flex-shrink:0}.member-row small{font-size:11px;color:#527552}.member-tools{display:flex;align-items:center;gap:5px;flex-shrink:0}.mute-action{background:none;border:0;color:#536f81;cursor:pointer;padding:4px}.mute-action:hover{color:#184f73}.room-lock-button,.room-locked-label{display:inline-flex;align-items:center;gap:5px;padding:7px 9px;border:1px solid #d4ded4;border-radius:9px;background:#e9eee8;color:#415d43;font-size:12px}.room-lock-button{cursor:pointer}.room-lock-button.locked,.room-locked-label{background:#f8e9de;color:#8a5739;border-color:#e5c3ac}.room-lock-button:disabled{opacity:.6;cursor:wait}.kick-action,.delete-message{background:none;border:0;color:#a76559;cursor:pointer;padding:4px}.kick-action:hover,.delete-message:hover{color:#bb3c30}.message-head{display:flex;align-items:center;justify-content:space-between;gap:10px}.chat-heading-actions{display:flex;gap:8px;align-items:center}
 	.chat{width:300px;background:#fff;border:1px solid #e3e7df;border-radius:16px;display:flex;flex-direction:column;overflow:hidden}.chat-heading{padding:20px;font-weight:700;display:flex;justify-content:space-between}.chat-messages{flex:1;overflow:auto;padding:12px 20px}.message{padding:8px 0}.message strong{font-size:12px;color:#556c52}.message p{font-size:13px;margin:5px 0;overflow-wrap:anywhere}.chat form{border-top:1px solid #edf0e9;padding:10px;display:flex;align-items:center;gap:5px}.chat input{border:0}
+
+	.device-popover{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:min(360px,calc(100vw - 28px));max-height:85dvh;overflow:auto;z-index:60;background:#fff;border:1px solid #dfe6dc;box-shadow:0 18px 80px #16271c48;border-radius:16px;box-sizing:border-box;padding:18px;color:#35493b;font-size:13px;text-align:left}
+	.device-heading{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}.device-heading strong{font-size:15px}.device-heading button{display:grid;place-items:center;width:30px;height:30px;border:0;border-radius:8px;background:#edf2eb;color:#405a43;cursor:pointer}
+	.device-popover label{display:block;margin:11px 0 5px;font-size:12px;font-weight:650;color:#526c51}.device-popover select{display:block;box-sizing:border-box;width:100%;padding:9px 10px;font:inherit;border:1px solid #d9e2d8;border-radius:8px;background:#fafbf8;color:#344d39;min-width:0}.device-popover select:disabled{opacity:.55}.device-popover .device-help{display:block;font-size:11px;color:#859083;margin-top:6px;line-height:1.5}
+	.device-popover .device-request,.device-popover .device-refresh{width:100%;margin-top:11px;padding:9px;border-radius:8px;background:#edf3eb;border:1px solid #d9e6d7;color:#355d37;font:inherit;font-size:12px;cursor:pointer}
 	.error{position:fixed;z-index:20;bottom:85px;left:50%;transform:translateX(-50%);max-width:min(600px,90vw);background:#fff1eb;color:#934536;display:flex;align-items:center;gap:12px;padding:13px 17px;border:1px solid #e8c5b8;border-radius:10px;box-shadow:0 12px 25px #0002;font-size:13px}.error button{background:none;border:0;color:inherit;cursor:pointer}
 	.footer{display:flex;justify-content:space-between;gap:15px;padding:21px clamp(20px,5vw,85px);border-top:1px solid #e4e7de;color:#989e95;font-size:11px}
 	@media(max-width:850px){.header{height:74px}.prejoin{max-width:550px;grid-template-columns:1fr;padding:30px 0 60px;gap:32px}.intro h1{font-size:52px}.intro>p{font-size:15px}.notice{display:none}.call-main{flex-direction:column}.chat{width:100%;height:250px}.tiles{grid-template-columns:1fr 1fr}.tile{min-height:170px}}
