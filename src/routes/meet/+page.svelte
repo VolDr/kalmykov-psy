@@ -211,7 +211,8 @@
 		}
 
 		blurBusy = true;
-		const strength: BlurStrength = blurMode === 'light' ? 0.2 : blurMode === 'max' ? 0.7 : 0.5;
+		// Longpipe quantizes blur into discrete pyramid depths: 0.5 and 0.7 yield the same level.
+		const strength: BlurStrength = blurMode === 'light' ? 0.2 : blurMode === 'max' ? 0.7 : 0.4;
 		let newSession: BlurSession | null = null;
 		try {
 			if (blurSession && blurInput === camera) {
