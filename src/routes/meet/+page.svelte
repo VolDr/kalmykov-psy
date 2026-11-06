@@ -41,6 +41,7 @@
 	let remoteUsers: { id: string; name: string }[] = $state([]);
 	let userCount = $state(1);
 	let canPresent = $state(false);
+	let isModerator = $state(false);
 	let chatOpen = $state(false);
 	let chatText = $state('');
 	let messages: { id: string; name: string; text: string; self: boolean }[] = $state([]);
@@ -58,6 +59,7 @@
 		outgoing = null; screenOutgoing = null;
 		stop(screenStream); screenStream = null;
 		cleanRemote();
+		isModerator = false;
 	}
 	async function preview() {
 		if (!navigator.mediaDevices?.getUserMedia) { error = 'Для доступа к камере нужен HTTPS.'; return; }
@@ -224,18 +226,22 @@
 			connection = sc;
 			sc.onconnected = () => { sc.join(info.name, name.trim(), { type: 'token', token: credential }).catch((e: Error) => { error = e.message; leave(); }); };
 			sc.onerror = (e: unknown) => { error = 'Ошибка соединения: ' + String(e); };
-			sc.onclose = () => { if (connection === sc) { connection = null; state = 'preview'; cleanRemote(); } };
+			sc.onclose = () => { if (connection === sc) { connection = null; state = 'preview'; cleanRemote(); isModerator = false; } };
 			sc.onjoined = (kind: string, group: string, perms: string[], _status: unknown, _data: unknown, code: string, message: string) => {
 				if (kind === 'fail') { error = message || code || 'Не удалось войти в комнату.'; leave(); return; }
 				if (kind === 'join') {
 					try { window.localStorage.setItem(DISPLAY_NAME_KEY, name.trim()); } catch {}
 					state = 'connected';
 					canPresent = perms.includes('present');
+					isModerator = perms.includes('op');
 					sc.request({ '': ['audio', 'video'] });
 					if (displayStream && canPresent) publishLocalMedia(displayStream);
 					if (!canPresent) error = 'У аккаунта нет права трансляции (present).';
 				}
-				if (kind === 'change') canPresent = perms.includes('present');
+				if (kind === 'change') {
+					canPresent = perms.includes('present');
+					isModerator = perms.includes('op');
+				}
 			};
 			sc.onuser = (id: string, kind: string) => {
 				remoteUsers = Object.entries(sc.users)
@@ -392,10 +398,10 @@
 		</main>
 	{:else}
 		<main class="call">
-			<div class="call-top"><div><strong>Встреча</strong><span>{room}</span></div><div class="call-meta"><Users size={17}/>{userCount} <button onclick={copyLink} title="Скопировать свою ссылку">{#if copied}<Check size={17}/>{:else}<Copy size={17}/>{/if}</button></div></div>
+			<div class="call-top"><div><strong>Встреча</strong><span>{room}</span></div><div class="call-meta"><span class="role-indicator" class:moderator={isModerator} title={isModerator ? 'Права ведущего подтверждены сервером Galene' : 'Обычные права участника'}>{#if isModerator}<ShieldCheck size={15}/>{/if}{isModerator ? 'Ведущий' : 'Участник'}</span><Users size={17}/>{userCount} <button onclick={copyLink} title="Скопировать свою ссылку">{#if copied}<Check size={17}/>{:else}<Copy size={17}/>{/if}</button></div></div>
 			<div class="call-main">
 				<div class="tiles">
-					<div class="tile"><video use:streamAction={displayStream || localStream} autoplay muted playsinline class:dim={!cameraEnabled}></video><div class="tile-label">Вы {#if !micEnabled}<MicOff size={14}/>{/if}</div></div>
+					<div class="tile"><video use:streamAction={displayStream || localStream} autoplay muted playsinline class:dim={!cameraEnabled}></video><div class="tile-label">Вы {#if isModerator} · Ведущий{/if} {#if !micEnabled}<MicOff size={14}/>{/if}</div></div>
 					{#each participants as peer (peer.id)}
 						<div class="tile">
 							<video use:streamAction={peer.stream} autoplay playsinline></video>
@@ -470,7 +476,7 @@
 	.blur-choices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.blur-choices button{background:#f8faf6;border:1px solid #e0e6dc;border-radius:8px;min-height:52px;padding:8px 5px;display:flex;flex-direction:column;gap:4px;align-items:center;justify-content:center;color:#526151;cursor:pointer}.blur-choices button span{font-size:12px}.blur-choices button small{font-size:10px;color:#8b9988}.blur-choices button.selected{background:#e9f1e5;border-color:#759771;color:#2f5131}.blur-choices button:disabled{opacity:.55;cursor:not-allowed}
 	.blur-toolbar{position:relative;display:flex;align-items:center}.blur-popover{position:absolute;z-index:15;bottom:64px;left:50%;transform:translateX(-50%);width:205px;border-radius:13px;border:1px solid #e0e6dc;background:#fff;box-shadow:0 12px 32px #0003;padding:11px;display:flex;flex-direction:column;gap:4px;color:#29322b}.blur-popover>strong{padding:5px 7px 8px;font-size:12px}.toolbar .blur-popover button{width:100%;height:auto;min-height:38px;border-radius:7px;background:#fff;color:#405743;padding:8px 9px;display:flex;flex-direction:row;align-items:center;justify-content:space-between;gap:8px;text-align:left;font-size:12px}.toolbar .blur-popover button.selected{background:#e9f1e5;color:#2f5131}.blur-popover small{color:#879083;font-size:11px}.blur-popover p{margin:4px;font-size:11px;color:#71836e}
 	.primary{margin-top:17px;width:100%;border:0;border-radius:10px;min-height:49px;display:flex;align-items:center;justify-content:center;gap:12px;background:#526c51;color:white;font:inherit;font-size:14px;font-weight:650;cursor:pointer}.primary:disabled{background:#a4b2a0;cursor:not-allowed}.hint{text-align:center;color:#9ba198;font-size:11px;margin:12px 0 0}
-	.call{flex:1;min-height:0;display:flex;flex-direction:column;padding:0 clamp(12px,3vw,50px) 18px;gap:17px}.call-top{display:flex;justify-content:space-between;align-items:center;padding:5px 10px}.call-top strong{font-size:16px;display:block}.call-top span{color:#859083;font-size:12px}.call-meta{display:flex;align-items:center;gap:9px;color:#707d71}.call-meta button,.chat button{border:0;background:transparent;color:inherit;cursor:pointer}
+	.call{flex:1;min-height:0;display:flex;flex-direction:column;padding:0 clamp(12px,3vw,50px) 18px;gap:17px}.call-top{display:flex;justify-content:space-between;align-items:center;padding:5px 10px}.call-top strong{font-size:16px;display:block}.call-top span{color:#859083;font-size:12px}.call-meta{display:flex;align-items:center;gap:9px;color:#707d71}.call-meta button,.chat button{border:0;background:transparent;color:inherit;cursor:pointer}.role-indicator{display:inline-flex;align-items:center;gap:5px;border:1px solid #d7ddd2;border-radius:30px;color:#667266;background:#f3f5f0;padding:6px 9px;font-size:11px}.role-indicator.moderator{border-color:#b5c6aa;background:#e4eddf;color:#345a37;font-weight:650}
 	.call-main{display:flex;gap:16px;flex:1;min-height:350px}.tiles{flex:1;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:14px;align-content:center}.tile{position:relative;min-height:240px;aspect-ratio:16/10;background:#29312c;overflow:hidden;border-radius:17px}.tile video.dim{visibility:hidden}.empty-tile{border:1px dashed #cad1c8;border-radius:17px;min-height:240px;display:flex;align-items:center;justify-content:center;flex-direction:column;color:#879485;gap:12px}.empty-tile strong{color:#556151}.empty-tile p{font-size:13px;margin:0}.empty-tile button{background:#fff;border:1px solid #dce2d8;border-radius:9px;padding:10px 15px;display:flex;gap:8px;cursor:pointer;color:#4c6048}
 	.peer-loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:24px;text-align:center;color:#cdd6ca;font-size:13px;pointer-events:none}
 	.toolbar{display:flex;align-items:center;justify-content:center;gap:12px;padding:12px}.toolbar button{width:52px;height:52px;background:#e4e9e0;color:#425440}.toolbar button.active{background:#b8c9b3}.toolbar button.hangup{background:#bb625b;color:white;border-radius:18px;width:73px}.toolbar button:disabled{opacity:.4;cursor:not-allowed}
