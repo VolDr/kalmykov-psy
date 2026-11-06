@@ -11,12 +11,12 @@ const TOKEN_RE = /^[A-Za-z0-9_-]{10,128}$/;
 const INVITE_DAYS = 30;
 const INVITE_MS = INVITE_DAYS * 86400 * 1000;
 
-export type MeetingInvite = {
-	code: string;
+type IssuedToken = {
 	token: string;
 	label: string;
 	expires: string;
 };
+export type MeetingInvite = IssuedToken & { code: string };
 
 export type ManagedRoom = {
 	id: string;
@@ -184,7 +184,7 @@ function inviteRoles(maxClients: number): Array<'host' | 'guest'> {
 	return ['host', ...Array.from({ length: maxClients - 1 }, () => 'guest' as const)];
 }
 
-async function createToken(group: string, role: 'host' | 'guest'): Promise<MeetingInvite> {
+async function createToken(group: string, role: 'host' | 'guest'): Promise<IssuedToken> {
 	const expires = new Date(Date.now() + INVITE_MS).toISOString();
 	// No username in the token: the user types their preferred name in /meet.
 	const response = await request(tokenPath(group), 'POST', {
@@ -212,8 +212,8 @@ async function discardTokens(group: string, tokens: string[]) {
 	}
 }
 
-async function generateInvites(group: string, maxClients: number): Promise<MeetingInvite[]> {
-	const minted: MeetingInvite[] = [];
+async function generateInvites(group: string, maxClients: number): Promise<IssuedToken[]> {
+	const minted: IssuedToken[] = [];
 	try {
 		for (const role of inviteRoles(maxClients)) minted.push(await createToken(group, role));
 		return minted;
