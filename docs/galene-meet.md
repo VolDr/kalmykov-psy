@@ -67,7 +67,7 @@ Type=simple
 User=galene
 Group=galene
 WorkingDirectory=/opt/galene
-ExecStart=/opt/galene/galene -insecure -http 127.0.0.1:8443 -turn :1194 -udp-range 50000-50010
+ExecStart=/opt/galene/galene -insecure -http 127.0.0.1:8443 -turn :1194 -udp-range 50000
 Restart=on-failure
 RestartSec=3
 NoNewPrivileges=true
@@ -76,7 +76,7 @@ NoNewPrivileges=true
 WantedBy=multi-user.target
 ```
 
-Check Galene's exact CLI options with `/opt/galene/galene -help` before enabling. `-udp-range` with a small range requires practical network tests; increase if group use expands.
+Check Galene's exact CLI options with `/opt/galene/galene -help` before enabling. `-udp-range` with a single multiplexed media port should still be tested under real network conditions.
 
 For `meet.kalmykov-psy.ru`, create A DNS record pointing at Russian VPS, then use an nginx HTTPS server with a valid certificate. Example location blocks *inside that server*:
 
