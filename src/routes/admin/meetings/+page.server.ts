@@ -44,7 +44,8 @@ export const actions = {
 			return fail(400, { error: 'Число участников должно быть от 2 до 12.' });
 		}
 		try {
-			return { created: await createManagedRoom(title, count) };
+			const created = await createManagedRoom(title, count);
+			return { created: { group: created.group, title: created.title } };
 		} catch (error) {
 			return fail(503, { error: safeMessage(error) });
 		}
@@ -54,7 +55,8 @@ export const actions = {
 		const form = await event.request.formData();
 		const group = String(form.get('group') || '');
 		try {
-			return { reissued: await reissueRoomInvites(group) };
+			await reissueRoomInvites(group);
+			return { reissued: { group } };
 		} catch (error) {
 			return fail(503, { error: safeMessage(error) });
 		}
