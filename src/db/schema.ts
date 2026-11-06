@@ -1159,8 +1159,8 @@ export const translationReconciliations = pgTable(
 			.references(() => translationDocs.id),
 		title: text('title').notNull(),
 		items: jsonb('items').$type<any[]>().notNull(),
-		variantA: jsonb('variant_a').$type<Record<string, any>>().notNull(),
-		variantB: jsonb('variant_b').$type<Record<string, any>>().notNull(),
+		variantA: jsonb('variant_a').$type<any>().notNull(),
+		variantB: jsonb('variant_b').$type<any>().notNull(),
 		createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' })
 			.defaultNow()
 			.notNull()
@@ -1180,7 +1180,7 @@ export const translationReviewers = pgTable(
 		docId: bigint('doc_id', { mode: 'number' })
 			.notNull()
 			.references(() => translationDocs.id),
-		profile: jsonb('profile').$type<Record<string, any>>().notNull()
+		profile: jsonb('profile').$type<any>().notNull()
 	},
 	(table) => [
 		primaryKey({ columns: [table.reconciliationId, table.slot] }),
