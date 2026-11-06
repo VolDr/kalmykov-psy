@@ -5,7 +5,7 @@
 	import { ServerConnection } from '#lib/galene/protocol.js';
 	import { createBackgroundBlur, type BlurSession } from '#lib/meet/background-blur.js';
 
-	let { inviteRoom = '', inviteTokenValue = '' }: { inviteRoom?: string; inviteTokenValue?: string } = $props();
+	let { inviteRoom = '', inviteTokenValue = '', inviteCode = '' }: { inviteRoom?: string; inviteTokenValue?: string; inviteCode?: string } = $props();
 
 	let localVideo: HTMLVideoElement;
 	let localStream: MediaStream | null = $state(null);
@@ -148,10 +148,28 @@
 		}
 	}
 	async function join() {
-		if (!name.trim() || !room.trim() || !inviteToken || state !== 'preview') return;
+		if (!name.trim() || !room.trim() || (!inviteCode && !inviteToken) || state !== 'preview') return;
 		try { window.localStorage.setItem(DISPLAY_NAME_KEY, name.trim()); } catch {}
 		state = 'connecting'; error = '';
 		try {
+			// One invitation URL for everyone. Privileges come from the site's
+			// authenticated admin session and are selected only on the server.
+			let credential = inviteToken;
+			if (inviteCode) {
+				const access = await fetch('/api/meet/join', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ code: inviteCode }),
+					cache: 'no-store',
+					credentials: 'same-origin'
+				});
+				if (!access.ok) {
+					const problem = await access.json().catch(() => null);
+					throw new Error(problem?.error || 'Не удалось получить доступ к комнате.');
+				}
+				const accessData = await access.json();
+				credential = accessData.token;
+			}
 			const response = await fetch('/api/meet/status?room=' + encodeURIComponent(room), {
 				cache: 'no-store'
 			});
@@ -162,7 +180,7 @@
 			const info = await response.json();
 			const sc = new ServerConnection();
 			connection = sc;
-			sc.onconnected = () => { sc.join(info.name, name.trim(), { type: 'token', token: inviteToken }).catch((e: Error) => { error = e.message; leave(); }); };
+			sc.onconnected = () => { sc.join(info.name, name.trim(), { type: 'token', token: credential }).catch((e: Error) => { error = e.message; leave(); }); };
 			sc.onerror = (e: unknown) => { error = 'Ошибка соединения: ' + String(e); };
 			sc.onclose = () => { if (connection === sc) { connection = null; state = 'preview'; cleanRemote(); } };
 			sc.onjoined = (kind: string, group: string, perms: string[], _status: unknown, _data: unknown, code: string, message: string) => {
@@ -304,11 +322,11 @@
 					</div>
 				</div>
 				<div class="fields">
-					<div class="invitation-label"><ShieldCheck size={18}/><span>{inviteToken ? 'Доступ по персональной ссылке' : 'Требуется персональная ссылка-приглашение'}</span></div>
+					<div class="invitation-label"><ShieldCheck size={18}/><span>{inviteCode || inviteToken ? 'Доступ по ссылке на комнату' : 'Требуется ссылка-приглашение'}</span></div>
 					<div class="invitation-info"><span>Комната</span><strong>{room || 'Не указана'}</strong></div>
 					<label for="meet-name">Ваше имя перед входом</label><input id="meet-name" type="text" bind:value={name} placeholder="Введите имя" autocomplete="nickname" maxlength="60" required />
-					{#if !inviteToken}<p class="invite-warning">Запросите личную ссылку у организатора встречи. Вход только по приглашению.</p>{/if}
-					<button class="primary" onclick={join} disabled={!inviteToken || !name.trim() || !room.trim() || state === 'connecting'}>{state === 'connecting' ? 'Подключаемся…' : 'Присоединиться ко встрече'}<ArrowRight size={19}/></button>
+					{#if !inviteCode && !inviteToken}<p class="invite-warning">Запросите личную ссылку у организатора встречи. Вход только по приглашению.</p>{/if}
+					<button class="primary" onclick={join} disabled={(!inviteCode && !inviteToken) || !name.trim() || !room.trim() || state === 'connecting'}>{state === 'connecting' ? 'Подключаемся…' : 'Присоединиться ко встрече'}<ArrowRight size={19}/></button>
 					<p class="hint">Без регистрации и установки приложений</p>
 				</div>
 			</section>
