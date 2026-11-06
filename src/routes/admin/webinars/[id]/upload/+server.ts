@@ -1,7 +1,7 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { requireAuth } from '#lib/server/protected.js';
-import { MAX_VIDEO_BYTES, receiveVideo } from '#lib/server/webinars.server.js';
+import { MAX_VIDEO_BYTES, receiveHlsZip } from '#lib/server/webinars.server.js';
 
 export const PUT: RequestHandler = async (event) => {
 	requireAuth(event);
@@ -9,17 +9,16 @@ export const PUT: RequestHandler = async (event) => {
 	const origin = request.headers.get('origin');
 	if (origin && origin !== url.origin) return json({ error: 'Неверный источник запроса.' }, { status: 403 });
 	if (!/^[a-f0-9]{16}$/.test(params.id)) return json({ error: 'Неверный идентификатор.' }, { status: 400 });
-	if (request.headers.get('content-type')?.split(';')[0] !== 'video/mp4') {
-		return json({ error: 'Нужен MP4.' }, { status: 415 });
+	if (request.headers.get('content-type')?.split(';')[0] !== 'application/zip') {
+		return json({ error: 'Загрузите ZIP с HLS-плейлистом index.m3u8 и сегментами .ts.' }, { status: 415 });
 	}
 	const len = Number(request.headers.get('content-length'));
 	if (Number.isFinite(len) && len > MAX_VIDEO_BYTES) {
 		return json({ error: 'Размер видео превышает 1 ГБ.' }, { status: 413 });
 	}
 	if (!request.body) return json({ error: 'Файл не передан.' }, { status: 400 });
-	const duration = Number(request.headers.get('x-video-duration'));
 	try {
-		await receiveVideo(params.id, request.body, duration);
+		await receiveHlsZip(params.id, request.body);
 		return json({ ok: true }, { headers: { 'Cache-Control': 'no-store' } });
 	} catch (error) {
 		return json(
