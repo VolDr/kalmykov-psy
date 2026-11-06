@@ -1,7 +1,7 @@
 <script lang="ts">
 	// @ts-nocheck
 	import { onMount } from 'svelte';
-	import { Camera, CameraOff, Mic, MicOff, MonitorUp, PhoneOff, ShieldCheck, Copy, Check, ArrowRight, AlertCircle, MessageCircle, Send, X, Users, Video, RefreshCw, Sparkles } from '@lucide/svelte';
+	import { Camera, CameraOff, Mic, MicOff, MonitorUp, PhoneOff, ShieldCheck, Copy, Check, ArrowRight, AlertCircle, MessageCircle, Send, X, Users, Video, RefreshCw, Sparkles, Hand, UserX, Trash2, Lock, LockOpen } from '@lucide/svelte';
 	import { ServerConnection } from '#lib/galene/protocol.js';
 	import { createBackgroundBlur, type BlurSession, type BlurStrength } from '#lib/meet/background-blur.js';
 
@@ -38,19 +38,24 @@
 	let copied = $state(false);
 	let state = $state<'preview'|'connecting'|'connected'>('preview');
 	let participants: { id: string; source: string; name: string; stream: MediaStream | null; label: string; mediaStatus: string }[] = $state([]);
-	let remoteUsers: { id: string; name: string }[] = $state([]);
+	let remoteUsers: { id: string; name: string; raised: boolean }[] = $state([]);
 	let userCount = $state(1);
 	let canPresent = $state(false);
+	let isModerator = $state(false);
+	let roomLocked = $state(false);
+	let roomLockPending = $state(false);
+	let myHandRaised = $state(false);
+	let membersOpen = $state(false);
 	let chatOpen = $state(false);
 	let chatText = $state('');
-	let messages: { id: string; name: string; text: string; self: boolean }[] = $state([]);
+	let messages: { id: string; source: string; name: string; text: string; self: boolean }[] = $state([]);
 	const streamAction = (node: HTMLVideoElement, value: MediaStream | null) => {
 		node.srcObject = value;
 		node.play().catch(() => {});
 		return { update(next: MediaStream | null) { node.srcObject = next; if (next) node.play().catch(() => {}); }, destroy() { node.srcObject = null; } };
 	};
 	const stop = (media: MediaStream | null) => media?.getTracks().forEach(t => t.stop());
-	const cleanRemote = () => { participants = []; remoteUsers = []; userCount = 1; };
+	const cleanRemote = () => { participants = []; remoteUsers = []; userCount = 1; myHandRaised = false; membersOpen = false; messages = []; };
 	function closeConnection() {
 		const old = connection;
 		connection = null;
@@ -58,6 +63,9 @@
 		outgoing = null; screenOutgoing = null;
 		stop(screenStream); screenStream = null;
 		cleanRemote();
+		isModerator = false;
+		roomLocked = false;
+		roomLockPending = false;
 	}
 	async function preview() {
 		if (!navigator.mediaDevices?.getUserMedia) { error = 'Для доступа к камере нужен HTTPS.'; return; }
@@ -224,26 +232,39 @@
 			connection = sc;
 			sc.onconnected = () => { sc.join(info.name, name.trim(), { type: 'token', token: credential }).catch((e: Error) => { error = e.message; leave(); }); };
 			sc.onerror = (e: unknown) => { error = 'Ошибка соединения: ' + String(e); };
-			sc.onclose = () => { if (connection === sc) { connection = null; state = 'preview'; cleanRemote(); } };
-			sc.onjoined = (kind: string, group: string, perms: string[], _status: unknown, _data: unknown, code: string, message: string) => {
+			sc.onclose = () => { if (connection === sc) { connection = null; state = 'preview'; cleanRemote(); isModerator = false; roomLocked = false; roomLockPending = false; } };
+			sc.onjoined = (kind: string, group: string, perms: string[], status: unknown, _data: unknown, code: string, message: string) => {
+				if (kind === 'join' || kind === 'change') {
+					// Galene broadcasts authoritative group status after a lock/unlock.
+					if (status && typeof status === 'object') {
+						roomLocked = (status as { locked?: boolean }).locked === true;
+						roomLockPending = false;
+					}
+				}
 				if (kind === 'fail') { error = message || code || 'Не удалось войти в комнату.'; leave(); return; }
 				if (kind === 'join') {
 					try { window.localStorage.setItem(DISPLAY_NAME_KEY, name.trim()); } catch {}
 					state = 'connected';
 					canPresent = perms.includes('present');
+					isModerator = perms.includes('op');
 					sc.request({ '': ['audio', 'video'] });
 					if (displayStream && canPresent) publishLocalMedia(displayStream);
 					if (!canPresent) error = 'У аккаунта нет права трансляции (present).';
 				}
-				if (kind === 'change') canPresent = perms.includes('present');
+				if (kind === 'change') {
+					canPresent = perms.includes('present');
+					isModerator = perms.includes('op');
+				}
 			};
 			sc.onuser = (id: string, kind: string) => {
 				remoteUsers = Object.entries(sc.users)
 					.filter(([userId]) => userId !== sc.id)
 					.map(([userId, user]) => ({
 						id: userId,
-						name: (user as { username?: string }).username || 'Участник'
+						name: (user as { username?: string }).username || 'Участник',
+						raised: (user as { data?: { raisehand?: boolean } }).data?.raisehand === true
 					}));
+				myHandRaised = sc.users[sc.id]?.data?.raisehand === true;
 				userCount = remoteUsers.length + 1;
 				// Re-request tracks when a later participant begins presenting.
 				// Without this, the first person in the room can miss the
@@ -287,8 +308,30 @@
 					update(down.stream || null, 'failed');
 				};
 			};
-			sc.onchat = (_id: string, _source: string, _dest: string, username: string, _time: Date, _privileged: boolean, _history: boolean, _kind: string, value: string) => {
-				messages = [...messages.slice(-99), { id: crypto.randomUUID(), name: username || 'Участник', text: value, self: username === name.trim() }];
+			sc.onchat = (id: string, source: string, _dest: string, username: string, _time: Date, _privileged: boolean, _history: boolean, kind: string, value: string) => {
+				if (kind === 'caption') return;
+				messages = [...messages.slice(-99), { id: id || crypto.randomUUID(), source: source || '', name: username || 'Участник', text: value, self: source === sc.id }];
+			};
+			sc.onusermessage = (_id: string, _dest: string, _username: string, _time: Date, privileged: boolean, kind: string, operationError: string, value: unknown) => {
+				if (operationError) { roomLockPending = false; error = 'Galene: ' + operationError; return; }
+				if (kind === 'mute' && privileged) {
+					micEnabled = false;
+					// The sender's audio track must be disabled, not just the UI icon.
+					localStream?.getAudioTracks().forEach(track => { track.enabled = false; });
+					displayStream?.getAudioTracks().forEach(track => { track.enabled = false; });
+					error = 'Ведущий выключил ваш микрофон. Включить его обратно можете только вы.';
+					return;
+				}
+				if (kind === 'error' && privileged) {
+					roomLockPending = false;
+					error = 'Galene: ' + String(value || 'Команда не выполнена.');
+					return;
+				}
+				if (kind === 'clearchat' && privileged) {
+					const filter = value && typeof value === 'object' ? value as { id?: string; userId?: string } : null;
+					if (!filter) messages = [];
+					else messages = messages.filter(m => !((!filter.id || m.id === filter.id) && (!filter.userId || m.source === filter.userId)));
+				}
 			};
 			sc.connect(info.endpoint);
 		} catch (e) { error = e instanceof Error ? e.message : String(e); leave(); }
@@ -308,6 +351,55 @@
 				stop(screenStream); screenStream = null;
 			}, { once: true });
 		} catch (e) { if ((e as Error)?.name !== 'NotAllowedError') error = 'Не удалось показать экран.'; }
+	}
+	function toggleHand() {
+		if (!connection || state !== 'connected') return;
+		try {
+			connection.userAction('setdata', connection.id, { raisehand: myHandRaised ? null : true });
+		} catch {
+			error = 'Не удалось изменить статус поднятой руки.';
+		}
+	}
+	function kickUser(id: string, username: string) {
+		if (!isModerator || !connection || id === connection.id || !remoteUsers.some(user => user.id === id)) return;
+		if (!window.confirm('Исключить участника «' + username + '» из встречи?')) return;
+		try { connection.userAction('kick', id); }
+		catch { error = 'Не удалось исключить участника.'; }
+	}
+	function muteUser(id: string, username: string) {
+		if (!isModerator || !connection || state !== 'connected' ||
+			id === connection.id || !remoteUsers.some(user => user.id === id)) return;
+		try {
+			connection.userMessage('mute', id);
+		} catch {
+			error = 'Не удалось выключить микрофон участника «' + username + '».';
+		}
+	}
+	function toggleRoomLock() {
+		if (!isModerator || !connection || state !== 'connected' || roomLockPending) return;
+		const next = !roomLocked;
+		if (next && !window.confirm('Закрыть комнату для новых участников? Уже подключенные останутся в звонке.')) return;
+		roomLockPending = true;
+		try {
+			connection.groupAction(next ? 'lock' : 'unlock', next ? 'Ведущий закрыл вход в комнату.' : '');
+			// State is updated only after Galene sends joined(change) with status.
+			// Recover the button if the server does not confirm the command.
+			window.setTimeout(() => { roomLockPending = false; }, 5000);
+		} catch {
+			roomLockPending = false;
+			error = 'Не удалось изменить доступ в комнату.';
+		}
+	}
+	function clearChat(message?: { id: string; source: string; name: string }) {
+		if (!isModerator || !connection) return;
+		const prompt = message ? 'Удалить сообщение участника «' + message.name + '» для всех?' : 'Очистить историю чата для всех участников?';
+		if (!window.confirm(prompt)) return;
+		try {
+			if (message) {
+				if (!message.id || !message.source) throw new Error('Нет идентификатора сообщения.');
+				connection.groupAction('clearchat', { id: message.id, userId: message.source });
+			} else connection.groupAction('clearchat');
+		} catch { error = 'Не удалось удалить сообщение или очистить чат.'; }
 	}
 	function sendChat() {
 		const value = chatText.trim();
@@ -392,13 +484,28 @@
 		</main>
 	{:else}
 		<main class="call">
-			<div class="call-top"><div><strong>Встреча</strong><span>{room}</span></div><div class="call-meta"><Users size={17}/>{userCount} <button onclick={copyLink} title="Скопировать свою ссылку">{#if copied}<Check size={17}/>{:else}<Copy size={17}/>{/if}</button></div></div>
+			<div class="call-top"><div><strong>Встреча</strong><span>{room}</span></div><div class="call-meta">
+					{#if isModerator}
+						<span class="role-indicator moderator" title="Права ведущего подтверждены сервером Galene"><ShieldCheck size={15}/>Ведущий</span>
+						<button type="button" class="room-lock-button" class:locked={roomLocked}
+							disabled={roomLockPending}
+							onclick={toggleRoomLock}
+							title={roomLocked ? 'Открыть комнату для новых участников' : 'Закрыть комнату для новых участников'}
+								aria-label={roomLocked ? 'Разблокировать комнату' : 'Заблокировать комнату'}
+								aria-pressed={roomLocked}>
+							{#if roomLocked}<Lock size={15}/>Закрыта{:else}<LockOpen size={15}/>Открыта{/if}
+						</button>
+					{:else if roomLocked}
+						<span class="room-locked-label" title="Ведущий ограничил новые подключения"><Lock size={15}/>Вход закрыт</span>
+					{/if}
+					<button type="button" class="members-trigger" onclick={() => { membersOpen = !membersOpen; if (membersOpen) chatOpen = false; }} aria-label="Список участников" aria-expanded={membersOpen}><Users size={17}/>{userCount}{#if remoteUsers.some(u => u.raised)}<Hand size={15}/>{/if}</button> <button onclick={copyLink} title="Скопировать свою ссылку">{#if copied}<Check size={17}/>{:else}<Copy size={17}/>{/if}</button></div></div>
 			<div class="call-main">
 				<div class="tiles">
-					<div class="tile"><video use:streamAction={displayStream || localStream} autoplay muted playsinline class:dim={!cameraEnabled}></video><div class="tile-label">Вы {#if !micEnabled}<MicOff size={14}/>{/if}</div></div>
+					<div class="tile"><video use:streamAction={displayStream || localStream} autoplay muted playsinline class:dim={!cameraEnabled}></video>{#if myHandRaised}<div class="hand-indicator"><Hand size={16}/> Рука поднята</div>{/if}<div class="tile-label">Вы {#if isModerator} · Ведущий{/if} {#if !micEnabled}<MicOff size={14}/>{/if}</div></div>
 					{#each participants as peer (peer.id)}
 						<div class="tile">
 							<video use:streamAction={peer.stream} autoplay playsinline></video>
+							{#if remoteUsers.some(user => user.id === peer.source && user.raised)}<div class="hand-indicator"><Hand size={16}/> Рука поднята</div>{/if}
 							{#if !peer.stream || peer.mediaStatus === 'failed' || peer.mediaStatus === 'disconnected'}
 								<div class="peer-loading">
 									{peer.mediaStatus === 'failed' ? 'Не удалось получить видео. Проверьте соединение.' : peer.mediaStatus === 'disconnected' ? 'Видеосвязь прервана. Пробуем восстановить…' : 'Подключаем видео…'}
@@ -408,16 +515,57 @@
 						</div>
 					{/each}
 					{#each remoteUsers.filter(user => !participants.some(peer => peer.source === user.id)) as user (user.id)}
-						<div class="empty-tile"><Users size={36}/><strong>{user.name}</strong><p>Участник подключился, ожидаем его видео</p></div>
+						<div class="empty-tile">{#if user.raised}<Hand size={30}/>{:else}<Users size={36}/>{/if}<strong>{user.name}</strong><p>{user.raised ? 'Поднял руку' : 'Участник подключился, ожидаем его видео'}</p></div>
 					{/each}
 					{#if participants.length === 0 && remoteUsers.length === 0}<div class="empty-tile"><Users size={36}/><strong>Ожидаем собеседника</strong><p>Другой участник войдет по общей ссылке на комнату</p></div>{/if}
 				</div>
-				{#if chatOpen}<aside class="chat"><div class="chat-heading">Сообщения <button onclick={() => chatOpen = false} aria-label="Закрыть чат"><X size={19}/></button></div><div class="chat-messages">{#each messages as message (message.id)}<div class="message"><strong>{message.self ? 'Вы' : message.name}</strong><p>{message.text}</p></div>{/each}</div><form onsubmit={(e) => { e.preventDefault(); sendChat(); }}><input bind:value={chatText} placeholder="Написать сообщение" aria-label="Сообщение"/><button type="submit" aria-label="Отправить сообщение"><Send size={19}/></button></form></aside>{/if}
+				{#if membersOpen}
+					<aside class="chat members-panel">
+						<div class="chat-heading">Участники ({userCount}) <button onclick={() => membersOpen = false} aria-label="Закрыть список"><X size={19}/></button></div>
+						<div class="members-list">
+							<div class="member-row"><span>Вы {#if myHandRaised}<Hand size={17}/>{/if}</span>{#if isModerator}<small>Ведущий</small>{/if}</div>
+							{#each remoteUsers as user (user.id)}
+								<div class="member-row">
+									<span>{user.name} {#if user.raised}<Hand size={17}/>{/if}</span>
+									{#if isModerator}
+										<div class="member-tools">
+											<button type="button" class="mute-action" onclick={() => muteUser(user.id, user.name)} title="Выключить микрофон участника" aria-label={'Выключить микрофон у ' + user.name}><MicOff size={16}/></button>
+											<button type="button" class="kick-action" onclick={() => kickUser(user.id, user.name)} title="Исключить участника" aria-label={'Исключить ' + user.name}><UserX size={16}/></button>
+										</div>
+									{/if}
+								</div>
+							{/each}
+						</div>
+					</aside>
+				{:else if chatOpen}
+					<aside class="chat">
+						<div class="chat-heading">Сообщения
+							<div class="chat-heading-actions">
+								{#if isModerator && messages.length}<button title="Очистить весь чат" aria-label="Очистить весь чат" onclick={() => clearChat()}><Trash2 size={17}/></button>{/if}
+								<button onclick={() => chatOpen = false} aria-label="Закрыть чат"><X size={19}/></button>
+							</div>
+						</div>
+						<div class="chat-messages">
+							{#each messages as message (message.id)}
+								<div class="message">
+									<div class="message-head"><strong>{message.self ? 'Вы' : message.name}</strong>
+										{#if isModerator && message.source && message.id}
+											<button class="delete-message" type="button" title="Удалить сообщение у всех" aria-label={'Удалить сообщение от ' + message.name} onclick={() => clearChat(message)}><Trash2 size={14}/></button>
+										{/if}
+									</div>
+									<p>{message.text}</p>
+								</div>
+							{/each}
+						</div>
+						<form onsubmit={(e) => { e.preventDefault(); sendChat(); }}><input bind:value={chatText} placeholder="Написать сообщение" aria-label="Сообщение"/><button type="submit" aria-label="Отправить сообщение"><Send size={19}/></button></form>
+					</aside>
+				{/if}
 			</div>
 			<div class="toolbar">
 				<button onclick={toggleMic} class:off={!micEnabled} title="Микрофон" aria-label="Микрофон">{#if micEnabled}<Mic size={22}/>{:else}<MicOff size={22}/>{/if}</button>
 				<button onclick={toggleCamera} class:off={!cameraEnabled} title="Камера" aria-label="Камера">{#if cameraEnabled}<Camera size={22}/>{:else}<CameraOff size={22}/>{/if}</button>
 				<button onclick={shareScreen} class:active={!!screenStream} disabled={!canPresent} title="Показать экран" aria-label="Показать экран"><MonitorUp size={22}/></button>
+				<button type="button" onclick={toggleHand} class:active={myHandRaised} aria-pressed={myHandRaised} title={myHandRaised ? 'Опустить руку' : 'Поднять руку'} aria-label={myHandRaised ? 'Опустить руку' : 'Поднять руку'}><Hand size={22}/></button>
 				<div class="blur-toolbar">
 					<button type="button" class:active={blurMode !== 'off'} disabled={!cameraEnabled}
 						onclick={() => blurMenuOpen = !blurMenuOpen}
@@ -442,7 +590,7 @@
 						</div>
 					{/if}
 				</div>
-				<button onclick={() => chatOpen = !chatOpen} class:active={chatOpen} title="Чат" aria-label="Чат"><MessageCircle size={22}/></button>
+				<button onclick={() => { chatOpen = !chatOpen; if (chatOpen) membersOpen = false; }} class:active={chatOpen} title="Чат" aria-label="Чат"><MessageCircle size={22}/></button>
 				<button class="hangup" onclick={leave} title="Завершить звонок" aria-label="Завершить звонок"><PhoneOff size={23}/></button>
 			</div>
 		</main>
@@ -470,10 +618,13 @@
 	.blur-choices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.blur-choices button{background:#f8faf6;border:1px solid #e0e6dc;border-radius:8px;min-height:52px;padding:8px 5px;display:flex;flex-direction:column;gap:4px;align-items:center;justify-content:center;color:#526151;cursor:pointer}.blur-choices button span{font-size:12px}.blur-choices button small{font-size:10px;color:#8b9988}.blur-choices button.selected{background:#e9f1e5;border-color:#759771;color:#2f5131}.blur-choices button:disabled{opacity:.55;cursor:not-allowed}
 	.blur-toolbar{position:relative;display:flex;align-items:center}.blur-popover{position:absolute;z-index:15;bottom:64px;left:50%;transform:translateX(-50%);width:205px;border-radius:13px;border:1px solid #e0e6dc;background:#fff;box-shadow:0 12px 32px #0003;padding:11px;display:flex;flex-direction:column;gap:4px;color:#29322b}.blur-popover>strong{padding:5px 7px 8px;font-size:12px}.toolbar .blur-popover button{width:100%;height:auto;min-height:38px;border-radius:7px;background:#fff;color:#405743;padding:8px 9px;display:flex;flex-direction:row;align-items:center;justify-content:space-between;gap:8px;text-align:left;font-size:12px}.toolbar .blur-popover button.selected{background:#e9f1e5;color:#2f5131}.blur-popover small{color:#879083;font-size:11px}.blur-popover p{margin:4px;font-size:11px;color:#71836e}
 	.primary{margin-top:17px;width:100%;border:0;border-radius:10px;min-height:49px;display:flex;align-items:center;justify-content:center;gap:12px;background:#526c51;color:white;font:inherit;font-size:14px;font-weight:650;cursor:pointer}.primary:disabled{background:#a4b2a0;cursor:not-allowed}.hint{text-align:center;color:#9ba198;font-size:11px;margin:12px 0 0}
-	.call{flex:1;min-height:0;display:flex;flex-direction:column;padding:0 clamp(12px,3vw,50px) 18px;gap:17px}.call-top{display:flex;justify-content:space-between;align-items:center;padding:5px 10px}.call-top strong{font-size:16px;display:block}.call-top span{color:#859083;font-size:12px}.call-meta{display:flex;align-items:center;gap:9px;color:#707d71}.call-meta button,.chat button{border:0;background:transparent;color:inherit;cursor:pointer}
+	.call{flex:1;min-height:0;display:flex;flex-direction:column;padding:0 clamp(12px,3vw,50px) 18px;gap:17px}.call-top{display:flex;justify-content:space-between;align-items:center;padding:5px 10px}.call-top strong{font-size:16px;display:block}.call-top span{color:#859083;font-size:12px}.call-meta{display:flex;align-items:center;gap:9px;color:#707d71}.call-meta button,.chat button{border:0;background:transparent;color:inherit;cursor:pointer}.role-indicator{display:inline-flex;align-items:center;gap:5px;border:1px solid #d7ddd2;border-radius:30px;color:#667266;background:#f3f5f0;padding:6px 9px;font-size:11px}.role-indicator.moderator{border-color:#b5c6aa;background:#e4eddf;color:#345a37;font-weight:650}
 	.call-main{display:flex;gap:16px;flex:1;min-height:350px}.tiles{flex:1;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:14px;align-content:center}.tile{position:relative;min-height:240px;aspect-ratio:16/10;background:#29312c;overflow:hidden;border-radius:17px}.tile video.dim{visibility:hidden}.empty-tile{border:1px dashed #cad1c8;border-radius:17px;min-height:240px;display:flex;align-items:center;justify-content:center;flex-direction:column;color:#879485;gap:12px}.empty-tile strong{color:#556151}.empty-tile p{font-size:13px;margin:0}.empty-tile button{background:#fff;border:1px solid #dce2d8;border-radius:9px;padding:10px 15px;display:flex;gap:8px;cursor:pointer;color:#4c6048}
 	.peer-loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:24px;text-align:center;color:#cdd6ca;font-size:13px;pointer-events:none}
 	.toolbar{display:flex;align-items:center;justify-content:center;gap:12px;padding:12px}.toolbar button{width:52px;height:52px;background:#e4e9e0;color:#425440}.toolbar button.active{background:#b8c9b3}.toolbar button.hangup{background:#bb625b;color:white;border-radius:18px;width:73px}.toolbar button:disabled{opacity:.4;cursor:not-allowed}
+	.hand-indicator{position:absolute;top:14px;left:14px;display:flex;gap:7px;align-items:center;padding:7px 11px;background:#f3e6bd;color:#56421d;border-radius:9px;font-weight:700;font-size:12px}
+	.call-meta .members-trigger{display:inline-flex;gap:6px;align-items:center;font-size:12px;padding:6px;border-radius:8px}.call-meta .members-trigger:hover{background:#e3eade}
+	.members-list{display:flex;flex-direction:column;padding:8px 14px;gap:2px;overflow-y:auto}.member-row{display:flex;align-items:center;justify-content:space-between;padding:11px 7px;border-bottom:1px solid #edf0e9;gap:8px;min-width:0}.member-row>span{display:flex;align-items:center;gap:7px;font-size:13px;overflow-wrap:anywhere}.member-row>span svg{color:#ad8b32;flex-shrink:0}.member-row small{font-size:11px;color:#527552}.member-tools{display:flex;align-items:center;gap:5px;flex-shrink:0}.mute-action{background:none;border:0;color:#536f81;cursor:pointer;padding:4px}.mute-action:hover{color:#184f73}.room-lock-button,.room-locked-label{display:inline-flex;align-items:center;gap:5px;padding:7px 9px;border:1px solid #d4ded4;border-radius:9px;background:#e9eee8;color:#415d43;font-size:12px}.room-lock-button{cursor:pointer}.room-lock-button.locked,.room-locked-label{background:#f8e9de;color:#8a5739;border-color:#e5c3ac}.room-lock-button:disabled{opacity:.6;cursor:wait}.kick-action,.delete-message{background:none;border:0;color:#a76559;cursor:pointer;padding:4px}.kick-action:hover,.delete-message:hover{color:#bb3c30}.message-head{display:flex;align-items:center;justify-content:space-between;gap:10px}.chat-heading-actions{display:flex;gap:8px;align-items:center}
 	.chat{width:300px;background:#fff;border:1px solid #e3e7df;border-radius:16px;display:flex;flex-direction:column;overflow:hidden}.chat-heading{padding:20px;font-weight:700;display:flex;justify-content:space-between}.chat-messages{flex:1;overflow:auto;padding:12px 20px}.message{padding:8px 0}.message strong{font-size:12px;color:#556c52}.message p{font-size:13px;margin:5px 0;overflow-wrap:anywhere}.chat form{border-top:1px solid #edf0e9;padding:10px;display:flex;align-items:center;gap:5px}.chat input{border:0}
 	.error{position:fixed;z-index:20;bottom:85px;left:50%;transform:translateX(-50%);max-width:min(600px,90vw);background:#fff1eb;color:#934536;display:flex;align-items:center;gap:12px;padding:13px 17px;border:1px solid #e8c5b8;border-radius:10px;box-shadow:0 12px 25px #0002;font-size:13px}.error button{background:none;border:0;color:inherit;cursor:pointer}
 	.footer{display:flex;justify-content:space-between;gap:15px;padding:21px clamp(20px,5vw,85px);border-top:1px solid #e4e7de;color:#989e95;font-size:11px}
