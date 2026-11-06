@@ -50,6 +50,8 @@
 			const next = await navigator.mediaDevices.getUserMedia({ audio: micEnabled, video: cameraEnabled });
 			stop(localStream);
 			localStream = next;
+			// If camera permissions complete after joining, publish the stream now.
+			if (state === 'connected' && canPresent) publishLocalMedia(next);
 			if (localVideo) { localVideo.srcObject = next; await localVideo.play().catch(() => {}); }
 		} catch {
 			error = 'Не удалось открыть камеру или микрофон. Проверьте разрешения браузера.';
@@ -84,6 +86,15 @@
 		}));
 		return c;
 	}
+	function publishLocalMedia(stream: MediaStream) {
+		if (!connection || !canPresent) return;
+		try {
+			outgoing?.close();
+			outgoing = publish(stream, 'camera');
+		} catch (e) {
+			error = 'Не удалось передать видео: ' + (e instanceof Error ? e.message : String(e));
+		}
+	}
 	async function join() {
 		if (!name.trim() || !room.trim() || !inviteToken || state !== 'preview') return;
 		state = 'connecting'; error = '';
@@ -108,7 +119,7 @@
 					state = 'connected';
 					canPresent = perms.includes('present');
 					sc.request({ '': ['audio', 'video'] });
-					if (localStream && canPresent) outgoing = publish(localStream, 'camera');
+					if (localStream && canPresent) publishLocalMedia(localStream);
 					if (!canPresent) error = 'У аккаунта нет права трансляции (present).';
 				}
 				if (kind === 'change') canPresent = perms.includes('present');
