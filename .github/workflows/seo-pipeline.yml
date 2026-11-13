@@ -1,0 +1,23 @@
+name: SEO pipeline tests
+on:
+  push:
+    branches: [wip-2]
+    paths:
+      - 'scripts/seo/**'
+      - '.github/workflows/seo-pipeline.yml'
+  pull_request:
+    paths:
+      - 'scripts/seo/**'
+      - '.github/workflows/seo-pipeline.yml'
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test scripts/seo/core.test.mjs
+      - run: node scripts/seo/cli.mjs collect --dry-run
