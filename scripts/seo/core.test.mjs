@@ -3,11 +3,12 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, existsSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
 import { intent, cluster, priority, aggregateSearch, validateDraft, canRelease, hashContent } from './core.mjs';
 import { dateWindow } from './connectors.mjs';
 
-const cli = new URL('./cli.mjs', import.meta.url).pathname;
+const cli = fileURLToPath(new URL('./cli.mjs', import.meta.url));
 test('intent distinguishes consultation, problem, information, and unrelated', () => {
   assert.equal(intent('психолог по выгоранию онлайн'), 'consultation');
   assert.equal(intent('как перестать прокрастинировать'), 'problem');
