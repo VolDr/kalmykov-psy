@@ -105,7 +105,9 @@ function storeDraft(id, draft, status = 'draft') {
   save(stateFile, state); return state;
 }
 async function draft(id, correction = '') {
-  const brief = topic(id); const research = required(titlePath(id, 'research'));
+  const brief = topic(id);
+  if (brief.format === 'tool') return output({ id, status: 'blocked-tool-requires-implementation-and-security-review' });
+  const research = required(titlePath(id, 'research'));
   if (research.status !== 'metadata-verified-awaiting-claim-review') return output({ id, status: 'blocked-research', researchStatus: research.status });
   if (dry) return output({ dryRun: true, id, wouldCall: 'Codex writer' });
   let article;
@@ -181,6 +183,14 @@ function monitor(id) {
   const report = { id, publishedAt: published.publishedAt, checkedAt: new Date().toISOString(), milestones };
   save(titlePath(id, 'monitor'), report); output(report);
 }
+function monitorAll() {
+  const dir = pathFor('topics');
+  if (!existsSync(dir)) return output({ status: 'no-published-topics', monitored: 0 });
+  const ids = readdirSync(dir, { withFileTypes: true }).filter(d => d.isDirectory() && existsSync(titlePath(d.name, 'publication'))).map(d => d.name);
+  if (dry) return output({ dryRun: true, wouldMonitor: ids });
+  for (const id of ids) monitor(id);
+  if (!ids.length) output({ status: 'no-published-topics', monitored: 0 });
+}
 function demo() {
   const query = 'почему я откладываю сложные задачи на работе';
   const id = topicId(query);
@@ -207,8 +217,9 @@ try {
     case 'cycle': if (!id) throw new Error('--id required'); await cycle(id); break;
     case 'status': if (!id) throw new Error('--id required'); status(id); break;
     case 'monitor': if (!id) throw new Error('--id required'); monitor(id); break;
+    case 'monitor-all': monitorAll(); break;
     case 'demo': demo(); break;
-    case 'help': output({ commands: ['collect', 'plan', 'topic --query=... --slug=...', 'research --id=...', 'draft --id=...', 'review --id=...', 'cycle --id=...', 'status --id=...', 'monitor --id=...', 'demo'], options: ['--dry-run', '--dir=storage/seo-pipeline'] }); break;
+    case 'help': output({ commands: ['collect', 'plan', 'topic --query=... --slug=...', 'research --id=...', 'draft --id=...', 'review --id=...', 'cycle --id=...', 'status --id=...', 'monitor --id=...', 'monitor-all', 'demo'], options: ['--dry-run', '--dir=storage/seo-pipeline'] }); break;
     default: throw new Error(`Unknown command: ${command}`);
   }
 } catch (e) { console.error(JSON.stringify({ status: 'error', message: String(e) })); process.exitCode = 1; }
