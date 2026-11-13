@@ -83,10 +83,13 @@ node scripts/seo/cli.mjs review --id=<returned-id>
 node scripts/seo/cli.mjs cycle --id=<returned-id> --revisions=2
 node scripts/seo/cli.mjs status --id=<returned-id>
 node scripts/seo/cli.mjs monitor --id=<returned-id>
+node scripts/seo/cli.mjs monitor-all
 node scripts/seo/cli.mjs demo
 ```
 
 `fixture-search.json` contains **fabricated numbers strictly for software tests**, not real site metrics. The command `demo` creates an entirely new, offline demonstration brief and short test draft with a real known DOI candidate. It does **not** claim to have run genuine web research, Codex or Playwright. It deliberately records these steps as blocked. It writes nothing to live routes or PostgreSQL. The fixture can never pass the release gate.
+
+`tool` is supported in planning/briefing only: interactive source code and safety review require a separate implementation; the writer explicitly blocks generating an inert fake tool. `article` and `landing` can produce independent drafts but still do not become site routes.
 
 `research` is blocked until SERP evidence exists; scientific source candidates from Codex are individually checked against Crossref. `draft` requires verified DOI metadata. `review` needs Codex and actual Playwright screenshots of a **standalone local preview**; the real SvelteKit page must still be checked on staging. `cycle` can revise at most 2 times by default and stops instead of fabricating reviewer success.
 
@@ -95,6 +98,8 @@ node scripts/seo/cli.mjs demo
 This MVP has **no publish/merge/DB-insert command**. A pass means only `passed-for-human-approval`. Actual publication requires explicit human approval and a separate release PR. That release must verify: route HTTP 200, correct canonical, no `noindex`, sitemap membership, Article/Person JSON-LD, internal link targets, responsive UX against the **actual website**, and analytics consent requirements. Ordinary articles should not use Google Indexing API. Bing URL submission can be supported later with proper API access.
 
 `monitor` is inert until `topics/<id>/publication.json` has a genuine human-verified `approvedByHuman`, ISO `publishedAt` and real `url`. At day 7, 21 and 60 it compares saved URL-level GSC snapshots when available and returns `missing-comparable-metrics` rather than invented numbers when not. Conversions (article → booking click → consultation request) require additional instrumentation and validated aggregate attribution; until then they are `null`, not zero. No automatic rollback.
+
+After credentials and durable server storage exist, schedule e.g. daily at 05:00: `node scripts/seo/cli.mjs collect && node scripts/seo/cli.mjs monitor-all`. This MVP does **not** install a server cron job or expose secrets. GitHub Actions ephemeral storage alone is not a durable metrics history; persist snapshots securely instead of committing confidential search data to this public repository.
 
 ## Public API docs
 
