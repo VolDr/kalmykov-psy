@@ -222,4 +222,15 @@ export const questionnaireCategories: Category[] = [
 			}
 		]
 	}
+	{
+		category: 'Ментализация',
+		questionnaires: [
+			{
+				title: 'Опросник ментализации (MZQ-15)',
+				link: '/questionnaires/mzq15',
+				description: '15 утверждений об осознавании эмоций, саморефлексии и регуляции чувств. Исследовательский перевод.',
+				time: '3–5 минут'
+			}
+		]
+	}
 ];

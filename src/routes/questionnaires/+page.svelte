@@ -67,6 +67,7 @@
 		| 'perfectionism'
 		| 'procrastination'
 		| 'impostor'
+		| 'mentalization'
 		| 'other';
 
 	type Topic = {
@@ -119,6 +120,12 @@
 			icon: '/impostor.webp'
 		},
 		{
+			id: 'mentalization',
+			title: 'Ментализация',
+			description: 'Осознавание эмоций и понимание собственных переживаний.',
+			icon: 'icon-[lucide--brain]'
+		},
+		{
 			id: 'other',
 			title: 'Другие темы',
 			description: 'Сон, стресс, самооценка, удовлетворённость жизнью и другие аспекты.',
@@ -140,6 +147,7 @@
 		const categoryText = questionnaire.sourceCategory.toLowerCase();
 
 		// раньше прокрастинации: «ipss» иначе совпадёт с «ips»
+		if (/(ментализац|mzq|mentaliz)/i.test(ownText)) return 'mentalization';
 		if (/(самозван|impostor|ipss)/i.test(ownText)) return 'impostor';
 		if (/(bat|выгоран|истощен|истощён|burnout)/i.test(ownText)) return 'burnout';
 		if (/(gad|тревож|тревог|anxiety)/i.test(ownText)) return 'anxiety';

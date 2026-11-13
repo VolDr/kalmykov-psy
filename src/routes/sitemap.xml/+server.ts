@@ -7,6 +7,7 @@ const questionnaires = [
 	'psi',
 	'ips',
 	'gps9',
+	'mzq15',
 	'impostor',
 	'ipss3',
 	'bat12',
