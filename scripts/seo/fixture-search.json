@@ -1,0 +1,10 @@
+{
+  "kind": "synthetic-queries-for-testing-only",
+  "note": "Fictional impressions/clicks/positions; NEVER interpret as SEO estimates.",
+  "rows": [
+    { "provider": "google", "windowDays": 28, "query": "психолог при выгорании онлайн", "page": "https://kalmykov-psy.ru/", "impressions": 100, "clicks": 2, "position": 13 },
+    { "provider": "yandex", "windowDays": 28, "query": "почему откладываю работу", "page": null, "impressions": 90, "clicks": 3, "position": 11 },
+    { "provider": "google", "windowDays": 90, "query": "как бороться с самокритикой", "page": "https://kalmykov-psy.ru/", "impressions": 210, "clicks": 7, "position": 18 },
+    { "provider": "google", "windowDays": 28, "query": "заказать холодильник", "page": null, "impressions": 9000, "clicks": 50, "position": 3 }
+  ]
+}
