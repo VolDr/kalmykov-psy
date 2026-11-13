@@ -1,6 +1,8 @@
 import { execFileSync } from 'node:child_process';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { tmpdir } from 'node:os';
+import { mkdtempSync } from 'node:fs';
 
 const STRING = { type: 'string' };
 const STRINGS = { type: 'array', items: STRING };
@@ -19,11 +21,11 @@ export function runCodex(prompt, outputSchema, scratch, images = []) {
   mkdirSync(scratch, { recursive: true });
   const schemaFile = join(scratch, 'response-schema.json');
   writeFileSync(schemaFile, JSON.stringify(outputSchema, null, 2));
-  const args = ['exec', '--sandbox', 'read-only', '--output-schema', schemaFile];
+  const args = ['exec', '--skip-git-repo-check', '--sandbox', 'read-only', '--output-schema', schemaFile];
   if (images.length) args.push('--image', images.join(','));
   args.push('-');
   const output = execFileSync('codex', args, {
-    input: prompt, encoding: 'utf8', cwd: process.cwd(), maxBuffer: 8 * 1024 * 1024,
+    input: prompt, encoding: 'utf8', cwd: mkdtempSync(join(tmpdir(), 'seo-codex-isolated-')), maxBuffer: 8 * 1024 * 1024,
     timeout: 5 * 60 * 1000, stdio: ['pipe', 'pipe', 'pipe']
   });
   return JSON.parse(output);
