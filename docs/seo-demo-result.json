@@ -1,0 +1,16 @@
+{
+  "date": "2026-11-13",
+  "kind": "offline-mvp-demo-not-a-published-article",
+  "topic": "почему я откладываю сложные задачи на работе",
+  "searchMetrics": "synthetic-or-unavailable-not-reported-as-real",
+  "draft": "isolated unpublished demonstration",
+  "citation": "Steel (2007), DOI:10.1037/0033-2909.133.1.65; Crossref metadata recheck pending",
+  "checks": {
+    "A_scientific": "not-run-no-Codex/evidence-review",
+    "B_seo": "not-run-no-Codex/SERP-key",
+    "C_aiSlop": "not-run-no-Codex",
+    "D_visual": "not-run-no-Playwright-browser"
+  },
+  "releaseGate": "BLOCKED",
+  "published": false
+}
