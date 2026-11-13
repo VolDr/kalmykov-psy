@@ -147,7 +147,7 @@
 		const categoryText = questionnaire.sourceCategory.toLowerCase();
 
 		// раньше прокрастинации: «ipss» иначе совпадёт с «ips»
-		if (/(ментализац|mzq|mentaliz)/i.test(ownText)) return 'mentalization';
+		if (/(ментализац|рефлексивн|mzq|rfq|mentaliz)/i.test(ownText)) return 'mentalization';
 		if (/(самозван|impostor|ipss)/i.test(ownText)) return 'impostor';
 		if (/(bat|выгоран|истощен|истощён|burnout)/i.test(ownText)) return 'burnout';
 		if (/(gad|тревож|тревог|anxiety)/i.test(ownText)) return 'anxiety';

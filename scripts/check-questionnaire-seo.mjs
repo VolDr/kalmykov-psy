@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
 const read = (file) => readFileSync(file, 'utf8');
-const ids = ['phq9', 'gad7', 'cpq', 'psi', 'ips', 'gps9', 'mzq15', 'impostor', 'ipss3', 'bat4', 'bat12', 'bat23'];
+const ids = ['phq9', 'gad7', 'cpq', 'psi', 'ips', 'gps9', 'mzq15', 'rfq8', 'impostor', 'ipss3', 'bat4', 'bat12', 'bat23'];
 const layout = read('src/routes/+layout.svelte');
 const content = read('src/lib/data/questionnaireMethodology.ts');
 const catalogue = read('src/lib/data/content.ts');

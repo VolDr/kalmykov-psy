@@ -226,6 +226,12 @@ export const questionnaireCategories: Category[] = [
 		category: 'Ментализация',
 		questionnaires: [
 			{
+				title: 'Опросник рефлексивного функционирования (RFQ-8)',
+				link: '/questionnaires/rfq8',
+				description: '8 утверждений об уверенности и неопределённости в понимании психических состояний.',
+				time: '2–3 минуты'
+			},
+			{
 				title: 'Опросник ментализации (MZQ-15)',
 				link: '/questionnaires/mzq15',
 				description: '15 утверждений об осознавании эмоций, саморефлексии и регуляции чувств. Исследовательский перевод.',

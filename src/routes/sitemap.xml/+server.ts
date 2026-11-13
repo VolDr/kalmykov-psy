@@ -8,6 +8,7 @@ const questionnaires = [
 	'ips',
 	'gps9',
 	'mzq15',
+	'rfq8',
 	'impostor',
 	'ipss3',
 	'bat12',
